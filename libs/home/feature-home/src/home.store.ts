@@ -17,14 +17,14 @@ export const HomeStore = signalStore(
       pipe(
         switchMap(() =>
           homeService.getTags().pipe(
-            tapResponse(
-              (response) => {
+            tapResponse({
+              next: (response) => {
                 patchState(store, { tags: response.tags });
               },
-              (error) => {
+              error: (error) => {
                 console.error('error getting tags: ', error);
               },
-            ),
+            }),
           ),
         ),
       ),

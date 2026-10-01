@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
@@ -68,7 +68,7 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions(),
       withComponentInputBinding(),
     ),
-    provideHttpClient(withInterceptors([errorHandlingInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([errorHandlingInterceptor])),
     { provide: API_URL, useValue: environment.api_url },
     // provideServiceWorker('ngsw-worker.js', {
     //   enabled: !isDevMode(),

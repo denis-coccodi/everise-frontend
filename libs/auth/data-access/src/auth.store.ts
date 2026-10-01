@@ -1,4 +1,5 @@
 import { inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
@@ -42,7 +43,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user, loggedIn: true });
                   router.navigateByUrl('/');
                 },
-                error: ({ error }) => formErrorsStore.setErrors(error.errors),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
               }),
             ),
           ),
@@ -57,7 +58,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user, loggedIn: true });
                   router.navigateByUrl('/');
                 },
-                error: ({ error }) => formErrorsStore.setErrors(error.errors),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
               }),
             ),
           ),
@@ -72,7 +73,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user });
                   router.navigate(['profile', user.username]);
                 },
-                error: ({ error }) => formErrorsStore.setErrors(error.errors),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
               }),
             ),
           ),
@@ -87,7 +88,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user: initialUserValue, loggedIn: false });
                   router.navigateByUrl('login');
                 },
-                error: ({ error }) => formErrorsStore.setErrors(error.errors),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
               }),
             ),
           ),

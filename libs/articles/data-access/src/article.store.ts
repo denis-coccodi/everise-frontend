@@ -1,4 +1,5 @@
 import { inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
@@ -129,7 +130,7 @@ export const ArticleStore = signalStore(
             articlesService.addComment(store.data.slug(), addedComment).pipe(
               tapResponse({
                 next: ({ comment }) => patchState(store, { comments: [comment, ...store.comments()] }),
-                error: ({ error }) => formErrorsStore.setErrors(error.errors),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
               }),
             ),
           ),
@@ -141,7 +142,7 @@ export const ArticleStore = signalStore(
             articlesService.publishArticle(article).pipe(
               tapResponse({
                 next: ({ article }) => router.navigate(['article', article.slug]),
-                error: ({ error }) => formErrorsStore.setErrors({ errors: error.errors }),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors({ errors: error.errors }),
               }),
             ),
           ),
@@ -153,7 +154,7 @@ export const ArticleStore = signalStore(
             articlesService.editArticle(editArticle, slug).pipe(
               tapResponse({
                 next: ({ article }) => router.navigate(['article', article.slug]),
-                error: ({ error }) => formErrorsStore.setErrors(error.errors),
+                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
               }),
             ),
           ),
