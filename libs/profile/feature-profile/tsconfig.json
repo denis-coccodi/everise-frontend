@@ -24,7 +24,6 @@
   "angularCompilerOptions": {
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true,
-    "_enabledBlockTypes": ["if", "for", "switch", "defer"]
+    "strictTemplates": true
   }
 }
