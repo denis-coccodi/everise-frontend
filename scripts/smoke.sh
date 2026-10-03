@@ -1,25 +1,25 @@
 #!/bin/sh
-# Smoke test against a deployed (or `wrangler dev`) Conduit frontend and the
-# backend it was built for.
+# Smoke test against a deployed Conduit frontend. The site forwards /api to its
+# backend over a service binding, so the API is checked through <frontend-url>/api.
 #
-# Usage: scripts/smoke.sh read|create <frontend-url> <api-url> [cookie-jar]
-#   e.g. scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev https://conduit.denis-coccodi.workers.dev/api
-#   read:   app shell, a deep link (SPA fallback), the service worker, that the
-#           deployed bundle calls <api-url>, and that the backend allows the
-#           frontend's origin (CORS with credentials). Writes nothing.
+# Usage: scripts/smoke.sh read|create <frontend-url> [cookie-jar]
+#   e.g. scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev
+#   read:   app shell, a deep link (SPA fallback), the service worker, the default
+#           avatar, that the deployed bundle calls the relative /api, and that
+#           <frontend-url>/api reaches the backend. Writes nothing.
 #   create: read, then register a random user and read it back with the auth
-#           cookie, sending the frontend's Origin like the browser does.
-#           Writes test data: not for production.
+#           cookie, like the browser does. Writes test data: not for production.
+#
+# BUNDLE_API overrides the api_url expected in the bundle (default: /api).
 #
 # Exits non-zero if any request returns an unexpected status code or body.
 #
-# Staging (frontend and backend) is behind Cloudflare Access. Set
-# CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET to an Access service token and
-# every request sends it; leave them unset for production or wrangler dev.
+# Staging is behind Cloudflare Access. Set CF_ACCESS_CLIENT_ID and
+# CF_ACCESS_CLIENT_SECRET to an Access service token and every request sends it;
+# leave them unset for production.
 set -u
-MODE=${1:-}; FE=${2:-}; API=${3:-}; J=${4:-${TMPDIR:-/tmp}/conduit-web-smoke-jar.txt}
-FE=${FE%/}; API=${API%/}
-ORIGIN=$(printf '%s' "$FE" | sed -E 's#^(https?://[^/]+).*#\1#')
+MODE=${1:-}; FE=${2:-}; J=${3:-${TMPDIR:-/tmp}/conduit-web-smoke-jar.txt}
+FE=${FE%/}; API=$FE/api; BUNDLE_API=${BUNDLE_API:-/api}
 FAILED=0
 
 ok()   { echo "ok   $1"; }
@@ -51,28 +51,25 @@ req() {
   fi
 }
 
-# cors <label> <curl args...>: the response must allow $ORIGIN with credentials.
-cors() {
-  label=$1; shift
-  headers=$(http -s -o /dev/null -D - -H "Origin: $ORIGIN" "$@" | tr -d '\r')
-  if printf '%s\n' "$headers" | grep -qix "access-control-allow-origin: $ORIGIN" \
-    && printf '%s\n' "$headers" | grep -qix 'access-control-allow-credentials: true'; then
-    ok "[cors] $label"
-  else
-    fail "[cors: $ORIGIN not allowed with credentials] $label"
-    printf '%s\n' "$headers" | grep -i '^HTTP\|^access-control' | head -5
-  fi
+# image <label> <url>: must answer 200 with an image content type.
+image() {
+  info=$(http -s -o /dev/null -w '%{http_code} %{content_type}' "$2")
+  case "$info" in
+    "200 image/"*) ok "[$info] $1" ;;
+    *) fail "[$info, expected 200 image/*] $1" ;;
+  esac
 }
 
 read_checks() {
   req 200 '<cdt-root'        "app shell"       "$FE/"
   req 200 '<cdt-root'        "deep link (SPA)" "$FE/article/some-slug"
   req 200 'addEventListener' "service worker"  "$FE/offline-sw.js"
+  image "default avatar" "$FE/assets/images/avatar-profile.png"
 
   # The API URL is baked into the bundle at build time: check the right build was deployed.
   # The minifier may quote it with ", ' or a backtick. Unminified builds keep
   # comments, so commented-out alternatives in environment.ts are skipped.
-  api_re="api_url: *[\"'\`]$(printf '%s' "$API" | sed 's/[.[\*^$/]/\\&/g')[\"'\`]"
+  api_re="api_url: *[\"'\`]$(printf '%s' "$BUNDLE_API" | sed 's/[.[\*^$/]/\\&/g')[\"'\`]"
   # Right after `wrangler deploy`, Cloudflare can serve the previous build for a
   # few seconds, so retry for up to a minute (BUNDLE_WAIT seconds) before failing.
   found=""; waited=0; wait_max=${BUNDLE_WAIT:-60}
@@ -86,15 +83,13 @@ read_checks() {
     sleep 5; waited=$((waited + 5))
   done
   if [ -n "$found" ]; then
-    if [ "$waited" -gt 0 ]; then ok "bundle calls $API ($found, after ${waited}s)"; else ok "bundle calls $API ($found)"; fi
+    if [ "$waited" -gt 0 ]; then ok "bundle calls $BUNDLE_API ($found, after ${waited}s)"; else ok "bundle calls $BUNDLE_API ($found)"; fi
   else
-    fail "no bundle script contains \"$API\" after ${waited}s (wrong build configuration?)"
+    fail "no bundle script contains api_url \"$BUNDLE_API\" after ${waited}s (wrong build configuration?)"
   fi
 
-  req 200 '"tags"' "GET $API/tags" -H "Origin: $ORIGIN" "$API/tags"
-  cors "GET /tags"              "$API/tags"
-  cors "preflight POST /users" -X OPTIONS -H 'Access-Control-Request-Method: POST' \
-    -H 'Access-Control-Request-Headers: content-type' "$API/users"
+  # Answered by the backend through the service binding, not by the SPA fallback.
+  req 200 '"tags"' "GET /api/tags via the frontend" "$API/tags"
 }
 
 case "$MODE" in
@@ -104,12 +99,12 @@ case "$MODE" in
   create)
     read_checks
     U="websmoke$(date +%s)"
-    req 201 "\"$U\"" "register $U" -X POST -H "Origin: $ORIGIN" -H 'Content-Type: application/json' "$API/users" \
+    req 201 "\"$U\"" "register $U" -X POST -H 'Content-Type: application/json' "$API/users" \
       -d "{\"user\":{\"email\":\"$U@example.com\",\"username\":\"$U\",\"password\":\"Passw0rd!\"}}"
-    req 200 "\"$U\"" "current user via cookie" -H "Origin: $ORIGIN" "$API/user"
+    req 200 "\"$U\"" "current user via cookie" "$API/user"
     ;;
   *)
-    echo "usage: $0 read|create <frontend-url> <api-url> [cookie-jar]" >&2
+    echo "usage: $0 read|create <frontend-url> [cookie-jar]" >&2
     exit 2
     ;;
 esac

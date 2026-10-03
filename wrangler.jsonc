@@ -1,24 +1,33 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "conduit-web",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-09-01",
 
-  // Static files only: the Angular build, with index.html for unknown paths so
-  // deep links work. The app calls its backend directly; which one is baked in
-  // at build time (src/environments/*), so build with the matching configuration
-  // before deploying: `--configuration=production` here, `--configuration=staging`
-  // for `--env staging`.
+  // The Angular build, with index.html for unknown paths so deep links work.
+  // Build with the matching configuration before deploying:
+  // `--configuration=production` here, `--configuration=staging` for `--env staging`.
+  // /api/* runs the Worker first (worker/index.ts), which forwards it to the backend.
   "assets": {
     "directory": "./dist/apps/conduit",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
   },
+
+  // The backend Worker of this environment, reached inside Cloudflare (not over
+  // the public internet): the app calls the relative /api and this site forwards it.
+  "services": [{ "binding": "API", "service": "conduit" }],
 
   "observability": { "enabled": true },
 
   "dev": { "port": 4200 },
 
   // `wrangler deploy --env staging` deploys a separate Worker, "conduit-web-staging".
+  // Service bindings are not inherited, so the staging backend is set here.
   "env": {
-    "staging": {}
+    "staging": {
+      "services": [{ "binding": "API", "service": "conduit-staging" }]
+    }
   }
 }
