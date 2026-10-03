@@ -8,3 +8,4 @@
 
 /.nx/workspace-data
 package-lock.json
+.nx/self-healing

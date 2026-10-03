@@ -5,9 +5,15 @@ description: The required way to make any change in this repo (code, tests, docs
 
 # Feature branch → pull request → main
 
-Every change reaches `main` through a pull request, and the PR is merged only once the `test` check (the CI/CD workflow's build job) passes. Merging into `main` then deploys to staging automatically. Production stays a separate manual step (see the `deploy` skill).
+`main` is protected: nobody, admins included, can push to it directly. Every change reaches `main` through a pull request, and the PR can only be merged once the `test` check (the CI/CD workflow's lint + test + build job) passes on a branch that is up to date with `main`. Merging into `main` then deploys to staging automatically. Production stays a separate manual step (see the `deploy` skill).
 
-Check whether `main` is protected: `gh api repos/denis-coccodi/nx-angular-social-example/branches/main/protection`. If it is not (404), still follow this flow, and do not change protection settings yourself; tell the user it can be enabled (require PR + `test` check, up to date before merge, include admins) to match the backend repo.
+The same rules as the backend repo apply:
+
+- Branch protection on `main`: PR required (0 approvals), `test` required and strict (up to date), enforced for admins, no force pushes, no deletion.
+- Ruleset "make sure tests pass" on every branch (`~ALL`): no deletion, no force push (so integrate `main` with `git merge origin/main`, not rebase + force-push), `test` required, Copilot code review on every push. Repository admins can bypass it.
+- GitHub environment `production` accepts deployments from `main` only; `staging` from any branch.
+
+Inspect them with `gh api repos/denis-coccodi/nx-angular-social-example/branches/main/protection` and `gh api repos/denis-coccodi/nx-angular-social-example/rulesets`.
 
 ## 1. Start a branch before the first edit
 
@@ -24,7 +30,7 @@ git switch -c feature/<feature-name>
 ## 2. Commit and push as often as needed
 
 ```
-npx nx run conduit:build --configuration=production   # must exit 0
+npx nx run-many -t lint test && npx nx run conduit:build --configuration=production   # must exit 0
 git add <files> && git commit -m "..."
 git push -u origin feature/<feature-name>             # later pushes: git push
 ```

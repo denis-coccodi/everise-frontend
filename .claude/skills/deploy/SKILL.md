@@ -18,7 +18,6 @@ Repo: `denis-coccodi/nx-angular-social-example`, branch `main`. Cloudflare accou
 - Both `environment.ts` and `environment.prod.ts` use `api_url: '/api'`, so one production build serves both environments; the environment is chosen by the wrangler `--env`, like the backend.
 - `services` is not inherited by `env.staging`; any new binding must be added in both places. `assets` is inherited.
 - The backend Worker must exist before the frontend binding to it can deploy. Backend repo: `../typescript-cloudflare-backend` (see its own `deploy` skill).
-- The single-spa build (`build-single-spa`) is the exception: it uses `environment.single-spa.ts` with the absolute production API URL, because inside the hub `/api` would hit the hub's origin.
 
 ## Normal path: merge a PR into main
 
@@ -26,7 +25,7 @@ Changes reach `main` through pull requests (see the `feature-branch` skill). Mer
 
 `.github/workflows/ci-cd.yaml` (**CI/CD**: push to `main`, PRs, and `workflow_dispatch` on any branch):
 
-- **test**: `npm ci` then `nx run conduit:build --configuration=production`. Lint and unit tests are not gated yet because they already fail on `main` (an empty arrow function in `sw-idb-cache.js`; `zone.js` missing for vitest). Once fixed, add `npx nx run-many -t lint test` to the job.
+- **test**: `npm ci`, `nx run-many -t lint test`, then `nx run conduit:build --configuration=production`. This is the required check on `main` and, through the ruleset, on every branch.
 - **deploy-staging** (after test, on push to `main` or a manual run): builds, deploys staging with message `<branch>@<sha>`, runs `scripts/smoke.sh create` against it, writes a summary (on `main`, with a link to the production workflow). Job-level `concurrency: deploy-staging` serializes deploys.
 - Deploy another branch to staging: `gh workflow run ci-cd.yaml --ref <branch>`. There is one staging Worker, so this replaces what is there until the next merge to `main`. Tell the user which branch staging is now running.
 
@@ -37,7 +36,7 @@ Changes reach `main` through pull requests (see the `feature-branch` skill). Mer
 
 Production deploys are the user's decision: they start it from Actions → Deploy production → **Run workflow**. Only start it yourself (`gh workflow run deploy-production.yaml --ref main`) when the user explicitly asks for a production deploy, and only after the commit's CI/CD run is green.
 
-Before pushing, run `npx nx run conduit:build --configuration=production` locally; it must exit 0.
+Before pushing, run `npx nx run-many -t lint test && npx nx run conduit:build --configuration=production` locally; it must exit 0.
 
 After merging, wait for the run on `main` and report each job:
 

@@ -24,8 +24,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Lint and unit tests are not gated yet: they fail on main today
-      # (sw-idb-cache.js lint error, zone.js missing for vitest).
+      - run: npx nx run-many -t lint test
       - run: npx nx run conduit:build --configuration=production
 
   deploy-staging:
