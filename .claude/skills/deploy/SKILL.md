@@ -7,19 +7,20 @@ description: Ship the Conduit Angular frontend to Cloudflare Workers (staging, t
 
 Repo: `denis-coccodi/nx-angular-social-example`, branch `main`. Cloudflare account ID: `ba2955b2991a5a38d46bc4144212e9cc` (same account as the backend).
 
-| Environment | Worker                | URL                                                   | Build configuration / env file            | Calls backend                                         | wrangler                                                       |
+| Environment | Worker                | URL                                                   | Build configuration / env file            | `/api` goes to                                        | wrangler                                                       |
 | ----------- | --------------------- | ----------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
-| local       | —                     | http://localhost:4200                                 | `development` / `debug`: `environment.ts` | http://localhost:8080/api (editable)                  | `npx wrangler dev` (`npm run start-sw`)                        |
-| staging     | `conduit-web-staging` | https://conduit-web-staging.denis-coccodi.workers.dev | `staging`: `environment.staging.ts`       | https://conduit-staging.denis-coccodi.workers.dev/api | `npx wrangler deploy --env staging` (`npm run deploy:staging`) |
-| production  | `conduit-web`         | https://conduit-web.denis-coccodi.workers.dev         | `production`: `environment.prod.ts`       | https://conduit.denis-coccodi.workers.dev/api         | `npx wrangler deploy` (`npm run deploy`)                       |
+| local       | —                     | http://localhost:4200                                 | `development` / `debug`: `environment.ts` | http://localhost:8080/api, called directly (editable) | `npx wrangler dev` (`npm run start-sw`)                        |
+| staging     | `conduit-web-staging` | https://conduit-web-staging.denis-coccodi.workers.dev | `staging`: `environment.staging.ts`       | backend Worker `conduit-staging` (service binding)    | `npx wrangler deploy --env staging` (`npm run deploy:staging`) |
+| production  | `conduit-web`         | https://conduit-web.denis-coccodi.workers.dev         | `production`: `environment.prod.ts`       | backend Worker `conduit` (service binding)            | `npx wrangler deploy` (`npm run deploy`)                       |
 
 ## How it fits together
 
-- `wrangler.jsonc` (repo root) only serves `dist/apps/conduit` as static assets with SPA fallback; there is no Worker script. Staging is `env.staging` (a separate Worker, `conduit-web-staging`); `assets` is inherited.
-- The backend URL is baked in at build time by `fileReplacements` in `apps/conduit/project.json`, so **build with the configuration of the environment you deploy to**: `--configuration=staging` before `wrangler deploy --env staging`, `--configuration=production` before `wrangler deploy`. Deploying the wrong build points the site at the wrong backend; the smoke test catches it (`bundle calls <api-url>`).
-- `environment.ts` is the local default and is meant to be edited by hand: it lists the staging and production URLs as comments. Its `serviceWorker` flag is off locally; the staging and production files turn it on.
-- The browser calls the backend cross-origin with credentials. The backend's `CORS_ORIGINS` (its `wrangler.jsonc`, per environment) must list the frontend's origin; `localhost:4200` is allowed on both backends. A new frontend URL needs a backend change first (backend repo: `../typescript-cloudflare-backend`, see its `deploy` skill).
-- The auth cookie is `SameSite=None; Secure`. Every `*.workers.dev` subdomain is a separate site, so it is a third-party cookie for the deployed frontends: browsers that block third-party cookies (Safari by default) will not stay logged in. Serving frontend and backend under one custom domain would fix it.
+- `wrangler.jsonc` (repo root) serves `dist/apps/conduit` as static assets with SPA fallback, and runs `worker/index.ts` first for `/api/*` only (`assets.run_worker_first`). The script forwards those requests to the backend Worker over the `API` service binding: `conduit` at the top level, `conduit-staging` under `env.staging` (bindings are not inherited, so each environment sets its own). Staging is a separate Worker, `conduit-web-staging`; `main` and `assets` are inherited.
+- The browser therefore only talks to the frontend's site: no CORS, and the backend's auth cookie is first-party (set on the frontend host). Staging needs only the frontend's Cloudflare Access login; the binding reaches the backend inside Cloudflare, without passing the backend's own Access lock.
+- Deployed builds (`environment.staging.ts`, `environment.prod.ts`) use `api_url: '/api'`. Which backend answers is decided by the binding of the Worker you deploy to, so **build with the configuration of the environment you deploy to** mainly for the right environment file flags; the smoke test checks the bundle uses `/api`, not a dev URL.
+- The bound backend Worker must exist under that name, or `/api` fails. Renaming a backend Worker needs a change here first.
+- `environment.ts` is the local dev build: it calls a backend directly (default `http://localhost:8080/api`, staging as a comment; staging's CORS allows `localhost:4200`). Its `serviceWorker` flag is off locally; the staging and production files turn it on.
+- The backend's default avatar URL is built from the backend's `BASE_URL`, which points at this site; the image is `apps/conduit/src/assets/images/avatar-profile.png` here.
 
 ## Normal path: merge a PR into main
 
@@ -63,10 +64,10 @@ Wrangler on this machine is logged in with OAuth (`npx wrangler whoami`). Build 
 ## Known failure causes
 
 - **Missing secrets**: the deploy step fails with "it's necessary to set a CLOUDFLARE_API_TOKEN". Fix on GitHub, then `gh run rerun --failed`.
-- **Smoke test: `no bundle script contains <api-url> after 60s`**: the deployed build was made with the wrong configuration. Rebuild with the right one and redeploy. (Right after a deploy Cloudflare serves the previous build for a few seconds; the check retries for up to `BUNDLE_WAIT` seconds, default 60, to ride that out.)
-- **Smoke test: `[cors: … not allowed with credentials]`**, or in the browser "blocked by CORS policy": the backend of that environment does not list the frontend origin in `CORS_ORIGINS`, or that backend change is not deployed yet.
+- **Smoke test: `no bundle script contains api_url "/api" after 60s`**: a dev build was deployed. Rebuild with the environment's configuration and redeploy. (Right after a deploy Cloudflare serves the previous build for a few seconds; the check retries for up to `BUNDLE_WAIT` seconds, default 60, to ride that out.)
+- **Smoke test: `GET /api/tags via the frontend` returns HTML**: `/api/*` is not reaching `worker/index.ts`; check `assets.run_worker_first` in `wrangler.jsonc`. **5xx from `/api`**: the bound backend Worker is missing or failing; check it with the backend's `smoke-test` skill.
+- **Staging smoke test gets `302` to `*.cloudflareaccess.com`**: Cloudflare Access rejected CI. The `CI service token` (Service Auth) policy must be on the `conduit-web-staging` Access application; check Zero Trust → Applications → its Policies tab (it can differ from the Worker's Access tab), and the `CF_ACCESS_CLIENT_*` repository secrets.
 - **Smoke test gets `404` / `error code: 1042`**: a brand-new `workers.dev` hostname is not live yet. Only on a Worker's first deploy; re-run the job after a minute.
 - **API calls return 5xx but the shell loads**: the backend is failing; check it with the backend's `smoke-test` skill.
-- **Logged out right after logging in (Safari, strict privacy settings)**: third-party cookie blocked; see "How it fits together".
 - **Users see an old version after deploy**: `offline-sw.js` caches responses; a hard reload or unregistering the service worker fixes it.
 - **Free-plan caps**: daily request limits are shared by all Workers on the account.

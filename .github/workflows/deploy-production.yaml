@@ -52,4 +52,4 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # Read-only: writes no data to production.
       - name: Smoke test production
-        run: sh scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev https://conduit.denis-coccodi.workers.dev/api
+        run: sh scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev

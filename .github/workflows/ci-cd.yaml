@@ -54,9 +54,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      # App shell, SPA fallback, staging API URL in the bundle, CORS, register + cookie auth.
+      # App shell, SPA fallback, avatar, /api in the bundle, /api through the service binding, register + cookie auth.
       - name: Smoke test staging
-        run: sh scripts/smoke.sh create https://conduit-web-staging.denis-coccodi.workers.dev https://conduit-staging.denis-coccodi.workers.dev/api "$RUNNER_TEMP/jar.txt"
+        run: sh scripts/smoke.sh create https://conduit-web-staging.denis-coccodi.workers.dev "$RUNNER_TEMP/jar.txt"
         # Both staging Workers are behind Cloudflare Access; this service token
         # lets CI through. While the secrets are unset, no Access headers are sent.
         env:
