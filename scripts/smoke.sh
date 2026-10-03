@@ -64,7 +64,6 @@ read_checks() {
   req 200 '<cdt-root'        "app shell"       "$FE/"
   req 200 '<cdt-root'        "deep link (SPA)" "$FE/article/some-slug"
   req 200 'addEventListener' "service worker"  "$FE/offline-sw.js"
-  image "default avatar" "$FE/assets/images/avatar-profile.png"
 
   # The API URL is baked into the bundle at build time: check the right build was deployed.
   # The minifier may quote it with ", ' or a backtick. Unminified builds keep
@@ -87,6 +86,9 @@ read_checks() {
   else
     fail "no bundle script contains api_url \"$BUNDLE_API\" after ${waited}s (wrong build configuration?)"
   fi
+
+  # After the bundle check: by then the new build is being served.
+  image "default avatar" "$FE/assets/images/avatar-profile.png"
 
   # Answered by the backend through the service binding, not by the SPA fallback.
   req 200 '"tags"' "GET /api/tags via the frontend" "$API/tags"
