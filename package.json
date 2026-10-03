@@ -1,5 +1,5 @@
 {
-  "name": "conduit",
+  "name": "everise-frontend",
   "version": "19.0.2",
   "license": "MIT",
   "scripts": {
@@ -12,8 +12,7 @@
     "e2e": "npx nx run conduit-e2e:e2e",
     "test": "npx nx affected -t test",
     "deploy:staging": "npx nx run conduit:build --configuration=staging && npx wrangler deploy --env staging",
-    "deploy": "npx nx run conduit:build --configuration=production && npx wrangler deploy",
-    "start:staging": "nx run conduit:serve --configuration=staging"
+    "deploy": "npx nx run conduit:build --configuration=production && npx wrangler deploy"
   },
   "private": true,
   "dependencies": {

@@ -101,7 +101,7 @@ add('</defs>');
 add(`<rect width="${W}" height="${H}" fill="#ffffff"/>`);
 
 // Title
-text(X0, 38, 'Conduit frontend — Nx workspace structure', { size: 22, weight: 700 });
+text(X0, 38, 'Everise frontend — Nx workspace structure', { size: 22, weight: 700 });
 text(
   X0,
   60,
@@ -163,7 +163,7 @@ box({
   strong: true,
   lines: [
     { t: 'app.config.ts: routes + AuthGuard, HTTP client + error interceptor, offline service worker (offline-sw.js)' },
-    { t: 'layout: navbar, footer  ·  environments/*.ts set api_url per build (local / staging / production)' },
+    { t: 'layout: navbar, footer  ·  environments/*.ts: api_url /api when deployed, a backend URL locally' },
     {
       t: 'uses: auth/data-access, settings/data-access, core/api-types, core/error-handler, core/http-client',
       kind: 'uses',
@@ -181,8 +181,8 @@ box({
   h: 108,
   dashed: true,
   lines: [
-    { t: 'static assets: dist/apps/conduit' },
-    { t: 'conduit-web-staging, conduit-web', kind: 'route' },
+    { t: 'dist/apps/conduit + worker/index.ts (/api)' },
+    { t: 'staging, prod', kind: 'route' },
     { t: 'wrangler.jsonc · GitHub Actions', kind: 'muted' },
   ],
 });
@@ -417,13 +417,17 @@ add(
   `<rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="10" fill="#ffffff" stroke="${C.ext}" stroke-width="1.6" stroke-dasharray="6 4"/>`,
 );
 text(BX + 12, BY + 18, 'BACKEND API  ·  typescript-cloudflare-backend', { size: 10.5, weight: 700, fill: C.ext });
-text(BX + 12, BY + 38, 'local      http://localhost:8080/api', { size: 12, family: MONO, fill: '#334155' });
-text(BX + 12, BY + 56, 'staging    https://conduit-staging.denis-coccodi.workers.dev/api', {
+text(BX + 12, BY + 38, 'deployed   /api → worker/index.ts → service binding', {
   size: 12,
   family: MONO,
   fill: '#334155',
 });
-text(BX + 12, BY + 74, 'production https://conduit.denis-coccodi.workers.dev/api', {
+text(BX + 12, BY + 56, '           staging: be-staging · production: be-prod', {
+  size: 12,
+  family: MONO,
+  fill: '#334155',
+});
+text(BX + 12, BY + 74, 'local      http://localhost:8080/api (direct)', {
   size: 12,
   family: MONO,
   fill: '#334155',
@@ -433,7 +437,7 @@ add(
     C.ext
   }" stroke-width="1.8" marker-end="url(#a-ext)"/>`,
 );
-text(http.x + http.w / 2 + 8, CY + CH + 32, 'HTTPS, cookie auth', { size: 11, fill: '#64748b' });
+text(http.x + http.w / 2 + 8, CY + CH + 32, 'same-origin /api, cookie auth', { size: 11, fill: '#64748b' });
 
 // --- Legend
 const LX = X0,

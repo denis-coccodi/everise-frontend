@@ -1,4 +1,4 @@
-// Generates docs/website-structure.svg: the pages (routes) of the Conduit site,
+// Generates docs/website-structure.svg: the pages (routes) of the Everise site,
 // what each shows, where it leads, and the global routing rules.
 // Run: node tools/diagrams/website-structure.js docs/website-structure.svg (then render the PNG, see README).
 const fs = require('fs');
@@ -29,7 +29,7 @@ const T = {
   settings: '#fdf2f8',
   app: '#f0fdfa',
 };
-const BRAND = '#5cb85c'; // Conduit green
+const BRAND = '#5cb85c'; // brand green
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const svg = [];
 const add = (s) => svg.push(s);
@@ -67,7 +67,7 @@ add(
 );
 arrowDefs();
 add(`<rect width="${W}" height="${H}" fill="#ffffff"/>`);
-text(X0, 38, 'Conduit website — pages and navigation', { size: 22, weight: 700 });
+text(X0, 38, 'Everise website — pages and navigation', { size: 22, weight: 700 });
 text(
   X0,
   60,
@@ -79,7 +79,7 @@ text(
 function navbar(x, y, w, label, links) {
   text(x, y - 8, label, { size: 11, weight: 700, fill: C.muted });
   add(`<rect x="${x}" y="${y}" width="${w}" height="48" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>`);
-  text(x + 18, y + 31, 'conduit', { size: 20, weight: 700, fill: BRAND });
+  text(x + 18, y + 31, 'everise', { size: 20, weight: 700, fill: BRAND });
   let cx = x + w - 18;
   for (const l of links.slice().reverse()) {
     const lw = Math.max(l.t.length * 7.4, l.path ? l.path.length * 6.4 : 0);
@@ -100,7 +100,7 @@ navbar(X0 + 720, 98, 760, 'NAVBAR · SIGNED IN', [
   { t: 'Settings', path: '/settings', c: 'settings' },
   { t: '◉ username', path: '/profile/:username', c: 'profile' },
 ]);
-text(X0 + 30, 172, 'Footer on every page: conduit logo → /', { size: 11.5, fill: C.muted, italic: true });
+text(X0 + 30, 172, 'Footer on every page: everise logo → /', { size: 11.5, fill: C.muted, italic: true });
 
 // --- Root
 const RX = 630,

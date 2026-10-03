@@ -1,10 +1,10 @@
-![Conduit Running Image](https://raw.githubusercontent.com/denis-coccodi/nx-angular-social-example/refs/heads/main/apps/conduit/src/assets/images/Screenshot%202026-04-15%20125706.png)
+![Conduit Running Image](https://raw.githubusercontent.com/denis-coccodi/everise-frontend/refs/heads/main/apps/conduit/src/assets/images/Screenshot%202026-04-15%20125706.png)
 
 ## Architecture
 
 ### Frontend structure
 
-![Conduit frontend: Nx apps and libraries by layer, with their dependencies](docs/frontend-structure.svg)
+![Everise frontend: Nx apps and libraries by layer, with their dependencies](docs/frontend-structure.svg)
 
 One Angular app (`apps/conduit`) is a thin shell: routes, guard, HTTP setup and layout. Everything else lives in libraries under `libs/`, grouped by domain (`auth`, `articles`, `home`, `profile`, `settings`) and layered:
 
@@ -16,18 +16,25 @@ Dependencies only point down a layer or sideways within a domain. `npx nx graph`
 
 ### Website structure
 
-![Conduit website: pages, what they show, where they lead, and site-wide rules](docs/website-structure.svg)
+![Everise website: pages, what they show, where they lead, and site-wide rules](docs/website-structure.svg)
 
 Both images are generated: run `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` (or `website-structure.js`) after changing the structure, then refresh the PNG copy with headless Edge, e.g. `msedge --headless=new --hide-scrollbars --window-size=1560,960 --screenshot=docs/frontend-structure.png docs/frontend-structure.svg` (`1560,1056` for the website image).
 
 ## Environments and deployment
 
-The app runs on Cloudflare Workers as static assets and calls the [backend](../typescript-cloudflare-backend) of its environment directly. The backend URL comes from the environment file the build uses:
+The app runs on Cloudflare Workers. The deployed builds call the relative `/api`: a small Worker script ([worker/index.ts](worker/index.ts)) forwards `/api/*` to the [backend](https://github.com/denis-coccodi/everise-backend) Worker of the same environment over a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/), and every other path is a static file (with `index.html` for unknown paths). The browser only ever talks to one site, so there is no CORS, the backend's cookies are first-party, and staging needs a single Cloudflare Access login.
 
-| Environment | URL                                                   | Environment file                                                               | Backend                                               | Deployed by                                                                               |
-| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| local       | http://localhost:4200                                 | [environment.ts](apps/conduit/src/environments/environment.ts)                 | http://localhost:8080/api                             | `npm start`                                                                               |
-| staging     | https://conduit-web-staging.denis-coccodi.workers.dev | [environment.staging.ts](apps/conduit/src/environments/environment.staging.ts) | https://conduit-staging.denis-coccodi.workers.dev/api | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
-| production  | https://conduit-web.denis-coccodi.workers.dev         | [environment.prod.ts](apps/conduit/src/environments/environment.prod.ts)       | https://conduit.denis-coccodi.workers.dev/api         | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+```
+Browser ──> prod / staging  ├─ static files (Angular build)
+                             └─ /api/* ──service binding──> be-prod / be-staging backend
+```
 
-Local development: start the backend (`npx wrangler dev --port 8080` in the backend repo), then `npm start`. To develop against another backend, change `api_url` in `environment.ts` (the staging and production URLs are there as comments), or run `npm run start:staging` to serve the staging build. `npm run start-sw` builds the app and serves the built files with `wrangler dev`; set `serviceWorker: true` in `environment.ts` to try the offline features.
+| Environment | URL                                   | Environment file                                                               | API                                                 | Deployed by                                                                               |
+| ----------- | ------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| local       | http://localhost:4200                 | [environment.ts](apps/conduit/src/environments/environment.ts)                 | http://localhost:8080/api (direct, CORS)            | `npm start`                                                                               |
+| staging     | https://staging.everisefc.workers.dev | [environment.staging.ts](apps/conduit/src/environments/environment.staging.ts) | `/api` → `be-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
+| production  | https://prod.everisefc.workers.dev    | [environment.prod.ts](apps/conduit/src/environments/environment.prod.ts)       | `/api` → `conduit` (binding in `wrangler.jsonc`)    | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+
+Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/): only allowed people can open it, after logging in once. CI gets through with an Access service token (`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` repository secrets).
+
+Local development: start the backend (`npx wrangler dev --port 8080` in the backend repo), then `npm start`; the dev build calls it directly. To develop against the staging backend, set `api_url` in `environment.ts` to its URL (there as a comment) and first open that URL in the browser to log in to Cloudflare Access; its CORS allows `localhost:4200`. `npm run start-sw` builds the app and serves the built files with `wrangler dev`; set `serviceWorker: true` in `environment.ts` to try the offline features.
