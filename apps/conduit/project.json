@@ -59,13 +59,34 @@
             }
           ]
         },
-        "debug": {
+        "staging": {
           "fileReplacements": [
             {
               "replace": "apps/conduit/src/environments/environment.ts",
-              "with": "apps/conduit/src/environments/environment.prod.ts"
+              "with": "apps/conduit/src/environments/environment.staging.ts"
             }
           ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false,
+          "buildOptimizer": true,
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "2mb",
+              "maximumError": "5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "6kb",
+              "maximumError": "10kb"
+            }
+          ]
+        },
+        "debug": {
           "optimization": false,
           "outputHashing": "all",
           "sourceMap": true,
@@ -88,19 +109,15 @@
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
-      "options": {
-        "proxyConfig": "apps/conduit/proxy.conf.json"
-      },
       "configurations": {
         "production": {
           "buildTarget": "conduit:build:production"
         },
+        "staging": {
+          "buildTarget": "conduit:build:staging"
+        },
         "development": {
           "buildTarget": "conduit:build:development"
-        },
-        "staging": {
-          "buildTarget": "conduit:build:development",
-          "proxyConfig": "apps/conduit/proxy.staging.json"
         }
       },
       "defaultConfiguration": "development",
