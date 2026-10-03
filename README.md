@@ -12,11 +12,12 @@ $${\color{yellow}\[MANUAL\]}$$: Change mainly implemented manually.
 
 ## Environments and deployment
 
-The app runs on Cloudflare Workers as static assets. `/api/*` is forwarded by a small Worker ([apps/conduit/worker.js](apps/conduit/worker.js)) to the [backend](../typescript-cloudflare-backend) Worker of the same environment, so the API is same-origin.
+The app runs on Cloudflare Workers as static assets and calls the [backend](../typescript-cloudflare-backend) of its environment directly. The backend URL comes from the environment file the build uses:
 
-| Environment | URL                                                   | Backend           | Deployed by                                                                               |
-| ----------- | ----------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------- |
-| staging     | https://conduit-web-staging.denis-coccodi.workers.dev | `conduit-staging` | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
-| production  | https://conduit-web.denis-coccodi.workers.dev         | `conduit`         | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+| Environment | URL                                                   | Environment file                                                               | Backend                                               | Deployed by                                                                               |
+| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| local       | http://localhost:4200                                 | [environment.ts](apps/conduit/src/environments/environment.ts)                 | http://localhost:8080/api                             | `npm start`                                                                               |
+| staging     | https://conduit-web-staging.denis-coccodi.workers.dev | [environment.staging.ts](apps/conduit/src/environments/environment.staging.ts) | https://conduit-staging.denis-coccodi.workers.dev/api | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
+| production  | https://conduit-web.denis-coccodi.workers.dev         | [environment.prod.ts](apps/conduit/src/environments/environment.prod.ts)       | https://conduit.denis-coccodi.workers.dev/api         | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
 
-Local development: start the backend (`npx wrangler dev --port 8080` in the backend repo), then `npm start` (proxies `/api` to it). `npm run start:staging-api` uses the staging backend instead. `npm run start-sw` builds and serves the app through the Worker itself, as in production.
+Local development: start the backend (`npx wrangler dev --port 8080` in the backend repo), then `npm start`. To develop against another backend, change `api_url` in `environment.ts` (the staging and production URLs are there as comments), or run `npm run start:staging` to serve the staging build. `npm run start-sw` builds the app and serves the built files with `wrangler dev`; set `serviceWorker: true` in `environment.ts` to try the offline features.

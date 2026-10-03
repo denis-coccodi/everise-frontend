@@ -75,7 +75,7 @@ export const appConfig: ApplicationConfig = {
     //   registrationStrategy: 'registerWhenStable:30000',
     // }),
     provideServiceWorker('offline-sw.js', {
-      enabled: environment.production,
+      enabled: environment.serviceWorker,
       registrationStrategy: 'registerWhenStable:30000',
       // registrationStrategy: 'registerImmediately',
     }),
