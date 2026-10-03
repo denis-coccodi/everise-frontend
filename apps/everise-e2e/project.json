@@ -1,0 +1,17 @@
+{
+  "name": "everise-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/everise-e2e/src",
+  "projectType": "application",
+  "tags": [],
+  "implicitDependencies": ["everise"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/everise-e2e"],
+      "options": {
+        "config": "apps/everise-e2e/playwright.config.ts"
+      }
+    }
+  }
+}

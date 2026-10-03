@@ -30,7 +30,7 @@ sh scripts/smoke.sh create <frontend-url> <scratchpad>/jar.txt
 The service binding works locally too: `wrangler dev` connects to another `wrangler dev` session of the bound Worker on the same machine.
 
 1. Start the backend from `../typescript-cloudflare-backend`: `npx wrangler dev --port 8080` (needs its `.dev.vars`). Wait until `curl -s http://localhost:8080/api/tags` answers.
-2. Build and serve the frontend: `npx nx run conduit:build --configuration=production`, then `npx wrangler dev` (port 4200). Its `/api` goes to the local backend (binding `API` → `conduit`).
+2. Build and serve the frontend: `npx nx run everise:build --configuration=production`, then `npx wrangler dev` (port 4200). Its `/api` goes to the local backend (binding `API` → `be-prod`).
    - A staging build with `npx wrangler dev --env staging` binds to `be-staging`, so start the backend with `npx wrangler dev --env staging --port 8080` instead.
 3. `sh scripts/smoke.sh create http://localhost:4200 <scratchpad>/jar.txt`.
 
@@ -42,4 +42,4 @@ The service binding works locally too: `wrangler dev` connects to another `wrang
 
 - A newly created `*.workers.dev` hostname answers `404` with `error code: 1042` for up to a minute or so. Wait and retry before treating it as a failure.
 - `GET /api/tags` returning the app shell (HTML) instead of JSON means `/api/*` is not reaching the Worker script: check `assets.run_worker_first` in `wrangler.jsonc`. A `5xx` from `/api` usually means the bound backend Worker does not exist under that name.
-- For a full browser check, run the app and drive it with Playwright (`apps/conduit-e2e`), pointing `BASE_URL` at the target.
+- For a full browser check, run the app and drive it with Playwright (`apps/everise-e2e`), pointing `BASE_URL` at the target.

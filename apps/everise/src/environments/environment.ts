@@ -1,6 +1,6 @@
 // Local development (`npm start`, `nx serve`, `npm run start-sw`).
 // Builds replace this file: `--configuration=staging` with environment.staging.ts,
-// `--configuration=production` with environment.prod.ts (see apps/conduit/project.json).
+// `--configuration=production` with environment.prod.ts (see apps/everise/project.json).
 
 export const environment = {
   production: false,

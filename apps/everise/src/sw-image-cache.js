@@ -1,7 +1,7 @@
 // Cache-first handler for cross-origin image requests.
 // Imported by offline-sw.js via importScripts.
 
-const _IMG_CACHE_NAME = 'conduit-images';
+const _IMG_CACHE_NAME = 'everise-images';
 const _IMG_EXT = /\.(?:jpe?g|png|webp|gif|svg|avif|ico)(?:[?#]|$)/i;
 
 function isImageRequest(request) {

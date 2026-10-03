@@ -14,8 +14,8 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
-      "@default/*": ["./apps/conduit/src/app/*"],
-      "@env/*": ["./apps/conduit/src/environments/*"],
+      "@default/*": ["./apps/everise/src/app/*"],
+      "@env/*": ["./apps/everise/src/environments/*"],
       "@realworld/*": ["./libs/*"],
       "@realworld/articles/article": ["./libs/articles/feature-article/src/index.ts"],
       "@realworld/articles/article-edit": ["./libs/articles/feature-article-edit/src/index.ts"],

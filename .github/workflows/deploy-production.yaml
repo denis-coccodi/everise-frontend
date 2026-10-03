@@ -44,7 +44,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx nx run conduit:build --configuration=production
+      - run: npx nx run everise:build --configuration=production
       # The build calls the production backend (environment.prod.ts).
       - run: npx wrangler deploy --message "${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
         env:
