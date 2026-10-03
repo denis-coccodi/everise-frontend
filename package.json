@@ -11,9 +11,9 @@
     "format:write": "npx nx format:write --affected",
     "e2e": "npx nx run conduit-e2e:e2e",
     "test": "npx nx affected -t test",
-    "start:staging-api": "nx run conduit:serve --configuration=staging",
-    "deploy:staging": "npx nx run conduit:build --configuration=production && npx wrangler deploy --env staging",
-    "deploy": "npx nx run conduit:build --configuration=production && npx wrangler deploy"
+    "deploy:staging": "npx nx run conduit:build --configuration=staging && npx wrangler deploy --env staging",
+    "deploy": "npx nx run conduit:build --configuration=production && npx wrangler deploy",
+    "start:staging": "nx run conduit:serve --configuration=staging"
   },
   "private": true,
   "dependencies": {

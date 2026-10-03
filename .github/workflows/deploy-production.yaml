@@ -45,11 +45,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx nx run conduit:build --configuration=production
-      # Forwards /api to the production backend Worker (conduit).
+      # The build calls the production backend (environment.prod.ts).
       - run: npx wrangler deploy --message "${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # Read-only: writes no data to production.
       - name: Smoke test production
-        run: sh scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev
+        run: sh scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev https://conduit.denis-coccodi.workers.dev/api

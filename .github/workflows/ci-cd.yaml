@@ -26,6 +26,7 @@ jobs:
       - run: npm ci
       - run: npx nx run-many -t lint test
       - run: npx nx run conduit:build --configuration=production
+      - run: npx nx run conduit:build --configuration=staging
 
   deploy-staging:
     needs: test
@@ -47,15 +48,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx nx run conduit:build --configuration=production
-      # Forwards /api to the staging backend Worker (conduit-staging), which must exist.
+      - run: npx nx run conduit:build --configuration=staging
+      # The build calls the staging backend (environment.staging.ts).
       - run: npx wrangler deploy --env staging --message "${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      # App shell, SPA fallback, and register + cookie auth through the /api proxy.
+      # App shell, SPA fallback, staging API URL in the bundle, CORS, register + cookie auth.
       - name: Smoke test staging
-        run: sh scripts/smoke.sh create https://conduit-web-staging.denis-coccodi.workers.dev "$RUNNER_TEMP/jar.txt"
+        run: sh scripts/smoke.sh create https://conduit-web-staging.denis-coccodi.workers.dev https://conduit-staging.denis-coccodi.workers.dev/api "$RUNNER_TEMP/jar.txt"
       - name: Summary
         run: |
           {
