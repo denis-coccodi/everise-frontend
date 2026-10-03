@@ -63,7 +63,7 @@ Wrangler on this machine is logged in with OAuth (`npx wrangler whoami`). Build 
 ## Known failure causes
 
 - **Missing secrets**: the deploy step fails with "it's necessary to set a CLOUDFLARE_API_TOKEN". Fix on GitHub, then `gh run rerun --failed`.
-- **Smoke test: `no bundle script contains <api-url>`**: the deployed build was made with the wrong configuration. Rebuild with the right one and redeploy.
+- **Smoke test: `no bundle script contains <api-url> after 60s`**: the deployed build was made with the wrong configuration. Rebuild with the right one and redeploy. (Right after a deploy Cloudflare serves the previous build for a few seconds; the check retries for up to `BUNDLE_WAIT` seconds, default 60, to ride that out.)
 - **Smoke test: `[cors: … not allowed with credentials]`**, or in the browser "blocked by CORS policy": the backend of that environment does not list the frontend origin in `CORS_ORIGINS`, or that backend change is not deployed yet.
 - **Smoke test gets `404` / `error code: 1042`**: a brand-new `workers.dev` hostname is not live yet. Only on a Worker's first deploy; re-run the job after a minute.
 - **API calls return 5xx but the shell loads**: the backend is failing; check it with the backend's `smoke-test` skill.

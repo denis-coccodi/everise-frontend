@@ -55,16 +55,26 @@ read_checks() {
   req 200 'addEventListener' "service worker"  "$FE/offline-sw.js"
 
   # The API URL is baked into the bundle at build time: check the right build was deployed.
-  scripts=$(curl -s "$FE/" | grep -oE '(src|href)="[^"]+\.js"' | sed -E 's/^(src|href)="//; s/"$//')
   # The minifier may quote it with ", ' or a backtick. Unminified builds keep
   # comments, so commented-out alternatives in environment.ts are skipped.
   api_re="api_url: *[\"'\`]$(printf '%s' "$API" | sed 's/[.[\*^$/]/\\&/g')[\"'\`]"
-  found=""
-  for s in $scripts; do
-    case "$s" in http*) u=$s ;; /*) u=$FE$s ;; *) u=$FE/$s ;; esac
-    if curl -s "$u" | grep -vE '^[[:space:]]*//' | grep -qE -- "$api_re"; then found=$s; break; fi
+  # Right after `wrangler deploy`, Cloudflare can serve the previous build for a
+  # few seconds, so retry for up to a minute (BUNDLE_WAIT seconds) before failing.
+  found=""; waited=0; wait_max=${BUNDLE_WAIT:-60}
+  while :; do
+    scripts=$(curl -s "$FE/" | grep -oE '(src|href)="[^"]+\.js"' | sed -E 's/^(src|href)="//; s/"$//')
+    for s in $scripts; do
+      case "$s" in http*) u=$s ;; /*) u=$FE$s ;; *) u=$FE/$s ;; esac
+      if curl -s "$u" | grep -vE '^[[:space:]]*//' | grep -qE -- "$api_re"; then found=$s; break; fi
+    done
+    [ -n "$found" ] || [ "$waited" -ge "$wait_max" ] && break
+    sleep 5; waited=$((waited + 5))
   done
-  if [ -n "$found" ]; then ok "bundle calls $API ($found)"; else fail "no bundle script contains \"$API\" (wrong build configuration?)"; fi
+  if [ -n "$found" ]; then
+    if [ "$waited" -gt 0 ]; then ok "bundle calls $API ($found, after ${waited}s)"; else ok "bundle calls $API ($found)"; fi
+  else
+    fail "no bundle script contains \"$API\" after ${waited}s (wrong build configuration?)"
+  fi
 
   req 200 '"tags"' "GET $API/tags" -H "Origin: $ORIGIN" "$API/tags"
   cors "GET /tags"              "$API/tags"
