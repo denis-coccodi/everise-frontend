@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="1056" viewBox="0 0 1560 1056" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif">
+<defs>
+<marker id="a-auth" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+<marker id="a-articles" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="a-home" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+<marker id="a-profile" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker>
+<marker id="a-settings" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#be185d"/></marker>
+<marker id="a-app" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/></marker>
+<marker id="a-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1e293b"/></marker>
+<marker id="a-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+<marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+</defs>
+<rect width="1560" height="1056" fill="#ffffff"/>
+<text x="40" y="38" font-size="22" font-weight="700" fill="#1e293b">Conduit website — pages and navigation</text>
+<text x="40" y="60" font-size="13" font-weight="400" fill="#475569">Every route of the Angular app, what the page shows and where it leads. Page colours match the feature library that implements it.</text>
+<text x="70" y="90" font-size="11" font-weight="700" fill="#64748b">NAVBAR · SIGNED OUT</text>
+<rect x="70" y="98" width="640" height="48" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="88" y="129" font-size="20" font-weight="700" fill="#5cb85c">conduit</text>
+<text x="634.4" y="120" font-size="13" font-weight="400" fill="#475569">Sign up</text>
+<text x="634.4" y="136" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/register</text>
+<text x="548.6" y="120" font-size="13" font-weight="400" fill="#475569">Sign in</text>
+<text x="548.6" y="136" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/login</text>
+<text x="482.6" y="120" font-size="13" font-weight="600" fill="#1e293b">Home</text>
+<text x="482.6" y="136" font-size="10.5" font-weight="400" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/home</text>
+<text x="760" y="90" font-size="11" font-weight="700" fill="#64748b">NAVBAR · SIGNED IN</text>
+<rect x="760" y="98" width="760" height="48" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="778" y="129" font-size="20" font-weight="700" fill="#5cb85c">conduit</text>
+<text x="1386.8" y="120" font-size="13" font-weight="400" fill="#475569">◉ username</text>
+<text x="1386.8" y="136" font-size="10.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
+<text x="1293.6" y="120" font-size="13" font-weight="400" fill="#475569">Settings</text>
+<text x="1293.6" y="136" font-size="10.5" font-weight="400" fill="#be185d" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/settings</text>
+<text x="1178.1999999999998" y="120" font-size="13" font-weight="400" fill="#475569">New Article</text>
+<text x="1178.1999999999998" y="136" font-size="10.5" font-weight="400" fill="#2563eb" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/editor</text>
+<text x="1112.1999999999998" y="120" font-size="13" font-weight="600" fill="#1e293b">Home</text>
+<text x="1112.1999999999998" y="136" font-size="10.5" font-weight="400" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/home</text>
+<text x="70" y="172" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Footer on every page: conduit logo → /</text>
+<rect x="630" y="192" width="300" height="62" rx="10" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+<text x="780" y="217" font-size="14" font-weight="700" fill="#0f766e" text-anchor="middle" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/  → redirects to /home</text>
+<text x="780" y="238" font-size="12" font-weight="400" fill="#64748b" text-anchor="middle" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">unknown paths (**) → /home</text>
+<rect x="40" y="300" width="470" height="528" rx="14" fill="#f8fafc" stroke="#64748b" stroke-width="1.4" stroke-dasharray="7 5"/>
+<text x="56" y="324" font-size="11.5" font-weight="700" fill="#64748b">PUBLIC — anyone can open</text>
+<rect x="540" y="300" width="980" height="528" rx="14" fill="#f8fafc" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="7 5"/>
+<text x="556" y="324" font-size="11.5" font-weight="700" fill="#7c3aed">SIGNED IN ONLY — AuthGuard sends signed-out visitors to /login</text>
+<path d="M710,254 C710,284 275,270 275,298" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
+<path d="M850,254 C850,284 1030,270 1030,298" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-auth)"/>
+<rect x="56" y="340" width="438" height="108" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8"/>
+<text x="70" y="364" font-size="14" font-weight="700" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/login</text>
+<text x="480" y="364" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Sign in</text>
+<text x="70" y="389" font-size="12.5" font-weight="400" fill="#334155">•  Email + password form, server errors listed</text>
+<text x="70" y="408" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">signed in: </tspan><tspan fill="#059669" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/home</tspan></text>
+<text x="70" y="427" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">"Need an account?" </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/register</tspan></text>
+<rect x="56" y="460" width="438" height="108" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8"/>
+<text x="70" y="484" font-size="14" font-weight="700" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/register</text>
+<text x="480" y="484" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Sign up</text>
+<text x="70" y="509" font-size="12.5" font-weight="400" fill="#334155">•  Username, email, password form</text>
+<text x="70" y="528" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">registered and signed in: </tspan><tspan fill="#059669" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/home</tspan></text>
+<text x="70" y="547" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">"Have an account?" </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/login</tspan></text>
+<rect x="56" y="580" width="438" height="230" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+<text x="70" y="604" font-size="14" font-weight="700" fill="#2563eb" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/article/:slug</text>
+<text x="480" y="604" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Article</text>
+<text x="70" y="629" font-size="12.5" font-weight="400" fill="#334155">•  Banner: title, author, date</text>
+<text x="70" y="648" font-size="12.5" font-weight="400" fill="#334155">•  Body rendered from Markdown, tag list</text>
+<text x="70" y="667" font-size="12.5" font-weight="400" fill="#334155">•  Follow author, favorite ♥ (queued offline)</text>
+<text x="70" y="686" font-size="12.5" font-weight="400" fill="#334155">•  Comments: add, delete your own</text>
+<text x="70" y="707" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="70" y="726" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">author </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
+<text x="70" y="745" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">your article: Edit </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/editor/:slug</tspan></text>
+<text x="70" y="764" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">your article: Delete </tspan><tspan fill="#059669" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/home</tspan></text>
+<text x="70" y="783" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">signed out: Sign in / up </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/login  /register</tspan></text>
+<rect x="556" y="340" width="466" height="170" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.8"/>
+<text x="570" y="364" font-size="14" font-weight="700" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/home</text>
+<text x="1008" y="364" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Home</text>
+<text x="570" y="389" font-size="12.5" font-weight="400" fill="#334155">•  Tabs: Your Feed (followed authors) · Global Feed</text>
+<text x="570" y="408" font-size="12.5" font-weight="400" fill="#334155">•  Popular tags sidebar: click a tag to filter (#tag tab)</text>
+<text x="570" y="427" font-size="12.5" font-weight="400" fill="#334155">•  Article previews with favorite ♥, pager</text>
+<text x="570" y="446" font-size="12.5" font-weight="400" fill="#334155">•  Offline: cached feed, favorites synced when back online</text>
+<text x="570" y="467" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="570" y="486" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">article preview </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
+<rect x="1038" y="340" width="466" height="170" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+<text x="1052" y="364" font-size="14" font-weight="700" fill="#2563eb" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/editor   /editor/:slug</text>
+<text x="1490" y="364" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Editor</text>
+<text x="1052" y="389" font-size="12.5" font-weight="400" fill="#334155">•  New article at /editor</text>
+<text x="1052" y="408" font-size="12.5" font-weight="400" fill="#334155">•  Edit yours at /editor/:slug (a resolver loads it first)</text>
+<text x="1052" y="427" font-size="12.5" font-weight="400" fill="#334155">•  Title, description, Markdown body, tags</text>
+<text x="1052" y="448" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="1052" y="467" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Publish </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
+<rect x="556" y="522" width="466" height="290" rx="10" fill="#fdf2f8" stroke="#be185d" stroke-width="1.8"/>
+<text x="570" y="546" font-size="14" font-weight="700" fill="#be185d" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/settings</text>
+<text x="1008" y="546" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Settings</text>
+<text x="570" y="571" font-size="12.5" font-weight="400" fill="#334155">•  Picture URL, username, bio, email, new password</text>
+<text x="570" y="590" font-size="12.5" font-weight="400" fill="#334155">•  Dark mode toggle (saved in this browser)</text>
+<text x="570" y="611" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="570" y="630" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Update settings </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
+<text x="570" y="649" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Logout </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/login</tspan></text>
+<rect x="1038" y="522" width="466" height="290" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.8"/>
+<text x="1052" y="546" font-size="14" font-weight="700" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
+<text x="1490" y="546" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Profile</text>
+<text x="1052" y="571" font-size="12.5" font-weight="400" fill="#334155">•  Avatar, bio; Follow (others) or Edit settings (you)</text>
+<rect x="1052" y="589" width="212" height="70" rx="8" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1062" y="609" font-size="10" font-weight="700" fill="#c2410c">TAB · default</text>
+<text x="1062" y="627" font-size="13" font-weight="700" fill="#1e293b">My Articles</text>
+<text x="1062" y="645" font-size="11.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
+<rect x="1278" y="589" width="212" height="70" rx="8" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1288" y="609" font-size="10" font-weight="700" fill="#c2410c">TAB</text>
+<text x="1288" y="627" font-size="13" font-weight="700" fill="#1e293b">Favorited Articles</text>
+<text x="1288" y="645" font-size="11.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username/favorites</text>
+<text x="1052" y="680" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Edit settings (you) </tspan><tspan fill="#be185d" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/settings</tspan></text>
+<text x="1052" y="701" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">article preview </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
+<text x="1052" y="723" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Article lists come from feature-articles-list (shared with Home)</text>
+<rect x="40" y="852" width="1480" height="178" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.4"/>
+<text x="56" y="878" font-size="14" font-weight="700" fill="#1e293b">Site-wide rules</text>
+<text x="56" y="906" font-size="12.5" xml:space="preserve"><tspan fill="#334155" font-weight="400">Routing: </tspan><tspan fill="#0f766e" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/</tspan><tspan fill="#334155" font-weight="400"> and unknown paths go to </tspan><tspan fill="#059669" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/home</tspan><tspan fill="#334155" font-weight="400">; signed-out visitors of a guarded page go to </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/login</tspan><tspan fill="#334155" font-weight="400">.</tspan></text>
+<text x="56" y="930" font-size="12.5" xml:space="preserve"><tspan fill="#334155" font-weight="400">API errors (core/error-handler): </tspan><tspan fill="#334155" font-weight="400">401 Unauthorized</tspan><tspan fill="#334155" font-weight="400"> → </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/login</tspan><tspan fill="#334155" font-weight="400">  ·  </tspan><tspan fill="#334155" font-weight="400">404 Not Found</tspan><tspan fill="#334155" font-weight="400"> → </tspan><tspan fill="#0f766e" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/</tspan><tspan fill="#334155" font-weight="400">  ·  form errors shown on the form</tspan></text>
+<text x="56" y="954" font-size="12.5" xml:space="preserve"><tspan fill="#334155" font-weight="400">Session: </tspan><tspan fill="#334155" font-weight="400">httpOnly </tspan><tspan fill="#0f766e" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">token</tspan><tspan fill="#334155" font-weight="400"> cookie set by the backend on sign in / sign up, sent with every API call (withCredentials).</tspan></text>
+<text x="56" y="978" font-size="12.5" xml:space="preserve"><tspan fill="#334155" font-weight="400">Offline (offline-sw.js, staging/production): </tspan><tspan fill="#334155" font-weight="400">API GETs are cached and replayed offline; favorites made offline are queued and synced later.</tspan></text>
+<text x="56" y="1002" font-size="12.5" xml:space="preserve"><tspan fill="#334155" font-weight="400">Pages are lazy-loaded per route; the URL of a deep link (e.g. </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan><tspan fill="#334155" font-weight="400">) is served the app shell by Cloudflare (SPA fallback).</tspan></text>
+</svg>

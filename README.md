@@ -10,6 +10,26 @@
 $${\color{red}\[AI\]}$$: Change mainly implemented through the use of AI. <br>
 $${\color{yellow}\[MANUAL\]}$$: Change mainly implemented manually.
 
+## Architecture
+
+### Frontend structure
+
+![Conduit frontend: Nx apps and libraries by layer, with their dependencies](docs/frontend-structure.svg)
+
+One Angular app (`apps/conduit`) is a thin shell: routes, guard, HTTP setup and layout. Everything else lives in libraries under `libs/`, grouped by domain (`auth`, `articles`, `home`, `profile`, `settings`) and layered:
+
+- **feature** libs: one per page, lazy-loaded by the router (`feature-articles-list` is the exception: a shared list used by Home and Profile);
+- **data-access** libs: NgRx signal stores, API services, guards and resolvers;
+- **core** and **ui** libs: API types, HTTP client, form errors, error handling and shared components, with no dependencies on other libs.
+
+Dependencies only point down a layer or sideways within a domain. `npx nx graph` shows the live graph.
+
+### Website structure
+
+![Conduit website: pages, what they show, where they lead, and site-wide rules](docs/website-structure.svg)
+
+Both images are generated: run `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` (or `website-structure.js`) after changing the structure, then refresh the PNG copy with headless Edge, e.g. `msedge --headless=new --hide-scrollbars --window-size=1560,960 --screenshot=docs/frontend-structure.png docs/frontend-structure.svg` (`1560,1056` for the website image).
+
 ## Environments and deployment
 
 The app runs on Cloudflare Workers as static assets and calls the [backend](../typescript-cloudflare-backend) of its environment directly. The backend URL comes from the environment file the build uses:
