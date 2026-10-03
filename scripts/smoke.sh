@@ -12,6 +12,10 @@
 #           Writes test data: not for production.
 #
 # Exits non-zero if any request returns an unexpected status code or body.
+#
+# Staging (frontend and backend) is behind Cloudflare Access. Set
+# CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET to an Access service token and
+# every request sends it; leave them unset for production or wrangler dev.
 set -u
 MODE=${1:-}; FE=${2:-}; API=${3:-}; J=${4:-${TMPDIR:-/tmp}/conduit-web-smoke-jar.txt}
 FE=${FE%/}; API=${API%/}
@@ -21,10 +25,21 @@ FAILED=0
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; FAILED=1; }
 
+# Every request goes through http, which adds the Access service token if set.
+CF_ACCESS_CLIENT_ID=${CF_ACCESS_CLIENT_ID:-}
+CF_ACCESS_CLIENT_SECRET=${CF_ACCESS_CLIENT_SECRET:-}
+http() {
+  if [ -n "$CF_ACCESS_CLIENT_ID" ]; then
+    curl -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" "$@"
+  else
+    curl "$@"
+  fi
+}
+
 # req <expected-status> <expected-body-substring> <label> <curl args...>
 req() {
   expected=$1; needle=$2; label=$3; shift 3
-  out=$(curl -s -b "$J" -c "$J" -w '\n%{http_code}' "$@")
+  out=$(http -s -b "$J" -c "$J" -w '\n%{http_code}' "$@")
   code=$(printf '%s' "$out" | tail -n 1)
   body=$(printf '%s\n' "$out" | sed '$d')
   if [ "$code" = "$expected" ] && printf '%s' "$body" | grep -qF -- "$needle"; then
@@ -39,7 +54,7 @@ req() {
 # cors <label> <curl args...>: the response must allow $ORIGIN with credentials.
 cors() {
   label=$1; shift
-  headers=$(curl -s -o /dev/null -D - -H "Origin: $ORIGIN" "$@" | tr -d '\r')
+  headers=$(http -s -o /dev/null -D - -H "Origin: $ORIGIN" "$@" | tr -d '\r')
   if printf '%s\n' "$headers" | grep -qix "access-control-allow-origin: $ORIGIN" \
     && printf '%s\n' "$headers" | grep -qix 'access-control-allow-credentials: true'; then
     ok "[cors] $label"
@@ -62,10 +77,10 @@ read_checks() {
   # few seconds, so retry for up to a minute (BUNDLE_WAIT seconds) before failing.
   found=""; waited=0; wait_max=${BUNDLE_WAIT:-60}
   while :; do
-    scripts=$(curl -s "$FE/" | grep -oE '(src|href)="[^"]+\.js"' | sed -E 's/^(src|href)="//; s/"$//')
+    scripts=$(http -s "$FE/" | grep -oE '(src|href)="[^"]+\.js"' | sed -E 's/^(src|href)="//; s/"$//')
     for s in $scripts; do
       case "$s" in http*) u=$s ;; /*) u=$FE$s ;; *) u=$FE/$s ;; esac
-      if curl -s "$u" | grep -vE '^[[:space:]]*//' | grep -qE -- "$api_re"; then found=$s; break; fi
+      if http -s "$u" | grep -vE '^[[:space:]]*//' | grep -qE -- "$api_re"; then found=$s; break; fi
     done
     [ -n "$found" ] || [ "$waited" -ge "$wait_max" ] && break
     sleep 5; waited=$((waited + 5))

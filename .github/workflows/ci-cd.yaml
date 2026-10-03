@@ -57,6 +57,11 @@ jobs:
       # App shell, SPA fallback, staging API URL in the bundle, CORS, register + cookie auth.
       - name: Smoke test staging
         run: sh scripts/smoke.sh create https://conduit-web-staging.denis-coccodi.workers.dev https://conduit-staging.denis-coccodi.workers.dev/api "$RUNNER_TEMP/jar.txt"
+        # Both staging Workers are behind Cloudflare Access; this service token
+        # lets CI through. While the secrets are unset, no Access headers are sent.
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
       - name: Summary
         run: |
           {
