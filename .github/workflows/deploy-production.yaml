@@ -1,0 +1,55 @@
+name: Deploy production
+
+# Started by hand: Actions → Deploy production → Run workflow.
+# Deploys the latest commit on main, but only if that commit's CI/CD run
+# (build + staging deploy + smoke test) succeeded.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://conduit-web.denis-coccodi.workers.dev
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check this is main
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::Production only deploys from main, not ${GITHUB_REF_NAME}."
+            exit 1
+          fi
+      - name: Check this commit passed staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          conclusion=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci-cd.yaml \
+            --commit "$GITHUB_SHA" --event push --status success --limit 1 \
+            --json conclusion -q '.[0].conclusion')
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::Commit ${GITHUB_SHA::7} has no successful CI/CD run (build + staging). Wait for it to pass, or fix it, before deploying to production."
+            exit 1
+          fi
+          echo "Commit ${GITHUB_SHA::7} passed build and staging."
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx nx run conduit:build --configuration=production
+      # Forwards /api to the production backend Worker (conduit).
+      - run: npx wrangler deploy --message "${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # Read-only: writes no data to production.
+      - name: Smoke test production
+        run: sh scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev

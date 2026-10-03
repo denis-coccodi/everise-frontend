@@ -88,12 +88,19 @@
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
+      "options": {
+        "proxyConfig": "apps/conduit/proxy.conf.json"
+      },
       "configurations": {
         "production": {
           "buildTarget": "conduit:build:production"
         },
         "development": {
           "buildTarget": "conduit:build:development"
+        },
+        "staging": {
+          "buildTarget": "conduit:build:development",
+          "proxyConfig": "apps/conduit/proxy.staging.json"
         }
       },
       "defaultConfiguration": "development",
@@ -105,6 +112,12 @@
         "outputPath": "dist/apps/conduit-single-spa",
         "browser": "apps/conduit/src/main.single-spa.ts",
         "tsConfig": "apps/conduit/tsconfig.single-spa.json",
+        "fileReplacements": [
+          {
+            "replace": "apps/conduit/src/environments/environment.ts",
+            "with": "apps/conduit/src/environments/environment.single-spa.ts"
+          }
+        ],
         "index": false,
         "polyfills": [],
         "outputHashing": "none",

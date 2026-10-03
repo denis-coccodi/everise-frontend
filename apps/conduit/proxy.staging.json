@@ -1,0 +1,7 @@
+{
+  "/api": {
+    "target": "https://conduit-staging.denis-coccodi.workers.dev",
+    "secure": true,
+    "changeOrigin": true
+  }
+}
