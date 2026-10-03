@@ -11,7 +11,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideAppInitializer(() => {
-      caches.open('conduit-sw-config').then((cache) =>
+      caches.open('everise-sw-config').then((cache) =>
         cache.put(
           '/sw-config.json',
           new Response(JSON.stringify({ api_url: environment.api_url }), {

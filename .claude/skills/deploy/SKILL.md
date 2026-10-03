@@ -11,16 +11,16 @@ Repo: `denis-coccodi/everise-frontend`, branch `main`. Cloudflare account ID: `b
 | ----------- | --------- | ------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
 | local       | —         | http://localhost:4200                 | `development` / `debug`: `environment.ts` | http://localhost:8080/api, called directly (editable) | `npx wrangler dev` (`npm run start-sw`)                        |
 | staging     | `staging` | https://staging.everisefc.workers.dev | `staging`: `environment.staging.ts`       | backend Worker `be-staging` (service binding)         | `npx wrangler deploy --env staging` (`npm run deploy:staging`) |
-| production  | `prod`    | https://prod.everisefc.workers.dev    | `production`: `environment.prod.ts`       | backend Worker `conduit` (service binding)            | `npx wrangler deploy` (`npm run deploy`)                       |
+| production  | `prod`    | https://prod.everisefc.workers.dev    | `production`: `environment.prod.ts`       | backend Worker `be-prod` (service binding)            | `npx wrangler deploy` (`npm run deploy`)                       |
 
 ## How it fits together
 
-- `wrangler.jsonc` (repo root) serves `dist/apps/conduit` as static assets with SPA fallback, and runs `worker/index.ts` first for `/api/*` only (`assets.run_worker_first`). The script forwards those requests to the backend Worker over the `API` service binding: `conduit` at the top level, `be-staging` under `env.staging` (bindings are not inherited, so each environment sets its own). Staging is a separate Worker, `staging`; `main` and `assets` are inherited.
+- `wrangler.jsonc` (repo root) serves `dist/apps/everise` as static assets with SPA fallback, and runs `worker/index.ts` first for `/api/*` only (`assets.run_worker_first`). The script forwards those requests to the backend Worker over the `API` service binding: `be-prod` at the top level, `be-staging` under `env.staging` (bindings are not inherited, so each environment sets its own). Staging is a separate Worker, `staging`; `main` and `assets` are inherited.
 - The browser therefore only talks to the frontend's site: no CORS, and the backend's auth cookie is first-party (set on the frontend host). Staging needs only the frontend's Cloudflare Access login; the binding reaches the backend inside Cloudflare, without passing the backend's own Access lock.
 - Deployed builds (`environment.staging.ts`, `environment.prod.ts`) use `api_url: '/api'`. Which backend answers is decided by the binding of the Worker you deploy to, so **build with the configuration of the environment you deploy to** mainly for the right environment file flags; the smoke test checks the bundle uses `/api`, not a dev URL.
 - The bound backend Worker must exist under that name, or `/api` fails. Renaming a backend Worker needs a change here first.
 - `environment.ts` is the local dev build: it calls a backend directly (default `http://localhost:8080/api`, staging as a comment; staging's CORS allows `localhost:4200`). Its `serviceWorker` flag is off locally; the staging and production files turn it on.
-- The backend's default avatar URL is built from the backend's `BASE_URL`, which points at this site; the image is `apps/conduit/src/assets/images/avatar-profile.png` here.
+- The backend's default avatar URL is built from the backend's `BASE_URL`, which points at this site; the image is `apps/everise/src/assets/images/avatar-profile.png` here.
 
 ## Normal path: merge a PR into main
 
@@ -39,7 +39,7 @@ Changes reach `main` through pull requests (see the `feature-branch` skill). Mer
 
 Production deploys are the user's decision: they start it from Actions → Deploy production → **Run workflow**. Only start it yourself (`gh workflow run deploy-production.yaml --ref main`) when the user explicitly asks for a production deploy, and only after the commit's CI/CD run is green.
 
-Before pushing, run `npx nx run-many -t lint test && npx nx run conduit:build --configuration=production && npx nx run conduit:build --configuration=staging` locally; it must exit 0.
+Before pushing, run `npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` locally; it must exit 0.
 
 After merging, wait for the run on `main` and report each job:
 

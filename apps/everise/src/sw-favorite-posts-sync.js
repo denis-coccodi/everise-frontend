@@ -6,7 +6,7 @@
 // Offline path – optimistic IDB patch + pending-queue entry + sync registration.
 // Sync path    – replays queued actions and reconciles IDB cache with server truth.
 
-const _FAV_DB_NAME = 'conduit-offline';
+const _FAV_DB_NAME = 'everise-offline';
 const _FAV_STORE_NAME = 'favorites';
 
 // ── IDB helpers ──────────────────────────────────────────────────────────────
@@ -104,7 +104,9 @@ async function handleFavoriteRequest(request) {
     // Store the original URL so the sync replay hits the same-origin proxy path,
     // which ensures session cookies are forwarded to the backend automatically.
     await _savePendingFavorite(slug, isFavoriting, request.url);
-    self.registration.sync.register('sync-favorites').catch(() => { /* sync not supported */ });
+    self.registration.sync.register('sync-favorites').catch(() => {
+      /* sync not supported */
+    });
 
     const article = { ...(cached ?? { slug }), favorited: isFavoriting, favoritesCount: postCount };
     return new Response(JSON.stringify({ article }), {

@@ -1,5 +1,5 @@
 {
-  "defaultProject": "conduit",
+  "defaultProject": "everise",
   "generators": {
     "@nx/angular:application": {
       "style": "css",

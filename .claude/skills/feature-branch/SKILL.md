@@ -30,7 +30,7 @@ git switch -c feature/<feature-name>
 ## 2. Commit and push as often as needed
 
 ```
-npx nx run-many -t lint test && npx nx run conduit:build --configuration=production && npx nx run conduit:build --configuration=staging   # must exit 0
+npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging   # must exit 0
 git add <files> && git commit -m "..."
 git push -u origin feature/<feature-name>             # later pushes: git push
 ```

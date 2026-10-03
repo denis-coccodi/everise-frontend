@@ -1,7 +1,7 @@
 // IndexedDB-backed stale-while-revalidate cache for API GET responses.
 // Imported by offline-sw.js via importScripts.
 
-const _IDB_CACHE_DB = 'conduit-api-cache';
+const _IDB_CACHE_DB = 'everise-api-cache';
 const _IDB_CACHE_STORE = 'responses';
 const _IDB_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 
@@ -78,7 +78,9 @@ function getArticleFromApiCache(slug) {
               if (data.article?.slug === slug) return resolve(data.article);
               const found = Array.isArray(data.articles) && data.articles.find((a) => a.slug === slug);
               if (found) return resolve(found);
-            } catch { /* non-JSON entry, skip */ }
+            } catch {
+              /* non-JSON entry, skip */
+            }
           }
           resolve(null);
         };
@@ -106,7 +108,11 @@ function patchArticleInApiCache(slug, favorited, favoritesCount) {
         getAllReq.onsuccess = () => {
           for (const entry of getAllReq.result) {
             let data;
-            try { data = JSON.parse(entry.body); } catch { continue; /* non-JSON entry */ }
+            try {
+              data = JSON.parse(entry.body);
+            } catch {
+              continue; /* non-JSON entry */
+            }
             let changed = false;
 
             if (data.article?.slug === slug) {

@@ -1,8 +1,8 @@
 {
-  "name": "conduit",
+  "name": "everise",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/conduit/src",
+  "sourceRoot": "apps/everise/src",
   "prefix": "cdt",
   "generators": {
     "@nx/angular:component": {
@@ -13,30 +13,30 @@
     "build": {
       "executor": "@angular-devkit/build-angular:browser-esbuild",
       "options": {
-        "outputPath": "dist/apps/conduit",
-        "index": "apps/conduit/src/index.html",
-        "main": "apps/conduit/src/main.ts",
-        "tsConfig": "apps/conduit/tsconfig.app.json",
+        "outputPath": "dist/apps/everise",
+        "index": "apps/everise/src/index.html",
+        "main": "apps/everise/src/main.ts",
+        "tsConfig": "apps/everise/tsconfig.app.json",
         "assets": [
-          "apps/conduit/src/favicon.ico",
-          "apps/conduit/src/assets",
-          "apps/conduit/src/netlify.toml",
-          "apps/conduit/src/offline-sw.js",
-          "apps/conduit/src/sw-image-cache.js",
-          "apps/conduit/src/sw-idb-cache.js",
-          "apps/conduit/src/sw-favorite-posts-sync.js"
+          "apps/everise/src/favicon.ico",
+          "apps/everise/src/assets",
+          "apps/everise/src/netlify.toml",
+          "apps/everise/src/offline-sw.js",
+          "apps/everise/src/sw-image-cache.js",
+          "apps/everise/src/sw-idb-cache.js",
+          "apps/everise/src/sw-favorite-posts-sync.js"
         ],
-        "styles": ["apps/conduit/src/styles.scss"],
+        "styles": ["apps/everise/src/styles.scss"],
         "scripts": [],
         "serviceWorker": true,
-        "ngswConfigPath": "apps/conduit/ngsw-config.json"
+        "ngswConfigPath": "apps/everise/ngsw-config.json"
       },
       "configurations": {
         "production": {
           "fileReplacements": [
             {
-              "replace": "apps/conduit/src/environments/environment.ts",
-              "with": "apps/conduit/src/environments/environment.prod.ts"
+              "replace": "apps/everise/src/environments/environment.ts",
+              "with": "apps/everise/src/environments/environment.prod.ts"
             }
           ],
           "optimization": true,
@@ -62,8 +62,8 @@
         "staging": {
           "fileReplacements": [
             {
-              "replace": "apps/conduit/src/environments/environment.ts",
-              "with": "apps/conduit/src/environments/environment.staging.ts"
+              "replace": "apps/everise/src/environments/environment.ts",
+              "with": "apps/everise/src/environments/environment.staging.ts"
             }
           ],
           "optimization": true,
@@ -111,13 +111,13 @@
       "executor": "@angular-devkit/build-angular:dev-server",
       "configurations": {
         "production": {
-          "buildTarget": "conduit:build:production"
+          "buildTarget": "everise:build:production"
         },
         "staging": {
-          "buildTarget": "conduit:build:staging"
+          "buildTarget": "everise:build:staging"
         },
         "development": {
-          "buildTarget": "conduit:build:development"
+          "buildTarget": "everise:build:development"
         }
       },
       "defaultConfiguration": "development",
@@ -126,14 +126,14 @@
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "buildTarget": "conduit:build"
+        "buildTarget": "everise:build"
       }
     },
     "test": {
       "executor": "@nx/vitest:test",
       "outputs": ["{options.reportsDirectory}"],
       "options": {
-        "reportsDirectory": "{projectRoot}/../../coverage/apps/conduit"
+        "reportsDirectory": "{projectRoot}/../../coverage/apps/everise"
       }
     }
   }
