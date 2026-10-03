@@ -13,7 +13,7 @@ The same rules as the backend repo apply:
 - Ruleset "make sure tests pass" on every branch (`~ALL`): no deletion, no force push (so integrate `main` with `git merge origin/main`, not rebase + force-push), `test` required, Copilot code review on every push. Repository admins can bypass it.
 - GitHub environment `production` accepts deployments from `main` only; `staging` from any branch.
 
-Inspect them with `gh api repos/denis-coccodi/nx-angular-social-example/branches/main/protection` and `gh api repos/denis-coccodi/nx-angular-social-example/rulesets`.
+Inspect them with `gh api repos/denis-coccodi/everise-frontend/branches/main/protection` and `gh api repos/denis-coccodi/everise-frontend/rulesets`.
 
 ## 1. Start a branch before the first edit
 

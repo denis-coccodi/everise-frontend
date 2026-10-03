@@ -1,9 +1,9 @@
 #!/bin/sh
-# Smoke test against a deployed Conduit frontend. The site forwards /api to its
+# Smoke test against a deployed Everise frontend. The site forwards /api to its
 # backend over a service binding, so the API is checked through <frontend-url>/api.
 #
 # Usage: scripts/smoke.sh read|create <frontend-url> [cookie-jar]
-#   e.g. scripts/smoke.sh read https://conduit-web.denis-coccodi.workers.dev
+#   e.g. scripts/smoke.sh read https://prod.everisefc.workers.dev
 #   read:   app shell, a deep link (SPA fallback), the service worker, the default
 #           avatar, that the deployed bundle calls the relative /api, and that
 #           <frontend-url>/api reaches the backend. Writes nothing.
@@ -18,7 +18,7 @@
 # CF_ACCESS_CLIENT_SECRET to an Access service token and every request sends it;
 # leave them unset for production.
 set -u
-MODE=${1:-}; FE=${2:-}; J=${3:-${TMPDIR:-/tmp}/conduit-web-smoke-jar.txt}
+MODE=${1:-}; FE=${2:-}; J=${3:-${TMPDIR:-/tmp}/everise-web-smoke-jar.txt}
 FE=${FE%/}; API=$FE/api; BUNDLE_API=${BUNDLE_API:-/api}
 FAILED=0
 

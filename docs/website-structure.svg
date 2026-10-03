@@ -11,11 +11,11 @@
 <marker id="a-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
 </defs>
 <rect width="1560" height="1056" fill="#ffffff"/>
-<text x="40" y="38" font-size="22" font-weight="700" fill="#1e293b">Conduit website — pages and navigation</text>
+<text x="40" y="38" font-size="22" font-weight="700" fill="#1e293b">Everise website — pages and navigation</text>
 <text x="40" y="60" font-size="13" font-weight="400" fill="#475569">Every route of the Angular app, what the page shows and where it leads. Page colours match the feature library that implements it.</text>
 <text x="70" y="90" font-size="11" font-weight="700" fill="#64748b">NAVBAR · SIGNED OUT</text>
 <rect x="70" y="98" width="640" height="48" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
-<text x="88" y="129" font-size="20" font-weight="700" fill="#5cb85c">conduit</text>
+<text x="88" y="129" font-size="20" font-weight="700" fill="#5cb85c">everise</text>
 <text x="634.4" y="120" font-size="13" font-weight="400" fill="#475569">Sign up</text>
 <text x="634.4" y="136" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/register</text>
 <text x="548.6" y="120" font-size="13" font-weight="400" fill="#475569">Sign in</text>
@@ -24,7 +24,7 @@
 <text x="482.6" y="136" font-size="10.5" font-weight="400" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/home</text>
 <text x="760" y="90" font-size="11" font-weight="700" fill="#64748b">NAVBAR · SIGNED IN</text>
 <rect x="760" y="98" width="760" height="48" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
-<text x="778" y="129" font-size="20" font-weight="700" fill="#5cb85c">conduit</text>
+<text x="778" y="129" font-size="20" font-weight="700" fill="#5cb85c">everise</text>
 <text x="1386.8" y="120" font-size="13" font-weight="400" fill="#475569">◉ username</text>
 <text x="1386.8" y="136" font-size="10.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
 <text x="1293.6" y="120" font-size="13" font-weight="400" fill="#475569">Settings</text>
@@ -33,7 +33,7 @@
 <text x="1178.1999999999998" y="136" font-size="10.5" font-weight="400" fill="#2563eb" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/editor</text>
 <text x="1112.1999999999998" y="120" font-size="13" font-weight="600" fill="#1e293b">Home</text>
 <text x="1112.1999999999998" y="136" font-size="10.5" font-weight="400" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/home</text>
-<text x="70" y="172" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Footer on every page: conduit logo → /</text>
+<text x="70" y="172" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Footer on every page: everise logo → /</text>
 <rect x="630" y="192" width="300" height="62" rx="10" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
 <text x="780" y="217" font-size="14" font-weight="700" fill="#0f766e" text-anchor="middle" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/  → redirects to /home</text>
 <text x="780" y="238" font-size="12" font-weight="400" fill="#64748b" text-anchor="middle" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">unknown paths (**) → /home</text>

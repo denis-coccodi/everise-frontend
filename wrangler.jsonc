@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "conduit-web",
+  // Production Worker. The name must match the Worker in Cloudflare exactly, or
+  // `wrangler deploy` creates a new Worker instead of updating this one.
+  "name": "prod",
   "main": "worker/index.ts",
   "compatibility_date": "2026-09-01",
 
@@ -17,17 +19,19 @@
 
   // The backend Worker of this environment, reached inside Cloudflare (not over
   // the public internet): the app calls the relative /api and this site forwards it.
-  "services": [{ "binding": "API", "service": "conduit" }],
+  "services": [{ "binding": "API", "service": "be-prod" }],
 
   "observability": { "enabled": true },
 
   "dev": { "port": 4200 },
 
-  // `wrangler deploy --env staging` deploys a separate Worker, "conduit-web-staging".
+  // `wrangler deploy --env staging` deploys a separate Worker, "staging".
   // Service bindings are not inherited, so the staging backend is set here.
   "env": {
     "staging": {
-      "services": [{ "binding": "API", "service": "conduit-staging" }]
+      // Set explicitly: the default would be "prod-staging".
+      "name": "staging",
+      "services": [{ "binding": "API", "service": "be-staging" }]
     }
   }
 }

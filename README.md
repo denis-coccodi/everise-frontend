@@ -1,10 +1,10 @@
-![Conduit Running Image](https://raw.githubusercontent.com/denis-coccodi/nx-angular-social-example/refs/heads/main/apps/conduit/src/assets/images/Screenshot%202026-04-15%20125706.png)
+![Conduit Running Image](https://raw.githubusercontent.com/denis-coccodi/everise-frontend/refs/heads/main/apps/conduit/src/assets/images/Screenshot%202026-04-15%20125706.png)
 
 ## Architecture
 
 ### Frontend structure
 
-![Conduit frontend: Nx apps and libraries by layer, with their dependencies](docs/frontend-structure.svg)
+![Everise frontend: Nx apps and libraries by layer, with their dependencies](docs/frontend-structure.svg)
 
 One Angular app (`apps/conduit`) is a thin shell: routes, guard, HTTP setup and layout. Everything else lives in libraries under `libs/`, grouped by domain (`auth`, `articles`, `home`, `profile`, `settings`) and layered:
 
@@ -16,24 +16,24 @@ Dependencies only point down a layer or sideways within a domain. `npx nx graph`
 
 ### Website structure
 
-![Conduit website: pages, what they show, where they lead, and site-wide rules](docs/website-structure.svg)
+![Everise website: pages, what they show, where they lead, and site-wide rules](docs/website-structure.svg)
 
 Both images are generated: run `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` (or `website-structure.js`) after changing the structure, then refresh the PNG copy with headless Edge, e.g. `msedge --headless=new --hide-scrollbars --window-size=1560,960 --screenshot=docs/frontend-structure.png docs/frontend-structure.svg` (`1560,1056` for the website image).
 
 ## Environments and deployment
 
-The app runs on Cloudflare Workers. The deployed builds call the relative `/api`: a small Worker script ([worker/index.ts](worker/index.ts)) forwards `/api/*` to the [backend](../typescript-cloudflare-backend) Worker of the same environment over a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/), and every other path is a static file (with `index.html` for unknown paths). The browser only ever talks to one site, so there is no CORS, the backend's cookies are first-party, and staging needs a single Cloudflare Access login.
+The app runs on Cloudflare Workers. The deployed builds call the relative `/api`: a small Worker script ([worker/index.ts](worker/index.ts)) forwards `/api/*` to the [backend](https://github.com/denis-coccodi/everise-backend) Worker of the same environment over a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/), and every other path is a static file (with `index.html` for unknown paths). The browser only ever talks to one site, so there is no CORS, the backend's cookies are first-party, and staging needs a single Cloudflare Access login.
 
 ```
-Browser ──> conduit-web(-staging)  ├─ static files (Angular build)
-                                   └─ /api/* ──service binding──> conduit(-staging) backend
+Browser ──> prod / staging  ├─ static files (Angular build)
+                             └─ /api/* ──service binding──> be-prod / be-staging backend
 ```
 
-| Environment | URL                                                   | Environment file                                                               | API                                                      | Deployed by                                                                               |
-| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| local       | http://localhost:4200                                 | [environment.ts](apps/conduit/src/environments/environment.ts)                 | http://localhost:8080/api (direct, CORS)                 | `npm start`                                                                               |
-| staging     | https://conduit-web-staging.denis-coccodi.workers.dev | [environment.staging.ts](apps/conduit/src/environments/environment.staging.ts) | `/api` → `conduit-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
-| production  | https://conduit-web.denis-coccodi.workers.dev         | [environment.prod.ts](apps/conduit/src/environments/environment.prod.ts)       | `/api` → `conduit` (binding in `wrangler.jsonc`)         | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+| Environment | URL                                   | Environment file                                                               | API                                                 | Deployed by                                                                               |
+| ----------- | ------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| local       | http://localhost:4200                 | [environment.ts](apps/conduit/src/environments/environment.ts)                 | http://localhost:8080/api (direct, CORS)            | `npm start`                                                                               |
+| staging     | https://staging.everisefc.workers.dev | [environment.staging.ts](apps/conduit/src/environments/environment.staging.ts) | `/api` → `be-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
+| production  | https://prod.everisefc.workers.dev    | [environment.prod.ts](apps/conduit/src/environments/environment.prod.ts)       | `/api` → `conduit` (binding in `wrangler.jsonc`)    | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
 
 Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/): only allowed people can open it, after logging in once. CI gets through with an Access service token (`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` repository secrets).
 

@@ -10,9 +10,9 @@ export const environment = {
   // Local backend: `npx wrangler dev --port 8080` in ../typescript-cloudflare-backend.
   api_url: 'http://localhost:8080/api',
   // Staging backend: it is behind Cloudflare Access, so first open
-  // https://conduit-staging.denis-coccodi.workers.dev/api/tags in this browser and
+  // https://be-staging.everisefc.workers.dev/api/tags in this browser and
   // log in; its CORS allows http://localhost:4200.
-  // api_url: 'https://conduit-staging.denis-coccodi.workers.dev/api',
+  // api_url: 'https://be-staging.everisefc.workers.dev/api',
   // The production backend only accepts the production site, not localhost.
   // Deployed builds use the relative '/api' (environment.staging.ts, environment.prod.ts).
 };

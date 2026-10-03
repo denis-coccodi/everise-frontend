@@ -1,9 +1,9 @@
 ---
 name: smoke-test
-description: Check that the Conduit frontend is served, was built with the right configuration, and that its /api reaches the backend through the service binding (cookie auth included), locally (wrangler dev), on staging, or on production. Use when asked whether the site is up, whether a deploy worked, or to verify a change in the running app rather than in unit tests.
+description: Check that the Everise frontend is served, was built with the right configuration, and that its /api reaches the backend through the service binding (cookie auth included), locally (wrangler dev), on staging, or on production. Use when asked whether the site is up, whether a deploy worked, or to verify a change in the running app rather than in unit tests.
 ---
 
-# Smoke-test the Conduit frontend
+# Smoke-test the Everise frontend
 
 `scripts/smoke.sh` (also run by CI) checks a running frontend with curl and a cookie jar. The site forwards `/api/*` to its backend Worker over a service binding, so the API is tested through `<frontend-url>/api`. It prints `ok`/`FAIL` per check, masks JWTs, and exits non-zero on any unexpected status or body.
 
@@ -19,11 +19,11 @@ sh scripts/smoke.sh create <frontend-url> <scratchpad>/jar.txt
 
 ## Targets
 
-| Target                 | Frontend URL                                          | `create` allowed?                                                                                                                                                                                                |
-| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| local (`wrangler dev`) | http://localhost:4200                                 | yes                                                                                                                                                                                                              |
-| staging                | https://conduit-web-staging.denis-coccodi.workers.dev | yes; CI already does on every merge to `main`. Behind Cloudflare Access: export `CF_ACCESS_CLIENT_ID`/`CF_ACCESS_CLIENT_SECRET` (a service token the user holds) or every check gets a `302` to the Access login |
-| production             | https://conduit-web.denis-coccodi.workers.dev         | ask the user first; `read` is always fine                                                                                                                                                                        |
+| Target                 | Frontend URL                          | `create` allowed?                                                                                                                                                                                                |
+| ---------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| local (`wrangler dev`) | http://localhost:4200                 | yes                                                                                                                                                                                                              |
+| staging                | https://staging.everisefc.workers.dev | yes; CI already does on every merge to `main`. Behind Cloudflare Access: export `CF_ACCESS_CLIENT_ID`/`CF_ACCESS_CLIENT_SECRET` (a service token the user holds) or every check gets a `302` to the Access login |
+| production             | https://prod.everisefc.workers.dev    | ask the user first; `read` is always fine                                                                                                                                                                        |
 
 ## Local
 
@@ -31,7 +31,7 @@ The service binding works locally too: `wrangler dev` connects to another `wrang
 
 1. Start the backend from `../typescript-cloudflare-backend`: `npx wrangler dev --port 8080` (needs its `.dev.vars`). Wait until `curl -s http://localhost:8080/api/tags` answers.
 2. Build and serve the frontend: `npx nx run conduit:build --configuration=production`, then `npx wrangler dev` (port 4200). Its `/api` goes to the local backend (binding `API` → `conduit`).
-   - A staging build with `npx wrangler dev --env staging` binds to `conduit-staging`, so start the backend with `npx wrangler dev --env staging --port 8080` instead.
+   - A staging build with `npx wrangler dev --env staging` binds to `be-staging`, so start the backend with `npx wrangler dev --env staging --port 8080` instead.
 3. `sh scripts/smoke.sh create http://localhost:4200 <scratchpad>/jar.txt`.
 
 - The dev server (`npm start`) uses `environment.ts` and calls the backend directly; there is no built shell or binding to check.

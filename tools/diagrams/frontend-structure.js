@@ -101,7 +101,7 @@ add('</defs>');
 add(`<rect width="${W}" height="${H}" fill="#ffffff"/>`);
 
 // Title
-text(X0, 38, 'Conduit frontend — Nx workspace structure', { size: 22, weight: 700 });
+text(X0, 38, 'Everise frontend — Nx workspace structure', { size: 22, weight: 700 });
 text(
   X0,
   60,
@@ -182,7 +182,7 @@ box({
   dashed: true,
   lines: [
     { t: 'dist/apps/conduit + worker/index.ts (/api)' },
-    { t: 'conduit-web-staging, conduit-web', kind: 'route' },
+    { t: 'staging, prod', kind: 'route' },
     { t: 'wrangler.jsonc · GitHub Actions', kind: 'muted' },
   ],
 });
@@ -422,7 +422,7 @@ text(BX + 12, BY + 38, 'deployed   /api → worker/index.ts → service binding'
   family: MONO,
   fill: '#334155',
 });
-text(BX + 12, BY + 56, '           staging: conduit-staging · production: conduit', {
+text(BX + 12, BY + 56, '           staging: be-staging · production: be-prod', {
   size: 12,
   family: MONO,
   fill: '#334155',

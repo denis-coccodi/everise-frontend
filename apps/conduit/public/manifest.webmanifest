@@ -1,6 +1,6 @@
 {
-  "name": "conduit",
-  "short_name": "conduit",
+  "name": "Everise",
+  "short_name": "Everise",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
