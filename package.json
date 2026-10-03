@@ -5,12 +5,15 @@
   "scripts": {
     "start": "nx run conduit:serve --host 0.0.0.0 --configuration=debug",
     "build": "npx nx run conduit:build --configuration=production",
-    "start-sw": "nx reset && npx nx build conduit --configuration=debug && npx http-server dist/apps/conduit -p 4200 -c-1 --spa",
+    "start-sw": "nx reset && npx nx build conduit --configuration=debug && npx wrangler dev",
     "lint": "npx nx affected -t lint",
     "format": "npx nx format:check --affected",
     "format:write": "npx nx format:write --affected",
     "e2e": "npx nx run conduit-e2e:e2e",
-    "test": "npx nx affected -t test"
+    "test": "npx nx affected -t test",
+    "start:staging-api": "nx run conduit:serve --configuration=staging",
+    "deploy:staging": "npx nx run conduit:build --configuration=production && npx wrangler deploy --env staging",
+    "deploy": "npx nx run conduit:build --configuration=production && npx wrangler deploy"
   },
   "private": true,
   "dependencies": {
@@ -85,7 +88,8 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.58.0",
     "vite": "8.3.1",
-    "vitest": "4.0.9"
+    "vitest": "4.0.9",
+    "wrangler": "^4.147.0"
   },
   "husky": {
     "hooks": {

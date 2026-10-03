@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "conduit-web",
+  "main": "apps/conduit/worker.js",
+  "compatibility_date": "2026-09-01",
+
+  // The Angular build, served by Cloudflare before the Worker runs. Unknown paths
+  // get index.html so deep links work. Only /api/* reaches the Worker, which
+  // forwards it to the backend: the API is same-origin, so no CORS and the auth
+  // cookie is first-party.
+  "assets": {
+    "directory": "./dist/apps/conduit",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  // Production backend Worker (typescript-cloudflare-backend, worker "conduit").
+  "services": [{ "binding": "API", "service": "conduit" }],
+
+  "observability": { "enabled": true },
+
+  "dev": { "port": 4200 },
+
+  // `wrangler deploy --env staging` deploys a separate Worker, "conduit-web-staging",
+  // that talks to the staging backend. Bindings are not inherited from the top
+  // level, so they are repeated here.
+  "env": {
+    "staging": {
+      "services": [{ "binding": "API", "service": "conduit-staging" }]
+    }
+  }
+}

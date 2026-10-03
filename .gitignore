@@ -54,6 +54,8 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 .claude/worktrees
 .claude/settings.local.json
+# Wrangler local state (local dev data, dev registry)
+.wrangler/
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs

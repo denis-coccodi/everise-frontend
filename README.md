@@ -9,3 +9,14 @@
 
 $${\color{red}\[AI\]}$$: Change mainly implemented through the use of AI. <br>
 $${\color{yellow}\[MANUAL\]}$$: Change mainly implemented manually.
+
+## Environments and deployment
+
+The app runs on Cloudflare Workers as static assets. `/api/*` is forwarded by a small Worker ([apps/conduit/worker.js](apps/conduit/worker.js)) to the [backend](../typescript-cloudflare-backend) Worker of the same environment, so the API is same-origin.
+
+| Environment | URL                                                   | Backend           | Deployed by                                                                               |
+| ----------- | ----------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| staging     | https://conduit-web-staging.denis-coccodi.workers.dev | `conduit-staging` | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
+| production  | https://conduit-web.denis-coccodi.workers.dev         | `conduit`         | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+
+Local development: start the backend (`npx wrangler dev --port 8080` in the backend repo), then `npm start` (proxies `/api` to it). `npm run start:staging-api` uses the staging backend instead. `npm run start-sw` builds and serves the app through the Worker itself, as in production.
