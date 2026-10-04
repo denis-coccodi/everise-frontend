@@ -4,6 +4,9 @@ import { segmentAt, targetRotation, wheelSegments } from './wheel-geometry';
 const RADIUS = 100;
 const RIM_LIGHTS = 24;
 
+// Gives each wheel its own SVG gradient ids.
+let nextWheelId = 0;
+
 // A Gold Saucer style wheel. The parent calls spinTo() with the segment it has
 // already drawn; the wheel only animates to it.
 @Component({
@@ -17,6 +20,11 @@ export class WheelComponent {
   readonly caption = input.required<string>();
 
   readonly radius = RADIUS;
+  private readonly id = nextWheelId++;
+  readonly goldId = `wheel-gold-${this.id}`;
+  readonly crystalId = `wheel-crystal-${this.id}`;
+  readonly goldFill = `url(#${this.goldId})`;
+  readonly crystalFill = `url(#${this.crystalId})`;
   readonly lights = Array.from({ length: RIM_LIGHTS }, (_, i) => {
     const angle = (i * 2 * Math.PI) / RIM_LIGHTS;
     return { x: 108 * Math.sin(angle), y: -108 * Math.cos(angle) };

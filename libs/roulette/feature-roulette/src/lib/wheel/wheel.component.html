@@ -1,19 +1,19 @@
 <figure class="wheel" [class.spinning]="spinning()">
   <svg viewBox="-120 -120 240 240" role="img" [attr.aria-label]="caption()">
     <defs>
-      <radialGradient id="wheel-gold" cx="35%" cy="30%" r="80%">
-        <stop offset="0%" stop-color="#fff3c4" />
-        <stop offset="45%" stop-color="#d9b25f" />
-        <stop offset="100%" stop-color="#7a5a1e" />
+      <radialGradient [attr.id]="goldId" cx="35%" cy="30%" r="80%">
+        <stop offset="0%" class="stop-gold-bright" />
+        <stop offset="45%" class="stop-gold" />
+        <stop offset="100%" class="stop-gold-deep" />
       </radialGradient>
-      <linearGradient id="wheel-crystal" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#e6fbff" />
-        <stop offset="55%" stop-color="#5cc8ff" />
-        <stop offset="100%" stop-color="#1b5fa8" />
+      <linearGradient [attr.id]="crystalId" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" class="stop-crystal-bright" />
+        <stop offset="55%" class="stop-crystal" />
+        <stop offset="100%" class="stop-crystal-deep" />
       </linearGradient>
     </defs>
 
-    <circle class="rim" r="114" />
+    <circle class="rim" r="114" [attr.stroke]="goldFill" />
     @for (light of lights; track $index) {
       <circle class="light" [class.odd]="$odd" [attr.cx]="light.x" [attr.cy]="light.y" r="2.6" />
     }
@@ -31,9 +31,9 @@
       }
     </g>
 
-    <circle class="hub" r="17" />
-    <polygon class="crystal" points="0,-12 7,-2 0,12 -7,-2" />
-    <polygon class="pointer" points="-9,-121 9,-121 0,-99" />
+    <circle class="hub" r="17" [attr.fill]="goldFill" />
+    <polygon class="crystal" points="0,-12 7,-2 0,12 -7,-2" [attr.fill]="crystalFill" />
+    <polygon class="pointer" points="-9,-121 9,-121 0,-99" [attr.fill]="goldFill" />
   </svg>
-  <figcaption>{{ caption() }}</figcaption>
+  <figcaption class="xiv-label">{{ caption() }}</figcaption>
 </figure>

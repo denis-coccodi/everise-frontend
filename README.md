@@ -20,6 +20,18 @@ Dependencies only point down a layer or sideways within a domain. `npx nx graph`
 
 Both images are generated: run `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` (or `website-structure.js`) after changing the structure, then refresh the PNG copy with headless Edge, e.g. `msedge --headless=new --hide-scrollbars --window-size=1560,960 --screenshot=docs/frontend-structure.png docs/frontend-structure.svg` (`1560,1056` for the website image).
 
+### Theme
+
+The site looks like Final Fantasy XIV's interface: night-blue windows with gold trim, aether-blue highlights and Cinzel headings. Settings → Dark Mode switches to the game's charcoal "Dark" UI.
+
+The whole look is defined in [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss), in three layers:
+
+- **palette** colours, used only inside that file;
+- **role** tokens that everything else uses: `--color-base`, `--color-surface`, `--color-contrast`, `--color-primary` (gold), `--color-secondary` (aether), `--font-display`, `--radius-*`, `--shadow-*`, `--gradient-*`, …;
+- **shared classes** such as `.xiv-panel`, `.xiv-title-bar`, `.btn-primary` and `.form-control`.
+
+Components don't define colours, fonts or shadows of their own. The rules, and a check command, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
+
 ## Environments and deployment
 
 The app runs on Cloudflare Workers. The deployed builds call the relative `/api`: a small Worker script ([worker/index.ts](worker/index.ts)) forwards `/api/*` to the [backend](https://github.com/denis-coccodi/everise-backend) Worker of the same environment over a [service binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/), and every other path is a static file (with `index.html` for unknown paths). The browser only ever talks to one site, so there is no CORS, the backend's cookies are first-party, and staging needs a single Cloudflare Access login.

@@ -1,3 +1,4 @@
+// Colours come from the theme's role tokens (apps/everise/src/styles.scss).
 :host {
   display: block;
 }
@@ -11,26 +12,46 @@ svg {
   width: 100%;
   max-width: 320px;
   overflow: visible;
-  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(var(--shadow-raised));
 }
 
 figcaption {
   margin-top: 0.5rem;
-  font-family: Cinzel, 'Trajan Pro', Georgia, serif;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  color: var(--xiv-gold-light, #f1dca0);
+  font-family: var(--font-display);
+  color: var(--color-primary-strong);
+}
+
+.stop-gold-bright {
+  stop-color: var(--color-primary-bright);
+}
+
+.stop-gold {
+  stop-color: var(--color-primary);
+}
+
+.stop-gold-deep {
+  stop-color: var(--color-primary-deep);
+}
+
+.stop-crystal-bright {
+  stop-color: var(--color-secondary-strong);
+}
+
+.stop-crystal {
+  stop-color: var(--color-secondary);
+}
+
+.stop-crystal-deep {
+  stop-color: var(--color-secondary-weak);
 }
 
 .rim {
-  fill: #0b1426;
-  stroke: url(#wheel-gold);
+  fill: var(--color-base);
   stroke-width: 6;
 }
 
 .light {
-  fill: #ffe9a8;
+  fill: var(--color-primary-strong);
   animation: blink 1.4s ease-in-out infinite;
 }
 
@@ -48,19 +69,19 @@ figcaption {
 
 .segment path,
 .segment circle {
-  fill: #1a2c4e;
-  stroke: #c9a95c;
+  fill: var(--color-surface);
+  stroke: var(--color-primary);
   stroke-width: 1.2;
 }
 
 .segment.alt path,
 .segment.alt circle {
-  fill: #27497d;
+  fill: var(--color-surface-highlight);
 }
 
 .segment text {
-  fill: #eef4ff;
-  font-family: 'Source Sans Pro', sans-serif;
+  fill: var(--color-contrast);
+  font-family: var(--font-body);
   font-weight: 600;
   text-anchor: middle;
   dominant-baseline: middle;
@@ -69,31 +90,24 @@ figcaption {
 
 .segment.won path,
 .segment.won circle {
-  fill: #c9a95c;
+  fill: var(--color-primary);
   animation: won 0.9s ease-in-out infinite alternate;
 }
 
 .segment.won text {
-  fill: #1a1206;
+  fill: var(--color-on-primary);
 }
 
-.hub {
-  fill: url(#wheel-gold);
-  stroke: #5b4214;
-  stroke-width: 1.5;
+.hub,
+.pointer {
+  stroke: var(--color-primary-deep);
+  stroke-width: 1.2;
 }
 
 .crystal {
-  fill: url(#wheel-crystal);
-  stroke: #e6fbff;
+  stroke: var(--color-secondary-strong);
   stroke-width: 0.8;
-  filter: drop-shadow(0 0 4px #5cc8ff);
-}
-
-.pointer {
-  fill: url(#wheel-gold);
-  stroke: #5b4214;
-  stroke-width: 1.2;
+  filter: drop-shadow(var(--glow-secondary));
 }
 
 @keyframes blink {
@@ -108,10 +122,10 @@ figcaption {
 
 @keyframes won {
   from {
-    fill: #b8913d;
+    fill: var(--color-primary-weak);
   }
   to {
-    fill: #f1dca0;
+    fill: var(--color-primary-strong);
   }
 }
 

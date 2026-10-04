@@ -3,7 +3,7 @@
     <svg class="hero-crystal" viewBox="-12 -16 24 32" aria-hidden="true">
       <polygon points="0,-15 9,-3 0,15 -9,-3" />
     </svg>
-    <h1>Duty Roulette</h1>
+    <h1 class="xiv-title">Duty Roulette</h1>
     <p>Three wheels decide your next run: the kind of duty, the duty, and how you run it.</p>
   </header>
 
@@ -19,19 +19,19 @@
     }
     @default {
       <div class="layout">
-        <section class="panel settings" aria-labelledby="settings-title">
-          <h2 id="settings-title">Duty Finder Settings</h2>
+        <section class="xiv-panel settings" aria-labelledby="settings-title">
+          <h2 id="settings-title" class="xiv-title-bar">Duty Finder Settings</h2>
 
           <fieldset [disabled]="spinning()">
-            <legend>Duty types</legend>
+            <legend class="xiv-label">Duty types</legend>
             <div class="quick">
-              <button type="button" (click)="setAllTypes(true)">All</button>
-              <button type="button" (click)="setAllTypes(false)">None</button>
+              <button type="button" class="xiv-chip" (click)="setAllTypes(true)">All</button>
+              <button type="button" class="xiv-chip" (click)="setAllTypes(false)">None</button>
             </div>
             <ul class="checks">
               @for (name of typeNames(); track name) {
                 <li>
-                  <label>
+                  <label class="xiv-check">
                     <input
                       type="checkbox"
                       [checked]="isTypeOn(name)"
@@ -45,7 +45,7 @@
           </fieldset>
 
           <fieldset class="levels" [disabled]="spinning()">
-            <legend>Duty level</legend>
+            <legend class="xiv-label">Duty level</legend>
             <label>
               Minimum
               <input
@@ -79,7 +79,7 @@
           }
         </section>
 
-        <section class="panel stage" aria-label="Roulette">
+        <section class="xiv-panel stage" aria-label="Roulette">
           <div class="wheels">
             <div class="step">
               <span class="step-number">I</span>
@@ -95,7 +95,7 @@
             </div>
           </div>
 
-          <button type="button" class="commence" [disabled]="!canSpin()" (click)="commence()">
+          <button type="button" class="xiv-cta commence" [disabled]="!canSpin()" (click)="commence()">
             {{ spinning() ? 'Spinning…' : result() ? 'Spin again' : 'Commence' }}
           </button>
           <p class="status" aria-live="polite">{{ status() }}</p>
@@ -110,22 +110,22 @@
         </section>
 
         @if (isTypeOn(roulettesType)) {
-          <section class="panel roulettes" aria-labelledby="roulettes-title">
-            <h2 id="roulettes-title">Duty Roulettes</h2>
+          <section class="xiv-panel roulettes" aria-labelledby="roulettes-title">
+            <h2 id="roulettes-title" class="xiv-title-bar">Duty Roulettes</h2>
             <fieldset [disabled]="spinning()">
-              <legend>Roulettes the first wheel's "Duty Roulettes" can land on</legend>
+              <legend class="xiv-label">Roulettes the first wheel's "Duty Roulettes" can land on</legend>
               <div class="quick">
-                <button type="button" (click)="setAllRoulettes(true)">All</button>
-                <button type="button" (click)="setAllRoulettes(false)">None</button>
+                <button type="button" class="xiv-chip" (click)="setAllRoulettes(true)">All</button>
+                <button type="button" class="xiv-chip" (click)="setAllRoulettes(false)">None</button>
               </div>
               <div class="roulette-groups">
                 @for (group of rouletteGroups(); track group.name) {
                   <div>
-                    <h3>{{ group.name }}</h3>
+                    <h3 class="xiv-heading">{{ group.name }}</h3>
                     <ul class="checks">
                       @for (roulette of group.roulettes; track roulette.id) {
                         <li>
-                          <label>
+                          <label class="xiv-check">
                             <input
                               type="checkbox"
                               [checked]="isRouletteOn(roulette.id)"
