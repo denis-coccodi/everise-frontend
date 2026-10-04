@@ -27,28 +27,37 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 - **dark (default):** near-black navy backdrop with crystal-teal highlights;
 - **light:** Final Fantasy white, with royal-blue highlights. Turn Settings → Dark Mode off to switch to it.
 
-The UI library ([`libs/ui/components`](libs/ui/components), imported as `@realworld/ui/components`) owns that look.
+Styles live with what they style.
 
-**It defines the theme** in [`src/theme`](libs/ui/components/src/theme), in three layers:
+**Only the theme is global.** The UI library ([`libs/ui/components`](libs/ui/components), imported as `@realworld/ui/components`) defines it in [`src/theme`](libs/ui/components/src/theme):
 
-- **palette** colours, used only inside the theme;
-- **role** tokens that everything else uses: `--color-base`, `--color-surface`, `--color-contrast`, `--color-heading`, `--color-primary`, `--color-secondary`, `--color-accent`, `--color-crystal`, `--font-display`, `--radius-*`, `--shadow-*`, `--gradient-*`, …;
-- **classes** such as `.xiv-panel`, `.btn-primary` and `.form-control`.
+- **tokens:** the palette (used only inside the theme) and the role tokens everything uses, such as `--color-base`, `--color-surface`, `--color-contrast`, `--color-heading`, `--color-primary`, `--color-secondary`, `--color-accent`, `--color-crystal`, `--font-display`, `--radius-*`, `--shadow-*` and `--gradient-*`. The light mode re-points them;
+- **the reset and element typography;**
+- **the layout grid** (`.container`, `.row`, `.col-*`);
+- **text helpers:** `.xiv-title`, `.xiv-label`, `.xiv-heading`, `.logo-font`, and `.xiv-prose` for the rendered article body, which component styles can't reach.
 
-**It provides the dumb, themed building blocks** every page uses:
+[`apps/everise/src/styles.scss`](apps/everise/src/styles.scss) only loads the theme.
 
-| Building block       | For                        |
-| -------------------- | -------------------------- |
-| `cdtButton`          | buttons and button links   |
-| `cdtInput`           | text fields and text areas |
-| `<cdt-checkbox>`     | a checkbox with its label  |
-| `<cdt-panel>`        | a window                   |
-| `<cdt-dialog>`       | a modal window             |
-| `cdtTabs` / `cdtTab` | tab bars                   |
-| `cdtTag`             | tag pills                  |
-| `<cdt-pager>`        | pagination                 |
+**Every component styles itself**, in its own `.scss` next to its `.ts`, scoped by Angular and using the role tokens. That includes pages, the navbar, the footer and the app shell.
 
-**The app propagates it.** [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss) loads the theme once, and below that only lays out pages.
+**The UI library provides the dumb, themed building blocks** every page uses. Each sits in its own folder with its `.ts`, `.scss` and `.spec.ts`:
+
+| Building block       | For                             |
+| -------------------- | ------------------------------- |
+| `cdtButton`          | buttons and button links        |
+| `cdtInput`           | text fields and text areas      |
+| `<cdt-field>`        | a form field with its errors    |
+| `<cdt-checkbox>`     | a checkbox with its label       |
+| `<cdt-panel>`        | a window                        |
+| `<cdt-card>`         | a card with an optional footer  |
+| `<cdt-banner>`       | a page's title strip            |
+| `<cdt-dialog>`       | a modal window                  |
+| `<cdt-byline>`       | an avatar, author name and date |
+| `cdtTabs` / `cdtTab` | tab bars                        |
+| `cdtTag`             | tag pills                       |
+| `<cdt-pager>`        | pagination                      |
+
+The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTag`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 
 Feature libraries reuse the building blocks and don't define colours, fonts, shadows or control styles of their own. The rules, and check commands, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
 

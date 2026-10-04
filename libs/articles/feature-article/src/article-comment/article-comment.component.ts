@@ -1,13 +1,13 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { Article, User } from '@realworld/core/api-types';
 import { Comment } from '@realworld/articles/data-access';
-import { RouterModule } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { BylineComponent, CardComponent } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-article-comment',
   templateUrl: './article-comment.component.html',
-  imports: [DatePipe, RouterModule],
+  styleUrl: './article-comment.component.scss',
+  imports: [BylineComponent, CardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleCommentComponent {

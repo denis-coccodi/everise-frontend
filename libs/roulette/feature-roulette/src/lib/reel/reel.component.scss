@@ -1,4 +1,4 @@
-// Colours come from the theme's role tokens (apps/everise/src/styles.scss).
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
 :host {
   display: block;
 }
@@ -23,6 +23,16 @@
 
 .strip {
   will-change: transform;
+}
+
+// Idle: the possible outcomes scroll slowly upwards, wrapping without a jump
+// (the strip holds the loop twice).
+.strip.idle.moving {
+  animation: loop var(--loop-duration) linear infinite;
+}
+
+.strip.idle .row {
+  opacity: 0.85;
 }
 
 .row {
@@ -88,6 +98,12 @@ figcaption {
   color: var(--color-heading);
 }
 
+@keyframes loop {
+  to {
+    transform: translateY(calc(-1 * var(--loop-distance)));
+  }
+}
+
 @keyframes pulse {
   from {
     opacity: 0.8;
@@ -98,7 +114,8 @@ figcaption {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row.winner {
+  .row.winner,
+  .strip.idle.moving {
     animation: none;
   }
 }

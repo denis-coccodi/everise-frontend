@@ -4,7 +4,7 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
 @Component({
   selector: 'cdt-pager',
   templateUrl: './pager.component.html',
-  styleUrls: ['./pager.component.css'],
+  styleUrl: './pager.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass],
 })

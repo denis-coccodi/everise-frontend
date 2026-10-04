@@ -1,0 +1,37 @@
+// Uses the theme's role tokens only. The article body itself is styled by
+// the theme's .xiv-prose (it's set through [innerHTML]).
+cdt-banner {
+  padding: 2rem 0;
+}
+
+cdt-banner h1 {
+  font-size: 2.8rem;
+}
+
+cdt-banner cdt-article-meta {
+  margin-top: 2rem;
+}
+
+// The body, actions and comments use the reading width.
+.article-content,
+.article-actions,
+.container.page > .row {
+  max-width: var(--content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.article-content .col-md-12,
+.container.page > .row > [class*='col-'] {
+  flex: 0 0 100%;
+  max-width: 100%;
+  margin-left: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.article-actions {
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}

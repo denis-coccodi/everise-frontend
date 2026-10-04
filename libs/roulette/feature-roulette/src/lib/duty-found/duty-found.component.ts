@@ -7,7 +7,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { ButtonDirective, DialogComponent } from '@realworld/ui/components';
+import { ButtonComponent, DialogComponent } from '@realworld/ui/components';
 
 export interface RouletteResult {
   type: string;
@@ -22,7 +22,7 @@ export interface RouletteResult {
 // The result, styled after the game's "Duty Found" window.
 @Component({
   selector: 'cdt-duty-found',
-  imports: [ButtonDirective, DialogComponent],
+  imports: [ButtonComponent, DialogComponent],
   templateUrl: './duty-found.component.html',
   styleUrls: ['./duty-found.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

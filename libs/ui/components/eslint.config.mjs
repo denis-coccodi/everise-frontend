@@ -26,6 +26,29 @@ export default [
       '@angular-eslint/prefer-standalone': 'off',
     },
   },
+  {
+    // Components on native elements, selected by a cdt attribute
+    // (button[cdtButton], input[cdtInput]), as Angular Material does: they keep
+    // native semantics, forms and accessibility, and unlike directives can
+    // carry their own styles.
+    files: [
+      'src/button/button.component.ts',
+      'src/input/input.component.ts',
+      'src/tabs/tab.component.ts',
+      'src/tabs/tabs.component.ts',
+      'src/tag/tag.component.ts',
+    ],
+    rules: {
+      '@angular-eslint/component-selector': [
+        'error',
+        {
+          type: 'attribute',
+          prefix: 'cdt',
+          style: 'camelCase',
+        },
+      ],
+    },
+  },
   ...nx.configs['flat/angular-template'],
   {
     // Template accessibility rules newly enabled by the angular-eslint v22 presets; not previously enforced.

@@ -11,6 +11,7 @@ import {
   pickOptions,
   runModes,
   shortTypeName,
+  spreadSample,
   typeCandidates,
   upgradeSettings,
 } from './roulette-engine';
@@ -228,6 +229,17 @@ describe('upgradeSettings', () => {
   it('falls back to the defaults for missing or broken settings', () => {
     expect(upgradeSettings(null, defaultSettings(options))).toEqual(defaultSettings(options));
     expect(upgradeSettings('x', defaultSettings(options))).toEqual(defaultSettings(options));
+  });
+});
+
+describe('spreadSample', () => {
+  it('keeps short lists and spreads long ones evenly', () => {
+    expect(spreadSample([1, 2, 3], 5)).toEqual([1, 2, 3]);
+    const sample = spreadSample(
+      Array.from({ length: 100 }, (_, i) => i),
+      10,
+    );
+    expect(sample).toEqual([0, 10, 20, 30, 40, 50, 60, 70, 80, 90]);
   });
 });
 

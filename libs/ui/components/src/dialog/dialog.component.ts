@@ -6,22 +6,22 @@ let nextDialogId = 0;
 // <cdt-dialog heading="Duty Found" (dismissed)="close()">...</cdt-dialog>.
 // Clicking the backdrop or pressing Escape inside it emits `dismissed`; the
 // parent decides whether to close. Move focus into the content when it opens.
-// The look lives in theme/_shared.scss (.xiv-backdrop, .xiv-dialog).
 @Component({
   selector: 'cdt-dialog',
   template: `
-    <div class="xiv-backdrop" (click)="dismissed.emit()"></div>
+    <div class="backdrop" (click)="dismissed.emit()"></div>
     <section
-      class="xiv-dialog"
+      class="window"
       role="dialog"
       aria-modal="true"
       [attr.aria-labelledby]="headingId"
       (keydown.escape)="dismissed.emit()"
     >
-      <h2 class="xiv-title-bar" [id]="headingId">{{ heading() }}</h2>
+      <h2 class="title-bar" [id]="headingId">{{ heading() }}</h2>
       <ng-content />
     </section>
   `,
+  styleUrl: './dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DialogComponent {

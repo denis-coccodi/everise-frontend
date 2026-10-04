@@ -1,0 +1,25 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  padding: 0.5em 1em;
+  border: none;
+  border-bottom: var(--border-width-strong) solid transparent;
+  background: transparent;
+  color: var(--color-contrast-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+:host(:hover),
+:host(:focus) {
+  color: var(--color-contrast);
+  text-decoration: none;
+}
+
+:host(.active) {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary-strong);
+}

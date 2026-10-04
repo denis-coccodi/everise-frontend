@@ -26,16 +26,19 @@ import {
   pickOptions,
   runModes,
   shortTypeName,
+  spreadSample,
   todaysFrontline,
   typeCandidates,
   upgradeSettings,
 } from './roulette-engine';
 import { WheelComponent, wait } from './wheel/wheel.component';
-import { ButtonDirective, CheckboxComponent, InputDirective, PanelComponent } from '@realworld/ui/components';
+import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
 
 const SETTINGS_KEY = 'everise-roulette-settings';
 const ALL_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
 const PAUSE_BETWEEN_WHEELS_MS = 600;
+// Most outcomes the idle reel previews.
+const REEL_PREVIEW_MAX = 60;
 
 // The explanation above each picked type's list.
 const PICK_LEGENDS: Record<string, string> = {
@@ -51,9 +54,9 @@ type LoadState = 'loading' | 'ready' | 'empty' | 'error';
   templateUrl: './roulette.component.html',
   styleUrls: ['./roulette.component.scss'],
   imports: [
-    ButtonDirective,
+    ButtonComponent,
     CheckboxComponent,
-    InputDirective,
+    InputComponent,
     PanelComponent,
     WheelComponent,
     ReelComponent,
@@ -105,6 +108,14 @@ export class RouletteComponent {
   );
 
   readonly options = computed(() => eligibleTypes(this.groups(), this.pickable(), this.settings()));
+  // What the reel shows before a spin: the possible outcomes of the allowed
+  // types, in their order, sampled across all of them when there are many.
+  readonly reelPreview = computed(() =>
+    spreadSample(
+      this.options().flatMap((o) => o.candidates.map((c) => this.reelItem(c))),
+      REEL_PREVIEW_MAX,
+    ),
+  );
   readonly wheelTypes = computed(() => {
     const names = this.options().map((o) => shortTypeName(o.name));
     return names.length > 0 ? names : ['—'];
@@ -164,16 +175,17 @@ export class RouletteComponent {
     this.updateSettings((s) => ({ ...s, [which]: Number.isNaN(level) ? null : level }));
   }
 
+  private reelItem(candidate: Candidate): ReelItem {
+    return { title: candidateName(candidate), detail: candidateDetail(candidate, this.frontlineMap()) };
+  }
+
   // Spins the three wheels one after the other, then shows the result.
   async commence() {
     if (!this.canSpin()) return;
 
     const options = this.options();
     const frontlineMap = this.frontlineMap();
-    const reelItem = (c: Candidate): ReelItem => ({
-      title: candidateName(c),
-      detail: candidateDetail(c, frontlineMap),
-    });
+    const reelItem = (c: Candidate) => this.reelItem(c);
     this.spinning.set(true);
     this.showResult.set(false);
     this.result.set(null);
@@ -236,7 +248,7 @@ function toResult(type: string, candidate: Candidate, mode: RunMode, frontlineMa
     return {
       type,
       name: candidate.roulette.name,
-      detail: known ? detail : `${candidate.roulette.dutyType} · the game picks the duty`,
+      detail: known ? detail : [candidate.roulette.dutyType, 'the game picks the duty'].filter(Boolean).join(' · '),
       mode,
       dutyUnknown: !known,
     };

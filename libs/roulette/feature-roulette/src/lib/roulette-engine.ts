@@ -221,3 +221,10 @@ export function upgradeSettings(saved: unknown, defaults: RouletteSettings): Rou
 export function pickIndex(length: number, random: () => number = Math.random) {
   return Math.min(length - 1, Math.floor(random() * length));
 }
+
+// At most `max` items, spread evenly across the list so every part of it
+// (every duty type) shows up.
+export function spreadSample<T>(items: T[], max: number): T[] {
+  if (items.length <= max) return items;
+  return Array.from({ length: max }, (_, i) => items[Math.floor((i * items.length) / max)]);
+}

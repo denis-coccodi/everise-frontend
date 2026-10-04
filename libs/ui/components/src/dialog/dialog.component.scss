@@ -1,0 +1,59 @@
+// Uses the theme's role tokens only (../theme).
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--color-overlay);
+  animation: fade 0.25s ease-out;
+}
+
+.window {
+  position: fixed;
+  z-index: 11;
+  left: 50%;
+  top: 50%;
+  width: min(420px, calc(100vw - 32px));
+  transform: translate(-50%, -50%);
+  padding: 1rem 1.25rem 1.25rem;
+  border: var(--border-width-strong) solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  background: var(--gradient-window);
+  box-shadow: var(--shadow-panel), var(--glow-crystal);
+  color: var(--color-contrast);
+  animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.title-bar {
+  margin: -1rem -1.25rem 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--gradient-title-bar);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window,
+  .backdrop {
+    animation: none;
+  }
+}

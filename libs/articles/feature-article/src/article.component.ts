@@ -6,12 +6,20 @@ import { ArticleCommentComponent } from './article-comment/article-comment.compo
 import { AddCommentComponent } from './add-comment/add-comment.component';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
+import { BannerComponent } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-article',
   templateUrl: './article.component.html',
-  styleUrls: ['./article.component.css'],
-  imports: [ArticleMetaComponent, ArticleCommentComponent, MarkdownPipe, AddCommentComponent, RouterLink],
+  styleUrl: './article.component.scss',
+  imports: [
+    BannerComponent,
+    ArticleMetaComponent,
+    ArticleCommentComponent,
+    MarkdownPipe,
+    AddCommentComponent,
+    RouterLink,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleComponent implements OnInit, OnDestroy {

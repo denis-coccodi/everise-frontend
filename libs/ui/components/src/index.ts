@@ -1,10 +1,16 @@
-// Dumb, themed UI building blocks. The theme they apply is defined in
-// ./theme (loaded once by the app) and shared by every library.
-export * from './button/button.directive';
+// Dumb, themed UI building blocks, each with its own styles and spec in its
+// folder. The global theme they build on (tokens, reset, typography, layout
+// grid) is in ./theme and is loaded once by the app.
+export * from './banner/banner.component';
+export * from './button/button.component';
+export * from './byline/byline.component';
+export * from './card/card.component';
 export * from './checkbox/checkbox.component';
 export * from './dialog/dialog.component';
-export * from './input/input.directive';
+export * from './field/field.component';
+export * from './input/input.component';
 export * from './pager/pager.component';
 export * from './panel/panel.component';
-export * from './tabs/tabs.directive';
-export * from './tag/tag.directive';
+export * from './tabs/tab.component';
+export * from './tabs/tabs.component';
+export * from './tag/tag.component';

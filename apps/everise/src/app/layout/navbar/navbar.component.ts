@@ -5,6 +5,7 @@ import { User } from '@realworld/core/api-types';
 @Component({
   selector: 'cdt-navbar',
   templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.scss',
   imports: [RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

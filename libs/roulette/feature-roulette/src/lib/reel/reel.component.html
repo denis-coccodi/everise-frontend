@@ -1,15 +1,34 @@
-<figure class="reel" [class.spinning]="spinning()" [class.landed]="landed()">
+<figure class="reel" [class.spinning]="mode() === 'spinning'" [class.landed]="mode() === 'landed'">
   <div class="window" role="img" [attr.aria-label]="caption()">
-    <div #strip class="strip">
-      @for (row of rows(); track $index) {
-        <div class="row" [class.winner]="landed() && $index === rows().length - 2">
-          <span class="title">{{ row.title }}</span>
-          @if (row.detail) {
-            <span class="detail">{{ row.detail }}</span>
-          }
-        </div>
-      }
-    </div>
+    @if (mode() === 'idle') {
+      <!-- The possible outcomes, scrolling slowly. -->
+      <div
+        class="strip idle"
+        [class.moving]="idle().moving"
+        [style.--loop-distance]="idle().distance"
+        [style.--loop-duration]="idle().duration"
+      >
+        @for (row of idle().rows; track $index) {
+          <div class="row">
+            <span class="title">{{ row.title }}</span>
+            @if (row.detail) {
+              <span class="detail">{{ row.detail }}</span>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <div #strip class="strip">
+        @for (row of rows(); track $index) {
+          <div class="row" [class.winner]="mode() === 'landed' && $index === rows().length - 2">
+            <span class="title">{{ row.title }}</span>
+            @if (row.detail) {
+              <span class="detail">{{ row.detail }}</span>
+            }
+          </div>
+        }
+      </div>
+    }
     <div class="frame"></div>
   </div>
   <figcaption class="xiv-label">{{ caption() }}</figcaption>

@@ -1,0 +1,154 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+:host(:hover),
+:host(:focus) {
+  text-decoration: none;
+}
+
+:host(:disabled),
+:host(.disabled) {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+// Sizes.
+:host([data-size='lg']) {
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: var(--letter-spacing-display);
+}
+
+:host([data-size='sm']) {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+// Primary: the main action.
+:host([data-variant='primary']) {
+  color: var(--color-on-primary);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary-strong);
+}
+
+:host([data-variant='primary']:hover),
+:host([data-variant='primary']:focus) {
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
+}
+
+// Secondary: the alternative action, as a window-blue button.
+:host([data-variant='secondary']) {
+  color: var(--color-contrast);
+  background: var(--gradient-secondary-button);
+  border-color: var(--color-border);
+}
+
+:host([data-variant='secondary']:hover),
+:host([data-variant='secondary']:focus) {
+  color: var(--color-contrast);
+  border-color: var(--color-border-strong);
+}
+
+:host([data-variant='outline-primary']) {
+  color: var(--color-primary-strong);
+  background: transparent;
+  border-color: var(--color-primary);
+}
+
+:host([data-variant='outline-primary']:hover),
+:host([data-variant='outline-primary']:focus) {
+  color: var(--color-on-primary);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary-strong);
+}
+
+:host([data-variant='outline-secondary']) {
+  color: var(--color-contrast-muted);
+  background: transparent;
+  border-color: var(--color-contrast-faint);
+}
+
+:host([data-variant='outline-secondary']:hover),
+:host([data-variant='outline-secondary']:focus) {
+  color: var(--color-contrast);
+  background: var(--color-surface-strong);
+  border-color: var(--color-contrast-muted);
+}
+
+:host([data-variant='outline-danger']) {
+  color: var(--color-danger);
+  background: transparent;
+  border-color: var(--color-danger);
+}
+
+:host([data-variant='outline-danger']:hover),
+:host([data-variant='outline-danger']:focus) {
+  color: var(--color-contrast);
+  background: var(--color-danger-strong);
+  border-color: var(--color-danger);
+}
+
+// The big crystal call to action.
+:host([data-variant='cta']) {
+  min-width: 220px;
+  padding: 0.75rem 2rem;
+  border: var(--border-width-strong) solid var(--color-primary-strong);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  box-shadow: var(--glow-primary);
+}
+
+:host([data-variant='cta']:hover:not(:disabled)) {
+  transform: translateY(-1px);
+  box-shadow: var(--glow-primary-strong);
+}
+
+:host([data-variant='cta']:disabled) {
+  cursor: default;
+}
+
+// Small pill (All / None, filters).
+:host([data-variant='chip']) {
+  padding: 0.1rem 0.7rem;
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-contrast-soft);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+:host([data-variant='chip']:hover:not(:disabled)) {
+  background: var(--color-surface-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    transition: none;
+  }
+}

@@ -1,0 +1,30 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: inline-block;
+  margin: 0 0.5rem 0.5rem 0;
+  padding: 0.35rem 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface);
+  color: var(--color-contrast-soft);
+  font-size: 0.8rem;
+  line-height: 1.1rem;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+:host(a:hover),
+:host(a:focus) {
+  color: var(--color-primary-strong);
+  background-color: var(--color-surface-strong);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:host([data-variant='outline']) {
+  border-color: var(--color-border-faint);
+  background: none;
+  color: var(--color-contrast-muted);
+}

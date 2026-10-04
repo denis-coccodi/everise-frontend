@@ -3,22 +3,22 @@
  * Everise theme: Final Fantasy XIV
  * ============================================================================
  *
- * The UI library defines the whole site's look here; the app loads it once
- * (apps/everise/src/styles.scss) and every library gets it from there.
- * Features use the theme through the UI components (cdtButton, cdtInput,
- * <cdt-checkbox>, <cdt-panel>, ...) and the role tokens, and don't define
- * colours, fonts, radii, shadows or gradients of their own. See the `theme`
- * skill (.claude/skills/theme/SKILL.md) for the rules.
+ * The only global styles in the app. The UI library defines them here and
+ * the app loads them once (apps/everise/src/styles.scss). Everything else is
+ * styled inside its own component: the UI building blocks in their folders
+ * next to this one, and pages and layout components in their libraries, all
+ * using the role tokens below. See the `theme` skill
+ * (.claude/skills/theme/SKILL.md) for the rules.
  *
  * Partials:
- *   _tokens.scss    1. Palette (--palette-*): raw colours, used ONLY in the
- *                      theme. 2. Roles (--color-*, --font-*, --radius-*,
- *                      --shadow-*, --glow-*, --gradient-*): what everything
- *                      uses. body.light re-points roles for the light mode.
- *   _base.scss      Reset, typography, links, focus, layout grid, utilities.
- *   _shared.scss    FFXIV building blocks (.xiv-panel, .xiv-title-bar, ...).
- *   _controls.scss  Form fields, buttons, navigation, cards, pagination,
- *                   tags, error messages, banners.
+ *   _tokens.scss      1. Palette (--palette-*): raw colours, used ONLY in the
+ *                        theme. 2. Roles (--color-*, --font-*, --radius-*,
+ *                        --shadow-*, --glow-*, --gradient-*): what everything
+ *                        uses. body.light re-points roles for the light mode.
+ *   _base.scss        The reset, element typography, links, focus, the
+ *                     layout grid (.container, .row, .col-*) and utilities.
+ *   _typography.scss  Text helpers: .xiv-title, .xiv-label, .xiv-heading,
+ *                     .logo-font.
  *
  * Modes:
  *   - Dark (default): near-black navy behind deep-blue windows, silver-white
@@ -32,5 +32,4 @@
 
 @use 'tokens';
 @use 'base';
-@use 'shared';
-@use 'controls';
+@use 'typography';

@@ -6,12 +6,12 @@ import { ChangeDetectionStrategy, Component, model } from '@angular/core';
 @Component({
   selector: 'cdt-checkbox',
   template: `
-    <label class="xiv-check">
+    <label class="row">
       <input type="checkbox" [checked]="checked()" (change)="checked.set($any($event.target).checked)" />
       <ng-content />
     </label>
   `,
-  host: { class: 'cdt-checkbox' },
+  styleUrl: './checkbox.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckboxComponent {

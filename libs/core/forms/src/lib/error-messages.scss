@@ -1,0 +1,9 @@
+// Shared by the input-errors and list-errors components, which show the
+// same list of form errors. Uses the theme's role tokens only.
+.error-messages {
+  margin-bottom: 1rem;
+  padding-left: 2.5rem;
+  list-style: disc;
+  font-weight: bold;
+  color: var(--color-danger);
+}

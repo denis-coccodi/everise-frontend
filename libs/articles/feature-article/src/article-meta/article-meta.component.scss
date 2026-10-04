@@ -1,0 +1,28 @@
+// Uses the theme's role tokens only.
+:host {
+  display: block;
+}
+
+// Inline, so a parent's text-align (the centred actions under an article)
+// places the whole row.
+.article-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.article-meta > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+// Keep [hidden] working despite the display above.
+.article-meta > span[hidden] {
+  display: none;
+}
+
+.counter {
+  font-size: 0.8rem;
+}
