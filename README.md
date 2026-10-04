@@ -22,12 +22,15 @@ Both images are generated: run `node tools/diagrams/frontend-structure.js docs/f
 
 ### Theme
 
-The site looks like Final Fantasy XIV's interface: night-blue windows with gold trim, aether-blue highlights and Cinzel headings. Settings → Dark Mode switches to the game's charcoal "Dark" UI.
+The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, silver-white trim and Cinzel headings. It has two modes:
+
+- **dark (default):** near-black navy backdrop with crystal-teal highlights;
+- **light:** Final Fantasy white, with royal-blue highlights. Turn Settings → Dark Mode off to switch to it.
 
 The whole look is defined in [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss), in three layers:
 
 - **palette** colours, used only inside that file;
-- **role** tokens that everything else uses: `--color-base`, `--color-surface`, `--color-contrast`, `--color-primary` (gold), `--color-secondary` (aether), `--font-display`, `--radius-*`, `--shadow-*`, `--gradient-*`, …;
+- **role** tokens that everything else uses: `--color-base`, `--color-surface`, `--color-contrast`, `--color-heading`, `--color-primary`, `--color-secondary`, `--color-accent`, `--color-crystal`, `--font-display`, `--radius-*`, `--shadow-*`, `--gradient-*`, …;
 - **shared classes** such as `.xiv-panel`, `.xiv-title-bar`, `.btn-primary` and `.form-control`.
 
 Components don't define colours, fonts or shadows of their own. The rules, and a check command, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).

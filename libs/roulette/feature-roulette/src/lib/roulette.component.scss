@@ -17,8 +17,8 @@
 
 .hero-crystal {
   width: 22px;
-  fill: var(--color-secondary);
-  filter: drop-shadow(var(--glow-secondary));
+  fill: var(--color-crystal);
+  filter: drop-shadow(var(--glow-crystal));
   animation: float 3s ease-in-out infinite;
 }
 

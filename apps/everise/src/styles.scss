@@ -12,14 +12,17 @@
  *   1. Palette (--palette-*): the raw colours. Used ONLY inside this file, to
  *      define the roles. Never reference a palette token from a component.
  *   2. Roles (--color-*, --font-*, --radius-*, --shadow-*, --glow-*,
- *      --gradient-*): what everything uses. A theme variant (body.dark)
+ *      --gradient-*): what everything uses. A theme mode (body.light)
  *      re-points roles, never components.
  *   3. Shared components (.xiv-*, plus the classic .btn, .card, .form-control,
  *      .nav-*, .banner ... classes): FFXIV windows, title bars, buttons, labels.
  *
- * Look: the game's "Classic" UI by default (night-blue windows, gold trim,
- * aether-blue highlights, Cinzel headings); body.dark (Settings → Dark Mode)
- * is the game's charcoal "Dark" UI with the same gold trim.
+ * Modes:
+ *   - Dark (default): near-black navy behind deep-blue windows, silver-white
+ *     trim, crystal-teal highlights, white Cinzel headings.
+ *   - Light (body.light; Settings → Dark Mode off): Final Fantasy white.
+ *     White and silver windows, deep-blue highlights, ink-navy text.
+ *   Accents in both: crystal teal, royal blue, amber, violet, magenta, ember.
  *
  * ============================================================================
  */
@@ -29,97 +32,147 @@
  * ============================================================================ */
 
 :root {
-  --palette-night-950: #05080f;
-  --palette-night-900: #0b1426;
-  --palette-night-800: #121f3a;
-  --palette-blue-700: #1a2c4e;
-  --palette-blue-600: #22406f;
-  --palette-blue-500: #2f5592;
-  --palette-blue-300: #8fb8e8;
+  /* Night: the dark mode's backdrop and windows. */
+  --palette-abyss-950: #04070f;
+  --palette-abyss-900: #070d1c;
+  --palette-night-850: #0a1530;
+  --palette-night-800: #0d1d40;
+  --palette-night-700: #122852;
 
-  --palette-gold-800: #5b4214;
-  --palette-gold-700: #7a5a1e;
-  --palette-gold-600: #9c7a35;
-  --palette-gold-500: #c9a95c;
-  --palette-gold-300: #f1dca0;
-  --palette-gold-100: #fff3c4;
-  --palette-gold-ink: #1a1206;
+  /* Royal blue (suggested #073a8c). */
+  --palette-royal-800: #031d47;
+  --palette-royal-700: #052a66;
+  --palette-royal-600: #073a8c;
+  --palette-royal-500: #1a4fa8;
+  --palette-royal-300: #8fb3ea;
+  --palette-royal-100: #e3ebf7;
 
-  --palette-aether-700: #1b5fa8;
-  --palette-aether-500: #5cc8ff;
-  --palette-aether-100: #e6fbff;
+  /* Crystal teal (suggested #00a9b0). */
+  --palette-crystal-800: #00494d;
+  --palette-crystal-600: #007f85;
+  --palette-crystal-500: #00a9b0;
+  --palette-crystal-300: #5fd3d8;
+  --palette-crystal-100: #d6f7f8;
 
-  --palette-ice-100: #eef4ff;
-  --palette-ice-300: #c7d5ee;
-  --palette-ice-500: #a9bddc;
-  --palette-ice-700: #6f85a8;
+  /* Mist: Final Fantasy white and silver (suggested #dcdcdc). */
+  --palette-mist-0: #ffffff;
+  --palette-mist-50: #f7f8fa;
+  --palette-mist-100: #eef1f5;
+  --palette-mist-200: #e4e7ec;
+  --palette-mist-300: #dcdcdc;
+  --palette-mist-400: #c6cbd4;
+  --palette-mist-500: #a3a9b5;
 
-  --palette-ember-500: #ff8a7a;
-  --palette-ember-700: #b8473a;
-  --palette-jade-500: #7fd88b;
+  /* Haze and ink: text. */
+  --palette-haze-300: #c9d4e8;
+  --palette-haze-400: #a9b8d6;
+  --palette-haze-600: #6f7f9f;
+  --palette-slate-600: #4f5a70;
+  --palette-ink-800: #26314a;
+  --palette-ink-900: #10182b;
 
-  --palette-charcoal-950: #0a0a0c;
-  --palette-charcoal-900: #121214;
-  --palette-charcoal-800: #1c1c20;
-  --palette-charcoal-700: #26262c;
-  --palette-charcoal-600: #34343c;
-  --palette-stone-300: #b9b4a8;
+  /* Accents (suggested). */
+  --palette-amber-700: #7a5f05;
+  --palette-amber-500: #c49a0b;
+  --palette-amber-300: #e7c65a;
+  --palette-violet-500: #644a74;
+  --palette-violet-300: #a68bb8;
+  --palette-magenta-600: #94378a;
+  --palette-magenta-500: #b44ba8;
+  --palette-magenta-300: #dc8bd3;
+  --palette-ember-600: #a8471c;
+  --palette-ember-500: #c95a28;
+  --palette-ember-300: #f08a5d;
+  --palette-jade-600: #2b8a52;
+  --palette-jade-400: #6fcf8f;
 }
 
 /* ============================================================================
- * 2. ROLES (what components use)
+ * 2. ROLES (what components use). Default: the dark mode.
  * ============================================================================ */
 
 :root {
+  color-scheme: dark;
+
   /* Base: the page behind everything. */
-  --color-base: var(--palette-night-900);
-  --color-base-deep: var(--palette-night-950);
-  --color-base-raised: var(--palette-night-800);
+  --color-base: var(--palette-abyss-900);
+  --color-base-deep: var(--palette-abyss-950);
+  --color-base-raised: var(--palette-night-850);
 
   /* Surfaces: windows, cards, inputs. */
-  --color-surface: var(--palette-blue-700);
-  --color-surface-strong: var(--palette-blue-600);
-  --color-surface-highlight: var(--palette-blue-500);
-  --color-field: var(--palette-night-900);
+  --color-surface: var(--palette-night-800);
+  --color-surface-strong: var(--palette-night-700);
+  --color-surface-highlight: var(--palette-royal-600);
+  --color-field: var(--palette-abyss-950);
 
   /* Contrast: text and icons on base and surfaces. */
-  --color-contrast: var(--palette-ice-100);
-  --color-contrast-soft: var(--palette-ice-300);
-  --color-contrast-muted: var(--palette-ice-500);
-  --color-contrast-faint: var(--palette-ice-700);
+  --color-contrast: var(--palette-mist-50);
+  --color-contrast-soft: var(--palette-haze-300);
+  --color-contrast-muted: var(--palette-haze-400);
+  --color-contrast-faint: var(--palette-haze-600);
+  /* Titles and window headers. */
+  --color-heading: var(--palette-mist-0);
   /* Small uppercase labels ("eyebrows"). */
-  --color-label: var(--palette-blue-300);
+  --color-label: var(--palette-royal-300);
 
-  /* Primary: gold. Trim, primary actions, headings, the active state. */
-  --color-primary: var(--palette-gold-500);
-  --color-primary-strong: var(--palette-gold-300);
-  --color-primary-bright: var(--palette-gold-100);
-  --color-primary-weak: var(--palette-gold-600);
-  --color-primary-deep: var(--palette-gold-800);
-  --color-on-primary: var(--palette-gold-ink);
+  /* Primary: the main actions, the active state, results. "Strong" and
+     "bright" mean more emphasis on this mode's surfaces. */
+  --color-primary: var(--palette-crystal-500);
+  --color-primary-strong: var(--palette-crystal-300);
+  --color-primary-bright: var(--palette-crystal-100);
+  --color-primary-weak: var(--palette-crystal-600);
+  --color-primary-deep: var(--palette-crystal-800);
+  --color-on-primary: var(--palette-abyss-950);
 
-  /* Secondary: aether blue. Highlights, focus, links in text, results. */
-  --color-secondary: var(--palette-aether-500);
-  --color-secondary-strong: var(--palette-aether-100);
-  --color-secondary-weak: var(--palette-aether-700);
-  --color-on-secondary: var(--palette-night-900);
+  /* Secondary: alternative actions and window title bars. */
+  --color-secondary: var(--palette-royal-600);
+  --color-secondary-strong: var(--palette-royal-300);
+  --color-on-secondary: var(--palette-mist-0);
+
+  /* Tertiary: a third hue for variety (alternate segments, badges). */
+  --color-tertiary: var(--palette-violet-500);
+  --color-on-tertiary: var(--palette-mist-0);
+
+  /* Accent: amber, used sparingly (numerals, favourites, small emphasis). */
+  --color-accent: var(--palette-amber-500);
+  --color-accent-strong: var(--palette-amber-300);
+  --color-on-accent: var(--palette-abyss-950);
+
+  /* Highlight: magenta, for the one thing that just happened (a win). */
+  --color-highlight: var(--palette-magenta-500);
+  --color-highlight-strong: var(--palette-magenta-300);
+  --color-on-highlight: var(--palette-mist-0);
+
+  /* The crystal motif (icons, the wheel hub): teal in both modes. */
+  --color-crystal: var(--palette-crystal-500);
+  --color-crystal-bright: var(--palette-crystal-100);
+  --color-crystal-deep: var(--palette-royal-600);
+
+  /* Behind avatars: the default avatar is a dark outline, so it sits on a
+     light disc in both modes. */
+  --color-avatar: var(--palette-haze-300);
+
+  /* Links in text. */
+  --color-link: var(--palette-crystal-300);
+  --color-link-hover: var(--palette-crystal-100);
 
   /* Status. */
-  --color-danger: var(--palette-ember-500);
-  --color-danger-strong: var(--palette-ember-700);
-  --color-success: var(--palette-jade-500);
+  --color-danger: var(--palette-ember-300);
+  --color-danger-strong: var(--palette-ember-500);
+  --color-success: var(--palette-jade-400);
 
-  /* Lines. */
-  --color-border: var(--palette-gold-500);
-  --color-border-soft: rgba(201, 169, 92, 0.45);
-  --color-border-faint: rgba(201, 169, 92, 0.18);
-  --color-divider: rgba(143, 184, 232, 0.16);
+  /* Lines: silver-white trim. */
+  --color-border: rgba(220, 220, 220, 0.55);
+  --color-border-strong: var(--palette-mist-300);
+  --color-border-soft: rgba(220, 220, 220, 0.28);
+  --color-border-faint: rgba(220, 220, 220, 0.14);
+  --color-divider: rgba(169, 184, 214, 0.16);
 
   /* States and overlays. */
-  --color-hover: rgba(92, 200, 255, 0.1);
-  --color-focus: var(--color-secondary);
-  --color-overlay: rgba(3, 7, 16, 0.65);
-  --color-shade: rgba(5, 10, 20, 0.35);
+  --color-hover: rgba(0, 169, 176, 0.12);
+  --color-focus: var(--palette-crystal-300);
+  --color-overlay: rgba(4, 7, 15, 0.7);
+  --color-shade: rgba(4, 7, 15, 0.35);
 
   /* Fonts. Display: titles, window headers, buttons. Body: everything else.
      Reading: long article text. */
@@ -139,66 +192,126 @@
   --border-width-strong: 2px;
 
   /* Depth and light. */
-  --shadow-raised: 0 6px 18px rgba(0, 0, 0, 0.55);
-  --shadow-panel: 0 0 0 1px rgba(91, 66, 20, 0.8), 0 10px 30px rgba(0, 0, 0, 0.45);
-  --shadow-inset: inset 0 0 22px rgba(0, 0, 0, 0.8);
-  --glow-primary: 0 0 18px rgba(241, 220, 160, 0.45);
-  --glow-primary-strong: 0 0 26px rgba(241, 220, 160, 0.7);
-  --glow-secondary: 0 0 10px rgba(92, 200, 255, 0.9);
-  --glow-text-primary: 0 0 14px rgba(241, 220, 160, 0.35);
+  --shadow-raised: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-panel: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-inset: inset 0 0 22px rgba(0, 0, 0, 0.75);
+  --glow-primary: 0 0 16px rgba(0, 169, 176, 0.45);
+  --glow-primary-strong: 0 0 24px rgba(95, 211, 216, 0.65);
+  --glow-crystal: 0 0 8px rgba(95, 211, 216, 0.85);
+  --glow-heading: 0 0 14px rgba(201, 212, 232, 0.35);
 
   /* Gradients. */
-  --gradient-page: radial-gradient(ellipse at 20% 0%, rgba(92, 200, 255, 0.18), transparent 55%),
-    radial-gradient(ellipse at 85% 100%, rgba(201, 169, 92, 0.14), transparent 50%),
-    linear-gradient(var(--palette-night-900), var(--palette-night-800));
-  --gradient-panel: linear-gradient(160deg, rgba(47, 85, 146, 0.55), rgba(19, 33, 61, 0.92) 55%);
-  --gradient-window: linear-gradient(160deg, var(--palette-blue-600), #13213d 60%, #0d1830);
-  --gradient-title-bar: linear-gradient(var(--palette-blue-500), var(--palette-blue-700));
-  --gradient-primary: linear-gradient(var(--palette-gold-300), var(--palette-gold-500) 60%, var(--palette-gold-600));
-  --gradient-primary-flat: linear-gradient(var(--palette-gold-300), var(--palette-gold-500));
-  --gradient-secondary-button: linear-gradient(var(--palette-blue-500), #1b335c);
-  --gradient-well: linear-gradient(var(--palette-night-900), var(--palette-blue-700) 50%, var(--palette-night-900));
-  --gradient-navbar: linear-gradient(rgba(18, 31, 58, 0.97), rgba(11, 20, 38, 0.97));
+  --gradient-page: radial-gradient(ellipse at 20% 0%, rgba(7, 58, 140, 0.45), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(100, 74, 116, 0.25), transparent 50%),
+    linear-gradient(var(--palette-abyss-900), var(--palette-abyss-950));
+  --gradient-panel: linear-gradient(160deg, rgba(18, 40, 82, 0.92), rgba(10, 21, 48, 0.95) 60%);
+  --gradient-window: linear-gradient(160deg, var(--palette-night-700), var(--palette-night-850) 60%);
+  --gradient-title-bar: linear-gradient(var(--palette-royal-600), var(--palette-royal-700));
+  --gradient-primary: linear-gradient(
+    var(--palette-crystal-300),
+    var(--palette-crystal-500) 55%,
+    var(--palette-crystal-600)
+  );
+  --gradient-primary-flat: linear-gradient(var(--palette-crystal-300), var(--palette-crystal-500));
+  --gradient-secondary-button: linear-gradient(var(--palette-royal-500), var(--palette-royal-700));
+  --gradient-well: linear-gradient(var(--palette-abyss-950), var(--palette-night-800) 50%, var(--palette-abyss-950));
+  --gradient-navbar: linear-gradient(rgba(13, 29, 64, 0.97), rgba(7, 13, 28, 0.97));
+  --gradient-result-bar: linear-gradient(90deg, var(--palette-crystal-500), var(--palette-royal-500));
   /* Shades the top and bottom of a window, leaving the middle third clear. */
   --gradient-edge-shade: linear-gradient(var(--color-overlay), transparent 33%, transparent 67%, var(--color-overlay));
-  --gradient-result-bar: linear-gradient(90deg, var(--palette-aether-500), var(--palette-gold-500));
 
   /* Layout. */
   --content-width: 720px;
   --content-breakpoint: 1080px;
 }
 
-/* Dark Mode: the game's charcoal "Dark" UI. Re-points roles only. */
-body.dark {
-  --color-base: var(--palette-charcoal-900);
-  --color-base-deep: var(--palette-charcoal-950);
-  --color-base-raised: var(--palette-charcoal-800);
-  --color-surface: var(--palette-charcoal-800);
-  --color-surface-strong: var(--palette-charcoal-700);
-  --color-surface-highlight: var(--palette-charcoal-600);
-  --color-field: var(--palette-charcoal-950);
-  --color-label: var(--palette-stone-300);
-  --color-divider: rgba(185, 180, 168, 0.14);
+/* Light mode: Final Fantasy white. Re-points roles only. */
+body.light {
+  color-scheme: light;
 
-  --gradient-page: radial-gradient(ellipse at 50% 0%, rgba(201, 169, 92, 0.1), transparent 55%),
-    linear-gradient(var(--palette-charcoal-900), var(--palette-charcoal-950));
-  --gradient-panel: linear-gradient(160deg, rgba(52, 52, 60, 0.7), rgba(18, 18, 20, 0.95) 55%);
-  --gradient-window: linear-gradient(160deg, var(--palette-charcoal-700), var(--palette-charcoal-900));
-  --gradient-title-bar: linear-gradient(var(--palette-charcoal-600), var(--palette-charcoal-800));
-  --gradient-secondary-button: linear-gradient(var(--palette-charcoal-600), var(--palette-charcoal-800));
-  --gradient-well: linear-gradient(
-    var(--palette-charcoal-950),
-    var(--palette-charcoal-800) 50%,
-    var(--palette-charcoal-950)
+  --color-base: var(--palette-mist-100);
+  --color-base-deep: var(--palette-mist-200);
+  --color-base-raised: var(--palette-mist-50);
+  --color-surface: var(--palette-mist-0);
+  --color-surface-strong: var(--palette-mist-100);
+  --color-surface-highlight: var(--palette-royal-600);
+  --color-field: var(--palette-mist-0);
+
+  --color-contrast: var(--palette-ink-900);
+  --color-contrast-soft: var(--palette-ink-800);
+  --color-contrast-muted: var(--palette-slate-600);
+  --color-contrast-faint: var(--palette-mist-500);
+  --color-heading: var(--palette-royal-600);
+  --color-label: var(--palette-royal-500);
+
+  --color-primary: var(--palette-royal-600);
+  --color-primary-strong: var(--palette-royal-700);
+  --color-primary-bright: var(--palette-royal-800);
+  --color-primary-weak: var(--palette-royal-300);
+  --color-primary-deep: var(--palette-royal-800);
+  --color-on-primary: var(--palette-mist-0);
+
+  --color-secondary: var(--palette-crystal-500);
+  --color-secondary-strong: var(--palette-crystal-600);
+  --color-on-secondary: var(--palette-mist-0);
+
+  --color-accent: var(--palette-amber-500);
+  --color-accent-strong: var(--palette-amber-700);
+  --color-highlight-strong: var(--palette-magenta-600);
+
+  --color-avatar: var(--palette-mist-200);
+
+  --color-link: var(--palette-royal-500);
+  --color-link-hover: var(--palette-royal-700);
+
+  --color-danger: var(--palette-ember-600);
+  --color-danger-strong: var(--palette-ember-500);
+  --color-success: var(--palette-jade-600);
+
+  --color-border: var(--palette-mist-400);
+  --color-border-strong: var(--palette-royal-600);
+  --color-border-soft: var(--palette-mist-300);
+  --color-border-faint: var(--palette-mist-200);
+  --color-divider: rgba(16, 24, 43, 0.1);
+
+  --color-hover: rgba(7, 58, 140, 0.06);
+  --color-focus: var(--palette-crystal-500);
+  --color-overlay: rgba(16, 24, 43, 0.45);
+  --color-shade: rgba(7, 58, 140, 0.04);
+
+  --shadow-raised: 0 4px 14px rgba(16, 24, 43, 0.12);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(16, 24, 43, 0.12);
+  --shadow-inset: inset 0 1px 6px rgba(16, 24, 43, 0.12);
+  --glow-primary: 0 0 14px rgba(7, 58, 140, 0.25);
+  --glow-primary-strong: 0 0 20px rgba(7, 58, 140, 0.35);
+  --glow-crystal: 0 0 6px rgba(0, 169, 176, 0.6);
+  --glow-heading: none;
+
+  --gradient-page: radial-gradient(ellipse at 15% 0%, rgba(0, 169, 176, 0.1), transparent 50%),
+    radial-gradient(ellipse at 90% 100%, rgba(7, 58, 140, 0.08), transparent 50%),
+    linear-gradient(var(--palette-mist-50), var(--palette-mist-100));
+  --gradient-panel: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-50));
+  --gradient-window: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-100));
+  --gradient-title-bar: linear-gradient(var(--palette-mist-0), var(--palette-mist-200));
+  --gradient-primary: linear-gradient(var(--palette-royal-500), var(--palette-royal-600) 55%, var(--palette-royal-700));
+  --gradient-primary-flat: linear-gradient(var(--palette-royal-500), var(--palette-royal-600));
+  --gradient-secondary-button: linear-gradient(var(--palette-mist-0), var(--palette-mist-200));
+  --gradient-well: linear-gradient(var(--palette-mist-200), var(--palette-mist-0) 50%, var(--palette-mist-200));
+  --gradient-navbar: linear-gradient(rgba(255, 255, 255, 0.97), rgba(238, 241, 245, 0.97));
+  --gradient-result-bar: linear-gradient(90deg, var(--palette-royal-600), var(--palette-crystal-500));
+  --gradient-edge-shade: linear-gradient(
+    rgba(255, 255, 255, 0.9),
+    transparent 33%,
+    transparent 67%,
+    rgba(255, 255, 255, 0.9)
   );
-  --gradient-navbar: linear-gradient(rgba(28, 28, 32, 0.97), rgba(18, 18, 20, 0.97));
 }
 
 /* ============================================================================
  * 3. SHARED COMPONENTS: FFXIV windows
  * ============================================================================ */
 
-/* A window: gold-trimmed panel. Pair with .xiv-title-bar as its first child. */
+/* A window: silver-trimmed panel. Pair with .xiv-title-bar as its first child. */
 .xiv-panel {
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -219,16 +332,16 @@ body.dark {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: var(--letter-spacing-display);
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
-/* Big gold page title. */
+/* Big page title. */
 .xiv-title {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--color-primary-strong);
-  text-shadow: var(--glow-text-primary);
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
 }
 
 /* Small uppercase label above a group or value. */
@@ -244,7 +357,7 @@ body.dark {
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
 /* Small rounded chip buttons (All / None, filters). */
@@ -253,7 +366,7 @@ body.dark {
   border-radius: var(--radius-pill);
   border: var(--border-width) solid var(--color-border);
   background: var(--color-surface);
-  color: var(--color-primary-strong);
+  color: var(--color-contrast-soft);
   font-size: 0.8rem;
 }
 
@@ -261,7 +374,7 @@ body.dark {
   background: var(--color-surface-strong);
 }
 
-/* The big gold call to action ("Commence"). */
+/* The big crystal call to action ("Commence"). */
 .xiv-cta {
   display: inline-block;
   min-width: 220px;
@@ -358,7 +471,7 @@ cdt-root > cdt-footer {
 .user-pic,
 .comment-author-img,
 .article-meta img {
-  background-color: var(--color-contrast-soft);
+  background-color: var(--color-avatar);
 }
 
 ol,
@@ -374,7 +487,7 @@ hr {
 }
 
 a {
-  color: var(--color-secondary);
+  color: var(--color-link);
   text-decoration: none;
   background-color: transparent;
   transition: color 0.15s ease;
@@ -383,7 +496,7 @@ a {
 
 a:focus,
 a:hover {
-  color: var(--color-secondary-strong);
+  color: var(--color-link-hover);
   text-decoration: underline;
 }
 
@@ -419,7 +532,7 @@ h6 {
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.04em;
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
 h1 {
@@ -783,7 +896,7 @@ fieldset[disabled] a.btn {
   pointer-events: none;
 }
 
-/* Gold: the main action. */
+/* Primary: the main action (crystal teal in dark mode, royal blue in light). */
 .btn-primary {
   color: var(--color-on-primary);
   background: var(--gradient-primary-flat);
@@ -808,7 +921,7 @@ fieldset[disabled] a.btn {
 .btn-secondary:focus,
 .btn-secondary.active {
   color: var(--color-contrast);
-  border-color: var(--color-primary-strong);
+  border-color: var(--color-border-strong);
 }
 
 .btn-outline-primary {
@@ -919,7 +1032,7 @@ fieldset[disabled] a.btn {
   background: var(--gradient-primary-flat);
 }
 
-/* Navbar: a dark title strip with a gold rule. */
+/* Navbar: a title strip with a silver rule. */
 .navbar {
   position: relative;
   padding: 0.5rem 1rem;
@@ -941,8 +1054,8 @@ fieldset[disabled] a.btn {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: var(--letter-spacing-display);
-  color: var(--color-primary-strong);
-  text-shadow: var(--glow-text-primary);
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
 }
 
 .navbar-brand:focus,
@@ -972,7 +1085,7 @@ fieldset[disabled] a.btn {
 .navbar-light .navbar-brand,
 .navbar-light .navbar-brand:focus,
 .navbar-light .navbar-brand:hover {
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
 .navbar-light .navbar-nav .nav-link {
@@ -1012,7 +1125,7 @@ fieldset[disabled] a.btn {
   line-height: 1.25rem;
 }
 
-/* Tabs (Your Feed / Global Feed ...): gold underline on the active tab. */
+/* Tabs (Your Feed / Global Feed ...): primary underline on the active tab. */
 .nav-pills.outline-active .nav-link {
   border-radius: 0;
   border: none;
@@ -1125,7 +1238,7 @@ fieldset[disabled] a.btn {
   float: left;
   padding: 0.5rem 0.75rem;
   margin-left: -1px;
-  color: var(--color-primary-strong);
+  color: var(--color-link);
   text-decoration: none;
   background-color: var(--color-surface);
   border: var(--border-width) solid var(--color-border-soft);
@@ -1215,11 +1328,11 @@ footer {
 }
 
 footer .logo-font {
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
 footer a {
-  color: var(--color-primary-strong);
+  color: var(--color-link);
 }
 
 footer .attribution {
@@ -1306,7 +1419,7 @@ footer .attribution {
 .article-meta .info .author {
   display: block;
   font-weight: 600;
-  color: var(--color-secondary);
+  color: var(--color-link);
 }
 
 .article-meta .info .date {
@@ -1382,7 +1495,7 @@ footer .attribution {
 }
 
 .home-page .banner p a {
-  color: var(--color-secondary);
+  color: var(--color-link);
   text-decoration: underline;
 }
 
@@ -1391,7 +1504,7 @@ footer .attribution {
   font-size: 3.5rem;
   line-height: 1.1;
   padding-bottom: 0.5rem;
-  text-shadow: var(--glow-text-primary);
+  text-shadow: var(--glow-heading);
 }
 
 .home-page .feed-toggle {
@@ -1409,7 +1522,7 @@ footer .attribution {
 .home-page .sidebar p {
   margin-bottom: 0.4rem;
   font-family: var(--font-display);
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
 /* ============================================================================
@@ -1422,7 +1535,7 @@ footer .attribution {
 
 .article-page .banner h1 {
   font-size: 2.8rem;
-  color: var(--color-primary-strong);
+  color: var(--color-heading);
 }
 
 .article-page .banner .btn {
@@ -1439,7 +1552,7 @@ footer .attribution {
 }
 
 .article-page .banner .article-meta .author {
-  color: var(--color-secondary);
+  color: var(--color-link);
 }
 
 .article-page .banner > .container,
@@ -1575,7 +1688,7 @@ footer > .container {
 .article-page .card .comment-author {
   display: inline-block;
   vertical-align: middle;
-  color: var(--color-secondary);
+  color: var(--color-link);
 }
 
 .article-page .card .date-posted {

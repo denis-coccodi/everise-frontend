@@ -18,49 +18,42 @@ svg {
 figcaption {
   margin-top: 0.5rem;
   font-family: var(--font-display);
-  color: var(--color-primary-strong);
-}
-
-.stop-gold-bright {
-  stop-color: var(--color-primary-bright);
-}
-
-.stop-gold {
-  stop-color: var(--color-primary);
-}
-
-.stop-gold-deep {
-  stop-color: var(--color-primary-deep);
+  color: var(--color-heading);
 }
 
 .stop-crystal-bright {
-  stop-color: var(--color-secondary-strong);
+  stop-color: var(--color-crystal-bright);
 }
 
 .stop-crystal {
-  stop-color: var(--color-secondary);
+  stop-color: var(--color-crystal);
 }
 
 .stop-crystal-deep {
-  stop-color: var(--color-secondary-weak);
+  stop-color: var(--color-crystal-deep);
 }
 
+// The silver rim with its tick marks.
 .rim {
-  fill: var(--color-base);
-  stroke-width: 6;
+  fill: var(--color-base-raised);
+  stroke: var(--color-border-strong);
+  stroke-width: 3;
 }
 
-.light {
-  fill: var(--color-primary-strong);
-  animation: blink 1.4s ease-in-out infinite;
+.rim-inner {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 1;
 }
 
-.light.odd {
-  animation-delay: 0.7s;
+.tick {
+  stroke: var(--color-border);
+  stroke-width: 1;
 }
 
-.spinning .light {
-  animation-duration: 0.35s;
+.tick.major {
+  stroke: var(--color-border-strong);
+  stroke-width: 1.6;
 }
 
 .rotor {
@@ -69,18 +62,18 @@ figcaption {
 
 .segment path,
 .segment circle {
-  fill: var(--color-surface);
-  stroke: var(--color-primary);
-  stroke-width: 1.2;
+  fill: var(--color-surface-highlight);
+  stroke: var(--color-surface);
+  stroke-width: 1.4;
 }
 
 .segment.alt path,
 .segment.alt circle {
-  fill: var(--color-surface-highlight);
+  fill: var(--color-tertiary);
 }
 
 .segment text {
-  fill: var(--color-contrast);
+  fill: var(--color-on-secondary);
   font-family: var(--font-body);
   font-weight: 600;
   text-anchor: middle;
@@ -90,47 +83,49 @@ figcaption {
 
 .segment.won path,
 .segment.won circle {
-  fill: var(--color-primary);
+  fill: var(--color-highlight);
   animation: won 0.9s ease-in-out infinite alternate;
 }
 
 .segment.won text {
-  fill: var(--color-on-primary);
+  fill: var(--color-on-highlight);
 }
 
-.hub,
-.pointer {
-  stroke: var(--color-primary-deep);
-  stroke-width: 1.2;
+.hub {
+  fill: var(--color-surface);
+  stroke: var(--color-border-strong);
+  stroke-width: 2;
 }
 
-.crystal {
-  stroke: var(--color-secondary-strong);
+.hub-ring {
+  fill: none;
+  stroke: var(--color-border);
   stroke-width: 0.8;
-  filter: drop-shadow(var(--glow-secondary));
 }
 
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 1;
-  }
+.crystal,
+.pointer {
+  stroke: var(--color-crystal-bright);
+  stroke-width: 0.8;
+  filter: drop-shadow(var(--glow-crystal));
+}
+
+// While spinning, the crystals glow a little brighter.
+.spinning .crystal,
+.spinning .pointer {
+  filter: drop-shadow(var(--glow-primary-strong));
 }
 
 @keyframes won {
   from {
-    fill: var(--color-primary-weak);
+    fill: var(--color-highlight);
   }
   to {
-    fill: var(--color-primary-strong);
+    fill: var(--color-highlight-strong);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .light,
   .segment.won path,
   .segment.won circle {
     animation: none;

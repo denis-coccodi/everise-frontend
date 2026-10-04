@@ -1,11 +1,6 @@
 <figure class="wheel" [class.spinning]="spinning()">
   <svg viewBox="-120 -120 240 240" role="img" [attr.aria-label]="caption()">
     <defs>
-      <radialGradient [attr.id]="goldId" cx="35%" cy="30%" r="80%">
-        <stop offset="0%" class="stop-gold-bright" />
-        <stop offset="45%" class="stop-gold" />
-        <stop offset="100%" class="stop-gold-deep" />
-      </radialGradient>
       <linearGradient [attr.id]="crystalId" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" class="stop-crystal-bright" />
         <stop offset="55%" class="stop-crystal" />
@@ -13,9 +8,17 @@
       </linearGradient>
     </defs>
 
-    <circle class="rim" r="114" [attr.stroke]="goldFill" />
-    @for (light of lights; track $index) {
-      <circle class="light" [class.odd]="$odd" [attr.cx]="light.x" [attr.cy]="light.y" r="2.6" />
+    <circle class="rim" r="113" />
+    <circle class="rim-inner" r="101" />
+    @for (tick of ticks; track $index) {
+      <line
+        class="tick"
+        [class.major]="tick.major"
+        [attr.x1]="tick.x1"
+        [attr.y1]="tick.y1"
+        [attr.x2]="tick.x2"
+        [attr.y2]="tick.y2"
+      />
     }
 
     <g #rotor class="rotor">
@@ -31,9 +34,11 @@
       }
     </g>
 
-    <circle class="hub" r="17" [attr.fill]="goldFill" />
-    <polygon class="crystal" points="0,-12 7,-2 0,12 -7,-2" [attr.fill]="crystalFill" />
-    <polygon class="pointer" points="-9,-121 9,-121 0,-99" [attr.fill]="goldFill" />
+    <circle class="hub" r="18" />
+    <circle class="hub-ring" r="14" />
+    <polygon class="crystal" points="0,-13 7.5,-2 0,13 -7.5,-2" [attr.fill]="crystalFill" />
+    <!-- The pointer: a crystal shard pointing at the winning segment. -->
+    <polygon class="pointer" points="0,-98 -7,-112 0,-122 7,-112" [attr.fill]="crystalFill" />
   </svg>
   <figcaption class="xiv-label">{{ caption() }}</figcaption>
 </figure>

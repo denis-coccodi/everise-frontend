@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal
 import { segmentAt, targetRotation, wheelSegments } from './wheel-geometry';
 
 const RADIUS = 100;
-const RIM_LIGHTS = 24;
+// Tick marks on the silver rim, every 10 degrees.
+const RIM_TICKS = 36;
 
-// Gives each wheel its own SVG gradient ids.
+// Gives each wheel its own SVG gradient id.
 let nextWheelId = 0;
 
-// A Gold Saucer style wheel. The parent calls spinTo() with the segment it has
-// already drawn; the wheel only animates to it.
+// A crystal-hubbed wheel in the theme's colours. The parent calls spinTo()
+// with the segment it has already drawn; the wheel only animates to it.
 @Component({
   selector: 'cdt-roulette-wheel',
   templateUrl: './wheel.component.html',
@@ -21,13 +22,19 @@ export class WheelComponent {
 
   readonly radius = RADIUS;
   private readonly id = nextWheelId++;
-  readonly goldId = `wheel-gold-${this.id}`;
   readonly crystalId = `wheel-crystal-${this.id}`;
-  readonly goldFill = `url(#${this.goldId})`;
   readonly crystalFill = `url(#${this.crystalId})`;
-  readonly lights = Array.from({ length: RIM_LIGHTS }, (_, i) => {
-    const angle = (i * 2 * Math.PI) / RIM_LIGHTS;
-    return { x: 108 * Math.sin(angle), y: -108 * Math.cos(angle) };
+  // Long ticks every 30 degrees, short ones in between.
+  readonly ticks = Array.from({ length: RIM_TICKS }, (_, i) => {
+    const angle = (i * 2 * Math.PI) / RIM_TICKS;
+    const inner = i % 3 === 0 ? 103 : 106;
+    return {
+      x1: inner * Math.sin(angle),
+      y1: -inner * Math.cos(angle),
+      x2: 110 * Math.sin(angle),
+      y2: -110 * Math.cos(angle),
+      major: i % 3 === 0,
+    };
   });
 
   readonly paths = computed(() => {
