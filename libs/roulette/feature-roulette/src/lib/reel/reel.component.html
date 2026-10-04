@@ -9,7 +9,7 @@
         [style.--loop-duration]="idle().duration"
       >
         @for (row of idle().rows; track $index) {
-          <div class="row">
+          <div class="slot">
             <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
           </div>
         }
@@ -17,7 +17,7 @@
     } @else {
       <div #strip class="strip">
         @for (row of rows(); track $index) {
-          <div class="row" [class.winner]="isWinner($index)">
+          <div class="slot" [class.winner]="isWinner($index)">
             @if (isWinner($index) && row.backdrop) {
               <img class="backdrop" [src]="row.backdrop" alt="" decoding="async" (error)="hideImage($event)" />
             }
@@ -31,7 +31,7 @@
   <figcaption class="xiv-label">{{ caption() }}</figcaption>
 </figure>
 
-<!-- A row's content. Images have fixed sizes, so loading them never shifts the rows. -->
+<!-- A slot's content. Images have fixed sizes, so loading them never shifts the rows. -->
 <ng-template #content let-row>
   @if (row.thumb) {
     <img class="thumb" [src]="row.thumb" alt="" width="28" height="28" decoding="async" (error)="hideImage($event)" />

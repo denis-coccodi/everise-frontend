@@ -31,11 +31,13 @@
   animation: loop var(--loop-duration) linear infinite;
 }
 
-.strip.idle .row {
+.strip.idle .slot {
   opacity: 0.85;
 }
 
-.row {
+// One entry on the strip. Not ".row": the theme's page grid styles that
+// class globally (flex-wrap and negative margins).
+.slot {
   position: relative;
   isolation: isolate;
   height: 52px;
@@ -99,13 +101,13 @@
   filter: blur(0.6px);
 }
 
-.row.winner {
+.slot.winner {
   color: var(--color-primary-bright);
   text-shadow: var(--glow-crystal);
   animation: pulse 0.9s ease-in-out infinite alternate;
 }
 
-.row.winner .detail {
+.slot.winner .detail {
   color: var(--color-primary-strong);
 }
 
@@ -157,7 +159,7 @@ figcaption {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row.winner,
+  .slot.winner,
   .backdrop,
   .strip.idle.moving {
     animation: none;

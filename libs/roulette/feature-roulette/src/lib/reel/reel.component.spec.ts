@@ -23,7 +23,7 @@ describe('ReelComponent', () => {
   });
 
   const titles = () =>
-    [...(fixture.nativeElement as HTMLElement).querySelectorAll('.row .title')].map((t) => t.textContent?.trim());
+    [...(fixture.nativeElement as HTMLElement).querySelectorAll('.slot .title')].map((t) => t.textContent?.trim());
 
   it('shows the possible outcomes while idle, scrolling when there are several', async () => {
     expect(titles()).toEqual(['· · ·', '· · ·', '· · ·', '· · ·', '· · ·', '· · ·']);
@@ -50,7 +50,7 @@ describe('ReelComponent', () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.reel().mode()).toBe('landed');
-    expect((fixture.nativeElement as HTMLElement).querySelector('.row.winner .title')?.textContent?.trim()).toBe(
+    expect((fixture.nativeElement as HTMLElement).querySelector('.slot.winner .title')?.textContent?.trim()).toBe(
       'the Aurum Vale',
     );
 
@@ -75,7 +75,7 @@ describe('ReelComponent', () => {
     vi.useRealTimers();
     await fixture.whenStable();
 
-    const winner = (fixture.nativeElement as HTMLElement).querySelector('.row.winner');
+    const winner = (fixture.nativeElement as HTMLElement).querySelector('.slot.winner');
     expect(winner?.querySelector('.title')?.textContent?.trim()).toBe('Everyone on the same job:');
     expect(winner?.querySelector('.detail')?.textContent?.trim()).toBe('Viper');
     expect(winner?.querySelector('img.icon')?.getAttribute('src')).toBe('/api/images/62141');
@@ -97,10 +97,10 @@ describe('ReelComponent', () => {
     vi.useRealTimers();
     await fixture.whenStable();
 
-    expect(page.querySelectorAll('.row img.thumb').length).toBe(page.querySelectorAll('.row').length);
+    expect(page.querySelectorAll('.slot img.thumb').length).toBe(page.querySelectorAll('.slot').length);
     const backdrops = page.querySelectorAll<HTMLImageElement>('img.backdrop');
     expect(backdrops).toHaveLength(1);
-    expect(backdrops[0].closest('.row')?.classList).toContain('winner');
+    expect(backdrops[0].closest('.slot')?.classList).toContain('winner');
     expect(backdrops[0].getAttribute('src')).toBe('/api/images/112001');
   });
 });
