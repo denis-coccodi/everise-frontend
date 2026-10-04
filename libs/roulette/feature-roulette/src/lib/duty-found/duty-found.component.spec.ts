@@ -21,10 +21,10 @@ describe('DutyFoundComponent', () => {
   }
 
   it('links the guide for the party setting, opening in a new tab', async () => {
-    const page = await show({ ...result, guide: { label: 'Awktrail gear sets', url: 'https://example.com/sheet' } });
+    const page = await show({ ...result, guide: { label: 'Awktrail gear set', url: 'https://example.com/sheet' } });
 
     const link = page.querySelector<HTMLAnchorElement>('.guide a');
-    expect(link?.textContent?.trim()).toBe('Awktrail gear sets');
+    expect(link?.textContent?.trim()).toBe('Awktrail gear set');
     expect(link?.getAttribute('href')).toBe('https://example.com/sheet');
     expect(link?.target).toBe('_blank');
     expect(link?.rel).toContain('noopener');

@@ -6,6 +6,7 @@ import {
   ROULETTES_TYPE,
   RouletteSettings,
   SAME_JOB,
+  awktrailGuideUrl,
   candidateDetail,
   dealableJobs,
   defaultSettings,
@@ -241,6 +242,47 @@ describe('runModeDetail', () => {
     expect(runModeDetail('Regular')).toBe('The Duty Finder as usual');
     expect(runModeDetail(DEALERS_CHOICE)).toBe('The roulette deals the job');
     expect(runModeDetail('Awktrail')).toBe('Unsynced at the level cap, in downscaled gear');
+  });
+});
+
+describe('awktrailGuideUrl', () => {
+  const row = (name: string) => awktrailGuideUrl(name)?.match(/range=A(\d+)$/)?.[1];
+
+  it("opens the gear set sheet at the duty's raid tier", () => {
+    expect(awktrailGuideUrl("Eden's Gate: Resurrection (Savage)")).toBe(
+      'https://docs.google.com/spreadsheets/d/1HjZB9wSokd5yZGgNwRlV4bbfCr3cXQLD5SMdArF0iS4/edit?gid=1997354076#gid=1997354076&range=A97',
+    );
+  });
+
+  it.each([
+    ['the Binding Coil of Bahamut - Turn 5', '5'],
+    ['the Second Coil of Bahamut - Turn 1', '17'],
+    ['the Second Coil of Bahamut (Savage) - Turn 4', '17'],
+    ['the Final Coil of Bahamut - Turn 4', '17'],
+    ['Alexander - The Burden of the Father (Savage)', '33'],
+    ['Alexander - The Cuff of the Son (Savage)', '43'],
+    ['Alexander - The Soul of the Creator (Savage)', '54'],
+    ['Deltascape V4.0 (Savage)', '66'],
+    ['Sigmascape V2.0 (Savage)', '76'],
+    ['Alphascape V3.0 (Savage)', '86'],
+    ["Eden's Verse: Refulgence (Savage)", '107'],
+    ["Eden's Promise: Eternity (Savage)", '117'],
+    ['Asphodelos: The Fourth Circle (Savage)', '128'],
+    ['Abyssos: The Eighth Circle (Savage)', '138'],
+    ['Anabaseios: The Twelfth Circle (Savage)', '148'],
+  ])('links %s to row %s', (name, expected) => {
+    expect(row(name)).toBe(expected);
+  });
+
+  it.each([
+    // Normal modes after the Coils, Ultimates, Dawntrail tiers and other duties have no gear set.
+    'Alexander - The Fist of the Father',
+    "Eden's Gate: Resurrection",
+    'the Unending Coil of Bahamut (Ultimate)',
+    'AAC Light-heavyweight M1 (Savage)',
+    'Sastasha',
+  ])('has no link for %s', (name) => {
+    expect(awktrailGuideUrl(name)).toBeNull();
   });
 });
 

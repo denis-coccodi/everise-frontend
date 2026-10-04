@@ -21,13 +21,44 @@ export const SAME_JOB = 'Everyone on the same job';
 export const DEALERS_CHOICE = "Everyone on the same job: dealer's choice";
 
 // Awktrail: an old duty unsynced at the level cap, in gear deliberately
-// weakened so the fights play close to their original difficulty. The
-// community's gear sets (8-player raids from the Coils to Pandaemonium) are
-// in this sheet.
-export const AWKTRAIL_GUIDE_URL =
-  'https://docs.google.com/spreadsheets/d/1HjZB9wSokd5yZGgNwRlV4bbfCr3cXQLD5SMdArF0iS4/htmlview';
+// weakened so the fights play close to their original difficulty.
 // The lowest duty level Awktrail is offered for.
 const AWKTRAIL_MIN_LEVEL = 50;
+
+// The community's Awktrail gear sets ("Awktrail Old Savage Downscaled LVL
+// 100"): one sheet tab, a block of rows per raid tier.
+const AWKTRAIL_SHEET = 'https://docs.google.com/spreadsheets/d/1HjZB9wSokd5yZGgNwRlV4bbfCr3cXQLD5SMdArF0iS4';
+const AWKTRAIL_SHEET_TAB = 1997354076;
+
+// The duties with a gear set, and the row its tier starts on. The sheet
+// covers the Coils (normal, and Savage for the Second Coil) and the Savage
+// turns from Alexander to Pandaemonium; normal modes after the Coils and
+// Ultimates have none. If the sheet's layout changes, update the rows.
+const AWKTRAIL_TIERS: { duties: RegExp; row: number }[] = [
+  { duties: /^the Binding Coil of Bahamut - Turn \d$/, row: 5 },
+  { duties: /^the (Second Coil of Bahamut( \(Savage\))?|Final Coil of Bahamut) - Turn \d$/, row: 17 },
+  { duties: /^Alexander - The \w+ of the Father \(Savage\)$/, row: 33 },
+  { duties: /^Alexander - The \w+ of the Son \(Savage\)$/, row: 43 },
+  { duties: /^Alexander - The \w+ of the Creator \(Savage\)$/, row: 54 },
+  { duties: /^Deltascape V\d\.0 \(Savage\)$/, row: 66 },
+  { duties: /^Sigmascape V\d\.0 \(Savage\)$/, row: 76 },
+  { duties: /^Alphascape V\d\.0 \(Savage\)$/, row: 86 },
+  { duties: /^Eden's Gate: \w+ \(Savage\)$/, row: 97 },
+  { duties: /^Eden's Verse: \w+ \(Savage\)$/, row: 107 },
+  { duties: /^Eden's Promise: \w+ \(Savage\)$/, row: 117 },
+  { duties: /^Asphodelos: The \w+ Circle \(Savage\)$/, row: 128 },
+  { duties: /^Abyssos: The \w+ Circle \(Savage\)$/, row: 138 },
+  { duties: /^Anabaseios: The \w+ Circle \(Savage\)$/, row: 148 },
+];
+
+// A link to the duty's Awktrail gear set, opening the sheet at its tier; null
+// when the sheet has none for it.
+export function awktrailGuideUrl(dutyName: string): string | null {
+  const tier = AWKTRAIL_TIERS.find((t) => t.duties.test(dutyName));
+  if (!tier) return null;
+  const tab = AWKTRAIL_SHEET_TAB;
+  return `${AWKTRAIL_SHEET}/edit?gid=${tab}#gid=${tab}&range=A${tier.row}`;
+}
 
 export type RunMode =
   | 'Min IL + Silence Echo'
