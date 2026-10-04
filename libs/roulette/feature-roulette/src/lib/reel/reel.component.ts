@@ -11,6 +11,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { reducedMotion, wait } from '../motion';
 
 export interface ReelItem {
@@ -18,6 +19,11 @@ export interface ReelItem {
   detail: string;
   // An image shown after the title, e.g. a job icon.
   icon?: string;
+  // A small image before the text, e.g. the duty type's icon.
+  thumb?: string;
+  // An image shown faintly behind the row once it has won, e.g. the duty's
+  // banner. Only the winner's is loaded.
+  backdrop?: string;
 }
 
 // Rows scrolled past before the winner, and the row height in the template.
@@ -43,6 +49,7 @@ type Mode = 'idle' | 'spinning' | 'landed';
   selector: 'cdt-roulette-reel',
   templateUrl: './reel.component.html',
   styleUrls: ['./reel.component.scss'],
+  imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReelComponent {
@@ -115,6 +122,11 @@ export class ReelComponent {
       await wait(SHUFFLE_FIRST_MS + step * step);
     }
     this.setWinner(winner);
+  }
+
+  // The landed winner sits in the middle row, second from the end.
+  protected isWinner(index: number) {
+    return this.mode() === 'landed' && index === this.rows().length - 2;
   }
 
   // An image the backend doesn't have yet is left out.

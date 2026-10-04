@@ -80,4 +80,27 @@ describe('ReelComponent', () => {
     expect(winner?.querySelector('.detail')?.textContent?.trim()).toBe('Viper');
     expect(winner?.querySelector('img.icon')?.getAttribute('src')).toBe('/api/images/62141');
   });
+
+  it("shows thumbnails on every row, and only the winner's backdrop once it lands", async () => {
+    const reel = fixture.componentInstance.reel();
+    const duty = (title: string): ReelItem => ({ title, detail: '', thumb: '/api/images/61801' });
+    const winner: ReelItem = { ...duty('Sastasha'), backdrop: '/api/images/112001' };
+    const page = fixture.nativeElement as HTMLElement;
+
+    vi.useFakeTimers();
+    const spin = reel.spinTo([duty('Brayflox'), duty('the Aurum Vale')], winner, () => 0);
+    await vi.advanceTimersByTimeAsync(10);
+    // While spinning, no banner is loaded.
+    expect(page.querySelectorAll('img.backdrop')).toHaveLength(0);
+    await vi.runAllTimersAsync();
+    await spin;
+    vi.useRealTimers();
+    await fixture.whenStable();
+
+    expect(page.querySelectorAll('.row img.thumb').length).toBe(page.querySelectorAll('.row').length);
+    const backdrops = page.querySelectorAll<HTMLImageElement>('img.backdrop');
+    expect(backdrops).toHaveLength(1);
+    expect(backdrops[0].closest('.row')?.classList).toContain('winner');
+    expect(backdrops[0].getAttribute('src')).toBe('/api/images/112001');
+  });
 });

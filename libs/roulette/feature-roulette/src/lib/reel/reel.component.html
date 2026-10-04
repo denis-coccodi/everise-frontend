@@ -10,31 +10,18 @@
       >
         @for (row of idle().rows; track $index) {
           <div class="row">
-            <span class="title"
-              >{{ row.title }}
-              @if (row.icon) {
-                <img class="icon" [src]="row.icon" alt="" (error)="hideImage($event)" />
-              }
-            </span>
-            @if (row.detail) {
-              <span class="detail">{{ row.detail }}</span>
-            }
+            <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
           </div>
         }
       </div>
     } @else {
       <div #strip class="strip">
         @for (row of rows(); track $index) {
-          <div class="row" [class.winner]="mode() === 'landed' && $index === rows().length - 2">
-            <span class="title"
-              >{{ row.title }}
-              @if (row.icon) {
-                <img class="icon" [src]="row.icon" alt="" (error)="hideImage($event)" />
-              }
-            </span>
-            @if (row.detail) {
-              <span class="detail">{{ row.detail }}</span>
+          <div class="row" [class.winner]="isWinner($index)">
+            @if (isWinner($index) && row.backdrop) {
+              <img class="backdrop" [src]="row.backdrop" alt="" decoding="async" (error)="hideImage($event)" />
             }
+            <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
           </div>
         }
       </div>
@@ -43,3 +30,21 @@
   </div>
   <figcaption class="xiv-label">{{ caption() }}</figcaption>
 </figure>
+
+<!-- A row's content. Images have fixed sizes, so loading them never shifts the rows. -->
+<ng-template #content let-row>
+  @if (row.thumb) {
+    <img class="thumb" [src]="row.thumb" alt="" width="28" height="28" decoding="async" (error)="hideImage($event)" />
+  }
+  <span class="text">
+    <span class="title"
+      >{{ row.title }}
+      @if (row.icon) {
+        <img class="icon" [src]="row.icon" alt="" width="24" height="24" decoding="async" (error)="hideImage($event)" />
+      }
+    </span>
+    @if (row.detail) {
+      <span class="detail">{{ row.detail }}</span>
+    }
+  </span>
+</ng-template>

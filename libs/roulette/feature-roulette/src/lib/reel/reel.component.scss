@@ -36,12 +36,40 @@
 }
 
 .row {
+  position: relative;
+  isolation: isolate;
   height: 52px;
   padding: 0 0.75rem;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   color: var(--color-contrast-soft);
+}
+
+// The title and detail, stacked; min-width lets long titles be cut off.
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.thumb {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+// Behind the winning row's text, faded in once.
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+  animation: backdrop-in 0.6s ease-out;
 }
 
 .title {
@@ -66,7 +94,8 @@
   color: var(--color-contrast-muted);
 }
 
-.spinning .row {
+// One blur for the whole strip is cheaper than one per row.
+.spinning .strip {
   filter: blur(0.6px);
 }
 
@@ -112,6 +141,12 @@ figcaption {
   }
 }
 
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes pulse {
   from {
     opacity: 0.8;
@@ -123,6 +158,7 @@ figcaption {
 
 @media (prefers-reduced-motion: reduce) {
   .row.winner,
+  .backdrop,
   .strip.idle.moving {
     animation: none;
   }
