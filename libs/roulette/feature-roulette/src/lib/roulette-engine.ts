@@ -20,6 +20,12 @@ export const PICKED_TYPES = [ROULETTES_TYPE, PVP_TYPE, GOLD_SAUCER_TYPE];
 export const SAME_JOB = 'Everyone on the same job';
 export const DEALERS_CHOICE = "Everyone on the same job: dealer's choice";
 
+// Awktrail: an old duty unsynced at the level cap, in gear deliberately
+// weakened so the fights play close to their original difficulty. The
+// community's gear sets (8-player raids from the Coils to Pandaemonium) are
+// in this sheet.
+export const AWKTRAIL_GUIDE_URL =
+  'https://docs.google.com/spreadsheets/d/1HjZB9wSokd5yZGgNwRlV4bbfCr3cXQLD5SMdArF0iS4/htmlview';
 // The lowest duty level Awktrail is offered for.
 const AWKTRAIL_MIN_LEVEL = 50;
 
@@ -68,8 +74,7 @@ export const DEFAULT_TYPES = [
 const RUN_MODE_DETAILS: Record<RunMode, string> = {
   'Min IL + Silence Echo': 'Minimum item level, the Echo turned off',
   Unsynced: 'Unrestricted Party, no level sync',
-  // No explanation line.
-  Awktrail: '',
+  Awktrail: 'Unsynced at the level cap, in downscaled gear',
   'Join Party in Progress': 'Join a party already inside',
   [SAME_JOB]: 'The party agrees on one job for everyone',
   [DEALERS_CHOICE]: 'The roulette deals the job',

@@ -240,6 +240,7 @@ describe('runModeDetail', () => {
     expect(runModeDetail('Unsynced')).toBe('Unrestricted Party, no level sync');
     expect(runModeDetail('Regular')).toBe('The Duty Finder as usual');
     expect(runModeDetail(DEALERS_CHOICE)).toBe('The roulette deals the job');
+    expect(runModeDetail('Awktrail')).toBe('Unsynced at the level cap, in downscaled gear');
   });
 });
 

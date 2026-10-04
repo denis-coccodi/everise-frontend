@@ -13,6 +13,7 @@ import { DutiesService } from './duties.service';
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { ReelComponent, ReelItem } from './reel/reel.component';
 import {
+  AWKTRAIL_GUIDE_URL,
   Candidate,
   DEALERS_CHOICE,
   PICKED_TYPES,
@@ -281,6 +282,7 @@ export class RouletteComponent {
       mode: job ? `${SAME_JOB}: ${job.name}` : mode,
       job: job && { name: job.name, icon: this.dutiesService.imageUrl(job.icon) },
       image: this.dutiesService.imageUrl(image),
+      guide: mode === 'Awktrail' ? { label: 'Awktrail gear sets', url: AWKTRAIL_GUIDE_URL } : undefined,
     };
   }
 
