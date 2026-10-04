@@ -66,12 +66,4 @@ export class ReelComponent {
     this.spinning.set(false);
     this.landed.set(true);
   }
-
-  reset() {
-    this.rows.set(IDLE);
-    this.landed.set(false);
-    const strip = this.strip().nativeElement;
-    strip.style.transition = 'none';
-    strip.style.transform = 'translateY(0)';
-  }
 }

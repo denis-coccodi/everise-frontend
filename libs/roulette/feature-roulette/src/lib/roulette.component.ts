@@ -61,8 +61,12 @@ export class RouletteComponent {
   readonly showResult = signal(false);
 
   readonly typeNames = computed(() => [...this.groups().map((g) => g.name), ROULETTES_TYPE]);
-  readonly pveRoulettes = computed(() => this.roulettes().filter(isPveRoulette));
-  readonly otherRoulettes = computed(() => this.roulettes().filter((r) => !isPveRoulette(r)));
+  readonly rouletteGroups = computed(() =>
+    [
+      { name: 'Duty Finder', roulettes: this.roulettes().filter(isPveRoulette) },
+      { name: 'PvP & Gold Saucer', roulettes: this.roulettes().filter((r) => !isPveRoulette(r)) },
+    ].filter((group) => group.roulettes.length > 0),
+  );
   readonly options = computed(() => eligibleTypes(this.groups(), this.roulettes(), this.settings()));
   readonly wheelTypes = computed(() => {
     const names = this.options().map((o) => o.name);
@@ -113,6 +117,10 @@ export class RouletteComponent {
     this.updateSettings((s) => ({ ...s, types: on ? this.typeNames() : [] }));
   }
 
+  setAllRoulettes(on: boolean) {
+    this.updateSettings((s) => ({ ...s, roulettes: on ? this.roulettes().map((r) => r.id) : [] }));
+  }
+
   setLevel(which: 'minLevel' | 'maxLevel', value: string) {
     const level = value.trim() === '' ? null : Math.max(1, Math.min(100, Math.floor(Number(value))));
     this.updateSettings((s) => ({ ...s, [which]: Number.isNaN(level) ? null : level }));
@@ -143,7 +151,6 @@ export class RouletteComponent {
       const modes = runModes(candidate);
       this.modes.set(modes);
       this.cdr.detectChanges();
-      this.modeWheel().reset();
       const modeIndex = pickIndex(modes.length);
       await this.modeWheel().spinTo(modeIndex);
       await wait(PAUSE_BETWEEN_WHEELS_MS / 2);

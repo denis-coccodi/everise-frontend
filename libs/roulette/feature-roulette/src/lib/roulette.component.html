@@ -42,38 +42,6 @@
                 </li>
               }
             </ul>
-
-            @if (isTypeOn(roulettesType)) {
-              <details class="roulettes">
-                <summary>Which duty roulettes</summary>
-                <ul class="checks">
-                  @for (roulette of pveRoulettes(); track roulette.id) {
-                    <li>
-                      <label>
-                        <input
-                          type="checkbox"
-                          [checked]="isRouletteOn(roulette.id)"
-                          (change)="toggleRoulette(roulette.id, $any($event.target).checked)"
-                        />
-                        {{ roulette.name }}
-                      </label>
-                    </li>
-                  }
-                  @for (roulette of otherRoulettes(); track roulette.id) {
-                    <li class="other">
-                      <label>
-                        <input
-                          type="checkbox"
-                          [checked]="isRouletteOn(roulette.id)"
-                          (change)="toggleRoulette(roulette.id, $any($event.target).checked)"
-                        />
-                        {{ roulette.name }}
-                      </label>
-                    </li>
-                  }
-                </ul>
-              </details>
-            }
           </fieldset>
 
           <fieldset class="levels" [disabled]="spinning()">
@@ -140,6 +108,40 @@
             }
           }
         </section>
+
+        @if (isTypeOn(roulettesType)) {
+          <section class="panel roulettes" aria-labelledby="roulettes-title">
+            <h2 id="roulettes-title">Duty Roulettes</h2>
+            <fieldset [disabled]="spinning()">
+              <legend>Roulettes the first wheel's "Duty Roulettes" can land on</legend>
+              <div class="quick">
+                <button type="button" (click)="setAllRoulettes(true)">All</button>
+                <button type="button" (click)="setAllRoulettes(false)">None</button>
+              </div>
+              <div class="roulette-groups">
+                @for (group of rouletteGroups(); track group.name) {
+                  <div>
+                    <h3>{{ group.name }}</h3>
+                    <ul class="checks">
+                      @for (roulette of group.roulettes; track roulette.id) {
+                        <li>
+                          <label>
+                            <input
+                              type="checkbox"
+                              [checked]="isRouletteOn(roulette.id)"
+                              (change)="toggleRoulette(roulette.id, $any($event.target).checked)"
+                            />
+                            {{ roulette.name }}
+                          </label>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            </fieldset>
+          </section>
+        }
       </div>
     }
   }

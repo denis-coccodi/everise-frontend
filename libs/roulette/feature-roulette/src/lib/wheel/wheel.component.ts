@@ -35,6 +35,9 @@ export class WheelComponent {
   private readonly rotor = viewChild.required<ElementRef<SVGGElement>>('rotor');
   private rotation = 0;
 
+  // Each spin turns on from wherever the wheel stopped, also after the
+  // segments change. (Resetting to 0° first doesn't work: without a frame in
+  // between, the browser animates from the old angle, a fraction of a turn.)
   async spinTo(index: number, random: () => number = Math.random) {
     const count = this.segments().length;
     const duration = reducedMotion() ? 300 : 4200 + random() * 1200;
@@ -50,15 +53,6 @@ export class WheelComponent {
 
     this.spinning.set(false);
     this.winner.set(segmentAt(this.rotation, count));
-  }
-
-  // Back to the top without animation, e.g. when the segments change.
-  reset() {
-    this.winner.set(null);
-    this.rotation = 0;
-    const rotor = this.rotor().nativeElement;
-    rotor.style.transition = 'none';
-    rotor.style.transform = 'rotate(0deg)';
   }
 }
 

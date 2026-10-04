@@ -50,16 +50,35 @@ h1 {
   text-align: center;
 }
 
+// Phones: settings, the wheels, then the roulette choice. Wide screens: duty types
+// on the left; wheels with the roulette choice under them on the right.
 .layout {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'settings' 'stage' 'roulettes';
+  align-items: start;
+}
+
+.settings {
+  grid-area: settings;
+}
+
+.stage {
+  grid-area: stage;
+}
+
+.roulettes {
+  grid-area: roulettes;
 }
 
 @media (min-width: 992px) {
   .layout {
     grid-template-columns: 300px minmax(0, 1fr);
-    align-items: start;
+    grid-template-areas:
+      'settings stage'
+      'settings roulettes';
+    grid-template-rows: auto 1fr;
   }
 }
 
@@ -134,25 +153,32 @@ legend {
   background: rgba(92, 200, 255, 0.1);
 }
 
-.checks .other {
-  opacity: 0.75;
-}
-
 input[type='checkbox'] {
   accent-color: var(--xiv-gold);
   width: 1rem;
   height: 1rem;
 }
 
-.roulettes {
-  margin-top: 0.5rem;
-  padding: 0.4rem;
-  border: 1px solid rgba(201, 169, 92, 0.4);
-  border-radius: 6px;
+.roulettes fieldset {
+  margin: 0;
 }
 
-.roulettes summary {
-  cursor: pointer;
+.roulette-groups {
+  display: grid;
+  gap: 0.5rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 576px) {
+  .roulette-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+h3 {
+  margin: 0.4rem 0 0.2rem;
+  font-family: Cinzel, Georgia, serif;
+  font-size: 0.85rem;
   color: var(--xiv-gold-light);
 }
 
