@@ -20,9 +20,13 @@ export const PICKED_TYPES = [ROULETTES_TYPE, PVP_TYPE, GOLD_SAUCER_TYPE];
 export const SAME_JOB = 'Everyone on the same job';
 export const DEALERS_CHOICE = "Everyone on the same job: dealer's choice";
 
+// The lowest duty level Awktrail is offered for.
+const AWKTRAIL_MIN_LEVEL = 50;
+
 export type RunMode =
   | 'Min IL + Silence Echo'
   | 'Unsynced'
+  | 'Awktrail'
   | 'Join Party in Progress'
   | typeof SAME_JOB
   | typeof DEALERS_CHOICE
@@ -64,6 +68,8 @@ export const DEFAULT_TYPES = [
 const RUN_MODE_DETAILS: Record<RunMode, string> = {
   'Min IL + Silence Echo': 'Minimum item level, the Echo turned off',
   Unsynced: 'Unrestricted Party, no level sync',
+  // No explanation line.
+  Awktrail: '',
   'Join Party in Progress': 'Join a party already inside',
   [SAME_JOB]: 'The party agrees on one job for everyone',
   [DEALERS_CHOICE]: 'The roulette deals the job',
@@ -161,7 +167,8 @@ export function eligibleTypes(
 // settings only apply to duties queued through the Duty Finder or Raid
 // Finder; a duty roulette only offers Join Party in Progress. The game data
 // has no Silence Echo flag; it is offered together with Minimum IL, which is
-// where the game allows it.
+// where the game allows it. Awktrail joins Unsynced for duties of level
+// AWKTRAIL_MIN_LEVEL and up.
 //
 // The whole party on one job works for any duty, but not for a duty roulette
 // (the game matches parties by role), nor for Gold Saucer card and board
@@ -174,7 +181,10 @@ export function runModes(candidate: Candidate, type = '', canDeal = true): RunMo
     const { duty } = candidate;
     if (duty.finder !== '') {
       if (duty.minimumIL) modes.push('Min IL + Silence Echo');
-      if (duty.unrestrictedParty) modes.push('Unsynced');
+      if (duty.unrestrictedParty) {
+        modes.push('Unsynced');
+        if (duty.level >= AWKTRAIL_MIN_LEVEL) modes.push('Awktrail');
+      }
       if (duty.joinPartyInProgress) modes.push('Join Party in Progress');
     }
     if (type !== GOLD_SAUCER_TYPE) {
@@ -255,6 +265,7 @@ export function spreadSample<T>(items: T[], max: number): T[] {
 export const ALL_RUN_MODES: RunMode[] = [
   'Min IL + Silence Echo',
   'Unsynced',
+  'Awktrail',
   'Join Party in Progress',
   SAME_JOB,
   DEALERS_CHOICE,

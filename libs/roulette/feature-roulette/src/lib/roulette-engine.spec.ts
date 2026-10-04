@@ -208,6 +208,18 @@ describe('runModes', () => {
     expect(runModes({ kind: 'duty', duty: hiddenGorge }, PVP_TYPE, false)).toEqual([SAME_JOB, 'Regular']);
   });
 
+  it('offers Awktrail with Unsynced, for duties of level 50 and up', () => {
+    const unsynced = (level: number, flags: Partial<Duty> = {}) =>
+      runModes({ kind: 'duty', duty: duty('Some duty', level, { unrestrictedParty: true, ...flags }) }, 'Dungeons');
+
+    expect(unsynced(50)).toEqual(['Unsynced', 'Awktrail', ...sameJob, 'Regular']);
+    expect(unsynced(100)).toContain('Awktrail');
+    expect(unsynced(49)).not.toContain('Awktrail');
+    // Not where unsynced runs aren't possible.
+    expect(unsynced(60, { unrestrictedParty: false })).not.toContain('Awktrail');
+    expect(unsynced(60, { finder: '' })).not.toContain('Awktrail');
+  });
+
   it('offers a roulette only Join Party in Progress, if it allows it, or a regular run', () => {
     expect(runModes({ kind: 'roulette', roulette: roulettes[0] })).toEqual(['Join Party in Progress', 'Regular']);
     expect(runModes({ kind: 'roulette', roulette: roulettes[2] })).toEqual(['Regular']);
@@ -293,6 +305,7 @@ describe('possibleModes', () => {
     expect(modesFor([])).toEqual([
       'Min IL + Silence Echo',
       'Unsynced',
+      'Awktrail',
       'Join Party in Progress',
       SAME_JOB,
       DEALERS_CHOICE,
