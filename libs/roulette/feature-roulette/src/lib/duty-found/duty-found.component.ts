@@ -38,7 +38,8 @@ export class DutyFoundComponent {
   readonly commence = output<void>();
   readonly withdraw = output<void>();
 
-  private readonly commenceButton = viewChild.required<ElementRef<HTMLButtonElement>>('commenceButton');
+  // The element, not the cdtButton component on it.
+  private readonly commenceButton = viewChild.required('commenceButton', { read: ElementRef<HTMLButtonElement> });
 
   constructor() {
     afterNextRender(() => this.commenceButton().nativeElement.focus());

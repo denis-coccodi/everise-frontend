@@ -30,6 +30,13 @@ describe('DutyFoundComponent', () => {
     expect(link?.rel).toContain('noopener');
   });
 
+  it('puts the focus on Commence', async () => {
+    const page = await show(result);
+
+    expect(document.activeElement?.textContent?.trim()).toBe('Commence');
+    expect(page.contains(document.activeElement)).toBe(true);
+  });
+
   it('shows no guide link without one', async () => {
     const page = await show({ ...result, mode: 'Regular' });
 
