@@ -59,4 +59,25 @@ describe('ReelComponent', () => {
     expect(fixture.componentInstance.reel().mode()).toBe('idle');
     expect(titles()).toContain('Brayflox');
   });
+
+  it('deals a further result on the landed row, with its icon', async () => {
+    const reel = fixture.componentInstance.reel();
+    const modes = [item('Regular'), item("Everyone on the same job: dealer's choice")];
+    const dealt: ReelItem = { title: 'Everyone on the same job:', detail: 'Viper', icon: '/api/images/62141' };
+
+    vi.useFakeTimers();
+    const spin = reel.spinTo(modes, modes[1], () => 0);
+    await vi.runAllTimersAsync();
+    await spin;
+    const deal = reel.dealWinner([item('Paladin'), item('Bard')], dealt, () => 0.5);
+    await vi.runAllTimersAsync();
+    await deal;
+    vi.useRealTimers();
+    await fixture.whenStable();
+
+    const winner = (fixture.nativeElement as HTMLElement).querySelector('.row.winner');
+    expect(winner?.querySelector('.title')?.textContent?.trim()).toBe('Everyone on the same job:');
+    expect(winner?.querySelector('.detail')?.textContent?.trim()).toBe('Viper');
+    expect(winner?.querySelector('img.icon')?.getAttribute('src')).toBe('/api/images/62141');
+  });
 });

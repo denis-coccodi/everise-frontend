@@ -8,18 +8,21 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DutyGroup, DutyRoulette } from './duties.models';
+import { DutyGroup, DutyRoulette, Job } from './duties.models';
 import { DutiesService } from './duties.service';
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { ReelComponent, ReelItem } from './reel/reel.component';
 import {
   Candidate,
+  DEALERS_CHOICE,
   PICKED_TYPES,
   ROULETTES_TYPE,
   RouletteSettings,
   RunMode,
+  SAME_JOB,
   candidateDetail,
   candidateName,
+  dealableJobs,
   defaultSettings,
   eligibleTypes,
   pickIndex,
@@ -37,6 +40,8 @@ import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } fr
 
 const SETTINGS_KEY = 'everise-roulette-settings';
 const PAUSE_BETWEEN_REELS_MS = 600;
+// The pause between landing on dealer's choice and dealing the job.
+const PAUSE_BEFORE_DEAL_MS = 500;
 // Most outcomes the idle duty reel previews.
 const REEL_PREVIEW_MAX = 60;
 
@@ -67,6 +72,8 @@ export class RouletteComponent {
   readonly loadState = signal<LoadState>('loading');
   readonly groups = signal<DutyGroup[]>([]);
   readonly roulettes = signal<DutyRoulette[]>([]);
+  readonly jobs = signal<Job[]>([]);
+  private readonly rouletteIcon = signal<number | null>(null);
   readonly settings = signal<RouletteSettings>(defaultSettings({}));
 
   readonly spinning = signal(false);
@@ -79,12 +86,25 @@ export class RouletteComponent {
 
   readonly pickable = computed(() => pickOptions(this.groups(), this.roulettes()));
   readonly frontlineMap = computed(() => todaysFrontline(this.groups()));
+  // The jobs dealer's choice deals; without any it isn't offered.
+  private readonly dealable = computed(() => dealableJobs(this.jobs()));
+  private readonly canDeal = computed(() => this.dealable().length > 0);
+
+  // Each duty type's icon, by type name.
+  private readonly typeIcons = computed(
+    () =>
+      new Map<string, string | undefined>([
+        ...this.groups().map((g): [string, string | undefined] => [g.name, this.dutiesService.imageUrl(g.icon)]),
+        [ROULETTES_TYPE, this.dutiesService.imageUrl(this.rouletteIcon())],
+      ]),
+  );
 
   // Each type with how many of its duties are within the level limits.
   readonly types = computed(() =>
     typeCandidates(this.groups(), this.pickable(), this.settings()).map((t) => ({
       name: t.name,
       count: t.candidates.length,
+      icon: this.typeIcons().get(t.name),
     })),
   );
 
@@ -102,7 +122,7 @@ export class RouletteComponent {
   );
 
   readonly options = computed(() => eligibleTypes(this.groups(), this.pickable(), this.settings()));
-  readonly modes = computed(() => this.spunModes() ?? possibleModes(this.options()));
+  readonly modes = computed(() => this.spunModes() ?? possibleModes(this.options(), this.canDeal()));
 
   // What each reel shows before a spin: everything it can land on.
   readonly typePreview = computed(() => this.options().map((o) => typeItem(o.name, o.candidates.length)));
@@ -130,9 +150,11 @@ export class RouletteComponent {
       .getDutyLists()
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: ({ groups, roulettes }) => {
+        next: ({ groups, roulettes, rouletteIcon, jobs }) => {
           this.groups.set(groups);
           this.roulettes.set(roulettes);
+          this.rouletteIcon.set(rouletteIcon);
+          this.jobs.set(jobs);
           this.settings.set(upgradeSettings(loadSettings(), defaultSettings(this.pickable())));
           this.loadState.set(groups.length > 0 ? 'ready' : 'empty');
         },
@@ -180,6 +202,7 @@ export class RouletteComponent {
 
     const options = this.options();
     const frontlineMap = this.frontlineMap();
+    const jobs = this.dealable();
     const reelItem = (c: Candidate) => this.reelItem(c);
     this.spinning.set(true);
     this.showResult.set(false);
@@ -197,21 +220,38 @@ export class RouletteComponent {
       await wait(PAUSE_BETWEEN_REELS_MS);
 
       this.status.set(`${candidateName(candidate)}: choosing the party settings…`);
-      const modes = runModes(candidate);
+      const modes = runModes(candidate, type.name, jobs.length > 0);
       // The third reel now offers only what this duty allows.
       this.spunModes.set(modes);
       this.cdr.detectChanges();
       const mode = modes[pickIndex(modes.length)];
       await this.modeReel().spinTo(modes.map(modeItem), modeItem(mode));
+
+      // Dealer's choice: after a moment, the reel deals the job.
+      let job: Job | undefined;
+      if (mode === DEALERS_CHOICE) {
+        await wait(PAUSE_BEFORE_DEAL_MS);
+        this.status.set('Dealing a job…');
+        job = jobs[pickIndex(jobs.length)];
+        await this.modeReel().dealWinner(
+          jobs.map((j) => this.jobItem(j)),
+          this.jobItem(job),
+        );
+      }
       await wait(PAUSE_BETWEEN_REELS_MS / 2);
 
-      const result = toResult(type.name, candidate, mode, frontlineMap);
+      const result = this.toResult(type.name, candidate, mode, job, frontlineMap);
       this.result.set(result);
       this.status.set(`Duty found: ${result.name}, ${result.mode}.`);
       this.showResult.set(true);
     } finally {
       this.spinning.set(false);
     }
+  }
+
+  // An image the backend doesn't have yet is left out.
+  hideImage(event: Event) {
+    (event.target as HTMLElement).hidden = true;
   }
 
   closeResult() {
@@ -221,6 +261,27 @@ export class RouletteComponent {
   withdraw() {
     this.showResult.set(false);
     void this.commence();
+  }
+
+  // A dealt job on the third reel: "Everyone on the same job:" and its icon.
+  private jobItem(job: Job): ReelItem {
+    return { title: `${SAME_JOB}:`, detail: job.name, icon: this.dutiesService.imageUrl(job.icon) };
+  }
+
+  private toResult(
+    type: string,
+    candidate: Candidate,
+    mode: RunMode,
+    job: Job | undefined,
+    frontlineMap: string | null,
+  ): RouletteResult {
+    const image = candidate.kind === 'duty' ? candidate.duty.image : candidate.roulette.image;
+    return {
+      ...describe(type, candidate, frontlineMap),
+      mode: job ? `${SAME_JOB}: ${job.name}` : mode,
+      job: job && { name: job.name, icon: this.dutiesService.imageUrl(job.icon) },
+      image: this.dutiesService.imageUrl(image),
+    };
   }
 
   private updateSettings(change: (s: RouletteSettings) => RouletteSettings) {
@@ -246,7 +307,8 @@ function toggled<T>(list: T[], item: T, on: boolean) {
   return on ? [...without, item] : without;
 }
 
-function toResult(type: string, candidate: Candidate, mode: RunMode, frontlineMap: string | null): RouletteResult {
+// What the result says about the duty.
+function describe(type: string, candidate: Candidate, frontlineMap: string | null) {
   const detail = candidateDetail(candidate, frontlineMap);
   if (candidate.kind === 'roulette') {
     // The game picks the duty, except for today's known Frontline map.
@@ -255,11 +317,10 @@ function toResult(type: string, candidate: Candidate, mode: RunMode, frontlineMa
       type,
       name: candidate.roulette.name,
       detail: known ? detail : [candidate.roulette.dutyType, 'the game picks the duty'].filter(Boolean).join(' · '),
-      mode,
       dutyUnknown: !known,
     };
   }
-  return { type, name: candidate.duty.name, detail, mode, dutyUnknown: false };
+  return { type, name: candidate.duty.name, detail, dutyUnknown: false };
 }
 
 // Settings are a per-browser convenience; storage can be unavailable.

@@ -1,10 +1,13 @@
-import { Duty, DutyGroup, DutyRoulette } from './duties.models';
+import { Duty, DutyGroup, DutyRoulette, Job } from './duties.models';
 import {
+  DEALERS_CHOICE,
   GOLD_SAUCER_TYPE,
   PVP_TYPE,
   ROULETTES_TYPE,
   RouletteSettings,
+  SAME_JOB,
   candidateDetail,
+  dealableJobs,
   defaultSettings,
   eligibleTypes,
   pickIndex,
@@ -175,19 +178,34 @@ describe('typeCandidates', () => {
 });
 
 describe('runModes', () => {
-  it('offers each Duty Finder setting the duty allows, and always a regular run', () => {
+  const sameJob = [SAME_JOB, DEALERS_CHOICE];
+
+  it('offers each Duty Finder setting the duty allows, the same job for everyone, and a regular run', () => {
     const all = duty('Sastasha', 15, { minimumIL: true, unrestrictedParty: true, joinPartyInProgress: true });
-    expect(runModes({ kind: 'duty', duty: all })).toEqual([
+    expect(runModes({ kind: 'duty', duty: all }, 'Dungeons')).toEqual([
       'Min IL + Silence Echo',
       'Unsynced',
       'Join Party in Progress',
+      ...sameJob,
       'Regular',
     ]);
-    expect(runModes({ kind: 'duty', duty: duty('Dancing Mad (Ultimate)', 100) })).toEqual(['Regular']);
+    expect(runModes({ kind: 'duty', duty: duty('Dancing Mad (Ultimate)', 100) }, 'Raids — Ultimate')).toEqual([
+      ...sameJob,
+      'Regular',
+    ]);
   });
 
-  it('offers only a regular run for duties outside the Duty Finder and Raid Finder', () => {
-    expect(runModes({ kind: 'duty', duty: groups[2].duties[0] })).toEqual(['Regular']);
+  it('offers no Duty Finder settings for duties outside the Duty Finder and Raid Finder', () => {
+    expect(runModes({ kind: 'duty', duty: groups[2].duties[0] }, 'Treasure Hunt')).toEqual([...sameJob, 'Regular']);
+  });
+
+  it('offers PvP duties the same job, but not Gold Saucer games', () => {
+    expect(runModes({ kind: 'duty', duty: hiddenGorge }, PVP_TYPE)).toEqual([...sameJob, 'Regular']);
+    expect(runModes({ kind: 'duty', duty: lovm }, GOLD_SAUCER_TYPE)).toEqual(['Regular']);
+  });
+
+  it("leaves out dealer's choice when there are no jobs to deal", () => {
+    expect(runModes({ kind: 'duty', duty: hiddenGorge }, PVP_TYPE, false)).toEqual([SAME_JOB, 'Regular']);
   });
 
   it('offers a roulette only Join Party in Progress, if it allows it, or a regular run', () => {
@@ -209,6 +227,26 @@ describe('runModeDetail', () => {
   it('explains every party setting', () => {
     expect(runModeDetail('Unsynced')).toBe('Unrestricted Party, no level sync');
     expect(runModeDetail('Regular')).toBe('The Duty Finder as usual');
+    expect(runModeDetail(DEALERS_CHOICE)).toBe('The roulette deals the job');
+  });
+});
+
+describe('dealableJobs', () => {
+  const job = (name: string, limited = false): Job => ({
+    id: nextId++,
+    name,
+    abbreviation: '',
+    role: 'Tank',
+    startingLevel: 1,
+    limited,
+    icon: 0,
+  });
+
+  it('leaves out limited jobs', () => {
+    expect(dealableJobs([job('Paladin'), job('Blue Mage', true), job('Viper')]).map((j) => j.name)).toEqual([
+      'Paladin',
+      'Viper',
+    ]);
   });
 });
 
@@ -235,18 +273,39 @@ describe('possibleModes', () => {
   const modesFor = (types: string[]) => possibleModes(eligibleTypes(groups, options, settings({ types })));
 
   it('offers only the party settings the allowed duties have', () => {
-    // Treasure dungeons aren't queued through a finder: a regular run only.
-    expect(modesFor(['Treasure Hunt'])).toEqual(['Regular']);
-    // Duty roulettes allow Join Party in Progress.
+    // Treasure dungeons aren't queued through a finder: no Duty Finder settings.
+    expect(modesFor(['Treasure Hunt'])).toEqual([SAME_JOB, DEALERS_CHOICE, 'Regular']);
+    // Duty roulettes allow Join Party in Progress, but not the same job.
     expect(modesFor([ROULETTES_TYPE])).toEqual(['Join Party in Progress', 'Regular']);
+    expect(modesFor([GOLD_SAUCER_TYPE])).toEqual(['Regular']);
   });
 
   it('combines the settings of every allowed type, in the reel order', () => {
-    expect(modesFor(['Treasure Hunt', ROULETTES_TYPE])).toEqual(['Join Party in Progress', 'Regular']);
+    expect(modesFor(['Treasure Hunt', ROULETTES_TYPE])).toEqual([
+      'Join Party in Progress',
+      SAME_JOB,
+      DEALERS_CHOICE,
+      'Regular',
+    ]);
   });
 
   it('shows every setting while nothing is allowed', () => {
-    expect(modesFor([])).toEqual(['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular']);
+    expect(modesFor([])).toEqual([
+      'Min IL + Silence Echo',
+      'Unsynced',
+      'Join Party in Progress',
+      SAME_JOB,
+      DEALERS_CHOICE,
+      'Regular',
+    ]);
+  });
+
+  it("leaves out dealer's choice when there are no jobs to deal", () => {
+    expect(possibleModes(eligibleTypes(groups, options, settings({ types: ['Treasure Hunt'] })), false)).toEqual([
+      SAME_JOB,
+      'Regular',
+    ]);
+    expect(possibleModes([], false)).not.toContain(DEALERS_CHOICE);
   });
 });
 
