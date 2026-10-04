@@ -1,5 +1,7 @@
+import { HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { LoginUser, LoginUserRequest, NewUser, NewUserRequest, User, UserResponse } from '@realworld/core/api-types';
+import { SKIP_LOGIN_REDIRECT } from '@realworld/core/error-handler';
 import { ApiService } from '@realworld/core/http-client';
 import { Observable } from 'rxjs';
 
@@ -7,8 +9,14 @@ import { Observable } from 'rxjs';
 export class AuthService {
   private readonly apiService = inject(ApiService);
 
+  // The session check: a 401 means nobody is logged in, which is fine on
+  // public pages such as the roulette.
   user(): Observable<UserResponse> {
-    return this.apiService.get<UserResponse>('/user');
+    return this.apiService.get<UserResponse>(
+      '/user',
+      new HttpParams(),
+      new HttpContext().set(SKIP_LOGIN_REDIRECT, true),
+    );
   }
 
   update(user: User): Observable<UserResponse> {
