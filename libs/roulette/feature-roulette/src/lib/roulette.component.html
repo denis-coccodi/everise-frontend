@@ -1,0 +1,152 @@
+<div class="roulette-page">
+  <header class="hero">
+    <svg class="hero-crystal" viewBox="-12 -16 24 32" aria-hidden="true">
+      <polygon points="0,-15 9,-3 0,15 -9,-3" />
+    </svg>
+    <h1>Duty Roulette</h1>
+    <p>Three wheels decide your next run: the kind of duty, the duty, and how you run it.</p>
+  </header>
+
+  @switch (loadState()) {
+    @case ('loading') {
+      <p class="notice">Gathering the duty list…</p>
+    }
+    @case ('error') {
+      <p class="notice">The duty list couldn't be loaded. Try again in a moment.</p>
+    }
+    @case ('empty') {
+      <p class="notice">The duty list hasn't been downloaded yet. It appears here after the next duty refresh.</p>
+    }
+    @default {
+      <div class="layout">
+        <section class="panel settings" aria-labelledby="settings-title">
+          <h2 id="settings-title">Duty Finder Settings</h2>
+
+          <fieldset [disabled]="spinning()">
+            <legend>Duty types</legend>
+            <div class="quick">
+              <button type="button" (click)="setAllTypes(true)">All</button>
+              <button type="button" (click)="setAllTypes(false)">None</button>
+            </div>
+            <ul class="checks">
+              @for (name of typeNames(); track name) {
+                <li>
+                  <label>
+                    <input
+                      type="checkbox"
+                      [checked]="isTypeOn(name)"
+                      (change)="toggleType(name, $any($event.target).checked)"
+                    />
+                    {{ name }}
+                  </label>
+                </li>
+              }
+            </ul>
+
+            @if (isTypeOn(roulettesType)) {
+              <details class="roulettes">
+                <summary>Which duty roulettes</summary>
+                <ul class="checks">
+                  @for (roulette of pveRoulettes(); track roulette.id) {
+                    <li>
+                      <label>
+                        <input
+                          type="checkbox"
+                          [checked]="isRouletteOn(roulette.id)"
+                          (change)="toggleRoulette(roulette.id, $any($event.target).checked)"
+                        />
+                        {{ roulette.name }}
+                      </label>
+                    </li>
+                  }
+                  @for (roulette of otherRoulettes(); track roulette.id) {
+                    <li class="other">
+                      <label>
+                        <input
+                          type="checkbox"
+                          [checked]="isRouletteOn(roulette.id)"
+                          (change)="toggleRoulette(roulette.id, $any($event.target).checked)"
+                        />
+                        {{ roulette.name }}
+                      </label>
+                    </li>
+                  }
+                </ul>
+              </details>
+            }
+          </fieldset>
+
+          <fieldset class="levels" [disabled]="spinning()">
+            <legend>Duty level</legend>
+            <label>
+              Minimum
+              <input
+                type="number"
+                min="1"
+                max="100"
+                inputmode="numeric"
+                placeholder="Any"
+                [value]="settings().minLevel ?? ''"
+                (change)="setLevel('minLevel', $any($event.target).value)"
+              />
+            </label>
+            <label>
+              Maximum
+              <input
+                type="number"
+                min="1"
+                max="100"
+                inputmode="numeric"
+                placeholder="Any"
+                [value]="settings().maxLevel ?? ''"
+                (change)="setLevel('maxLevel', $any($event.target).value)"
+              />
+            </label>
+          </fieldset>
+
+          @if (levelError()) {
+            <p class="warning">{{ levelError() }}</p>
+          } @else if (options().length === 0) {
+            <p class="warning">No duty matches these settings.</p>
+          }
+        </section>
+
+        <section class="panel stage" aria-label="Roulette">
+          <div class="wheels">
+            <div class="step">
+              <span class="step-number">I</span>
+              <cdt-roulette-wheel #typeWheel caption="Duty type" [segments]="wheelTypes()" />
+            </div>
+            <div class="step">
+              <span class="step-number">II</span>
+              <cdt-roulette-reel #dutyReel caption="Duty" />
+            </div>
+            <div class="step">
+              <span class="step-number">III</span>
+              <cdt-roulette-wheel #modeWheel caption="Party settings" [segments]="modes()" />
+            </div>
+          </div>
+
+          <button type="button" class="commence" [disabled]="!canSpin()" (click)="commence()">
+            {{ spinning() ? 'Spinning…' : result() ? 'Spin again' : 'Commence' }}
+          </button>
+          <p class="status" aria-live="polite">{{ status() }}</p>
+
+          @if (result(); as last) {
+            @if (!showResult()) {
+              <p class="last">
+                Last result: <strong>{{ last.name }}</strong> · {{ last.mode }}
+              </p>
+            }
+          }
+        </section>
+      </div>
+    }
+  }
+
+  @if (showResult()) {
+    @if (result(); as found) {
+      <cdt-duty-found [result]="found" (commence)="closeResult()" (withdraw)="withdraw()" />
+    }
+  }
+</div>

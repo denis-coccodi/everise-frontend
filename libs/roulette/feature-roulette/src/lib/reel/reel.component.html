@@ -1,0 +1,16 @@
+<figure class="reel" [class.spinning]="spinning()" [class.landed]="landed()">
+  <div class="window" role="img" [attr.aria-label]="caption()">
+    <div #strip class="strip">
+      @for (row of rows(); track $index) {
+        <div class="row" [class.winner]="landed() && $index === rows().length - 2">
+          <span class="title">{{ row.title }}</span>
+          @if (row.detail) {
+            <span class="detail">{{ row.detail }}</span>
+          }
+        </div>
+      }
+    </div>
+    <div class="frame"></div>
+  </div>
+  <figcaption>{{ caption() }}</figcaption>
+</figure>
