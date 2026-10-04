@@ -59,7 +59,7 @@ Styles live with what they style.
 
 The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTag`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 
-The rules, and check commands, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
+Feature libraries reuse the building blocks and don't define colours, fonts, shadows or control styles of their own. The rules, and check commands, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
 
 ## Environments and deployment
 
