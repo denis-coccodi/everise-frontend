@@ -35,6 +35,7 @@ import {
   todaysFrontline,
   typeCandidates,
   upgradeSettings,
+  wikiUrl,
 } from './roulette-engine';
 import { wait } from './motion';
 import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
@@ -284,6 +285,7 @@ export class RouletteComponent {
       mode: job ? `${SAME_JOB}: ${job.name}` : mode,
       job: job && { name: job.name, icon: this.dutiesService.imageUrl(job.icon) },
       image: this.dutiesService.imageUrl(image),
+      wiki: wikiUrl(candidate),
       guide: guideUrl ? { label: 'Awktrail gear set', url: guideUrl } : undefined,
     };
   }

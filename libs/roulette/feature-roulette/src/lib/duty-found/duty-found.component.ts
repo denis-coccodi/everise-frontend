@@ -21,6 +21,8 @@ export interface RouletteResult {
   job?: { name: string; icon?: string };
   // The duty's or roulette's banner.
   image?: string;
+  // The duty's or roulette's page on the community wiki.
+  wiki: string;
   // Where to read up on the party setting, e.g. Awktrail's gear sets.
   guide?: { label: string; url: string };
 }

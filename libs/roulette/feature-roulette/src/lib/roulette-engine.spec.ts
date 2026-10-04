@@ -1,5 +1,6 @@
 import { Duty, DutyGroup, DutyRoulette, Job } from './duties.models';
 import {
+  Candidate,
   DEALERS_CHOICE,
   GOLD_SAUCER_TYPE,
   PVP_TYPE,
@@ -19,6 +20,7 @@ import {
   spreadSample,
   typeCandidates,
   upgradeSettings,
+  wikiUrl,
 } from './roulette-engine';
 
 let nextId = 1;
@@ -283,6 +285,31 @@ describe('awktrailGuideUrl', () => {
     'Sastasha',
   ])('has no link for %s', (name) => {
     expect(awktrailGuideUrl(name)).toBeNull();
+  });
+});
+
+describe('wikiUrl', () => {
+  const search = (candidate: Candidate) =>
+    decodeURIComponent(new URL(wikiUrl(candidate)).searchParams.get('search') ?? '');
+  const named = (name: string): Candidate => ({ kind: 'duty', duty: duty(name, 50) });
+
+  it("searches the wiki for the duty's or roulette's name, which opens its page", () => {
+    expect(wikiUrl(named('Futures Rewritten (Ultimate)'))).toBe(
+      'https://ffxiv.consolegameswiki.com/mediawiki/index.php?title=Special:Search&go=Go&search=Futures%20Rewritten%20(Ultimate)',
+    );
+    expect(search({ kind: 'roulette', roulette: roulettes[0] })).toBe('Duty Roulette: Leveling');
+  });
+
+  it.each([
+    ['the Palace of the Dead (Floors 51-60)', 'Palace of the Dead'],
+    ['Crystalline Conflict (Custom Match - The Palaistra)', 'The Palaistra'],
+    ['Crystalline Conflict (Ranked Match)', 'Crystalline Conflict'],
+    ['Chocobo Race: Sagolii Road (No Rewards)', 'Chocobo Racing'],
+    ['LoVM: Master Battle (Hard)', 'Lord of Verminion'],
+    ['Four-player Mahjong (Quick Match, Kuitan Enabled)', 'Doman Mahjong'],
+    ['The Triple Triad Battlehall', 'Triple Triad'],
+  ])('uses the wiki title for %s', (name, title) => {
+    expect(search(named(name))).toBe(title);
   });
 });
 

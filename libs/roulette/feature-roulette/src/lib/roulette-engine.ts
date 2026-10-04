@@ -263,6 +263,30 @@ export function candidateName(candidate: Candidate) {
   return candidate.kind === 'duty' ? candidate.duty.name : candidate.roulette.name;
 }
 
+// The community wiki's search: it opens the page when the title matches
+// (ignoring case), and lists results otherwise.
+const WIKI_SEARCH = 'https://ffxiv.consolegameswiki.com/mediawiki/index.php?title=Special:Search&go=Go&search=';
+
+// Game names whose wiki page has another title; every other duty and
+// roulette name is its page's title.
+const WIKI_TITLES: [RegExp, string][] = [
+  [/^the Palace of the Dead \(Floors /, 'Palace of the Dead'],
+  [/^Crystalline Conflict \(Custom Match - (.+)\)$/, '$1'],
+  [/^Crystalline Conflict \(/, 'Crystalline Conflict'],
+  [/^Chocobo Race: /, 'Chocobo Racing'],
+  [/^LoVM: /, 'Lord of Verminion'],
+  [/Mahjong/, 'Doman Mahjong'],
+  [/Triple Triad/, 'Triple Triad'],
+];
+
+// A link to the candidate's page on the community wiki.
+export function wikiUrl(candidate: Candidate) {
+  const name = candidateName(candidate);
+  const rule = WIKI_TITLES.find(([pattern]) => pattern.test(name));
+  const title = rule ? (rule[1].includes('$') ? name.replace(rule[0], rule[1]) : rule[1]) : name;
+  return WIKI_SEARCH + encodeURIComponent(title);
+}
+
 export function candidateLevel(candidate: Candidate) {
   return candidate.kind === 'duty' ? candidate.duty.level : candidate.roulette.level;
 }
