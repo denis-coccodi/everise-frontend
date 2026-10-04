@@ -31,6 +31,7 @@ import {
   upgradeSettings,
 } from './roulette-engine';
 import { WheelComponent, wait } from './wheel/wheel.component';
+import { ButtonDirective, CheckboxComponent, InputDirective, PanelComponent } from '@realworld/ui/components';
 
 const SETTINGS_KEY = 'everise-roulette-settings';
 const ALL_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
@@ -49,7 +50,15 @@ type LoadState = 'loading' | 'ready' | 'empty' | 'error';
   selector: 'cdt-roulette',
   templateUrl: './roulette.component.html',
   styleUrls: ['./roulette.component.scss'],
-  imports: [WheelComponent, ReelComponent, DutyFoundComponent],
+  imports: [
+    ButtonDirective,
+    CheckboxComponent,
+    InputDirective,
+    PanelComponent,
+    WheelComponent,
+    ReelComponent,
+    DutyFoundComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RouletteComponent {

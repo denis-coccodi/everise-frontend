@@ -1,0 +1,560 @@
+// Controls: form fields, buttons, navigation and tabs, cards, pagination,
+// tags, error messages and banners.
+// Part of the Everise theme: see index.scss in this folder.
+
+/* ============================================================================
+ * FORMS
+ * ============================================================================ */
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.25;
+  color: var(--color-contrast);
+  background-color: var(--color-field);
+  background-image: none;
+  background-clip: padding-box;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-border-faint);
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: var(--color-contrast-faint);
+  opacity: 1;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: var(--color-base-raised);
+  color: var(--color-contrast-muted);
+  opacity: 1;
+}
+
+.form-control:disabled {
+  cursor: not-allowed;
+}
+
+.form-control-lg {
+  padding: 0.75rem 1.25rem;
+  font-size: 1.15rem;
+  border-radius: var(--radius-lg);
+}
+
+.form-control-sm {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+/* Marks a required field. */
+.form-group.required {
+  position: relative;
+}
+
+.form-group.required::after {
+  content: '*';
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  color: var(--color-danger);
+}
+
+/* ============================================================================
+ * BUTTONS
+ * ============================================================================ */
+
+.btn {
+  display: inline-block;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: var(--border-width) solid transparent;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: var(--radius-pill);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.btn:focus,
+.btn:hover {
+  text-decoration: none;
+}
+
+.btn:active,
+.btn.active {
+  outline: 0;
+}
+
+.btn.disabled,
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+a.btn.disabled,
+fieldset[disabled] a.btn {
+  pointer-events: none;
+}
+
+/* Primary: the main action (crystal teal in dark mode, royal blue in light). */
+.btn-primary {
+  color: var(--color-on-primary);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary-strong);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary.active {
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* Blue window button: the alternative action. */
+.btn-secondary {
+  color: var(--color-contrast);
+  background: var(--gradient-secondary-button);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary.active {
+  color: var(--color-contrast);
+  border-color: var(--color-border-strong);
+}
+
+.btn-outline-primary {
+  color: var(--color-primary-strong);
+  background: transparent;
+  border-color: var(--color-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary.active {
+  color: var(--color-on-primary);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary-strong);
+}
+
+.btn-outline-secondary {
+  color: var(--color-contrast-muted);
+  background: transparent;
+  border-color: var(--color-contrast-faint);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus,
+.btn-outline-secondary.active {
+  color: var(--color-contrast);
+  background: var(--color-surface-strong);
+  border-color: var(--color-contrast-muted);
+}
+
+.btn-outline-danger {
+  color: var(--color-danger);
+  background: transparent;
+  border-color: var(--color-danger);
+}
+
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger.active {
+  color: var(--color-contrast);
+  background: var(--color-danger-strong);
+  border-color: var(--color-danger);
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.15rem;
+  font-family: var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+.btn-sm {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+ * NAVIGATION
+ * ============================================================================ */
+
+.nav {
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+.nav-link {
+  display: inline-block;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.nav-link:focus,
+.nav-link:hover {
+  text-decoration: none;
+}
+
+.nav-link.disabled,
+.nav-link.disabled:focus,
+.nav-link.disabled:hover {
+  color: var(--color-contrast-faint);
+  cursor: not-allowed;
+  background-color: transparent;
+}
+
+.nav-pills {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.nav-pills .nav-item + .nav-item,
+.nav-pills > li + li {
+  margin-left: 0.2rem;
+}
+
+.nav-pills .nav-link {
+  display: block;
+  padding: 0.5em 1em;
+  border-radius: var(--radius-md);
+  color: var(--color-contrast-muted);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .nav-link.active:focus,
+.nav-pills .nav-link.active:hover {
+  color: var(--color-on-primary);
+  cursor: default;
+  background: var(--gradient-primary-flat);
+}
+
+/* Navbar: a title strip with a silver rule. */
+.navbar {
+  position: relative;
+  padding: 0.5rem 1rem;
+  background: var(--gradient-navbar);
+  border-bottom: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-raised);
+}
+
+.navbar > .container {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand {
+  padding-top: 0;
+  padding-bottom: 0.25rem;
+  margin-right: 2rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
+}
+
+.navbar-brand:focus,
+.navbar-brand:hover {
+  text-decoration: none;
+  color: var(--color-primary-bright);
+}
+
+.navbar-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  margin-left: auto;
+}
+
+.navbar-nav .nav-link {
+  display: block;
+  padding-top: 0.425rem;
+  padding-bottom: 0.425rem;
+}
+
+.navbar-nav .nav-item + .nav-item {
+  margin-left: 1rem;
+}
+
+.navbar-light .navbar-brand,
+.navbar-light .navbar-brand:focus,
+.navbar-light .navbar-brand:hover {
+  color: var(--color-heading);
+}
+
+.navbar-light .navbar-nav .nav-link {
+  color: var(--color-contrast-muted);
+}
+
+.navbar-light .navbar-nav .nav-link:focus,
+.navbar-light .navbar-nav .nav-link:hover {
+  color: var(--color-contrast);
+}
+
+.navbar-light .navbar-nav .active > .nav-link,
+.navbar-light .navbar-nav .nav-link.active,
+.navbar-light .navbar-nav .nav-link.active:focus,
+.navbar-light .navbar-nav .nav-link.active:hover {
+  color: var(--color-primary-strong);
+}
+
+.nav-link .user-pic {
+  height: 26px;
+  border-radius: var(--radius-pill);
+  float: left;
+  margin-right: 5px;
+}
+
+.nav-link:hover {
+  text-decoration: none;
+}
+
+.nav-signup {
+  color: var(--color-on-primary) !important;
+  background: var(--gradient-primary-flat);
+  border: var(--border-width) solid var(--color-primary-strong);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px !important;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+/* Tabs (Your Feed / Global Feed ...): primary underline on the active tab. */
+.nav-pills.outline-active .nav-link {
+  border-radius: 0;
+  border: none;
+  border-bottom: var(--border-width-strong) solid transparent;
+  background: transparent;
+  color: var(--color-contrast-muted);
+}
+
+.nav-pills.outline-active .nav-link:hover {
+  color: var(--color-contrast);
+}
+
+.nav-pills.outline-active .nav-link.active {
+  background: transparent;
+  border-bottom: var(--border-width-strong) solid var(--color-primary);
+  color: var(--color-primary-strong);
+}
+
+/* ============================================================================
+ * CARDS (windows)
+ * ============================================================================ */
+
+.card {
+  position: relative;
+  display: block;
+  margin-bottom: 0.75rem;
+  background: var(--gradient-panel);
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--color-border-soft);
+  box-shadow: var(--shadow-raised);
+}
+
+.card-block {
+  padding: 1.25rem;
+}
+
+.card-block::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.card-text:last-child {
+  margin-bottom: 0;
+}
+
+.card-footer {
+  padding: 0.75rem 1.25rem;
+  background: var(--color-shade);
+  border-top: var(--border-width) solid var(--color-border-faint);
+}
+
+.card-footer::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.card-footer:last-child {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* ============================================================================
+ * PAGINATION
+ * ============================================================================ */
+
+.pagination {
+  display: inline-block;
+  padding-left: 0;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.page-item {
+  display: inline;
+}
+
+.page-item:first-child .page-link {
+  margin-left: 0;
+  border-bottom-left-radius: var(--radius-md);
+  border-top-left-radius: var(--radius-md);
+}
+
+.page-item:last-child .page-link {
+  border-bottom-right-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.page-item.active .page-link,
+.page-item.active .page-link:focus,
+.page-item.active .page-link:hover {
+  z-index: 2;
+  color: var(--color-on-primary);
+  cursor: default;
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary);
+}
+
+.page-item.disabled .page-link,
+.page-item.disabled .page-link:focus,
+.page-item.disabled .page-link:hover {
+  color: var(--color-contrast-faint);
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: var(--color-base-raised);
+}
+
+.page-link {
+  position: relative;
+  float: left;
+  padding: 0.5rem 0.75rem;
+  margin-left: -1px;
+  color: var(--color-link);
+  text-decoration: none;
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-soft);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.page-link:focus,
+.page-link:hover {
+  color: var(--color-primary-bright);
+  background-color: var(--color-surface-strong);
+  text-decoration: none;
+}
+
+/* ============================================================================
+ * TAGS
+ * ============================================================================ */
+
+.tag-pill {
+  padding-right: 0.6em;
+  padding-left: 0.6em;
+  border-radius: var(--radius-pill);
+}
+
+.tag-default {
+  background-color: var(--color-surface);
+  color: var(--color-contrast-soft);
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  line-height: 1.1rem;
+  padding: 0.35rem 0.75rem;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.tag-default:hover,
+.tag-default[href]:focus,
+.tag-default[href]:hover {
+  text-decoration: none;
+  color: var(--color-primary-strong);
+  background-color: var(--color-surface-strong);
+}
+
+.tag-default.tag-outline {
+  border: var(--border-width) solid var(--color-border-faint);
+  color: var(--color-contrast-muted);
+  background: none;
+}
+
+ul.tag-list {
+  display: inline-block;
+}
+
+ul.tag-list li {
+  display: inline-block;
+}
+
+/* ============================================================================
+ * ERROR MESSAGES
+ * ============================================================================ */
+
+.error-messages {
+  color: var(--color-danger);
+  font-weight: bold;
+  padding-left: 2.5rem;
+  margin-bottom: 1rem;
+  list-style: disc;
+}
+
+/* ============================================================================
+ * BANNER
+ * ============================================================================ */
+
+.banner {
+  color: var(--color-contrast);
+  background: var(--gradient-title-bar);
+  border-bottom: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-raised);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.banner h1 {
+  margin-bottom: 0;
+}
+
+.container.page {
+  margin-top: 1.5rem;
+}

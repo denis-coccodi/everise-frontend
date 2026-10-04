@@ -1,0 +1,167 @@
+// Shared FFXIV building blocks (.xiv-*): windows, title bars, labels, the
+// call to action, chips and checkbox rows.
+// Part of the Everise theme: see index.scss in this folder.
+
+/* ============================================================================
+ * 3. SHARED COMPONENTS: FFXIV windows
+ * ============================================================================ */
+
+/* A window: silver-trimmed panel. Pair with .xiv-title-bar as its first child. */
+.xiv-panel {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-panel);
+  padding: 1rem;
+  color: var(--color-contrast);
+}
+
+/* The window's header strip. Inside .xiv-panel it bleeds to the edges. */
+.xiv-title-bar {
+  margin: -1rem -1rem 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--gradient-title-bar);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+}
+
+/* Big page title. */
+.xiv-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
+}
+
+/* Small uppercase label above a group or value. */
+.xiv-label {
+  font-size: 0.75rem;
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+  color: var(--color-label);
+}
+
+/* Section heading inside a window. */
+.xiv-heading {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+/* Small rounded chip buttons (All / None, filters). */
+.xiv-chip {
+  padding: 0.1rem 0.7rem;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-contrast-soft);
+  font-size: 0.8rem;
+}
+
+.xiv-chip:hover:not(:disabled) {
+  background: var(--color-surface-strong);
+}
+
+/* The big crystal call to action ("Commence"). */
+.xiv-cta {
+  display: inline-block;
+  min-width: 220px;
+  padding: 0.75rem 2rem;
+  border-radius: var(--radius-pill);
+  border: var(--border-width-strong) solid var(--color-primary-strong);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  box-shadow: var(--glow-primary);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.xiv-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--glow-primary-strong);
+}
+
+.xiv-cta:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* A checkbox row in a list. */
+.xiv-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.xiv-check:hover {
+  background: var(--color-hover);
+}
+
+/* A modal window over a dimmed page (the <cdt-dialog> component). */
+.xiv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--color-overlay);
+  animation: xiv-fade 0.25s ease-out;
+}
+
+.xiv-dialog {
+  position: fixed;
+  z-index: 11;
+  left: 50%;
+  top: 50%;
+  width: min(420px, calc(100vw - 32px));
+  transform: translate(-50%, -50%);
+  padding: 1rem 1.25rem 1.25rem;
+  border: var(--border-width-strong) solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  background: var(--gradient-window);
+  box-shadow: var(--shadow-panel), var(--glow-crystal);
+  color: var(--color-contrast);
+  animation: xiv-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.xiv-dialog > .xiv-title-bar {
+  margin: -1rem -1.25rem 1rem;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  text-align: center;
+  font-size: 1.3rem;
+  letter-spacing: 0.15em;
+  text-shadow: var(--glow-heading);
+}
+
+@keyframes xiv-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+}
+
+@keyframes xiv-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xiv-dialog,
+  .xiv-backdrop {
+    animation: none;
+  }
+}

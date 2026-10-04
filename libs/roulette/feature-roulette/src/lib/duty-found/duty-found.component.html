@@ -1,13 +1,4 @@
-<div class="backdrop" (click)="commence.emit()"></div>
-<section
-  class="window"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="duty-found-title"
-  (keydown.escape)="commence.emit()"
->
-  <h2 id="duty-found-title" class="xiv-title-bar">Duty Found</h2>
-
+<cdt-dialog heading="Duty Found" (dismissed)="commence.emit()">
   <p class="type xiv-label">{{ result().type }}</p>
   <p class="name">{{ result().name }}</p>
   @if (result().dutyUnknown) {
@@ -23,7 +14,7 @@
   <div class="timer" aria-hidden="true"><span></span></div>
 
   <div class="actions">
-    <button #commenceButton type="button" class="btn btn-primary" (click)="commence.emit()">Commence</button>
-    <button type="button" class="btn btn-secondary" (click)="withdraw.emit()">Withdraw</button>
+    <button #commenceButton type="button" cdtButton (click)="commence.emit()">Commence</button>
+    <button type="button" cdtButton="secondary" (click)="withdraw.emit()">Withdraw</button>
   </div>
-</section>
+</cdt-dialog>

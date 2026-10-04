@@ -9,11 +9,9 @@
       </span>
     </div>
     <button
-      [ngClass]="{
-        'btn-primary': article().favorited,
-        'btn-outline-primary': !article().favorited
-      }"
-      class="btn btn-sm pull-xs-right"
+      [cdtButton]="article().favorited ? 'primary' : 'outline-primary'"
+      size="sm"
+      class="pull-xs-right"
       (click)="toggleFavorite(article())"
     >
       <i class="ion-heart"></i>
@@ -26,7 +24,7 @@
     <span>Read more...</span>
     <ul class="tag-list">
       @for (tag of article().tagList; track tag) {
-        <li class="tag-default tag-pill tag-outline">
+        <li cdtTag="outline">
           {{ tag }}
         </li>
       }

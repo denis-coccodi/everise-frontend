@@ -3,12 +3,20 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonDirective, InputDirective } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  imports: [ListErrorsComponent, RouterModule, ReactiveFormsModule, InputErrorsComponent],
+  imports: [
+    ButtonDirective,
+    InputDirective,
+    ListErrorsComponent,
+    RouterModule,
+    ReactiveFormsModule,
+    InputErrorsComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {

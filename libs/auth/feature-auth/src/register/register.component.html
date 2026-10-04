@@ -11,38 +11,22 @@
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <div class="form-group">
-            <input
-              formControlName="username"
-              type="text"
-              id="username"
-              placeholder="Username"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="username" type="text" id="username" placeholder="Username" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.username" />
           </div>
           <div class="form-group">
-            <input
-              formControlName="email"
-              type="email"
-              id="email"
-              placeholder="Email"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.email" />
           </div>
           <div class="form-group">
-            <input
-              formControlName="password"
-              type="password"
-              id="password"
-              placeholder="Password"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="password" type="password" id="password" placeholder="Password" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.password" />
           </div>
           <button
             data-testid="sign-up"
-            class="btn btn-lg btn-primary pull-xs-right"
+            cdtButton
+            size="lg"
+            class="pull-xs-right"
             [disabled]="form.invalid || form.pending"
             type="submit"
           >

@@ -1,0 +1,283 @@
+// Tokens: the palette (used only in the theme), the roles everything uses,
+// and the light mode, which re-points roles.
+// Part of the Everise theme: see index.scss in this folder.
+
+/* ============================================================================
+ * 1. PALETTE (this file only)
+ * ============================================================================ */
+
+:root {
+  /* Night: the dark mode's backdrop and windows. */
+  --palette-abyss-950: #04070f;
+  --palette-abyss-900: #070d1c;
+  --palette-night-850: #0a1530;
+  --palette-night-800: #0d1d40;
+  --palette-night-700: #122852;
+
+  /* Royal blue (suggested #073a8c). */
+  --palette-royal-800: #031d47;
+  --palette-royal-700: #052a66;
+  --palette-royal-600: #073a8c;
+  --palette-royal-500: #1a4fa8;
+  --palette-royal-300: #8fb3ea;
+  --palette-royal-100: #e3ebf7;
+
+  /* Crystal teal (suggested #00a9b0). */
+  --palette-crystal-800: #00494d;
+  --palette-crystal-600: #007f85;
+  --palette-crystal-500: #00a9b0;
+  --palette-crystal-300: #5fd3d8;
+  --palette-crystal-100: #d6f7f8;
+
+  /* Mist: Final Fantasy white and silver (suggested #dcdcdc). */
+  --palette-mist-0: #ffffff;
+  --palette-mist-50: #f7f8fa;
+  --palette-mist-100: #eef1f5;
+  --palette-mist-200: #e4e7ec;
+  --palette-mist-300: #dcdcdc;
+  --palette-mist-400: #c6cbd4;
+  --palette-mist-500: #a3a9b5;
+
+  /* Haze and ink: text. */
+  --palette-haze-300: #c9d4e8;
+  --palette-haze-400: #a9b8d6;
+  --palette-haze-600: #6f7f9f;
+  --palette-slate-600: #4f5a70;
+  --palette-ink-800: #26314a;
+  --palette-ink-900: #10182b;
+
+  /* Accents (suggested). */
+  --palette-amber-700: #7a5f05;
+  --palette-amber-500: #c49a0b;
+  --palette-amber-300: #e7c65a;
+  --palette-violet-500: #644a74;
+  --palette-violet-300: #a68bb8;
+  --palette-magenta-600: #94378a;
+  --palette-magenta-500: #b44ba8;
+  --palette-magenta-300: #dc8bd3;
+  --palette-ember-600: #a8471c;
+  --palette-ember-500: #c95a28;
+  --palette-ember-300: #f08a5d;
+  --palette-jade-600: #2b8a52;
+  --palette-jade-400: #6fcf8f;
+}
+
+/* ============================================================================
+ * 2. ROLES (what components use). Default: the dark mode.
+ * ============================================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* Base: the page behind everything. */
+  --color-base: var(--palette-abyss-900);
+  --color-base-deep: var(--palette-abyss-950);
+  --color-base-raised: var(--palette-night-850);
+
+  /* Surfaces: windows, cards, inputs. */
+  --color-surface: var(--palette-night-800);
+  --color-surface-strong: var(--palette-night-700);
+  --color-surface-highlight: var(--palette-royal-600);
+  --color-field: var(--palette-abyss-950);
+
+  /* Contrast: text and icons on base and surfaces. */
+  --color-contrast: var(--palette-mist-50);
+  --color-contrast-soft: var(--palette-haze-300);
+  --color-contrast-muted: var(--palette-haze-400);
+  --color-contrast-faint: var(--palette-haze-600);
+  /* Titles and window headers. */
+  --color-heading: var(--palette-mist-0);
+  /* Small uppercase labels ("eyebrows"). */
+  --color-label: var(--palette-royal-300);
+
+  /* Primary: the main actions, the active state, results. "Strong" and
+     "bright" mean more emphasis on this mode's surfaces. */
+  --color-primary: var(--palette-crystal-500);
+  --color-primary-strong: var(--palette-crystal-300);
+  --color-primary-bright: var(--palette-crystal-100);
+  --color-primary-weak: var(--palette-crystal-600);
+  --color-primary-deep: var(--palette-crystal-800);
+  --color-on-primary: var(--palette-abyss-950);
+
+  /* Secondary: alternative actions and window title bars. */
+  --color-secondary: var(--palette-royal-600);
+  --color-secondary-strong: var(--palette-royal-300);
+  --color-on-secondary: var(--palette-mist-0);
+
+  /* Tertiary: a third hue for variety (alternate segments, badges). */
+  --color-tertiary: var(--palette-violet-500);
+  --color-on-tertiary: var(--palette-mist-0);
+
+  /* Accent: amber, used sparingly (numerals, favourites, small emphasis). */
+  --color-accent: var(--palette-amber-500);
+  --color-accent-strong: var(--palette-amber-300);
+  --color-on-accent: var(--palette-abyss-950);
+
+  /* Highlight: magenta, for the one thing that just happened (a win). */
+  --color-highlight: var(--palette-magenta-500);
+  --color-highlight-strong: var(--palette-magenta-300);
+  --color-on-highlight: var(--palette-mist-0);
+
+  /* The crystal motif (icons, the wheel hub): teal in both modes. */
+  --color-crystal: var(--palette-crystal-500);
+  --color-crystal-bright: var(--palette-crystal-100);
+  --color-crystal-deep: var(--palette-royal-600);
+
+  /* Behind avatars: the default avatar is a dark outline, so it sits on a
+     light disc in both modes. */
+  --color-avatar: var(--palette-haze-300);
+
+  /* Links in text. */
+  --color-link: var(--palette-crystal-300);
+  --color-link-hover: var(--palette-crystal-100);
+
+  /* Status. */
+  --color-danger: var(--palette-ember-300);
+  --color-danger-strong: var(--palette-ember-500);
+  --color-success: var(--palette-jade-400);
+
+  /* Lines: silver-white trim. */
+  --color-border: rgba(220, 220, 220, 0.55);
+  --color-border-strong: var(--palette-mist-300);
+  --color-border-soft: rgba(220, 220, 220, 0.28);
+  --color-border-faint: rgba(220, 220, 220, 0.14);
+  --color-divider: rgba(169, 184, 214, 0.16);
+
+  /* States and overlays. */
+  --color-hover: rgba(0, 169, 176, 0.12);
+  --color-focus: var(--palette-crystal-300);
+  --color-overlay: rgba(4, 7, 15, 0.7);
+  --color-shade: rgba(4, 7, 15, 0.35);
+
+  /* Fonts. Display: titles, window headers, buttons. Body: everything else.
+     Reading: long article text. */
+  --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --font-body: 'Source Sans Pro', 'Segoe UI', sans-serif;
+  --font-reading: 'Source Serif Pro', Georgia, serif;
+  --letter-spacing-display: 0.1em;
+  --letter-spacing-label: 0.12em;
+
+  /* Shapes. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* Depth and light. */
+  --shadow-raised: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-panel: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-inset: inset 0 0 22px rgba(0, 0, 0, 0.75);
+  --glow-primary: 0 0 16px rgba(0, 169, 176, 0.45);
+  --glow-primary-strong: 0 0 24px rgba(95, 211, 216, 0.65);
+  --glow-crystal: 0 0 8px rgba(95, 211, 216, 0.85);
+  --glow-heading: 0 0 14px rgba(201, 212, 232, 0.35);
+
+  /* Gradients. */
+  --gradient-page: radial-gradient(ellipse at 20% 0%, rgba(7, 58, 140, 0.45), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(100, 74, 116, 0.25), transparent 50%),
+    linear-gradient(var(--palette-abyss-900), var(--palette-abyss-950));
+  --gradient-panel: linear-gradient(160deg, rgba(18, 40, 82, 0.92), rgba(10, 21, 48, 0.95) 60%);
+  --gradient-window: linear-gradient(160deg, var(--palette-night-700), var(--palette-night-850) 60%);
+  --gradient-title-bar: linear-gradient(var(--palette-royal-600), var(--palette-royal-700));
+  --gradient-primary: linear-gradient(
+    var(--palette-crystal-300),
+    var(--palette-crystal-500) 55%,
+    var(--palette-crystal-600)
+  );
+  --gradient-primary-flat: linear-gradient(var(--palette-crystal-300), var(--palette-crystal-500));
+  --gradient-secondary-button: linear-gradient(var(--palette-royal-500), var(--palette-royal-700));
+  --gradient-well: linear-gradient(var(--palette-abyss-950), var(--palette-night-800) 50%, var(--palette-abyss-950));
+  --gradient-navbar: linear-gradient(rgba(13, 29, 64, 0.97), rgba(7, 13, 28, 0.97));
+  --gradient-result-bar: linear-gradient(90deg, var(--palette-crystal-500), var(--palette-royal-500));
+  /* Shades the top and bottom of a window, leaving the middle third clear. */
+  --gradient-edge-shade: linear-gradient(var(--color-overlay), transparent 33%, transparent 67%, var(--color-overlay));
+
+  /* Layout. */
+  --content-width: 720px;
+  --content-breakpoint: 1080px;
+}
+
+/* Light mode: Final Fantasy white. Re-points roles only. */
+body.light {
+  color-scheme: light;
+
+  --color-base: var(--palette-mist-100);
+  --color-base-deep: var(--palette-mist-200);
+  --color-base-raised: var(--palette-mist-50);
+  --color-surface: var(--palette-mist-0);
+  --color-surface-strong: var(--palette-mist-100);
+  --color-surface-highlight: var(--palette-royal-600);
+  --color-field: var(--palette-mist-0);
+
+  --color-contrast: var(--palette-ink-900);
+  --color-contrast-soft: var(--palette-ink-800);
+  --color-contrast-muted: var(--palette-slate-600);
+  --color-contrast-faint: var(--palette-mist-500);
+  --color-heading: var(--palette-royal-600);
+  --color-label: var(--palette-royal-500);
+
+  --color-primary: var(--palette-royal-600);
+  --color-primary-strong: var(--palette-royal-700);
+  --color-primary-bright: var(--palette-royal-800);
+  --color-primary-weak: var(--palette-royal-300);
+  --color-primary-deep: var(--palette-royal-800);
+  --color-on-primary: var(--palette-mist-0);
+
+  --color-secondary: var(--palette-crystal-500);
+  --color-secondary-strong: var(--palette-crystal-600);
+  --color-on-secondary: var(--palette-mist-0);
+
+  --color-accent: var(--palette-amber-500);
+  --color-accent-strong: var(--palette-amber-700);
+  --color-highlight-strong: var(--palette-magenta-600);
+
+  --color-avatar: var(--palette-mist-200);
+
+  --color-link: var(--palette-royal-500);
+  --color-link-hover: var(--palette-royal-700);
+
+  --color-danger: var(--palette-ember-600);
+  --color-danger-strong: var(--palette-ember-500);
+  --color-success: var(--palette-jade-600);
+
+  --color-border: var(--palette-mist-400);
+  --color-border-strong: var(--palette-royal-600);
+  --color-border-soft: var(--palette-mist-300);
+  --color-border-faint: var(--palette-mist-200);
+  --color-divider: rgba(16, 24, 43, 0.1);
+
+  --color-hover: rgba(7, 58, 140, 0.06);
+  --color-focus: var(--palette-crystal-500);
+  --color-overlay: rgba(16, 24, 43, 0.45);
+  --color-shade: rgba(7, 58, 140, 0.04);
+
+  --shadow-raised: 0 4px 14px rgba(16, 24, 43, 0.12);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(16, 24, 43, 0.12);
+  --shadow-inset: inset 0 1px 6px rgba(16, 24, 43, 0.12);
+  --glow-primary: 0 0 14px rgba(7, 58, 140, 0.25);
+  --glow-primary-strong: 0 0 20px rgba(7, 58, 140, 0.35);
+  --glow-crystal: 0 0 6px rgba(0, 169, 176, 0.6);
+  --glow-heading: none;
+
+  --gradient-page: radial-gradient(ellipse at 15% 0%, rgba(0, 169, 176, 0.1), transparent 50%),
+    radial-gradient(ellipse at 90% 100%, rgba(7, 58, 140, 0.08), transparent 50%),
+    linear-gradient(var(--palette-mist-50), var(--palette-mist-100));
+  --gradient-panel: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-50));
+  --gradient-window: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-100));
+  --gradient-title-bar: linear-gradient(var(--palette-mist-0), var(--palette-mist-200));
+  --gradient-primary: linear-gradient(var(--palette-royal-500), var(--palette-royal-600) 55%, var(--palette-royal-700));
+  --gradient-primary-flat: linear-gradient(var(--palette-royal-500), var(--palette-royal-600));
+  --gradient-secondary-button: linear-gradient(var(--palette-mist-0), var(--palette-mist-200));
+  --gradient-well: linear-gradient(var(--palette-mist-200), var(--palette-mist-0) 50%, var(--palette-mist-200));
+  --gradient-navbar: linear-gradient(rgba(255, 255, 255, 0.97), rgba(238, 241, 245, 0.97));
+  --gradient-result-bar: linear-gradient(90deg, var(--palette-royal-600), var(--palette-crystal-500));
+  --gradient-edge-shade: linear-gradient(
+    rgba(255, 255, 255, 0.9),
+    transparent 33%,
+    transparent 67%,
+    rgba(255, 255, 255, 0.9)
+  );
+}

@@ -11,11 +11,9 @@
           <div class="profile-ctas">
             @if (!$isUser()) {
               <button
-                class="btn btn-sm action-btn"
-                [ngClass]="{
-                  'btn-outline-secondary': !$following(),
-                  'btn-secondary': $following()
-                }"
+                [cdtButton]="$following() ? 'secondary' : 'outline-secondary'"
+                size="sm"
+                class="action-btn"
                 (click)="toggleFollowing()"
               >
                 <i class="ion-plus-round"></i>
@@ -26,7 +24,9 @@
             <a
               [routerLink]="['/settings']"
               [hidden]="$isUser() === false"
-              class="btn btn-sm btn-outline-secondary action-btn"
+              cdtButton="outline-secondary"
+              size="sm"
+              class="action-btn"
             >
               <i class="ion-gear-a"></i> Edit Profile Settings
             </a>
@@ -40,19 +40,19 @@
     <div class="row">
       <div class="col-xs-12 col-md-10 offset-md-1">
         <div class="articles-toggle">
-          <ul class="nav nav-pills outline-active">
-            <li class="nav-item">
+          <ul cdtTabs>
+            <li>
               <a
-                class="nav-link"
+                cdtTab
                 [routerLink]="['/profile', $username()]"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: true }"
                 >My Articles</a
               >
             </li>
-            <li class="nav-item">
+            <li>
               <a
-                class="nav-link"
+                cdtTab
                 [routerLink]="['/profile', $username(), 'favorites']"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: true }"
