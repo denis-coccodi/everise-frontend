@@ -20,9 +20,50 @@ export const PICKED_TYPES = [ROULETTES_TYPE, PVP_TYPE, GOLD_SAUCER_TYPE];
 export const SAME_JOB = 'Everyone on the same job';
 export const DEALERS_CHOICE = "Everyone on the same job: dealer's choice";
 
+// Awktrail: an old duty unsynced at the level cap, in gear deliberately
+// weakened so the fights play close to their original difficulty.
+// The lowest duty level Awktrail is offered for.
+const AWKTRAIL_MIN_LEVEL = 50;
+
+// The community's Awktrail gear sets ("Awktrail Old Savage Downscaled LVL
+// 100"): one sheet tab, a block of rows per raid tier.
+const AWKTRAIL_SHEET = 'https://docs.google.com/spreadsheets/d/1HjZB9wSokd5yZGgNwRlV4bbfCr3cXQLD5SMdArF0iS4';
+const AWKTRAIL_SHEET_TAB = 1997354076;
+
+// The duties with a gear set, and the row its tier starts on. The sheet
+// covers the Coils (normal, and Savage for the Second Coil) and the Savage
+// turns from Alexander to Pandaemonium; normal modes after the Coils and
+// Ultimates have none. If the sheet's layout changes, update the rows.
+const AWKTRAIL_TIERS: { duties: RegExp; row: number }[] = [
+  { duties: /^the Binding Coil of Bahamut - Turn \d$/, row: 5 },
+  { duties: /^the (Second Coil of Bahamut( \(Savage\))?|Final Coil of Bahamut) - Turn \d$/, row: 17 },
+  { duties: /^Alexander - The \w+ of the Father \(Savage\)$/, row: 33 },
+  { duties: /^Alexander - The \w+ of the Son \(Savage\)$/, row: 43 },
+  { duties: /^Alexander - The \w+ of the Creator \(Savage\)$/, row: 54 },
+  { duties: /^Deltascape V\d\.0 \(Savage\)$/, row: 66 },
+  { duties: /^Sigmascape V\d\.0 \(Savage\)$/, row: 76 },
+  { duties: /^Alphascape V\d\.0 \(Savage\)$/, row: 86 },
+  { duties: /^Eden's Gate: \w+ \(Savage\)$/, row: 97 },
+  { duties: /^Eden's Verse: \w+ \(Savage\)$/, row: 107 },
+  { duties: /^Eden's Promise: \w+ \(Savage\)$/, row: 117 },
+  { duties: /^Asphodelos: The \w+ Circle \(Savage\)$/, row: 128 },
+  { duties: /^Abyssos: The \w+ Circle \(Savage\)$/, row: 138 },
+  { duties: /^Anabaseios: The \w+ Circle \(Savage\)$/, row: 148 },
+];
+
+// A link to the duty's Awktrail gear set, opening the sheet at its tier; null
+// when the sheet has none for it.
+export function awktrailGuideUrl(dutyName: string): string | null {
+  const tier = AWKTRAIL_TIERS.find((t) => t.duties.test(dutyName));
+  if (!tier) return null;
+  const tab = AWKTRAIL_SHEET_TAB;
+  return `${AWKTRAIL_SHEET}/edit?gid=${tab}#gid=${tab}&range=A${tier.row}`;
+}
+
 export type RunMode =
   | 'Min IL + Silence Echo'
   | 'Unsynced'
+  | 'Awktrail'
   | 'Join Party in Progress'
   | typeof SAME_JOB
   | typeof DEALERS_CHOICE
@@ -64,6 +105,7 @@ export const DEFAULT_TYPES = [
 const RUN_MODE_DETAILS: Record<RunMode, string> = {
   'Min IL + Silence Echo': 'Minimum item level, the Echo turned off',
   Unsynced: 'Unrestricted Party, no level sync',
+  Awktrail: 'Unsynced at the level cap, in downscaled gear',
   'Join Party in Progress': 'Join a party already inside',
   [SAME_JOB]: 'The party agrees on one job for everyone',
   [DEALERS_CHOICE]: 'The roulette deals the job',
@@ -161,7 +203,8 @@ export function eligibleTypes(
 // settings only apply to duties queued through the Duty Finder or Raid
 // Finder; a duty roulette only offers Join Party in Progress. The game data
 // has no Silence Echo flag; it is offered together with Minimum IL, which is
-// where the game allows it.
+// where the game allows it. Awktrail joins Unsynced for duties of level
+// AWKTRAIL_MIN_LEVEL and up.
 //
 // The whole party on one job works for any duty, but not for a duty roulette
 // (the game matches parties by role), nor for Gold Saucer card and board
@@ -174,7 +217,10 @@ export function runModes(candidate: Candidate, type = '', canDeal = true): RunMo
     const { duty } = candidate;
     if (duty.finder !== '') {
       if (duty.minimumIL) modes.push('Min IL + Silence Echo');
-      if (duty.unrestrictedParty) modes.push('Unsynced');
+      if (duty.unrestrictedParty) {
+        modes.push('Unsynced');
+        if (duty.level >= AWKTRAIL_MIN_LEVEL) modes.push('Awktrail');
+      }
       if (duty.joinPartyInProgress) modes.push('Join Party in Progress');
     }
     if (type !== GOLD_SAUCER_TYPE) {
@@ -255,6 +301,7 @@ export function spreadSample<T>(items: T[], max: number): T[] {
 export const ALL_RUN_MODES: RunMode[] = [
   'Min IL + Silence Echo',
   'Unsynced',
+  'Awktrail',
   'Join Party in Progress',
   SAME_JOB,
   DEALERS_CHOICE,

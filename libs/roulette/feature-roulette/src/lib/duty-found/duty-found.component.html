@@ -22,6 +22,11 @@
     } @else {
       <dd>{{ result().mode }}</dd>
     }
+    @if (result().guide; as guide) {
+      <dd class="guide">
+        <a [href]="guide.url" target="_blank" rel="noopener noreferrer">{{ guide.label }}</a>
+      </dd>
+    }
   </dl>
 
   <div class="timer" aria-hidden="true"><span></span></div>

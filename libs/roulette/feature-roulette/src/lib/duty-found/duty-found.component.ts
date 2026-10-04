@@ -21,6 +21,8 @@ export interface RouletteResult {
   job?: { name: string; icon?: string };
   // The duty's or roulette's banner.
   image?: string;
+  // Where to read up on the party setting, e.g. Awktrail's gear sets.
+  guide?: { label: string; url: string };
 }
 
 // The result, styled after the game's "Duty Found" window.
@@ -36,7 +38,8 @@ export class DutyFoundComponent {
   readonly commence = output<void>();
   readonly withdraw = output<void>();
 
-  private readonly commenceButton = viewChild.required<ElementRef<HTMLButtonElement>>('commenceButton');
+  // The element, not the cdtButton component on it.
+  private readonly commenceButton = viewChild.required('commenceButton', { read: ElementRef<HTMLButtonElement> });
 
   constructor() {
     afterNextRender(() => this.commenceButton().nativeElement.focus());

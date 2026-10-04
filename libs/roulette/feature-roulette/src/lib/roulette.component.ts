@@ -20,6 +20,7 @@ import {
   RouletteSettings,
   RunMode,
   SAME_JOB,
+  awktrailGuideUrl,
   candidateDetail,
   candidateName,
   dealableJobs,
@@ -276,11 +277,14 @@ export class RouletteComponent {
     frontlineMap: string | null,
   ): RouletteResult {
     const image = candidate.kind === 'duty' ? candidate.duty.image : candidate.roulette.image;
+    // Awktrail links the duty's gear set, when the community sheet has one.
+    const guideUrl = mode === 'Awktrail' && candidate.kind === 'duty' ? awktrailGuideUrl(candidate.duty.name) : null;
     return {
       ...describe(type, candidate, frontlineMap),
       mode: job ? `${SAME_JOB}: ${job.name}` : mode,
       job: job && { name: job.name, icon: this.dutiesService.imageUrl(job.icon) },
       image: this.dutiesService.imageUrl(image),
+      guide: guideUrl ? { label: 'Awktrail gear set', url: guideUrl } : undefined,
     };
   }
 
