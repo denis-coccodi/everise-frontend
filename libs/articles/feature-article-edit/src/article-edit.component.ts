@@ -3,12 +3,13 @@ import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/cor
 import { OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ArticleStore } from '@realworld/articles/data-access';
+import { ButtonDirective, InputDirective } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-article-edit',
   templateUrl: './article-edit.component.html',
   styleUrls: ['./article-edit.component.css'],
-  imports: [ListErrorsComponent, ReactiveFormsModule, InputErrorsComponent],
+  imports: [ButtonDirective, InputDirective, ListErrorsComponent, ReactiveFormsModule, InputErrorsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleEditComponent implements OnDestroy {

@@ -1,35 +1,7 @@
-// Colours, buttons and the title bar come from the theme
-// (apps/everise/src/styles.scss).
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  background: var(--color-overlay);
-  animation: fade 0.25s ease-out;
-}
-
-.window {
-  position: fixed;
-  z-index: 11;
-  left: 50%;
-  top: 50%;
-  width: min(420px, calc(100vw - 32px));
-  transform: translate(-50%, -50%);
-  padding: 1rem 1.25rem 1.25rem;
-  border: var(--border-width-strong) solid var(--color-primary);
-  border-radius: var(--radius-xl);
-  background: var(--gradient-window);
-  box-shadow: var(--shadow-panel), var(--glow-crystal);
-  color: var(--color-contrast);
+// The window, buttons and title bar come from the UI library (<cdt-dialog>,
+// cdtButton) and its theme; this styles the result's content only.
+:host {
   text-align: center;
-  animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
-}
-
-.xiv-title-bar {
-  margin: -1rem -1.25rem 1rem;
-  font-size: 1.3rem;
-  letter-spacing: 0.15em;
-  text-shadow: var(--glow-heading);
 }
 
 p {
@@ -92,21 +64,8 @@ dd {
   justify-content: center;
 }
 
-.actions .btn {
+.actions button {
   min-width: 120px;
-}
-
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
-  }
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
 }
 
 @keyframes drain {
@@ -116,8 +75,7 @@ dd {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .window,
-  .backdrop {
+  .timer span {
     animation: none;
   }
 }

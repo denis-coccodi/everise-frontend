@@ -6,57 +6,28 @@
         <cdt-list-errors />
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <fieldset class="form-group">
-            <input
-              formControlName="image"
-              type="text"
-              id="image"
-              placeholder="URL of profile picture"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="image" type="text" id="image" placeholder="URL of profile picture" cdtInput="lg" />
           </fieldset>
           <fieldset class="form-group required">
-            <input
-              formControlName="username"
-              type="text"
-              id="username"
-              placeholder="Your Name"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="username" type="text" id="username" placeholder="Your Name" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.username" />
           </fieldset>
           <fieldset class="form-group">
-            <textarea
-              class="form-control form-control-lg"
-              rows="5"
-              id="bio"
-              formControlName="bio"
-              placeholder="Short bio about you"
-            >
+            <textarea cdtInput="lg" rows="5" id="bio" formControlName="bio" placeholder="Short bio about you">
             </textarea>
           </fieldset>
           <fieldset class="form-group required">
-            <input
-              formControlName="email"
-              type="email"
-              id="email"
-              placeholder="Email"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.email" />
           </fieldset>
           <fieldset class="form-group required">
-            <input
-              formControlName="password"
-              type="password"
-              id="password"
-              placeholder="New Password"
-              class="form-control form-control-lg"
-            />
+            <input formControlName="password" type="password" id="password" placeholder="New Password" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.password" />
           </fieldset>
           <button
             data-testid="edit-button-container"
-            class="btn btn-lg btn-primary"
+            cdtButton
+            size="lg"
             [disabled]="form.invalid || form.pending"
             type="submit"
           >
@@ -64,9 +35,9 @@
           </button>
         </form>
         <hr />
-        <h4>Dark Mode: <input type="checkbox" [checked]="darkMode" (change)="toggleDarkMode()" /></h4>
+        <h4><cdt-checkbox [checked]="darkMode" (checkedChange)="toggleDarkMode()">Dark Mode</cdt-checkbox></h4>
         <hr />
-        <button class="btn btn-outline-danger" (click)="logout()">Or click here to logout.</button>
+        <button cdtButton="outline-danger" (click)="logout()">Or click here to logout.</button>
       </div>
     </div>
   </div>

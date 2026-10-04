@@ -10,7 +10,7 @@ One Angular app (`apps/everise`) is a thin shell: routes, guard, HTTP setup and 
 
 - **feature** libs: one per page, lazy-loaded by the router (`feature-articles-list` is the exception: a shared list used by Home and Profile);
 - **data-access** libs: NgRx signal stores, API services, guards and resolvers;
-- **core** and **ui** libs: API types, HTTP client, form errors, error handling and shared components, with no dependencies on other libs.
+- **core** and **ui** libs: API types, HTTP client, form errors and error handling; the **ui** lib also holds the theme and the themed building blocks every page uses ([Theme](#theme)). They have no dependencies on other libs.
 
 Dependencies only point down a layer or sideways within a domain. `npx nx graph` shows the live graph.
 
@@ -27,13 +27,30 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 - **dark (default):** near-black navy backdrop with crystal-teal highlights;
 - **light:** Final Fantasy white, with royal-blue highlights. Turn Settings → Dark Mode off to switch to it.
 
-The whole look is defined in [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss), in three layers:
+The UI library ([`libs/ui/components`](libs/ui/components), imported as `@realworld/ui/components`) owns that look.
 
-- **palette** colours, used only inside that file;
+**It defines the theme** in [`src/theme`](libs/ui/components/src/theme), in three layers:
+
+- **palette** colours, used only inside the theme;
 - **role** tokens that everything else uses: `--color-base`, `--color-surface`, `--color-contrast`, `--color-heading`, `--color-primary`, `--color-secondary`, `--color-accent`, `--color-crystal`, `--font-display`, `--radius-*`, `--shadow-*`, `--gradient-*`, …;
-- **shared classes** such as `.xiv-panel`, `.xiv-title-bar`, `.btn-primary` and `.form-control`.
+- **classes** such as `.xiv-panel`, `.btn-primary` and `.form-control`.
 
-Components don't define colours, fonts or shadows of their own. The rules, and a check command, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
+**It provides the dumb, themed building blocks** every page uses:
+
+| Building block       | For                        |
+| -------------------- | -------------------------- |
+| `cdtButton`          | buttons and button links   |
+| `cdtInput`           | text fields and text areas |
+| `<cdt-checkbox>`     | a checkbox with its label  |
+| `<cdt-panel>`        | a window                   |
+| `<cdt-dialog>`       | a modal window             |
+| `cdtTabs` / `cdtTab` | tab bars                   |
+| `cdtTag`             | tag pills                  |
+| `<cdt-pager>`        | pagination                 |
+
+**The app propagates it.** [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss) loads the theme once, and below that only lays out pages.
+
+Feature libraries reuse the building blocks and don't define colours, fonts, shadows or control styles of their own. The rules, and check commands, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
 
 ## Environments and deployment
 

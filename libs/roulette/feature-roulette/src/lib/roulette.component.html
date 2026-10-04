@@ -19,24 +19,21 @@
     }
     @default {
       <div class="layout">
-        <section class="xiv-panel settings" aria-labelledby="settings-title">
-          <h2 id="settings-title" class="xiv-title-bar">Duty Finder Settings</h2>
-
+        <cdt-panel class="settings" heading="Duty Finder Settings">
           <fieldset [disabled]="spinning()">
             <legend class="xiv-label">Duty types</legend>
             <div class="quick">
-              <button type="button" class="xiv-chip" (click)="setAllTypes(true)">All</button>
-              <button type="button" class="xiv-chip" (click)="setAllTypes(false)">None</button>
+              <button type="button" cdtButton="chip" (click)="setAllTypes(true)">All</button>
+              <button type="button" cdtButton="chip" (click)="setAllTypes(false)">None</button>
             </div>
             <ul class="checks">
               @for (type of types(); track type.name) {
                 <li>
-                  <label class="xiv-check" [class.none-in-range]="type.count === 0">
-                    <input
-                      type="checkbox"
-                      [checked]="isTypeOn(type.name)"
-                      (change)="toggleType(type.name, $any($event.target).checked)"
-                    />
+                  <cdt-checkbox
+                    [class.none-in-range]="type.count === 0"
+                    [checked]="isTypeOn(type.name)"
+                    (checkedChange)="toggleType(type.name, $event)"
+                  >
                     <span class="type-name">{{ type.name }}</span>
                     <span
                       class="count"
@@ -45,7 +42,7 @@
                       "
                       >{{ type.count }}</span
                     >
-                  </label>
+                  </cdt-checkbox>
                 </li>
               }
             </ul>
@@ -56,6 +53,7 @@
             <label>
               Minimum
               <input
+                cdtInput="sm"
                 type="number"
                 min="1"
                 max="100"
@@ -68,6 +66,7 @@
             <label>
               Maximum
               <input
+                cdtInput="sm"
                 type="number"
                 min="1"
                 max="100"
@@ -84,9 +83,9 @@
           } @else if (options().length === 0) {
             <p class="warning">No duty matches these settings.</p>
           }
-        </section>
+        </cdt-panel>
 
-        <section class="xiv-panel stage" aria-label="Roulette">
+        <cdt-panel class="stage" label="Roulette">
           <div class="wheels">
             <div class="step">
               <span class="step-number">I</span>
@@ -102,7 +101,7 @@
             </div>
           </div>
 
-          <button type="button" class="xiv-cta commence" [disabled]="!canSpin()" (click)="commence()">
+          <button type="button" cdtButton="cta" class="commence" [disabled]="!canSpin()" (click)="commence()">
             {{ spinning() ? 'Spinning…' : result() ? 'Spin again' : 'Commence' }}
           </button>
           <p class="status" aria-live="polite">{{ status() }}</p>
@@ -114,40 +113,37 @@
               </p>
             }
           }
-        </section>
+        </cdt-panel>
 
         <!-- One list per ticked type whose entries are picked one by one. -->
         <div class="picks">
           @for (panel of pickPanels(); track panel.type) {
-            <section class="xiv-panel" [attr.aria-label]="panel.type">
-              <h2 class="xiv-title-bar">{{ panel.type }}</h2>
+            <cdt-panel [heading]="panel.type">
               <fieldset [disabled]="spinning()">
                 <legend class="xiv-label">{{ panel.legend }}</legend>
                 <div class="quick">
-                  <button type="button" class="xiv-chip" (click)="setAllPicks(panel.type, true)">All</button>
-                  <button type="button" class="xiv-chip" (click)="setAllPicks(panel.type, false)">None</button>
+                  <button type="button" cdtButton="chip" (click)="setAllPicks(panel.type, true)">All</button>
+                  <button type="button" cdtButton="chip" (click)="setAllPicks(panel.type, false)">None</button>
                 </div>
                 <ul class="checks pick-list">
                   @for (option of panel.options; track option.key) {
                     <li>
-                      <label class="xiv-check">
-                        <input
-                          type="checkbox"
-                          [checked]="isPicked(panel.type, option.key)"
-                          (change)="togglePick(panel.type, option.key, $any($event.target).checked)"
-                        />
+                      <cdt-checkbox
+                        [checked]="isPicked(panel.type, option.key)"
+                        (checkedChange)="togglePick(panel.type, option.key, $event)"
+                      >
                         <span>
                           {{ option.name }}
                           @if (option.detail.startsWith('Today:')) {
                             <small class="today">{{ option.detail }}</small>
                           }
                         </span>
-                      </label>
+                      </cdt-checkbox>
                     </li>
                   }
                 </ul>
               </fieldset>
-            </section>
+            </cdt-panel>
           }
         </div>
       </div>

@@ -11,25 +11,21 @@
       <div class="col-md-9">
         <div class="feed-toggle">
           @if ({ listConfig: $listConfig() }; as model) {
-            <ul class="nav nav-pills outline-active">
-              <li class="nav-item">
-                <a [ngClass]="{ active: model.listConfig.type === 'FEED' }" class="nav-link" (click)="setListTo('FEED')"
-                  >Your Feed</a
-                >
+            <ul cdtTabs>
+              <li>
+                <a cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">Your Feed</a>
               </li>
-              <li class="nav-item">
+              <li>
                 <a
+                  cdtTab
                   data-testid="global-feed"
-                  [ngClass]="{
-                    active: model.listConfig.type === 'ALL' && !model.listConfig.filters.tag
-                  }"
-                  class="nav-link"
+                  [active]="model.listConfig.type === 'ALL' && !model.listConfig.filters.tag"
                   (click)="setListTo('ALL')"
                   >Global Feed</a
                 >
               </li>
-              <li class="nav-item" [hidden]="!model.listConfig.filters.tag">
-                <a class="nav-link active">
+              <li [hidden]="!model.listConfig.filters.tag">
+                <a cdtTab [active]="true">
                   <i class="ion-pound"></i>
                   {{ model.listConfig.filters.tag }}
                 </a>

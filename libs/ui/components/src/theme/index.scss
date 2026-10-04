@@ -1,0 +1,36 @@
+/*
+ * ============================================================================
+ * Everise theme: Final Fantasy XIV
+ * ============================================================================
+ *
+ * The UI library defines the whole site's look here; the app loads it once
+ * (apps/everise/src/styles.scss) and every library gets it from there.
+ * Features use the theme through the UI components (cdtButton, cdtInput,
+ * <cdt-checkbox>, <cdt-panel>, ...) and the role tokens, and don't define
+ * colours, fonts, radii, shadows or gradients of their own. See the `theme`
+ * skill (.claude/skills/theme/SKILL.md) for the rules.
+ *
+ * Partials:
+ *   _tokens.scss    1. Palette (--palette-*): raw colours, used ONLY in the
+ *                      theme. 2. Roles (--color-*, --font-*, --radius-*,
+ *                      --shadow-*, --glow-*, --gradient-*): what everything
+ *                      uses. body.light re-points roles for the light mode.
+ *   _base.scss      Reset, typography, links, focus, layout grid, utilities.
+ *   _shared.scss    FFXIV building blocks (.xiv-panel, .xiv-title-bar, ...).
+ *   _controls.scss  Form fields, buttons, navigation, cards, pagination,
+ *                   tags, error messages, banners.
+ *
+ * Modes:
+ *   - Dark (default): near-black navy behind deep-blue windows, silver-white
+ *     trim, crystal-teal highlights, white Cinzel headings.
+ *   - Light (body.light; Settings → Dark Mode off): Final Fantasy white.
+ *     White and silver windows, royal-blue highlights, ink-navy text.
+ *   Accents in both: crystal teal, royal blue, amber, violet, magenta, ember.
+ *
+ * ============================================================================
+ */
+
+@use 'tokens';
+@use 'base';
+@use 'shared';
+@use 'controls';

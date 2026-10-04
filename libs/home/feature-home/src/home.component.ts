@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, effect, untracked } from '@angular/core';
 import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
-import { NgClass } from '@angular/common';
+import { TabDirective, TabsDirective } from '@realworld/ui/components';
 import { TagsListComponent } from './tags-list/tags-list.component';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
 import { HomeStore } from './home.store';
@@ -11,7 +11,7 @@ import { AuthStore } from '@realworld/auth/data-access';
   selector: 'cdt-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
-  imports: [NgClass, TagsListComponent, ArticleListComponent],
+  imports: [TabsDirective, TabDirective, TagsListComponent, ArticleListComponent],
   providers: [HomeStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
