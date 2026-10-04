@@ -25,26 +25,26 @@ import {
   pickIndex,
   pickOptions,
   possibleModes,
+  runModeDetail,
   runModes,
-  shortTypeName,
   spreadSample,
   todaysFrontline,
   typeCandidates,
   upgradeSettings,
 } from './roulette-engine';
-import { WheelComponent, wait } from './wheel/wheel.component';
+import { wait } from './motion';
 import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
 
 const SETTINGS_KEY = 'everise-roulette-settings';
-const PAUSE_BETWEEN_WHEELS_MS = 600;
-// Most outcomes the idle reel previews.
+const PAUSE_BETWEEN_REELS_MS = 600;
+// Most outcomes the idle duty reel previews.
 const REEL_PREVIEW_MAX = 60;
 
 // The explanation above each picked type's list.
 const PICK_LEGENDS: Record<string, string> = {
-  [ROULETTES_TYPE]: 'Duty roulettes the first wheel\'s "Duty Roulettes" can land on',
-  PvP: 'PvP queues the first wheel\'s "PvP" can land on',
-  'Gold Saucer': 'Gold Saucer activities the first wheel\'s "Gold Saucer" can land on',
+  [ROULETTES_TYPE]: 'Duty roulettes the first reel\'s "Duty Roulettes" can land on',
+  PvP: 'PvP queues the first reel\'s "PvP" can land on',
+  'Gold Saucer': 'Gold Saucer activities the first reel\'s "Gold Saucer" can land on',
 };
 
 type LoadState = 'loading' | 'ready' | 'empty' | 'error';
@@ -53,24 +53,16 @@ type LoadState = 'loading' | 'ready' | 'empty' | 'error';
   selector: 'cdt-roulette',
   templateUrl: './roulette.component.html',
   styleUrls: ['./roulette.component.scss'],
-  imports: [
-    ButtonComponent,
-    CheckboxComponent,
-    InputComponent,
-    PanelComponent,
-    WheelComponent,
-    ReelComponent,
-    DutyFoundComponent,
-  ],
+  imports: [ButtonComponent, CheckboxComponent, InputComponent, PanelComponent, ReelComponent, DutyFoundComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RouletteComponent {
   private readonly dutiesService = inject(DutiesService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  private readonly typeWheel = viewChild.required<WheelComponent>('typeWheel');
+  private readonly typeReel = viewChild.required<ReelComponent>('typeReel');
   private readonly dutyReel = viewChild.required<ReelComponent>('dutyReel');
-  private readonly modeWheel = viewChild.required<WheelComponent>('modeWheel');
+  private readonly modeReel = viewChild.required<ReelComponent>('modeReel');
 
   readonly loadState = signal<LoadState>('loading');
   readonly groups = signal<DutyGroup[]>([]);
@@ -79,7 +71,7 @@ export class RouletteComponent {
 
   readonly spinning = signal(false);
   readonly status = signal('');
-  // The third wheel: the winning duty's party settings after a spin, until
+  // The third reel: the winning duty's party settings after a spin, until
   // the selection changes; before that, every setting the allowed duties offer.
   private readonly spunModes = signal<RunMode[] | null>(null);
   readonly result = signal<RouletteResult | null>(null);
@@ -96,7 +88,7 @@ export class RouletteComponent {
     })),
   );
 
-  // The lists under the wheels, one per ticked picked type.
+  // The lists under the reels, one per ticked picked type.
   readonly pickPanels = computed(() =>
     PICKED_TYPES.filter((type) => this.isTypeOn(type)).map((type) => ({
       type,
@@ -111,18 +103,18 @@ export class RouletteComponent {
 
   readonly options = computed(() => eligibleTypes(this.groups(), this.pickable(), this.settings()));
   readonly modes = computed(() => this.spunModes() ?? possibleModes(this.options()));
-  // What the reel shows before a spin: the possible outcomes of the allowed
-  // types, in their order, sampled across all of them when there are many.
-  readonly reelPreview = computed(() =>
+
+  // What each reel shows before a spin: everything it can land on.
+  readonly typePreview = computed(() => this.options().map((o) => typeItem(o.name, o.candidates.length)));
+  // The duties of the allowed types, in their order, sampled across all of
+  // them when there are many.
+  readonly dutyPreview = computed(() =>
     spreadSample(
       this.options().flatMap((o) => o.candidates.map((c) => this.reelItem(c))),
       REEL_PREVIEW_MAX,
     ),
   );
-  readonly wheelTypes = computed(() => {
-    const names = this.options().map((o) => shortTypeName(o.name));
-    return names.length > 0 ? names : ['—'];
-  });
+  readonly modePreview = computed(() => this.modes().map(modeItem));
   readonly levelError = computed(() => {
     const { minLevel, maxLevel } = this.settings();
     return minLevel !== null && maxLevel !== null && minLevel > maxLevel
@@ -182,7 +174,7 @@ export class RouletteComponent {
     return { title: candidateName(candidate), detail: candidateDetail(candidate, this.frontlineMap()) };
   }
 
-  // Spins the three wheels one after the other, then shows the result.
+  // Spins the three reels one after the other, then shows the result.
   async commence() {
     if (!this.canSpin()) return;
 
@@ -195,25 +187,25 @@ export class RouletteComponent {
 
     try {
       this.status.set('Choosing a duty type…');
-      const typeIndex = pickIndex(options.length);
-      const type = options[typeIndex];
-      await this.typeWheel().spinTo(typeIndex);
-      await wait(PAUSE_BETWEEN_WHEELS_MS);
+      const type = options[pickIndex(options.length)];
+      await this.typeReel().spinTo(this.typePreview(), typeItem(type.name, type.candidates.length));
+      await wait(PAUSE_BETWEEN_REELS_MS);
 
       this.status.set(`${type.name}: choosing a duty…`);
       const candidate = type.candidates[pickIndex(type.candidates.length)];
       await this.dutyReel().spinTo(type.candidates.map(reelItem), reelItem(candidate));
-      await wait(PAUSE_BETWEEN_WHEELS_MS);
+      await wait(PAUSE_BETWEEN_REELS_MS);
 
       this.status.set(`${candidateName(candidate)}: choosing the party settings…`);
       const modes = runModes(candidate);
+      // The third reel now offers only what this duty allows.
       this.spunModes.set(modes);
       this.cdr.detectChanges();
-      const modeIndex = pickIndex(modes.length);
-      await this.modeWheel().spinTo(modeIndex);
-      await wait(PAUSE_BETWEEN_WHEELS_MS / 2);
+      const mode = modes[pickIndex(modes.length)];
+      await this.modeReel().spinTo(modes.map(modeItem), modeItem(mode));
+      await wait(PAUSE_BETWEEN_REELS_MS / 2);
 
-      const result = toResult(type.name, candidate, modes[modeIndex], frontlineMap);
+      const result = toResult(type.name, candidate, mode, frontlineMap);
       this.result.set(result);
       this.status.set(`Duty found: ${result.name}, ${result.mode}.`);
       this.showResult.set(true);
@@ -237,6 +229,16 @@ export class RouletteComponent {
     this.spunModes.set(null);
     saveSettings(settings);
   }
+}
+
+// A duty type on the first reel, with how many duties it can land on.
+function typeItem(name: string, count: number): ReelItem {
+  return { title: name, detail: `${count} to pick from` };
+}
+
+// A party setting on the third reel, with what it means.
+function modeItem(mode: RunMode): ReelItem {
+  return { title: mode, detail: runModeDetail(mode) };
 }
 
 function toggled<T>(list: T[], item: T, on: boolean) {

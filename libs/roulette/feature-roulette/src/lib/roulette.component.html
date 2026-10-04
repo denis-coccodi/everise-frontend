@@ -4,7 +4,7 @@
       <polygon points="0,-15 9,-3 0,15 -9,-3" />
     </svg>
     <h1 class="xiv-title">Duty Roulette</h1>
-    <p>Three wheels decide your next run: the kind of duty, the duty, and how you run it.</p>
+    <p>Three reels decide your next run: the kind of duty, the duty, and how you run it.</p>
   </header>
 
   @switch (loadState()) {
@@ -86,18 +86,18 @@
         </cdt-panel>
 
         <cdt-panel class="stage" label="Roulette">
-          <div class="wheels">
+          <div class="reels">
             <div class="step">
               <span class="step-number">I</span>
-              <cdt-roulette-wheel #typeWheel caption="Duty type" [segments]="wheelTypes()" />
+              <cdt-roulette-reel #typeReel caption="Duty type" [preview]="typePreview()" />
             </div>
             <div class="step">
               <span class="step-number">II</span>
-              <cdt-roulette-reel #dutyReel caption="Duty" [preview]="reelPreview()" />
+              <cdt-roulette-reel #dutyReel caption="Duty" [preview]="dutyPreview()" />
             </div>
             <div class="step">
               <span class="step-number">III</span>
-              <cdt-roulette-wheel #modeWheel caption="Party settings" [segments]="modes()" />
+              <cdt-roulette-reel #modeReel caption="Party settings" [preview]="modePreview()" />
             </div>
           </div>
 

@@ -11,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { reducedMotion, wait } from '../wheel/wheel.component';
+import { reducedMotion, wait } from '../motion';
 
 export interface ReelItem {
   title: string;
@@ -29,8 +29,8 @@ const EMPTY: ReelItem[] = [{ title: '· · ·', detail: '' }];
 
 type Mode = 'idle' | 'spinning' | 'landed';
 
-// A slot-machine reel for the second wheel, which can have a hundred entries:
-// too many for readable wheel segments. While idle it slowly scrolls through
+// A slot-machine reel, used for all three steps (a duty can have a hundred
+// candidates, too many for a wheel's segments). While idle it slowly scrolls through
 // `preview` (the possible outcomes); spinTo() spins and stops on the winner,
 // which stays until the next spin or until `preview` changes.
 @Component({
