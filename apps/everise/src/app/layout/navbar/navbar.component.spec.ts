@@ -23,4 +23,15 @@ describe('NavbarComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it.each([false, true])(
+    'links to the roulette whether or not someone is logged in (logged in: %s)',
+    async (loggedIn) => {
+      fixture.componentRef.setInput('isLoggedIn', loggedIn);
+      await fixture.whenStable();
+
+      const roulette = (fixture.nativeElement as HTMLElement).querySelector('a[href="/roulette"]');
+      expect(roulette?.textContent).toContain('Roulette');
+    },
+  );
 });

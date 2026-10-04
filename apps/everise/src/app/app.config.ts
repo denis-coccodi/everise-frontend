@@ -48,7 +48,8 @@ export const appConfig: ApplicationConfig = {
           path: 'roulette',
           title: 'Duty Roulette · Everise',
           loadComponent: () => import('@realworld/roulette/feature-roulette').then((m) => m.RouletteComponent),
-          canActivate: [AuthGuard],
+          // Open to everyone. Features that need an account (saving or sharing
+          // a result) check the login themselves.
         },
         {
           path: 'settings',
