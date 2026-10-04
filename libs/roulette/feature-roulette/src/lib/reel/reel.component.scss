@@ -49,11 +49,23 @@
   color: var(--color-contrast-soft);
 }
 
+// With an icon: the icons line up in a column on the left, and the text is
+// centred between it and an equally wide empty column on the right, so it
+// stays centred in the window whatever its length.
+.slot.with-thumb {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
+}
+
 // The title and detail, stacked; min-width lets long titles be cut off.
 .text {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.with-thumb .text {
+  grid-column: 2;
 }
 
 .thumb {
