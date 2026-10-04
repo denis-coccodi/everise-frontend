@@ -107,6 +107,18 @@ legend {
   flex: 1;
 }
 
+// The duty type's icon from the game.
+.type-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+.none-in-range .type-icon {
+  opacity: 0.5;
+}
+
 .count {
   min-width: 1.8rem;
   padding: 0 0.4rem;

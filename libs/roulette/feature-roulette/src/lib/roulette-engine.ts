@@ -1,4 +1,4 @@
-import { Duty, DutyGroup, DutyRoulette } from './duties.models';
+import { Duty, DutyGroup, DutyRoulette, Job } from './duties.models';
 
 // The rules of the three-reel roulette, kept free of Angular so they can be
 // tested on their own:
@@ -6,7 +6,9 @@ import { Duty, DutyGroup, DutyRoulette } from './duties.models';
 //   2. a duty of that type within the level limits. For the "picked" types
 //      (Duty Roulettes, PvP, Gold Saucer) only the entries the user ticked;
 //      for a duty roulette the game then picks the duty;
-//   3. how to run it, from the Duty Finder settings that duty allows.
+//   3. how to run it, from the Duty Finder settings that duty allows, or
+//      with the whole party on one job. On "dealer's choice" the roulette
+//      then deals the job too.
 
 export const ROULETTES_TYPE = 'Duty Roulettes';
 export const PVP_TYPE = 'PvP';
@@ -15,7 +17,16 @@ export const GOLD_SAUCER_TYPE = 'Gold Saucer';
 // Types whose entries the user ticks one by one, in a panel under the reels.
 export const PICKED_TYPES = [ROULETTES_TYPE, PVP_TYPE, GOLD_SAUCER_TYPE];
 
-export type RunMode = 'Min IL + Silence Echo' | 'Unsynced' | 'Join Party in Progress' | 'Regular';
+export const SAME_JOB = 'Everyone on the same job';
+export const DEALERS_CHOICE = "Everyone on the same job: dealer's choice";
+
+export type RunMode =
+  | 'Min IL + Silence Echo'
+  | 'Unsynced'
+  | 'Join Party in Progress'
+  | typeof SAME_JOB
+  | typeof DEALERS_CHOICE
+  | 'Regular';
 
 export interface RouletteSettings {
   // Duty group names, plus ROULETTES_TYPE.
@@ -54,6 +65,8 @@ const RUN_MODE_DETAILS: Record<RunMode, string> = {
   'Min IL + Silence Echo': 'Minimum item level, the Echo turned off',
   Unsynced: 'Unrestricted Party, no level sync',
   'Join Party in Progress': 'Join a party already inside',
+  [SAME_JOB]: 'The party agrees on one job for everyone',
+  [DEALERS_CHOICE]: 'The roulette deals the job',
   Regular: 'The Duty Finder as usual',
 };
 
@@ -144,11 +157,17 @@ export function eligibleTypes(
   );
 }
 
-// The third reel's entries. Duty Finder settings only apply to duties
-// queued through the Duty Finder or Raid Finder; a duty roulette only offers
-// Join Party in Progress. The game data has no Silence Echo flag; it is
-// offered together with Minimum IL, which is where the game allows it.
-export function runModes(candidate: Candidate): RunMode[] {
+// The third reel's entries for a candidate of the type `type`. Duty Finder
+// settings only apply to duties queued through the Duty Finder or Raid
+// Finder; a duty roulette only offers Join Party in Progress. The game data
+// has no Silence Echo flag; it is offered together with Minimum IL, which is
+// where the game allows it.
+//
+// The whole party on one job works for any duty, but not for a duty roulette
+// (the game matches parties by role), nor for Gold Saucer card and board
+// games, where jobs don't matter. Dealer's choice needs jobs to deal
+// (`canDeal`).
+export function runModes(candidate: Candidate, type = '', canDeal = true): RunMode[] {
   const modes: RunMode[] = [];
 
   if (candidate.kind === 'duty') {
@@ -158,12 +177,22 @@ export function runModes(candidate: Candidate): RunMode[] {
       if (duty.unrestrictedParty) modes.push('Unsynced');
       if (duty.joinPartyInProgress) modes.push('Join Party in Progress');
     }
+    if (type !== GOLD_SAUCER_TYPE) {
+      modes.push(SAME_JOB);
+      if (canDeal) modes.push(DEALERS_CHOICE);
+    }
   } else if (candidate.roulette.joinPartyInProgress) {
     modes.push('Join Party in Progress');
   }
 
   modes.push('Regular');
   return modes;
+}
+
+// The jobs dealer's choice deals from: limited jobs (Blue Mage, Beastmaster)
+// can't queue for regular duties.
+export function dealableJobs(jobs: Job[]) {
+  return jobs.filter((job) => !job.limited);
 }
 
 // Today's Frontline map, from the duty the backend flags as active.
@@ -223,12 +252,20 @@ export function spreadSample<T>(items: T[], max: number): T[] {
 }
 
 // Every party setting, in the order the third reel lists them.
-export const ALL_RUN_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
+export const ALL_RUN_MODES: RunMode[] = [
+  'Min IL + Silence Echo',
+  'Unsynced',
+  'Join Party in Progress',
+  SAME_JOB,
+  DEALERS_CHOICE,
+  'Regular',
+];
 
 // The party settings the allowed duties could land on: what the third reel
 // shows before a spin. All of them when nothing is allowed yet.
-export function possibleModes(options: TypeOption[]): RunMode[] {
-  if (options.length === 0) return ALL_RUN_MODES;
-  const possible = new Set(options.flatMap((o) => o.candidates.flatMap(runModes)));
-  return ALL_RUN_MODES.filter((mode) => possible.has(mode));
+export function possibleModes(options: TypeOption[], canDeal = true): RunMode[] {
+  const all = ALL_RUN_MODES.filter((mode) => canDeal || mode !== DEALERS_CHOICE);
+  if (options.length === 0) return all;
+  const possible = new Set(options.flatMap((o) => o.candidates.flatMap((c) => runModes(c, o.name, canDeal))));
+  return all.filter((mode) => possible.has(mode));
 }

@@ -8,6 +8,17 @@ p {
   margin: 0 0 0.35rem;
 }
 
+// The game's banner for the duty, like the in-game Duty Found window.
+.duty-banner {
+  display: block;
+  width: 100%;
+  aspect-ratio: 376 / 120;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+}
+
 .name {
   font-size: 1.35rem;
   font-weight: 700;
@@ -32,6 +43,12 @@ dl {
   border: var(--border-width) solid var(--color-border-soft);
   border-radius: var(--radius-md);
   background: var(--color-shade);
+}
+
+.job-icon {
+  width: 2rem;
+  height: 2rem;
+  vertical-align: middle;
 }
 
 dd {

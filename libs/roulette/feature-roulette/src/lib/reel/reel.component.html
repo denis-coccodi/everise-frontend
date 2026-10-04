@@ -10,7 +10,12 @@
       >
         @for (row of idle().rows; track $index) {
           <div class="row">
-            <span class="title">{{ row.title }}</span>
+            <span class="title"
+              >{{ row.title }}
+              @if (row.icon) {
+                <img class="icon" [src]="row.icon" alt="" (error)="hideImage($event)" />
+              }
+            </span>
             @if (row.detail) {
               <span class="detail">{{ row.detail }}</span>
             }
@@ -21,7 +26,12 @@
       <div #strip class="strip">
         @for (row of rows(); track $index) {
           <div class="row" [class.winner]="mode() === 'landed' && $index === rows().length - 2">
-            <span class="title">{{ row.title }}</span>
+            <span class="title"
+              >{{ row.title }}
+              @if (row.icon) {
+                <img class="icon" [src]="row.icon" alt="" (error)="hideImage($event)" />
+              }
+            </span>
             @if (row.detail) {
               <span class="detail">{{ row.detail }}</span>
             }

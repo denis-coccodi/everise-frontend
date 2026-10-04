@@ -34,7 +34,12 @@
                     [checked]="isTypeOn(type.name)"
                     (checkedChange)="toggleType(type.name, $event)"
                   >
-                    <span class="type-name">{{ type.name }}</span>
+                    <span class="type-name">
+                      @if (type.icon) {
+                        <img class="type-icon" [src]="type.icon" alt="" (error)="hideImage($event)" />
+                      }
+                      {{ type.name }}</span
+                    >
                     <span
                       class="count"
                       [attr.title]="

@@ -17,6 +17,10 @@ export interface RouletteResult {
   mode: string;
   // True when the game picks the duty (a duty roulette).
   dutyUnknown: boolean;
+  // The job dealt by dealer's choice.
+  job?: { name: string; icon?: string };
+  // The duty's or roulette's banner.
+  image?: string;
 }
 
 // The result, styled after the game's "Duty Found" window.
@@ -36,5 +40,10 @@ export class DutyFoundComponent {
 
   constructor() {
     afterNextRender(() => this.commenceButton().nativeElement.focus());
+  }
+
+  // An image the backend doesn't have yet is left out.
+  protected hideImage(event: Event) {
+    (event.target as HTMLElement).hidden = true;
   }
 }

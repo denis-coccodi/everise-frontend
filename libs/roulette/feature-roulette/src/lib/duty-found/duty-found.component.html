@@ -1,4 +1,7 @@
 <cdt-dialog heading="Duty Found" (dismissed)="commence.emit()">
+  @if (result().image; as image) {
+    <img class="duty-banner" [src]="image" alt="" (error)="hideImage($event)" />
+  }
   <p class="type xiv-label">{{ result().type }}</p>
   <p class="name">{{ result().name }}</p>
   @if (result().dutyUnknown) {
@@ -8,7 +11,17 @@
 
   <dl>
     <dt class="xiv-label">Party settings</dt>
-    <dd>{{ result().mode }}</dd>
+    @if (result().job; as job) {
+      <dd>
+        Everyone on the same job:
+        @if (job.icon) {
+          <img class="job-icon" [src]="job.icon" alt="" (error)="hideImage($event)" />
+        }
+        {{ job.name }}
+      </dd>
+    } @else {
+      <dd>{{ result().mode }}</dd>
+    }
   </dl>
 
   <div class="timer" aria-hidden="true"><span></span></div>
