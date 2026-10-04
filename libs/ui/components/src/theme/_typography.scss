@@ -1,0 +1,88 @@
+// Typography helpers: text styles used across pages.
+// Part of the Everise theme: see index.scss in this folder.
+
+/* Big page title. */
+.xiv-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
+}
+
+/* Small uppercase label above a group or value. */
+.xiv-label {
+  font-size: 0.75rem;
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+  color: var(--color-label);
+}
+
+/* Section heading inside a window. */
+.xiv-heading {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+/* The site name, as in the logo. */
+.logo-font {
+  font-family: var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+/* Long-form text such as a rendered article. Global on purpose: content set
+   through [innerHTML] is outside Angular's style scoping, so a component
+   stylesheet can't reach it. */
+.xiv-prose p {
+  margin-bottom: 2rem;
+  font-family: var(--font-reading);
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  color: var(--color-contrast-soft);
+}
+
+.xiv-prose h1,
+.xiv-prose h2,
+.xiv-prose h3,
+.xiv-prose h4,
+.xiv-prose h5,
+.xiv-prose h6 {
+  margin: 1.6rem 0 1rem;
+}
+
+.xiv-prose ul,
+.xiv-prose ol {
+  margin-bottom: 1rem;
+  padding-left: 2.5rem;
+}
+
+.xiv-prose li ul,
+.xiv-prose li ol {
+  margin-bottom: 0;
+}
+
+.xiv-prose ul {
+  list-style: disc;
+}
+
+.xiv-prose ul ul {
+  list-style: circle;
+}
+
+.xiv-prose ul ul ul {
+  list-style: square;
+}
+
+.xiv-prose ol {
+  list-style: decimal;
+}
+
+.xiv-prose ol ol {
+  list-style: lower-alpha;
+}
+
+.xiv-prose ol ol ol {
+  list-style: lower-roman;
+}

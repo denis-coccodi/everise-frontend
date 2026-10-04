@@ -31,7 +31,7 @@ import {
   upgradeSettings,
 } from './roulette-engine';
 import { WheelComponent, wait } from './wheel/wheel.component';
-import { ButtonDirective, CheckboxComponent, InputDirective, PanelComponent } from '@realworld/ui/components';
+import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
 
 const SETTINGS_KEY = 'everise-roulette-settings';
 const ALL_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
@@ -51,9 +51,9 @@ type LoadState = 'loading' | 'ready' | 'empty' | 'error';
   templateUrl: './roulette.component.html',
   styleUrls: ['./roulette.component.scss'],
   imports: [
-    ButtonDirective,
+    ButtonComponent,
     CheckboxComponent,
-    InputDirective,
+    InputComponent,
     PanelComponent,
     WheelComponent,
     ReelComponent,
@@ -236,7 +236,7 @@ function toResult(type: string, candidate: Candidate, mode: RunMode, frontlineMa
     return {
       type,
       name: candidate.roulette.name,
-      detail: known ? detail : `${candidate.roulette.dutyType} · the game picks the duty`,
+      detail: known ? detail : [candidate.roulette.dutyType, 'the game picks the duty'].filter(Boolean).join(' · '),
       mode,
       dutyUnknown: !known,
     };

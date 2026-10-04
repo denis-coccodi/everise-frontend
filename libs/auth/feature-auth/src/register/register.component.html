@@ -10,18 +10,18 @@
         <cdt-list-errors></cdt-list-errors>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <div class="form-group">
+          <cdt-field>
             <input formControlName="username" type="text" id="username" placeholder="Username" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.username" />
-          </div>
-          <div class="form-group">
+          </cdt-field>
+          <cdt-field>
             <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.email" />
-          </div>
-          <div class="form-group">
+          </cdt-field>
+          <cdt-field>
             <input formControlName="password" type="password" id="password" placeholder="Password" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.password" />
-          </div>
+          </cdt-field>
           <button
             data-testid="sign-up"
             cdtButton

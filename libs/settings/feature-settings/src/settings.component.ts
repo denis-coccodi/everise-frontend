@@ -3,16 +3,16 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthStore } from '@realworld/auth/data-access';
 import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
 import { SettingsStore } from '@realworld/settings/data-access';
-import { ButtonDirective, CheckboxComponent, InputDirective } from '@realworld/ui/components';
+import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-settings',
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.css'],
   imports: [
-    ButtonDirective,
+    FieldComponent,
+    ButtonComponent,
     CheckboxComponent,
-    InputDirective,
+    InputComponent,
     ListErrorsComponent,
     ReactiveFormsModule,
     InputErrorsComponent,

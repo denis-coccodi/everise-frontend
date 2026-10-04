@@ -1,0 +1,51 @@
+// Uses the theme's role tokens only (../theme).
+.pagination {
+  display: inline-block;
+  margin: 1rem 0;
+  padding-left: 0;
+}
+
+.page-item {
+  display: inline;
+}
+
+.page-link {
+  position: relative;
+  float: left;
+  margin-left: -1px;
+  padding: 0.5rem 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  background-color: var(--color-surface);
+  color: var(--color-link);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.page-link:focus,
+.page-link:hover {
+  background-color: var(--color-surface-strong);
+  color: var(--color-primary-bright);
+  text-decoration: none;
+}
+
+.page-item:first-child .page-link {
+  margin-left: 0;
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.page-item:last-child .page-link {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.page-item.active .page-link {
+  z-index: 2;
+  border-color: var(--color-primary);
+  background: var(--gradient-primary-flat);
+  color: var(--color-on-primary);
+  cursor: default;
+}

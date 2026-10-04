@@ -1,12 +1,12 @@
-import { DatePipe } from '@angular/common';
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Article } from '@realworld/core/api-types';
-import { ButtonDirective } from '@realworld/ui/components';
+import { BylineComponent, ButtonComponent } from '@realworld/ui/components';
 @Component({
   selector: 'cdt-article-meta',
   templateUrl: './article-meta.component.html',
-  imports: [ButtonDirective, RouterModule, DatePipe],
+  styleUrl: './article-meta.component.scss',
+  imports: [BylineComponent, ButtonComponent, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleMetaComponent {

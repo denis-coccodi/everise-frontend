@@ -1,0 +1,15 @@
+// The app shell: the page grows so the footer sits at the bottom of short
+// pages (body is a full-height column in the theme).
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+:host > * {
+  flex-shrink: 0;
+}
+
+cdt-footer {
+  margin-top: auto;
+}

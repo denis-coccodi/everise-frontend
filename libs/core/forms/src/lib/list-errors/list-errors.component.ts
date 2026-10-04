@@ -4,6 +4,7 @@ import { FormErrorsStore } from '../forms-errors.store';
 @Component({
   selector: 'cdt-list-errors',
   templateUrl: './list-errors.component.html',
+  styleUrl: '../error-messages.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListErrorsComponent implements OnDestroy {

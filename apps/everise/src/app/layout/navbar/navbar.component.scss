@@ -1,0 +1,60 @@
+// The site's top bar: a title strip with a silver rule. Uses the theme's
+// role tokens only.
+.navbar {
+  position: relative;
+  padding: 0.5rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--gradient-navbar);
+  box-shadow: var(--shadow-raised);
+}
+
+.navbar > .container {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand {
+  margin-right: 2rem;
+  padding-bottom: 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
+}
+
+.navbar-brand:focus,
+.navbar-brand:hover {
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+// The links wrap onto a second line on narrow screens.
+.navbar-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0 1rem;
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.425rem 0;
+  color: var(--color-contrast-muted);
+  transition: color 0.15s ease;
+}
+
+.nav-link:focus,
+.nav-link:hover {
+  color: var(--color-contrast);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  color: var(--color-primary-strong);
+}

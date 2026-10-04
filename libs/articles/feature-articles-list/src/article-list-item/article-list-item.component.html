@@ -1,17 +1,14 @@
 <div class="article-preview">
   <div class="article-meta">
-    <a>
-      <img [src]="article().author.image" />
-    </a>
-    <div class="info">
-      <span class="date">
-        {{ article().createdAt | date: 'longDate' }}
-      </span>
-    </div>
+    <cdt-byline
+      [image]="article().author.image"
+      [name]="article().author.username"
+      [date]="article().createdAt"
+      [link]="['/profile', article().author.username]"
+    />
     <button
       [cdtButton]="article().favorited ? 'primary' : 'outline-primary'"
       size="sm"
-      class="pull-xs-right"
       (click)="toggleFavorite(article())"
     >
       <i class="ion-heart"></i>

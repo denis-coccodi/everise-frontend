@@ -1,0 +1,36 @@
+// Uses the theme's role tokens only.
+.user-info {
+  padding: 2rem 0 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--gradient-title-bar);
+  box-shadow: var(--shadow-raised);
+  text-align: center;
+}
+
+// The default avatar is a dark outline, so it sits on a light disc.
+.user-img {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
+  border: var(--border-width-strong) solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-avatar);
+  box-shadow: var(--glow-primary);
+}
+
+.user-info p {
+  max-width: 450px;
+  margin: 0 auto 0.5rem;
+  font-weight: 300;
+  color: var(--color-contrast-muted);
+}
+
+.profile-ctas {
+  display: flex;
+  justify-content: right;
+  gap: 1rem;
+}
+
+.articles-toggle {
+  margin: 1.5rem 0 -1px;
+}

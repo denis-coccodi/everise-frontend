@@ -1,0 +1,24 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  padding: 1rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-contrast);
+}
+
+// The window's header strip, bleeding to the edges.
+.title-bar {
+  margin: -1rem -1rem 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--gradient-title-bar);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+}

@@ -1,25 +1,23 @@
 @if ($article(); as article) {
   <div class="article-page">
-    <div class="banner">
-      <div class="container">
-        <h1 data-testid="article-title">{{ article.title }}</h1>
-        <cdt-article-meta
-          [article]="article"
-          (follow)="follow($event)"
-          (unfollow)="unfollow($event)"
-          (favorite)="favorite($event)"
-          (unfavorite)="unfavorite($event)"
-          (delete)="delete($event)"
-          [canModify]="$canModify()"
-        >
-        </cdt-article-meta>
-      </div>
-    </div>
+    <cdt-banner narrow>
+      <h1 data-testid="article-title">{{ article.title }}</h1>
+      <cdt-article-meta
+        [article]="article"
+        (follow)="follow($event)"
+        (unfollow)="unfollow($event)"
+        (favorite)="favorite($event)"
+        (unfavorite)="unfavorite($event)"
+        (delete)="delete($event)"
+        [canModify]="$canModify()"
+      >
+      </cdt-article-meta>
+    </cdt-banner>
 
     <div class="container page">
       <div class="row article-content">
         <div class="col-md-12">
-          <div data-testid="article-body" [innerHTML]="article.body | markdown"></div>
+          <div class="xiv-prose" data-testid="article-body" [innerHTML]="article.body | markdown"></div>
         </div>
       </div>
       <hr />

@@ -1,0 +1,39 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1.5rem;
+  vertical-align: middle;
+  text-align: left;
+  font-weight: 300;
+}
+
+.avatar-link {
+  display: inline-flex;
+}
+
+// The default avatar is a dark outline, so avatars sit on a light disc.
+.avatar {
+  width: 32px;
+  height: 32px;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-avatar);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1rem;
+}
+
+.author {
+  font-weight: 600;
+  color: var(--color-link);
+}
+
+.date {
+  font-size: 0.8rem;
+  color: var(--color-contrast-faint);
+}

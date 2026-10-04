@@ -1,0 +1,29 @@
+// Uses the theme's role tokens only.
+cdt-banner h1 {
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+  text-align: center;
+  font-size: 3.5rem;
+  line-height: 1.1;
+  text-shadow: var(--glow-heading);
+}
+
+cdt-banner p {
+  margin-bottom: 0;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--color-contrast-muted);
+}
+
+.feed-toggle {
+  margin-bottom: -1px;
+}
+
+.sidebar {
+  margin-left: 10px;
+  padding: 0.75rem 1rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+}

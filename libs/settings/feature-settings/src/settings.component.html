@@ -5,25 +5,25 @@
         <h1 class="text-xs-center">Your Settings</h1>
         <cdt-list-errors />
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <fieldset class="form-group">
+          <cdt-field>
             <input formControlName="image" type="text" id="image" placeholder="URL of profile picture" cdtInput="lg" />
-          </fieldset>
-          <fieldset class="form-group required">
+          </cdt-field>
+          <cdt-field required>
             <input formControlName="username" type="text" id="username" placeholder="Your Name" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.username" />
-          </fieldset>
-          <fieldset class="form-group">
+          </cdt-field>
+          <cdt-field>
             <textarea cdtInput="lg" rows="5" id="bio" formControlName="bio" placeholder="Short bio about you">
             </textarea>
-          </fieldset>
-          <fieldset class="form-group required">
+          </cdt-field>
+          <cdt-field required>
             <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.email" />
-          </fieldset>
-          <fieldset class="form-group required">
+          </cdt-field>
+          <cdt-field required>
             <input formControlName="password" type="password" id="password" placeholder="New Password" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.password" />
-          </fieldset>
+          </cdt-field>
           <button
             data-testid="edit-button-container"
             cdtButton

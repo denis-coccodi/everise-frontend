@@ -7,6 +7,7 @@ import { IsErrorVisibleDirective } from './is-error-visible.directive';
 @Component({
   selector: 'cdt-input-errors',
   templateUrl: './input-errors.component.html',
+  styleUrl: '../error-messages.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [KeyValuePipe, ErrorMapperPipe, IsErrorVisibleDirective],
 })

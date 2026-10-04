@@ -1,0 +1,14 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+:host(.required)::after {
+  content: '*';
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  color: var(--color-danger);
+}

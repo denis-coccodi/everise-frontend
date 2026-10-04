@@ -1,0 +1,15 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--gradient-title-bar);
+  box-shadow: var(--shadow-raised);
+  color: var(--color-contrast);
+}
+
+// The reading width, for article pages.
+.container.narrow {
+  max-width: var(--content-width);
+}

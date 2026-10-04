@@ -1,0 +1,48 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background-color: var(--color-field);
+  background-clip: padding-box;
+  color: var(--color-contrast);
+  font-size: 1rem;
+  line-height: 1.25;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+:host(:focus) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-border-faint);
+  outline: none;
+}
+
+:host::placeholder {
+  color: var(--color-contrast-faint);
+  opacity: 1;
+}
+
+:host(:disabled),
+:host([readonly]) {
+  background-color: var(--color-base-raised);
+  color: var(--color-contrast-muted);
+}
+
+:host(:disabled) {
+  cursor: not-allowed;
+}
+
+:host([data-size='lg']) {
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-lg);
+  font-size: 1.15rem;
+}
+
+:host([data-size='sm']) {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+}

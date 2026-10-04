@@ -1,0 +1,58 @@
+// Uses the theme's role tokens only.
+.article-preview {
+  padding: 1.5rem 0.5rem;
+  border-top: var(--border-width) solid var(--color-divider);
+  transition: background-color 0.2s ease;
+}
+
+.article-preview:hover {
+  background-color: var(--color-hover);
+}
+
+// The byline on the left, the favourite button on the right.
+.article-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.preview-link,
+.preview-link:hover {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.preview-link h1 {
+  margin-bottom: 3px;
+  font-size: 1.4rem;
+  line-height: 1.2;
+}
+
+.preview-link p {
+  margin-bottom: 15px;
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.3rem;
+  color: var(--color-contrast-muted);
+}
+
+.preview-link span {
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: var(--color-contrast-faint);
+  vertical-align: middle;
+}
+
+.tag-list {
+  float: right;
+  max-width: 50%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-list li {
+  font-weight: 300;
+}

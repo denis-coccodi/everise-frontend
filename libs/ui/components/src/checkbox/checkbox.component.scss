@@ -1,0 +1,23 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-hover);
+}
+
+input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-primary);
+}

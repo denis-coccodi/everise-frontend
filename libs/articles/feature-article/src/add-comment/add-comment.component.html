@@ -1,17 +1,17 @@
 <cdt-list-errors> </cdt-list-errors>
 
-<div class="card comment-form">
-  <form [formGroup]="form" (ngSubmit)="submitComment.emit(form.controls.comment.value)">
-    <fieldset class="form-group required">
+<form [formGroup]="form" (ngSubmit)="submitComment.emit(form.controls.comment.value)">
+  <cdt-card [flush]="true">
+    <cdt-field required>
       <textarea formControlName="comment" rows="5" type="text" placeholder="Write a comment..." cdtInput="lg">
       </textarea>
       <cdt-input-errors [control]="form.controls.comment" />
-    </fieldset>
-    <div class="card-footer">
-      <img [src]="currentUser().image" class="comment-author-img" />
+    </cdt-field>
+    <div cdtCardFooter class="footer">
+      <img [src]="currentUser().image" class="avatar" alt="" />
       <button (click)="submitComment.emit(form.controls.comment.value)" cdtButton size="sm" type="submit">
         Post Comment
       </button>
     </div>
-  </form>
-</div>
+  </cdt-card>
+</form>
