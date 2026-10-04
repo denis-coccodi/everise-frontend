@@ -14,21 +14,34 @@ import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.comp
 import { ReelComponent, ReelItem } from './reel/reel.component';
 import {
   Candidate,
+  PICKED_TYPES,
   ROULETTES_TYPE,
   RouletteSettings,
   RunMode,
+  candidateDetail,
   candidateName,
   defaultSettings,
   eligibleTypes,
-  isPveRoulette,
   pickIndex,
+  pickOptions,
   runModes,
+  shortTypeName,
+  todaysFrontline,
+  typeCandidates,
+  upgradeSettings,
 } from './roulette-engine';
 import { WheelComponent, wait } from './wheel/wheel.component';
 
 const SETTINGS_KEY = 'everise-roulette-settings';
 const ALL_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
 const PAUSE_BETWEEN_WHEELS_MS = 600;
+
+// The explanation above each picked type's list.
+const PICK_LEGENDS: Record<string, string> = {
+  [ROULETTES_TYPE]: 'Duty roulettes the first wheel\'s "Duty Roulettes" can land on',
+  PvP: 'PvP queues the first wheel\'s "PvP" can land on',
+  'Gold Saucer': 'Gold Saucer activities the first wheel\'s "Gold Saucer" can land on',
+};
 
 type LoadState = 'loading' | 'ready' | 'empty' | 'error';
 
@@ -47,12 +60,10 @@ export class RouletteComponent {
   private readonly dutyReel = viewChild.required<ReelComponent>('dutyReel');
   private readonly modeWheel = viewChild.required<WheelComponent>('modeWheel');
 
-  readonly roulettesType = ROULETTES_TYPE;
-
   readonly loadState = signal<LoadState>('loading');
   readonly groups = signal<DutyGroup[]>([]);
   readonly roulettes = signal<DutyRoulette[]>([]);
-  readonly settings = signal<RouletteSettings>(defaultSettings([]));
+  readonly settings = signal<RouletteSettings>(defaultSettings({}));
 
   readonly spinning = signal(false);
   readonly status = signal('');
@@ -60,16 +71,33 @@ export class RouletteComponent {
   readonly result = signal<RouletteResult | null>(null);
   readonly showResult = signal(false);
 
-  readonly typeNames = computed(() => [...this.groups().map((g) => g.name), ROULETTES_TYPE]);
-  readonly rouletteGroups = computed(() =>
-    [
-      { name: 'Duty Finder', roulettes: this.roulettes().filter(isPveRoulette) },
-      { name: 'PvP & Gold Saucer', roulettes: this.roulettes().filter((r) => !isPveRoulette(r)) },
-    ].filter((group) => group.roulettes.length > 0),
+  readonly pickable = computed(() => pickOptions(this.groups(), this.roulettes()));
+  readonly frontlineMap = computed(() => todaysFrontline(this.groups()));
+
+  // Each type with how many of its duties are within the level limits.
+  readonly types = computed(() =>
+    typeCandidates(this.groups(), this.pickable(), this.settings()).map((t) => ({
+      name: t.name,
+      count: t.candidates.length,
+    })),
   );
-  readonly options = computed(() => eligibleTypes(this.groups(), this.roulettes(), this.settings()));
+
+  // The lists under the wheels, one per ticked picked type.
+  readonly pickPanels = computed(() =>
+    PICKED_TYPES.filter((type) => this.isTypeOn(type)).map((type) => ({
+      type,
+      legend: PICK_LEGENDS[type],
+      options: (this.pickable()[type] ?? []).map((o) => ({
+        key: o.key,
+        name: candidateName(o.candidate),
+        detail: candidateDetail(o.candidate, this.frontlineMap()),
+      })),
+    })),
+  );
+
+  readonly options = computed(() => eligibleTypes(this.groups(), this.pickable(), this.settings()));
   readonly wheelTypes = computed(() => {
-    const names = this.options().map((o) => o.name);
+    const names = this.options().map((o) => shortTypeName(o.name));
     return names.length > 0 ? names : ['—'];
   });
   readonly levelError = computed(() => {
@@ -90,7 +118,7 @@ export class RouletteComponent {
         next: ({ groups, roulettes }) => {
           this.groups.set(groups);
           this.roulettes.set(roulettes);
-          this.settings.set(loadSettings() ?? defaultSettings(roulettes));
+          this.settings.set(upgradeSettings(loadSettings(), defaultSettings(this.pickable())));
           this.loadState.set(groups.length > 0 ? 'ready' : 'empty');
         },
         error: () => this.loadState.set('error'),
@@ -101,24 +129,25 @@ export class RouletteComponent {
     return this.settings().types.includes(name);
   }
 
-  isRouletteOn(id: number) {
-    return this.settings().roulettes.includes(id);
+  isPicked(type: string, key: string) {
+    return this.settings().picks[type]?.includes(key) ?? false;
   }
 
   toggleType(name: string, on: boolean) {
     this.updateSettings((s) => ({ ...s, types: toggled(s.types, name, on) }));
   }
 
-  toggleRoulette(id: number, on: boolean) {
-    this.updateSettings((s) => ({ ...s, roulettes: toggled(s.roulettes, id, on) }));
+  togglePick(type: string, key: string, on: boolean) {
+    this.updateSettings((s) => ({ ...s, picks: { ...s.picks, [type]: toggled(s.picks[type] ?? [], key, on) } }));
   }
 
   setAllTypes(on: boolean) {
-    this.updateSettings((s) => ({ ...s, types: on ? this.typeNames() : [] }));
+    this.updateSettings((s) => ({ ...s, types: on ? this.types().map((t) => t.name) : [] }));
   }
 
-  setAllRoulettes(on: boolean) {
-    this.updateSettings((s) => ({ ...s, roulettes: on ? this.roulettes().map((r) => r.id) : [] }));
+  setAllPicks(type: string, on: boolean) {
+    const keys = on ? (this.pickable()[type] ?? []).map((o) => o.key) : [];
+    this.updateSettings((s) => ({ ...s, picks: { ...s.picks, [type]: keys } }));
   }
 
   setLevel(which: 'minLevel' | 'maxLevel', value: string) {
@@ -131,6 +160,11 @@ export class RouletteComponent {
     if (!this.canSpin()) return;
 
     const options = this.options();
+    const frontlineMap = this.frontlineMap();
+    const reelItem = (c: Candidate): ReelItem => ({
+      title: candidateName(c),
+      detail: candidateDetail(c, frontlineMap),
+    });
     this.spinning.set(true);
     this.showResult.set(false);
     this.result.set(null);
@@ -155,7 +189,7 @@ export class RouletteComponent {
       await this.modeWheel().spinTo(modeIndex);
       await wait(PAUSE_BETWEEN_WHEELS_MS / 2);
 
-      const result = toResult(type.name, candidate, modes[modeIndex]);
+      const result = toResult(type.name, candidate, modes[modeIndex], frontlineMap);
       this.result.set(result);
       this.status.set(`Duty found: ${result.name}, ${result.mode}.`);
       this.showResult.set(true);
@@ -185,35 +219,27 @@ function toggled<T>(list: T[], item: T, on: boolean) {
   return on ? [...without, item] : without;
 }
 
-function reelItem(candidate: Candidate): ReelItem {
+function toResult(type: string, candidate: Candidate, mode: RunMode, frontlineMap: string | null): RouletteResult {
+  const detail = candidateDetail(candidate, frontlineMap);
   if (candidate.kind === 'roulette') {
-    return { title: candidate.roulette.name, detail: 'Duty: ???' };
-  }
-  const { level, itemLevel, expansion } = candidate.duty;
-  return {
-    title: candidate.duty.name,
-    detail: [`Lv. ${level}`, itemLevel ? `i${itemLevel}` : '', expansion].filter(Boolean).join(' · '),
-  };
-}
-
-function toResult(type: string, candidate: Candidate, mode: RunMode): RouletteResult {
-  if (candidate.kind === 'roulette') {
+    // The game picks the duty, except for today's known Frontline map.
+    const known = detail.startsWith('Today:');
     return {
       type,
       name: candidate.roulette.name,
-      detail: `${candidate.roulette.dutyType} · the game picks the duty`,
+      detail: known ? detail : `${candidate.roulette.dutyType} · the game picks the duty`,
       mode,
-      dutyUnknown: true,
+      dutyUnknown: !known,
     };
   }
-  return { type, name: candidate.duty.name, detail: reelItem(candidate).detail, mode, dutyUnknown: false };
+  return { type, name: candidate.duty.name, detail, mode, dutyUnknown: false };
 }
 
 // Settings are a per-browser convenience; storage can be unavailable.
-function loadSettings(): RouletteSettings | null {
+function loadSettings(): unknown {
   try {
     const saved = localStorage.getItem(SETTINGS_KEY);
-    return saved ? (JSON.parse(saved) as RouletteSettings) : null;
+    return saved ? JSON.parse(saved) : null;
   } catch {
     return null;
   }

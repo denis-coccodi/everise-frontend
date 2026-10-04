@@ -3,5 +3,5 @@ export interface SettingsState {
 }
 
 export const settingsInitialState: SettingsState = {
-  darkMode: false,
+  darkMode: true,
 };

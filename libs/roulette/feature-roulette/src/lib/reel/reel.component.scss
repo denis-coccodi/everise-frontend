@@ -1,3 +1,4 @@
+// Colours come from the theme's role tokens (apps/everise/src/styles.scss).
 :host {
   display: block;
 }
@@ -14,12 +15,10 @@
   max-width: 340px;
   margin: 0 auto;
   overflow: hidden;
-  border-radius: 10px;
-  border: 3px solid #c9a95c;
-  background: linear-gradient(#0b1426, #1a2c4e 50%, #0b1426);
-  box-shadow:
-    inset 0 0 22px rgba(0, 0, 0, 0.8),
-    0 6px 18px rgba(0, 0, 0, 0.55);
+  border-radius: var(--radius-lg);
+  border: 3px solid var(--color-primary);
+  background: var(--gradient-well);
+  box-shadow: var(--shadow-inset), var(--shadow-raised);
 }
 
 .strip {
@@ -32,7 +31,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  color: #c7d5ee;
+  color: var(--color-contrast-soft);
 }
 
 .title {
@@ -46,7 +45,7 @@
 
 .detail {
   font-size: 0.72rem;
-  color: #8fa6c9;
+  color: var(--color-contrast-muted);
 }
 
 .spinning .row {
@@ -54,26 +53,21 @@
 }
 
 .row.winner {
-  color: #fff3c4;
-  text-shadow: 0 0 10px rgba(92, 200, 255, 0.9);
+  color: var(--color-primary-bright);
+  text-shadow: var(--glow-crystal);
   animation: pulse 0.9s ease-in-out infinite alternate;
 }
 
 .row.winner .detail {
-  color: #f1dca0;
+  color: var(--color-primary-strong);
 }
 
-// The gold frame around the middle row, with darkened rows above and below.
+// The frame around the middle row, with the rows above and below shaded.
 .frame {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
-    rgba(5, 10, 20, 0.75),
-    rgba(5, 10, 20, 0) 33%,
-    rgba(5, 10, 20, 0) 67%,
-    rgba(5, 10, 20, 0.75)
-  );
+  background: var(--gradient-edge-shade);
 }
 
 .frame::after {
@@ -83,18 +77,15 @@
   right: 4px;
   top: 52px;
   height: 52px;
-  border-top: 2px solid #c9a95c;
-  border-bottom: 2px solid #c9a95c;
-  box-shadow: 0 0 12px rgba(201, 169, 92, 0.45);
+  border-top: var(--border-width-strong) solid var(--color-primary);
+  border-bottom: var(--border-width-strong) solid var(--color-primary);
+  box-shadow: var(--glow-primary);
 }
 
 figcaption {
   margin-top: 0.5rem;
-  font-family: Cinzel, 'Trajan Pro', Georgia, serif;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  color: #f1dca0;
+  font-family: var(--font-display);
+  color: var(--color-heading);
 }
 
 @keyframes pulse {

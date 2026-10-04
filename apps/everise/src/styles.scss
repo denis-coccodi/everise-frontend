@@ -1,101 +1,420 @@
 /*
  * ============================================================================
- * Everise Minimal CSS v4
- * Only includes classes actually used in this codebase
+ * Everise theme: Final Fantasy XIV
  * ============================================================================
  *
- * USED CLASSES:
- * Layout: container, row, col-xs-12, col-md-{3,6,8,9,10,12}, offset-md-{1,2,3}
- * Nav: navbar, navbar-{light,brand,nav}, nav, nav-{pills,item,link}, outline-active
- * Buttons: btn, btn-{sm,lg,primary,secondary}, btn-outline-{primary,secondary,danger}
- * Forms: form-group, form-control, form-control-lg
- * Cards: card, card-{block,footer,text}, comment-form
- * Pagination: pagination, page-item, page-link
- * Tags: tag-list, tag-default, tag-pill, tag-outline
- * Pages: home-page, auth-page, settings-page, editor-page, profile-page, article-page
- * Article: article-preview, article-meta, article-content, article-actions, articles-toggle
- * Comments: comment-author, comment-author-img, mod-options, date-posted
- * User: user-info, user-img, user-pic
- * Misc: banner, logo-font, sidebar, feed-toggle, error-messages, counter,
- *       preview-link, author, date, info, attribution, active, disabled,
- *       pull-xs-right, text-xs-center, empty-feed-message
+ * The whole site's look lives in this file. Components use the theme through
+ * the ROLE tokens and SHARED COMPONENTS below and do not define colours,
+ * fonts, radii, shadows or gradients of their own. See the `theme` skill
+ * (.claude/skills/theme/SKILL.md) for the rules.
  *
- * NOTE: auth-page, settings-page, and empty-feed-message are semantic hooks
- * used in templates but require no dedicated styles.
+ * Layers:
+ *   1. Palette (--palette-*): the raw colours. Used ONLY inside this file, to
+ *      define the roles. Never reference a palette token from a component.
+ *   2. Roles (--color-*, --font-*, --radius-*, --shadow-*, --glow-*,
+ *      --gradient-*): what everything uses. A theme mode (body.light)
+ *      re-points roles, never components.
+ *   3. Shared components (.xiv-*, plus the classic .btn, .card, .form-control,
+ *      .nav-*, .banner ... classes): FFXIV windows, title bars, buttons, labels.
+ *
+ * Modes:
+ *   - Dark (default): near-black navy behind deep-blue windows, silver-white
+ *     trim, crystal-teal highlights, white Cinzel headings.
+ *   - Light (body.light; Settings → Dark Mode off): Final Fantasy white.
+ *     White and silver windows, deep-blue highlights, ink-navy text.
+ *   Accents in both: crystal teal, royal blue, amber, violet, magenta, ember.
  *
  * ============================================================================
  */
 
+/* ============================================================================
+ * 1. PALETTE (this file only)
+ * ============================================================================ */
+
 :root {
-  --brand: #33aa44;
-  --brand-hover: #2b8e3a;
-  --brand-active: #237630;
-  --brand-dark: #237630;
-  --brand-light: #7dd88b;
+  /* Night: the dark mode's backdrop and windows. */
+  --palette-abyss-950: #04070f;
+  --palette-abyss-900: #070d1c;
+  --palette-night-850: #0a1530;
+  --palette-night-800: #0d1d40;
+  --palette-night-700: #122852;
 
-  --danger: #b85c5c;
-  --danger-light: #d7a3a3;
+  /* Royal blue (suggested #073a8c). */
+  --palette-royal-800: #031d47;
+  --palette-royal-700: #052a66;
+  --palette-royal-600: #073a8c;
+  --palette-royal-500: #1a4fa8;
+  --palette-royal-300: #8fb3ea;
+  --palette-royal-100: #e3ebf7;
 
-  --secondary: #ccc;
-  --secondary-hover: #b3b3b3;
-  --secondary-border: #adadad;
+  /* Crystal teal (suggested #00a9b0). */
+  --palette-crystal-800: #00494d;
+  --palette-crystal-600: #007f85;
+  --palette-crystal-500: #00a9b0;
+  --palette-crystal-300: #5fd3d8;
+  --palette-crystal-100: #d6f7f8;
 
-  --text: #373a3c;
-  --text-muted: #999;
-  --text-light: #bbb;
-  --text-lighter: #aaa;
-  --text-disabled: #818a91;
+  /* Mist: Final Fantasy white and silver (suggested #dcdcdc). */
+  --palette-mist-0: #ffffff;
+  --palette-mist-50: #f7f8fa;
+  --palette-mist-100: #eef1f5;
+  --palette-mist-200: #e4e7ec;
+  --palette-mist-300: #dcdcdc;
+  --palette-mist-400: #c6cbd4;
+  --palette-mist-500: #a3a9b5;
 
-  --border: #eee;
-  --bg-light: #f3f3f3;
-  --input-focus: var(--brand);
+  /* Haze and ink: text. */
+  --palette-haze-300: #c9d4e8;
+  --palette-haze-400: #a9b8d6;
+  --palette-haze-600: #6f7f9f;
+  --palette-slate-600: #4f5a70;
+  --palette-ink-800: #26314a;
+  --palette-ink-900: #10182b;
 
-  --bg: #fff;
-  --surface: #f5f5f5;
-  --text-heading: #222;
-  --text-form: #55595c;
-  --bg-disabled: #eceeef;
-  --bg-hover-page: #eceeef;
-  --nav-link: rgba(0, 0, 0, 0.3);
-  --nav-link-hover: rgba(0, 0, 0, 0.6);
-  --nav-link-active: rgba(0, 0, 0, 0.8);
+  /* Accents (suggested). */
+  --palette-amber-700: #7a5f05;
+  --palette-amber-500: #c49a0b;
+  --palette-amber-300: #e7c65a;
+  --palette-violet-500: #644a74;
+  --palette-violet-300: #a68bb8;
+  --palette-magenta-600: #94378a;
+  --palette-magenta-500: #b44ba8;
+  --palette-magenta-300: #dc8bd3;
+  --palette-ember-600: #a8471c;
+  --palette-ember-500: #c95a28;
+  --palette-ember-300: #f08a5d;
+  --palette-jade-600: #2b8a52;
+  --palette-jade-400: #6fcf8f;
+}
 
+/* ============================================================================
+ * 2. ROLES (what components use). Default: the dark mode.
+ * ============================================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* Base: the page behind everything. */
+  --color-base: var(--palette-abyss-900);
+  --color-base-deep: var(--palette-abyss-950);
+  --color-base-raised: var(--palette-night-850);
+
+  /* Surfaces: windows, cards, inputs. */
+  --color-surface: var(--palette-night-800);
+  --color-surface-strong: var(--palette-night-700);
+  --color-surface-highlight: var(--palette-royal-600);
+  --color-field: var(--palette-abyss-950);
+
+  /* Contrast: text and icons on base and surfaces. */
+  --color-contrast: var(--palette-mist-50);
+  --color-contrast-soft: var(--palette-haze-300);
+  --color-contrast-muted: var(--palette-haze-400);
+  --color-contrast-faint: var(--palette-haze-600);
+  /* Titles and window headers. */
+  --color-heading: var(--palette-mist-0);
+  /* Small uppercase labels ("eyebrows"). */
+  --color-label: var(--palette-royal-300);
+
+  /* Primary: the main actions, the active state, results. "Strong" and
+     "bright" mean more emphasis on this mode's surfaces. */
+  --color-primary: var(--palette-crystal-500);
+  --color-primary-strong: var(--palette-crystal-300);
+  --color-primary-bright: var(--palette-crystal-100);
+  --color-primary-weak: var(--palette-crystal-600);
+  --color-primary-deep: var(--palette-crystal-800);
+  --color-on-primary: var(--palette-abyss-950);
+
+  /* Secondary: alternative actions and window title bars. */
+  --color-secondary: var(--palette-royal-600);
+  --color-secondary-strong: var(--palette-royal-300);
+  --color-on-secondary: var(--palette-mist-0);
+
+  /* Tertiary: a third hue for variety (alternate segments, badges). */
+  --color-tertiary: var(--palette-violet-500);
+  --color-on-tertiary: var(--palette-mist-0);
+
+  /* Accent: amber, used sparingly (numerals, favourites, small emphasis). */
+  --color-accent: var(--palette-amber-500);
+  --color-accent-strong: var(--palette-amber-300);
+  --color-on-accent: var(--palette-abyss-950);
+
+  /* Highlight: magenta, for the one thing that just happened (a win). */
+  --color-highlight: var(--palette-magenta-500);
+  --color-highlight-strong: var(--palette-magenta-300);
+  --color-on-highlight: var(--palette-mist-0);
+
+  /* The crystal motif (icons, the wheel hub): teal in both modes. */
+  --color-crystal: var(--palette-crystal-500);
+  --color-crystal-bright: var(--palette-crystal-100);
+  --color-crystal-deep: var(--palette-royal-600);
+
+  /* Behind avatars: the default avatar is a dark outline, so it sits on a
+     light disc in both modes. */
+  --color-avatar: var(--palette-haze-300);
+
+  /* Links in text. */
+  --color-link: var(--palette-crystal-300);
+  --color-link-hover: var(--palette-crystal-100);
+
+  /* Status. */
+  --color-danger: var(--palette-ember-300);
+  --color-danger-strong: var(--palette-ember-500);
+  --color-success: var(--palette-jade-400);
+
+  /* Lines: silver-white trim. */
+  --color-border: rgba(220, 220, 220, 0.55);
+  --color-border-strong: var(--palette-mist-300);
+  --color-border-soft: rgba(220, 220, 220, 0.28);
+  --color-border-faint: rgba(220, 220, 220, 0.14);
+  --color-divider: rgba(169, 184, 214, 0.16);
+
+  /* States and overlays. */
+  --color-hover: rgba(0, 169, 176, 0.12);
+  --color-focus: var(--palette-crystal-300);
+  --color-overlay: rgba(4, 7, 15, 0.7);
+  --color-shade: rgba(4, 7, 15, 0.35);
+
+  /* Fonts. Display: titles, window headers, buttons. Body: everything else.
+     Reading: long article text. */
+  --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --font-body: 'Source Sans Pro', 'Segoe UI', sans-serif;
+  --font-reading: 'Source Serif Pro', Georgia, serif;
+  --letter-spacing-display: 0.1em;
+  --letter-spacing-label: 0.12em;
+
+  /* Shapes. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* Depth and light. */
+  --shadow-raised: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-panel: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-inset: inset 0 0 22px rgba(0, 0, 0, 0.75);
+  --glow-primary: 0 0 16px rgba(0, 169, 176, 0.45);
+  --glow-primary-strong: 0 0 24px rgba(95, 211, 216, 0.65);
+  --glow-crystal: 0 0 8px rgba(95, 211, 216, 0.85);
+  --glow-heading: 0 0 14px rgba(201, 212, 232, 0.35);
+
+  /* Gradients. */
+  --gradient-page: radial-gradient(ellipse at 20% 0%, rgba(7, 58, 140, 0.45), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(100, 74, 116, 0.25), transparent 50%),
+    linear-gradient(var(--palette-abyss-900), var(--palette-abyss-950));
+  --gradient-panel: linear-gradient(160deg, rgba(18, 40, 82, 0.92), rgba(10, 21, 48, 0.95) 60%);
+  --gradient-window: linear-gradient(160deg, var(--palette-night-700), var(--palette-night-850) 60%);
+  --gradient-title-bar: linear-gradient(var(--palette-royal-600), var(--palette-royal-700));
+  --gradient-primary: linear-gradient(
+    var(--palette-crystal-300),
+    var(--palette-crystal-500) 55%,
+    var(--palette-crystal-600)
+  );
+  --gradient-primary-flat: linear-gradient(var(--palette-crystal-300), var(--palette-crystal-500));
+  --gradient-secondary-button: linear-gradient(var(--palette-royal-500), var(--palette-royal-700));
+  --gradient-well: linear-gradient(var(--palette-abyss-950), var(--palette-night-800) 50%, var(--palette-abyss-950));
+  --gradient-navbar: linear-gradient(rgba(13, 29, 64, 0.97), rgba(7, 13, 28, 0.97));
+  --gradient-result-bar: linear-gradient(90deg, var(--palette-crystal-500), var(--palette-royal-500));
+  /* Shades the top and bottom of a window, leaving the middle third clear. */
+  --gradient-edge-shade: linear-gradient(var(--color-overlay), transparent 33%, transparent 67%, var(--color-overlay));
+
+  /* Layout. */
   --content-width: 720px;
   --content-breakpoint: 1080px;
 }
 
-body.dark {
-  --brand: #4abf5a;
-  --brand-hover: #3da84e;
-  --brand-active: #339944;
-  --brand-dark: #5acd6a;
-  --brand-light: #2d7a38;
+/* Light mode: Final Fantasy white. Re-points roles only. */
+body.light {
+  color-scheme: light;
 
-  --danger: #d07070;
-  --danger-light: #8a5050;
+  --color-base: var(--palette-mist-100);
+  --color-base-deep: var(--palette-mist-200);
+  --color-base-raised: var(--palette-mist-50);
+  --color-surface: var(--palette-mist-0);
+  --color-surface-strong: var(--palette-mist-100);
+  --color-surface-highlight: var(--palette-royal-600);
+  --color-field: var(--palette-mist-0);
 
-  --secondary: #555;
-  --secondary-hover: #666;
-  --secondary-border: #666;
+  --color-contrast: var(--palette-ink-900);
+  --color-contrast-soft: var(--palette-ink-800);
+  --color-contrast-muted: var(--palette-slate-600);
+  --color-contrast-faint: var(--palette-mist-500);
+  --color-heading: var(--palette-royal-600);
+  --color-label: var(--palette-royal-500);
 
-  --text: #d4d4d4;
-  --text-muted: #8a8a8a;
-  --text-light: #777;
-  --text-lighter: #888;
-  --text-disabled: #555;
+  --color-primary: var(--palette-royal-600);
+  --color-primary-strong: var(--palette-royal-700);
+  --color-primary-bright: var(--palette-royal-800);
+  --color-primary-weak: var(--palette-royal-300);
+  --color-primary-deep: var(--palette-royal-800);
+  --color-on-primary: var(--palette-mist-0);
 
-  --border: #333;
-  --bg-light: #252525;
+  --color-secondary: var(--palette-crystal-500);
+  --color-secondary-strong: var(--palette-crystal-600);
+  --color-on-secondary: var(--palette-mist-0);
 
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --text-heading: #e8e8e8;
-  --text-form: #c0c0c0;
-  --bg-disabled: #2a2a2a;
-  --bg-hover-page: #2a2a2a;
-  --nav-link: rgba(255, 255, 255, 0.4);
-  --nav-link-hover: rgba(255, 255, 255, 0.7);
-  --nav-link-active: rgba(255, 255, 255, 0.9);
+  --color-accent: var(--palette-amber-500);
+  --color-accent-strong: var(--palette-amber-700);
+  --color-highlight-strong: var(--palette-magenta-600);
+
+  --color-avatar: var(--palette-mist-200);
+
+  --color-link: var(--palette-royal-500);
+  --color-link-hover: var(--palette-royal-700);
+
+  --color-danger: var(--palette-ember-600);
+  --color-danger-strong: var(--palette-ember-500);
+  --color-success: var(--palette-jade-600);
+
+  --color-border: var(--palette-mist-400);
+  --color-border-strong: var(--palette-royal-600);
+  --color-border-soft: var(--palette-mist-300);
+  --color-border-faint: var(--palette-mist-200);
+  --color-divider: rgba(16, 24, 43, 0.1);
+
+  --color-hover: rgba(7, 58, 140, 0.06);
+  --color-focus: var(--palette-crystal-500);
+  --color-overlay: rgba(16, 24, 43, 0.45);
+  --color-shade: rgba(7, 58, 140, 0.04);
+
+  --shadow-raised: 0 4px 14px rgba(16, 24, 43, 0.12);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(16, 24, 43, 0.12);
+  --shadow-inset: inset 0 1px 6px rgba(16, 24, 43, 0.12);
+  --glow-primary: 0 0 14px rgba(7, 58, 140, 0.25);
+  --glow-primary-strong: 0 0 20px rgba(7, 58, 140, 0.35);
+  --glow-crystal: 0 0 6px rgba(0, 169, 176, 0.6);
+  --glow-heading: none;
+
+  --gradient-page: radial-gradient(ellipse at 15% 0%, rgba(0, 169, 176, 0.1), transparent 50%),
+    radial-gradient(ellipse at 90% 100%, rgba(7, 58, 140, 0.08), transparent 50%),
+    linear-gradient(var(--palette-mist-50), var(--palette-mist-100));
+  --gradient-panel: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-50));
+  --gradient-window: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-100));
+  --gradient-title-bar: linear-gradient(var(--palette-mist-0), var(--palette-mist-200));
+  --gradient-primary: linear-gradient(var(--palette-royal-500), var(--palette-royal-600) 55%, var(--palette-royal-700));
+  --gradient-primary-flat: linear-gradient(var(--palette-royal-500), var(--palette-royal-600));
+  --gradient-secondary-button: linear-gradient(var(--palette-mist-0), var(--palette-mist-200));
+  --gradient-well: linear-gradient(var(--palette-mist-200), var(--palette-mist-0) 50%, var(--palette-mist-200));
+  --gradient-navbar: linear-gradient(rgba(255, 255, 255, 0.97), rgba(238, 241, 245, 0.97));
+  --gradient-result-bar: linear-gradient(90deg, var(--palette-royal-600), var(--palette-crystal-500));
+  --gradient-edge-shade: linear-gradient(
+    rgba(255, 255, 255, 0.9),
+    transparent 33%,
+    transparent 67%,
+    rgba(255, 255, 255, 0.9)
+  );
+}
+
+/* ============================================================================
+ * 3. SHARED COMPONENTS: FFXIV windows
+ * ============================================================================ */
+
+/* A window: silver-trimmed panel. Pair with .xiv-title-bar as its first child. */
+.xiv-panel {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-panel);
+  padding: 1rem;
+  color: var(--color-contrast);
+}
+
+/* The window's header strip. Inside .xiv-panel it bleeds to the edges. */
+.xiv-title-bar {
+  margin: -1rem -1rem 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--gradient-title-bar);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+}
+
+/* Big page title. */
+.xiv-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
+}
+
+/* Small uppercase label above a group or value. */
+.xiv-label {
+  font-size: 0.75rem;
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+  color: var(--color-label);
+}
+
+/* Section heading inside a window. */
+.xiv-heading {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+/* Small rounded chip buttons (All / None, filters). */
+.xiv-chip {
+  padding: 0.1rem 0.7rem;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-contrast-soft);
+  font-size: 0.8rem;
+}
+
+.xiv-chip:hover:not(:disabled) {
+  background: var(--color-surface-strong);
+}
+
+/* The big crystal call to action ("Commence"). */
+.xiv-cta {
+  display: inline-block;
+  min-width: 220px;
+  padding: 0.75rem 2rem;
+  border-radius: var(--radius-pill);
+  border: var(--border-width-strong) solid var(--color-primary-strong);
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  box-shadow: var(--glow-primary);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.xiv-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--glow-primary-strong);
+}
+
+.xiv-cta:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* A checkbox row in a list. */
+.xiv-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.xiv-check:hover {
+  background: var(--color-hover);
 }
 
 /* ============================================================================
@@ -119,30 +438,40 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.5;
-  color: var(--text);
-  background-color: var(--bg);
+  color: var(--color-contrast);
+  background-color: var(--color-base);
+  background-image: var(--gradient-page);
+  background-attachment: fixed;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 }
 
-/* Main content area grows to push footer down */
-app-root {
+/* Main content area grows to push the footer to the bottom of short pages. */
+cdt-root {
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-app-root > *:not(app-layout-footer) {
+cdt-root > * {
   flex-shrink: 0;
 }
 
-app-root > app-layout-footer,
-app-root > footer {
+cdt-root > cdt-footer {
   margin-top: auto;
+}
+
+/* Avatars: the default avatar is a dark outline, so every avatar sits on a
+   light disc to stay visible on dark surfaces. */
+.user-img,
+.user-pic,
+.comment-author-img,
+.article-meta img {
+  background-color: var(--color-avatar);
 }
 
 ol,
@@ -154,11 +483,11 @@ hr {
   margin-top: 1rem;
   margin-bottom: 1rem;
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--color-divider);
 }
 
 a {
-  color: var(--brand);
+  color: var(--color-link);
   text-decoration: none;
   background-color: transparent;
   transition: color 0.15s ease;
@@ -167,14 +496,8 @@ a {
 
 a:focus,
 a:hover {
-  color: var(--brand-dark);
+  color: var(--color-link-hover);
   text-decoration: underline;
-}
-
-a:focus {
-  outline: thin dotted;
-  outline: 5px auto -webkit-focus-ring-color;
-  outline-offset: -2px;
 }
 
 a:not([href]) {
@@ -188,8 +511,9 @@ a:not([href]):hover {
   text-decoration: none;
 }
 
-a:not([href]):focus {
-  outline: none;
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 img {
@@ -204,8 +528,11 @@ h4,
 h5,
 h6 {
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  line-height: 1.1;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  color: var(--color-heading);
 }
 
 h1 {
@@ -232,7 +559,8 @@ p {
 }
 
 .logo-font {
-  font-family: 'Lora', serif;
+  font-family: var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
 }
 
 .navbar-logo {
@@ -292,6 +620,13 @@ input {
   line-height: normal;
 }
 
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--color-primary);
+  width: 1rem;
+  height: 1rem;
+}
+
 textarea {
   overflow: auto;
   resize: vertical;
@@ -317,16 +652,16 @@ textarea {
   touch-action: manipulation;
 }
 
-button:focus {
-  outline: 1px dotted;
-  outline: 5px auto -webkit-focus-ring-color;
-}
-
 fieldset {
   min-width: 0;
   padding: 0;
   margin: 0;
   border: 0;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 /* ============================================================================
@@ -372,6 +707,16 @@ fieldset {
 }
 
 .col-xs-12 {
+  position: relative;
+  min-height: 1px;
+  padding-right: 15px;
+  padding-left: 15px;
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+/* Below 768px every md column takes the full width, so columns stack on phones. */
+[class*='col-md-'] {
   position: relative;
   min-height: 1px;
   padding-right: 15px;
@@ -450,28 +795,32 @@ fieldset {
   padding: 0.5rem 0.75rem;
   font-size: 1rem;
   line-height: 1.25;
-  color: var(--text-form);
-  background-color: var(--bg);
+  color: var(--color-contrast);
+  background-color: var(--color-field);
   background-image: none;
   background-clip: padding-box;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  transition: border-color 0.15s ease;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .form-control:focus {
-  border-color: var(--input-focus);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-border-faint);
   outline: none;
 }
 
 .form-control::placeholder {
-  color: var(--text-muted);
+  color: var(--color-contrast-faint);
   opacity: 1;
 }
 
 .form-control:disabled,
 .form-control[readonly] {
-  background-color: var(--bg-disabled);
+  background-color: var(--color-base-raised);
+  color: var(--color-contrast-muted);
   opacity: 1;
 }
 
@@ -480,13 +829,26 @@ fieldset {
 }
 
 .form-control-lg {
-  padding: 0.75rem 1.5rem;
-  font-size: 1.25rem;
-  border-radius: 0.625rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1.15rem;
+  border-radius: var(--radius-lg);
 }
 
 .form-group {
   margin-bottom: 1rem;
+}
+
+/* Marks a required field. */
+.form-group.required {
+  position: relative;
+}
+
+.form-group.required::after {
+  content: '*';
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  color: var(--color-danger);
 }
 
 /* ============================================================================
@@ -495,33 +857,22 @@ fieldset {
 
 .btn {
   display: inline-block;
-  font-weight: normal;
+  font-weight: 600;
   line-height: 1.25;
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
   cursor: pointer;
   user-select: none;
-  border: 1px solid transparent;
+  border: var(--border-width) solid transparent;
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-pill);
   transition:
     color 0.15s ease,
-    background-color 0.15s ease,
+    background 0.15s ease,
     border-color 0.15s ease,
     box-shadow 0.15s ease;
-}
-
-.btn:focus,
-.btn.focus,
-.btn:active:focus,
-.btn:active.focus,
-.btn.active:focus,
-.btn.active.focus {
-  outline: thin dotted;
-  outline: 5px auto -webkit-focus-ring-color;
-  outline-offset: -2px;
 }
 
 .btn:focus,
@@ -529,20 +880,15 @@ fieldset {
   text-decoration: none;
 }
 
-.btn.focus {
-  text-decoration: none;
-}
-
 .btn:active,
 .btn.active {
-  background-image: none;
   outline: 0;
 }
 
 .btn.disabled,
 .btn:disabled {
   cursor: not-allowed;
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
 a.btn.disabled,
@@ -550,232 +896,86 @@ fieldset[disabled] a.btn {
   pointer-events: none;
 }
 
-/* btn-primary */
+/* Primary: the main action (crystal teal in dark mode, royal blue in light). */
 .btn-primary {
-  color: #fff;
-  background-color: var(--brand);
-  border-color: var(--brand);
+  color: var(--color-on-primary);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary-strong);
 }
 
-.btn-primary:hover {
-  color: #fff;
-  background-color: var(--brand-hover);
-  border-color: var(--brand-hover);
-}
-
+.btn-primary:hover,
 .btn-primary:focus,
-.btn-primary.focus {
-  color: #fff;
-  background-color: var(--brand-hover);
-  border-color: var(--brand-hover);
-}
-
-.btn-primary:active,
 .btn-primary.active {
-  color: #fff;
-  background-color: var(--brand-hover);
-  border-color: var(--brand-hover);
-  background-image: none;
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
 }
 
-.btn-primary:active:hover,
-.btn-primary:active:focus,
-.btn-primary:active.focus,
-.btn-primary.active:hover,
-.btn-primary.active:focus,
-.btn-primary.active.focus {
-  color: #fff;
-  background-color: var(--brand-active);
-  border-color: var(--brand-active);
-}
-
-.btn-primary.disabled:focus,
-.btn-primary.disabled.focus,
-.btn-primary:disabled:focus,
-.btn-primary:disabled.focus {
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
-
-.btn-primary.disabled:hover,
-.btn-primary:disabled:hover {
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
-
-/* btn-secondary */
+/* Blue window button: the alternative action. */
 .btn-secondary {
-  color: #fff;
-  background-color: var(--secondary);
-  border-color: var(--secondary);
+  color: var(--color-contrast);
+  background: var(--gradient-secondary-button);
+  border-color: var(--color-border);
 }
 
-.btn-secondary:hover {
-  color: #fff;
-  background-color: var(--secondary-hover);
-  border-color: var(--secondary-border);
-}
-
+.btn-secondary:hover,
 .btn-secondary:focus,
-.btn-secondary.focus {
-  color: #fff;
-  background-color: var(--secondary-hover);
-  border-color: var(--secondary-border);
-}
-
-.btn-secondary:active,
 .btn-secondary.active {
-  color: #fff;
-  background-color: var(--secondary-hover);
-  border-color: var(--secondary-border);
-  background-image: none;
+  color: var(--color-contrast);
+  border-color: var(--color-border-strong);
 }
 
-.btn-secondary.disabled:focus,
-.btn-secondary.disabled.focus,
-.btn-secondary:disabled:focus,
-.btn-secondary:disabled.focus {
-  background-color: var(--secondary);
-  border-color: var(--secondary);
-}
-
-.btn-secondary.disabled:hover,
-.btn-secondary:disabled:hover {
-  background-color: var(--secondary);
-  border-color: var(--secondary);
-}
-
-/* btn-outline-primary */
 .btn-outline-primary {
-  color: var(--brand);
-  background-image: none;
-  background-color: transparent;
-  border-color: var(--brand);
+  color: var(--color-primary-strong);
+  background: transparent;
+  border-color: var(--color-primary);
 }
 
-.btn-outline-primary:hover {
-  color: #fff;
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
-
+.btn-outline-primary:hover,
 .btn-outline-primary:focus,
-.btn-outline-primary.focus {
-  color: #fff;
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
-
-.btn-outline-primary:active,
 .btn-outline-primary.active {
-  color: #fff;
-  background-color: var(--brand);
-  border-color: var(--brand);
+  color: var(--color-on-primary);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary-strong);
 }
 
-.btn-outline-primary.disabled:focus,
-.btn-outline-primary.disabled.focus,
-.btn-outline-primary:disabled:focus,
-.btn-outline-primary:disabled.focus {
-  border-color: var(--brand-light);
-}
-
-.btn-outline-primary.disabled:hover,
-.btn-outline-primary:disabled:hover {
-  border-color: var(--brand-light);
-}
-
-/* btn-outline-secondary */
 .btn-outline-secondary {
-  color: var(--secondary);
-  background-image: none;
-  background-color: transparent;
-  border-color: var(--secondary);
+  color: var(--color-contrast-muted);
+  background: transparent;
+  border-color: var(--color-contrast-faint);
 }
 
-.btn-outline-secondary:hover {
-  color: #fff;
-  background-color: var(--secondary);
-  border-color: var(--secondary);
-}
-
+.btn-outline-secondary:hover,
 .btn-outline-secondary:focus,
-.btn-outline-secondary.focus {
-  color: #fff;
-  background-color: var(--secondary);
-  border-color: var(--secondary);
-}
-
-.btn-outline-secondary:active,
 .btn-outline-secondary.active {
-  color: #fff;
-  background-color: var(--secondary);
-  border-color: var(--secondary);
+  color: var(--color-contrast);
+  background: var(--color-surface-strong);
+  border-color: var(--color-contrast-muted);
 }
 
-.btn-outline-secondary.disabled:focus,
-.btn-outline-secondary.disabled.focus,
-.btn-outline-secondary:disabled:focus,
-.btn-outline-secondary:disabled.focus {
-  border-color: white;
-}
-
-.btn-outline-secondary.disabled:hover,
-.btn-outline-secondary:disabled:hover {
-  border-color: white;
-}
-
-/* btn-outline-danger */
 .btn-outline-danger {
-  color: var(--danger);
-  background-image: none;
-  background-color: transparent;
-  border-color: var(--danger);
+  color: var(--color-danger);
+  background: transparent;
+  border-color: var(--color-danger);
 }
 
-.btn-outline-danger:hover {
-  color: #fff;
-  background-color: var(--danger);
-  border-color: var(--danger);
-}
-
+.btn-outline-danger:hover,
 .btn-outline-danger:focus,
-.btn-outline-danger.focus {
-  color: #fff;
-  background-color: var(--danger);
-  border-color: var(--danger);
-}
-
-.btn-outline-danger:active,
 .btn-outline-danger.active {
-  color: #fff;
-  background-color: var(--danger);
-  border-color: var(--danger);
+  color: var(--color-contrast);
+  background: var(--color-danger-strong);
+  border-color: var(--color-danger);
 }
 
-.btn-outline-danger.disabled:focus,
-.btn-outline-danger.disabled.focus,
-.btn-outline-danger:disabled:focus,
-.btn-outline-danger:disabled.focus {
-  border-color: var(--danger-light);
-}
-
-.btn-outline-danger.disabled:hover,
-.btn-outline-danger:disabled:hover {
-  border-color: var(--danger-light);
-}
-
-/* Button sizes */
 .btn-lg {
   padding: 0.75rem 1.5rem;
-  font-size: 1.25rem;
-  border-radius: 0.625rem;
+  font-size: 1.15rem;
+  font-family: var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
 }
 
 .btn-sm {
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   font-size: 0.875rem;
-  border-radius: 0.375rem;
 }
 
 /* ============================================================================
@@ -803,7 +1003,7 @@ fieldset[disabled] a.btn {
 .nav-link.disabled,
 .nav-link.disabled:focus,
 .nav-link.disabled:hover {
-  color: var(--text-disabled);
+  color: var(--color-contrast-faint);
   cursor: not-allowed;
   background-color: transparent;
 }
@@ -820,21 +1020,25 @@ fieldset[disabled] a.btn {
 .nav-pills .nav-link {
   display: block;
   padding: 0.5em 1em;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--color-contrast-muted);
 }
 
 .nav-pills .nav-link.active,
 .nav-pills .nav-link.active:focus,
 .nav-pills .nav-link.active:hover {
-  color: #fff;
+  color: var(--color-on-primary);
   cursor: default;
-  background-color: var(--brand);
+  background: var(--gradient-primary-flat);
 }
 
-/* Navbar */
+/* Navbar: a title strip with a silver rule. */
 .navbar {
   position: relative;
   padding: 0.5rem 1rem;
+  background: var(--gradient-navbar);
+  border-bottom: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-raised);
 }
 
 .navbar > .container {
@@ -846,15 +1050,18 @@ fieldset[disabled] a.btn {
   padding-top: 0;
   padding-bottom: 0.25rem;
   margin-right: 2rem;
-  font-family: 'Lora', serif;
+  font-family: var(--font-display);
   font-size: 1.5rem;
-  color: var(--text-heading);
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+  text-shadow: var(--glow-heading);
 }
 
 .navbar-brand:focus,
 .navbar-brand:hover {
   text-decoration: none;
-  color: var(--text-heading);
+  color: var(--color-primary-bright);
 }
 
 .navbar-nav {
@@ -871,10 +1078,6 @@ fieldset[disabled] a.btn {
   padding-bottom: 0.425rem;
 }
 
-.navbar-nav .nav-link + .nav-link {
-  margin-left: 1rem;
-}
-
 .navbar-nav .nav-item + .nav-item {
   margin-left: 1rem;
 }
@@ -882,30 +1085,28 @@ fieldset[disabled] a.btn {
 .navbar-light .navbar-brand,
 .navbar-light .navbar-brand:focus,
 .navbar-light .navbar-brand:hover {
-  color: var(--text-heading);
+  color: var(--color-heading);
 }
 
 .navbar-light .navbar-nav .nav-link {
-  color: var(--nav-link);
+  color: var(--color-contrast-muted);
 }
 
 .navbar-light .navbar-nav .nav-link:focus,
 .navbar-light .navbar-nav .nav-link:hover {
-  color: var(--nav-link-hover);
+  color: var(--color-contrast);
 }
 
 .navbar-light .navbar-nav .active > .nav-link,
-.navbar-light .navbar-nav .active > .nav-link:focus,
-.navbar-light .navbar-nav .active > .nav-link:hover,
 .navbar-light .navbar-nav .nav-link.active,
 .navbar-light .navbar-nav .nav-link.active:focus,
 .navbar-light .navbar-nav .nav-link.active:hover {
-  color: var(--nav-link-active);
+  color: var(--color-primary-strong);
 }
 
 .nav-link .user-pic {
   height: 26px;
-  border-radius: 50px;
+  border-radius: var(--radius-pill);
   float: left;
   margin-right: 5px;
 }
@@ -915,58 +1116,46 @@ fieldset[disabled] a.btn {
 }
 
 .nav-signup {
-  color: #fff !important;
-  background: var(--brand);
-  border: 1px solid var(--brand);
-  border-radius: 99em;
+  color: var(--color-on-primary) !important;
+  background: var(--gradient-primary-flat);
+  border: var(--border-width) solid var(--color-primary-strong);
+  border-radius: var(--radius-pill);
   padding: 5px 12px !important;
   font-size: 0.8125rem;
   line-height: 1.25rem;
-  transition:
-    background 200ms ease,
-    border-color 200ms ease;
 }
 
-.nav-signup:hover,
-.nav-signup:focus {
-  color: #fff !important;
-  background: var(--brand-hover);
-  border-color: var(--brand-hover);
-}
-
+/* Tabs (Your Feed / Global Feed ...): primary underline on the active tab. */
 .nav-pills.outline-active .nav-link {
   border-radius: 0;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--border-width-strong) solid transparent;
   background: transparent;
-  color: var(--text-lighter);
+  color: var(--color-contrast-muted);
 }
 
 .nav-pills.outline-active .nav-link:hover {
-  color: var(--text);
+  color: var(--color-contrast);
 }
 
 .nav-pills.outline-active .nav-link.active {
-  background: var(--bg);
-  border-bottom: 2px solid var(--brand);
-  color: var(--brand);
+  background: transparent;
+  border-bottom: var(--border-width-strong) solid var(--color-primary);
+  color: var(--color-primary-strong);
 }
 
 /* ============================================================================
- * CARDS
+ * CARDS (windows)
  * ============================================================================ */
 
 .card {
   position: relative;
   display: block;
   margin-bottom: 0.75rem;
-  background-color: var(--bg);
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.08),
-    0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.2s ease;
+  background: var(--gradient-panel);
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--color-border-soft);
+  box-shadow: var(--shadow-raised);
 }
 
 .card-block {
@@ -985,8 +1174,8 @@ fieldset[disabled] a.btn {
 
 .card-footer {
   padding: 0.75rem 1.25rem;
-  background-color: var(--surface);
-  border-top: 1px solid var(--border);
+  background: var(--color-shade);
+  border-top: var(--border-width) solid var(--color-border-faint);
 }
 
 .card-footer::after {
@@ -996,7 +1185,7 @@ fieldset[disabled] a.btn {
 }
 
 .card-footer:last-child {
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 /* ============================================================================
@@ -1008,7 +1197,6 @@ fieldset[disabled] a.btn {
   padding-left: 0;
   margin-top: 1rem;
   margin-bottom: 1rem;
-  border-radius: 0.5rem;
 }
 
 .page-item {
@@ -1017,33 +1205,32 @@ fieldset[disabled] a.btn {
 
 .page-item:first-child .page-link {
   margin-left: 0;
-  border-bottom-left-radius: 0.5rem;
-  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: var(--radius-md);
+  border-top-left-radius: var(--radius-md);
 }
 
 .page-item:last-child .page-link {
-  border-bottom-right-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
 }
 
 .page-item.active .page-link,
 .page-item.active .page-link:focus,
 .page-item.active .page-link:hover {
   z-index: 2;
-  color: var(--text-heading);
+  color: var(--color-on-primary);
   cursor: default;
-  background-color: var(--border);
-  border-color: var(--border);
+  background: var(--gradient-primary-flat);
+  border-color: var(--color-primary);
 }
 
 .page-item.disabled .page-link,
 .page-item.disabled .page-link:focus,
 .page-item.disabled .page-link:hover {
-  color: var(--text-disabled);
+  color: var(--color-contrast-faint);
   pointer-events: none;
   cursor: not-allowed;
-  background-color: var(--bg);
-  border-color: var(--border);
+  background-color: var(--color-base-raised);
 }
 
 .page-link {
@@ -1051,10 +1238,10 @@ fieldset[disabled] a.btn {
   float: left;
   padding: 0.5rem 0.75rem;
   margin-left: -1px;
-  color: var(--brand);
+  color: var(--color-link);
   text-decoration: none;
-  background-color: var(--bg);
-  border: 1px solid var(--border);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-soft);
   transition:
     color 0.15s ease,
     background-color 0.15s ease;
@@ -1062,9 +1249,9 @@ fieldset[disabled] a.btn {
 
 .page-link:focus,
 .page-link:hover {
-  color: var(--brand-dark);
-  background-color: var(--bg-hover-page);
-  border-color: var(--border);
+  color: var(--color-primary-bright);
+  background-color: var(--color-surface-strong);
+  text-decoration: none;
 }
 
 /* ============================================================================
@@ -1074,14 +1261,14 @@ fieldset[disabled] a.btn {
 .tag-pill {
   padding-right: 0.6em;
   padding-left: 0.6em;
-  border-radius: 10rem;
+  border-radius: var(--radius-pill);
 }
 
 .tag-default {
-  background-color: transparent;
-  color: var(--text-heading);
-  border: 1px solid var(--border);
-  border-radius: 100px;
+  background-color: var(--color-surface);
+  color: var(--color-contrast-soft);
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-pill);
   font-size: 0.8rem;
   line-height: 1.1rem;
   padding: 0.35rem 0.75rem;
@@ -1089,22 +1276,22 @@ fieldset[disabled] a.btn {
   margin-right: 0.5rem;
   margin-bottom: 0.5rem;
   display: inline-block;
-  transition: background 300ms ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
-.tag-default:hover {
-  text-decoration: none;
-  background-color: var(--bg-light);
-}
-
+.tag-default:hover,
 .tag-default[href]:focus,
 .tag-default[href]:hover {
-  background-color: var(--bg-light);
+  text-decoration: none;
+  color: var(--color-primary-strong);
+  background-color: var(--color-surface-strong);
 }
 
 .tag-default.tag-outline {
-  border: 1px solid var(--border);
-  color: var(--text-lighter);
+  border: var(--border-width) solid var(--color-border-faint);
+  color: var(--color-contrast-muted);
   background: none;
 }
 
@@ -1133,25 +1320,25 @@ ul.tag-list li {
  * ============================================================================ */
 
 footer {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
+  background: var(--color-base-deep);
+  border-top: var(--border-width) solid var(--color-border-soft);
   margin-top: 42px;
   padding: 1rem 0;
   width: 100%;
 }
 
 footer .logo-font {
-  color: var(--text-heading);
+  color: var(--color-heading);
 }
 
 footer a {
-  color: var(--text-heading);
+  color: var(--color-link);
 }
 
 footer .attribution {
   margin-left: 10px;
   font-size: 0.8rem;
-  color: var(--text-light);
+  color: var(--color-contrast-faint);
   font-weight: 300;
 }
 
@@ -1160,7 +1347,7 @@ footer .attribution {
  * ============================================================================ */
 
 .error-messages {
-  color: var(--danger);
+  color: var(--color-danger);
   font-weight: bold;
   padding-left: 2.5rem;
   margin-bottom: 1rem;
@@ -1172,10 +1359,10 @@ footer .attribution {
  * ============================================================================ */
 
 .banner {
-  color: var(--text);
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  color: var(--color-contrast);
+  background: var(--gradient-title-bar);
+  border-bottom: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-raised);
   padding: 2rem;
   margin-bottom: 2rem;
 }
@@ -1197,6 +1384,7 @@ footer .attribution {
 }
 
 .preview-link:hover {
+  color: inherit;
   text-decoration: inherit;
 }
 
@@ -1211,7 +1399,8 @@ footer .attribution {
   vertical-align: middle;
   height: 32px;
   width: 32px;
-  border-radius: 30px;
+  border-radius: var(--radius-pill);
+  border: var(--border-width) solid var(--color-border-soft);
 }
 
 .article-meta .btn + .btn,
@@ -1229,23 +1418,24 @@ footer .attribution {
 
 .article-meta .info .author {
   display: block;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--color-link);
 }
 
 .article-meta .info .date {
-  color: var(--text-light);
+  color: var(--color-contrast-faint);
   font-size: 0.8rem;
   display: block;
 }
 
 .article-preview {
-  border-top: 1px solid var(--border);
-  padding: 1.5rem 0;
+  border-top: var(--border-width) solid var(--color-divider);
+  padding: 1.5rem 0.5rem;
   transition: background-color 0.2s ease;
 }
 
 .article-preview:hover {
-  background-color: rgba(0, 0, 0, 0.01);
+  background-color: var(--color-hover);
 }
 
 .article-preview .article-meta {
@@ -1253,16 +1443,16 @@ footer .attribution {
 }
 
 .article-preview .preview-link h1 {
-  font-weight: 600;
-  font-size: 1.5rem;
-  line-height: 1.1;
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1.2;
   margin-bottom: 3px;
 }
 
 .article-preview .preview-link p {
   font-weight: 300;
   font-size: 1rem;
-  color: var(--text-muted);
+  color: var(--color-contrast-muted);
   margin-bottom: 15px;
   line-height: 1.3rem;
 }
@@ -1271,7 +1461,7 @@ footer .attribution {
   max-width: 30%;
   font-size: 0.8rem;
   font-weight: 300;
-  color: var(--text-light);
+  color: var(--color-contrast-faint);
   vertical-align: middle;
 }
 
@@ -1300,21 +1490,21 @@ footer .attribution {
   text-align: center;
   font-size: 1rem;
   font-weight: 300;
-  color: var(--text-muted);
+  color: var(--color-contrast-muted);
   margin-bottom: 0;
 }
 
 .home-page .banner p a {
-  color: var(--brand);
+  color: var(--color-link);
   text-decoration: underline;
 }
 
 .home-page .banner h1 {
-  font-weight: 700;
   text-align: center;
   font-size: 3.5rem;
   line-height: 1.1;
   padding-bottom: 0.5rem;
+  text-shadow: var(--glow-heading);
 }
 
 .home-page .feed-toggle {
@@ -1323,13 +1513,16 @@ footer .attribution {
 
 .home-page .sidebar {
   margin-left: 10px;
-  padding-left: 20px;
-  background: none;
-  border-left: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: var(--gradient-panel);
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
 }
 
 .home-page .sidebar p {
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-display);
+  color: var(--color-heading);
 }
 
 /* ============================================================================
@@ -1342,12 +1535,11 @@ footer .attribution {
 
 .article-page .banner h1 {
   font-size: 2.8rem;
-  font-weight: 600;
-  color: var(--text-heading);
+  color: var(--color-heading);
 }
 
 .article-page .banner .btn {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .article-page .banner .btn:hover {
@@ -1360,7 +1552,7 @@ footer .attribution {
 }
 
 .article-page .banner .article-meta .author {
-  color: var(--text);
+  color: var(--color-link);
 }
 
 .article-page .banner > .container,
@@ -1396,10 +1588,11 @@ footer > .container {
 }
 
 .article-page .article-content p {
-  font-family: 'Lora', serif;
+  font-family: var(--font-reading);
   font-size: 1.2rem;
   line-height: 1.8rem;
   margin-bottom: 2rem;
+  color: var(--color-contrast-soft);
 }
 
 .article-page .article-content h1,
@@ -1408,7 +1601,6 @@ footer > .container {
 .article-page .article-content h4,
 .article-page .article-content h5,
 .article-page .article-content h6 {
-  font-weight: 500;
   margin: 1.6rem 0 1rem 0;
 }
 
@@ -1467,6 +1659,7 @@ footer > .container {
 .article-page .comment-form .card-block textarea {
   border: 0;
   padding: 1.25rem;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .article-page .comment-form .card-footer .btn {
@@ -1479,13 +1672,7 @@ footer > .container {
   width: 30px;
 }
 
-.article-page .card {
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
 .article-page .card .card-footer {
-  border-top: 1px solid var(--border);
   font-size: 0.8rem;
   font-weight: 300;
 }
@@ -1495,24 +1682,25 @@ footer > .container {
   vertical-align: middle;
   height: 20px;
   width: 20px;
-  border-radius: 30px;
+  border-radius: var(--radius-pill);
 }
 
 .article-page .card .comment-author {
   display: inline-block;
   vertical-align: middle;
+  color: var(--color-link);
 }
 
 .article-page .card .date-posted {
   display: inline-block;
   vertical-align: middle;
   margin-left: 5px;
-  color: var(--text-light);
+  color: var(--color-contrast-faint);
 }
 
 .article-page .card .mod-options {
   float: right;
-  color: var(--text);
+  color: var(--color-contrast-muted);
   font-size: 1rem;
 }
 
@@ -1532,34 +1720,30 @@ footer > .container {
 
 .profile-page .user-info {
   text-align: center;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  background: var(--gradient-title-bar);
+  border-bottom: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-raised);
   padding: 2rem 0 1rem 0;
 }
 
 .profile-page .user-info .user-img {
   width: 100px;
   height: 100px;
-  border-radius: 100px;
+  border-radius: var(--radius-pill);
+  border: var(--border-width-strong) solid var(--color-primary);
+  box-shadow: var(--glow-primary);
   margin-bottom: 1rem;
-}
-
-.profile-page .user-info h4 {
-  font-weight: 700;
 }
 
 .profile-page .user-info p {
   margin: 0 auto 0.5rem auto;
-  color: var(--text-lighter);
+  color: var(--color-contrast-muted);
   max-width: 450px;
   font-weight: 300;
 }
 
 .profile-page .user-info .action-btn {
   float: right;
-  color: var(--text-muted);
-  border: 1px solid var(--text-muted);
 }
 
 .profile-page .articles-toggle {

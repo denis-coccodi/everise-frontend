@@ -6,11 +6,9 @@
   aria-labelledby="duty-found-title"
   (keydown.escape)="commence.emit()"
 >
-  <header>
-    <h2 id="duty-found-title">Duty Found</h2>
-  </header>
+  <h2 id="duty-found-title" class="xiv-title-bar">Duty Found</h2>
 
-  <p class="type">{{ result().type }}</p>
+  <p class="type xiv-label">{{ result().type }}</p>
   <p class="name">{{ result().name }}</p>
   @if (result().dutyUnknown) {
     <p class="unknown" aria-label="Duty chosen by the game">? ? ?</p>
@@ -18,14 +16,14 @@
   <p class="detail">{{ result().detail }}</p>
 
   <dl>
-    <dt>Party settings</dt>
+    <dt class="xiv-label">Party settings</dt>
     <dd>{{ result().mode }}</dd>
   </dl>
 
   <div class="timer" aria-hidden="true"><span></span></div>
 
   <div class="actions">
-    <button #commenceButton type="button" class="commence" (click)="commence.emit()">Commence</button>
-    <button type="button" class="withdraw" (click)="withdraw.emit()">Withdraw</button>
+    <button #commenceButton type="button" class="btn btn-primary" (click)="commence.emit()">Commence</button>
+    <button type="button" class="btn btn-secondary" (click)="withdraw.emit()">Withdraw</button>
   </div>
 </section>

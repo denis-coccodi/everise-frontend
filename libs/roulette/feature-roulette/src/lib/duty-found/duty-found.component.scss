@@ -1,8 +1,10 @@
+// Colours, buttons and the title bar come from the theme
+// (apps/everise/src/styles.scss).
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: rgba(3, 7, 16, 0.65);
+  background: var(--color-overlay);
   animation: fade 0.25s ease-out;
 }
 
@@ -13,100 +15,73 @@
   top: 50%;
   width: min(420px, calc(100vw - 32px));
   transform: translate(-50%, -50%);
-  padding: 0 1.25rem 1.25rem;
-  border: 2px solid #c9a95c;
-  border-radius: 12px;
-  background: linear-gradient(160deg, #22406f, #13213d 60%, #0d1830);
-  box-shadow:
-    0 0 0 1px #5b4214,
-    0 0 30px rgba(92, 200, 255, 0.35),
-    0 18px 40px rgba(0, 0, 0, 0.6);
-  color: #eef4ff;
+  padding: 1rem 1.25rem 1.25rem;
+  border: var(--border-width-strong) solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  background: var(--gradient-window);
+  box-shadow: var(--shadow-panel), var(--glow-crystal);
+  color: var(--color-contrast);
   text-align: center;
   animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
 
-header {
-  margin: 0 -1.25rem 1rem;
-  padding: 0.6rem;
-  border-bottom: 1px solid #c9a95c;
-  background: linear-gradient(#2f5592, #1b335c);
-  border-radius: 10px 10px 0 0;
-}
-
-h2 {
-  margin: 0;
-  font-family: Cinzel, 'Trajan Pro', Georgia, serif;
+.xiv-title-bar {
+  margin: -1rem -1.25rem 1rem;
   font-size: 1.3rem;
   letter-spacing: 0.15em;
-  color: #f1dca0;
-  text-shadow: 0 0 8px rgba(241, 220, 160, 0.5);
+  text-shadow: var(--glow-heading);
 }
 
 p {
   margin: 0 0 0.35rem;
 }
 
-.type {
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #8fb8e8;
-}
-
 .name {
   font-size: 1.35rem;
   font-weight: 700;
-  color: #fff3c4;
+  color: var(--color-primary-bright);
 }
 
 .unknown {
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--font-display);
   font-size: 1.6rem;
-  color: #5cc8ff;
-  text-shadow: 0 0 10px #5cc8ff;
+  color: var(--color-crystal);
+  text-shadow: var(--glow-crystal);
 }
 
 .detail {
   font-size: 0.85rem;
-  color: #a9bddc;
+  color: var(--color-contrast-muted);
 }
 
 dl {
   margin: 1rem 0;
   padding: 0.6rem;
-  border: 1px solid rgba(201, 169, 92, 0.5);
-  border-radius: 6px;
-  background: rgba(5, 10, 20, 0.35);
-}
-
-dt {
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #8fb8e8;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-shade);
 }
 
 dd {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #5cc8ff;
+  color: var(--color-primary-strong);
 }
 
 // Purely decorative, like the game's 45-second acceptance window.
 .timer {
   height: 6px;
   margin-bottom: 1rem;
-  border-radius: 3px;
-  background: #0b1426;
+  border-radius: var(--radius-sm);
+  background: var(--color-base);
   overflow: hidden;
 }
 
 .timer span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, #5cc8ff, #c9a95c);
+  background: var(--gradient-result-bar);
   transform-origin: left;
   animation: drain 45s linear forwards;
 }
@@ -117,28 +92,8 @@ dd {
   justify-content: center;
 }
 
-button {
+.actions .btn {
   min-width: 120px;
-  padding: 0.5rem 1rem;
-  border-radius: 18px;
-  border: 1px solid #c9a95c;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.commence {
-  background: linear-gradient(#f1dca0, #c9a95c);
-  color: #1a1206;
-}
-
-.withdraw {
-  background: linear-gradient(#2f5592, #1b335c);
-  color: #eef4ff;
-}
-
-button:focus-visible {
-  outline: 2px solid #5cc8ff;
-  outline-offset: 2px;
 }
 
 @keyframes pop {
