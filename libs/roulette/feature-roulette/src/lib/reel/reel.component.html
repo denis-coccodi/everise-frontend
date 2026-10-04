@@ -9,7 +9,7 @@
         [style.--loop-duration]="idle().duration"
       >
         @for (row of idle().rows; track $index) {
-          <div class="slot">
+          <div class="slot" [class.with-thumb]="!!row.thumb">
             <ng-container *ngTemplateOutlet="content; context: { $implicit: row }" />
           </div>
         }
@@ -17,7 +17,7 @@
     } @else {
       <div #strip class="strip">
         @for (row of rows(); track $index) {
-          <div class="slot" [class.winner]="isWinner($index)">
+          <div class="slot" [class.with-thumb]="!!row.thumb" [class.winner]="isWinner($index)">
             @if (isWinner($index) && row.backdrop) {
               <img class="backdrop" [src]="row.backdrop" alt="" decoding="async" (error)="hideImage($event)" />
             }
