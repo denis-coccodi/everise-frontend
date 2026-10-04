@@ -1,6 +1,6 @@
 import { Duty, DutyGroup, DutyRoulette } from './duties.models';
 
-// The rules of the three-wheel roulette, kept free of Angular so they can be
+// The rules of the three-reel roulette, kept free of Angular so they can be
 // tested on their own:
 //   1. a duty type, from the types the user allowed;
 //   2. a duty of that type within the level limits. For the "picked" types
@@ -12,7 +12,7 @@ export const ROULETTES_TYPE = 'Duty Roulettes';
 export const PVP_TYPE = 'PvP';
 export const GOLD_SAUCER_TYPE = 'Gold Saucer';
 
-// Types whose entries the user ticks one by one, in a panel under the wheels.
+// Types whose entries the user ticks one by one, in a panel under the reels.
 export const PICKED_TYPES = [ROULETTES_TYPE, PVP_TYPE, GOLD_SAUCER_TYPE];
 
 export type RunMode = 'Min IL + Silence Echo' | 'Unsynced' | 'Join Party in Progress' | 'Regular';
@@ -38,7 +38,7 @@ export interface TypeOption {
   candidates: Candidate[];
 }
 
-// The types the first wheel starts with: the everyday PvE content.
+// The types the first reel starts with: the everyday PvE content.
 export const DEFAULT_TYPES = [
   'Dungeons',
   'Trials — Normal',
@@ -49,23 +49,16 @@ export const DEFAULT_TYPES = [
   ROULETTES_TYPE,
 ];
 
-// Wheel segments are small: short names for the long types.
-const SHORT_TYPE_NAMES: Record<string, string> = {
-  'Trials — Normal': 'Trials',
-  'Trials — Extreme': 'Extreme',
-  'Trials — Unreal': 'Unreal',
-  'Raids — Normal': 'Raids',
-  'Raids — Savage': 'Savage',
-  'Raids — Ultimate': 'Ultimate',
-  'Alliance Raids': 'Alliance',
-  'Alliance Raids — Chaotic': 'Chaotic',
-  'Variant & Criterion Dungeons': 'V&C',
-  'Field Operations': 'Field Ops',
-  [ROULETTES_TYPE]: 'Roulettes',
+// What each party setting means, shown under it on the third reel.
+const RUN_MODE_DETAILS: Record<RunMode, string> = {
+  'Min IL + Silence Echo': 'Minimum item level, the Echo turned off',
+  Unsynced: 'Unrestricted Party, no level sync',
+  'Join Party in Progress': 'Join a party already inside',
+  Regular: 'The Duty Finder as usual',
 };
 
-export function shortTypeName(name: string) {
-  return SHORT_TYPE_NAMES[name] ?? name;
+export function runModeDetail(mode: RunMode) {
+  return RUN_MODE_DETAILS[mode];
 }
 
 // Duty roulettes that pick a PvE duty, i.e. not Gold Saucer races or PvP.
@@ -140,7 +133,7 @@ export function typeCandidates(
   });
 }
 
-// The first wheel's segments: the allowed types with at least one candidate.
+// The first reel's entries: the allowed types with at least one candidate.
 export function eligibleTypes(
   groups: DutyGroup[],
   options: Record<string, PickOption[]>,
@@ -151,7 +144,7 @@ export function eligibleTypes(
   );
 }
 
-// The third wheel's segments. Duty Finder settings only apply to duties
+// The third reel's entries. Duty Finder settings only apply to duties
 // queued through the Duty Finder or Raid Finder; a duty roulette only offers
 // Join Party in Progress. The game data has no Silence Echo flag; it is
 // offered together with Minimum IL, which is where the game allows it.
@@ -229,10 +222,10 @@ export function spreadSample<T>(items: T[], max: number): T[] {
   return Array.from({ length: max }, (_, i) => items[Math.floor((i * items.length) / max)]);
 }
 
-// Every party setting, in the order the third wheel lists them.
+// Every party setting, in the order the third reel lists them.
 export const ALL_RUN_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
 
-// The party settings the allowed duties could land on: what the third wheel
+// The party settings the allowed duties could land on: what the third reel
 // shows before a spin. All of them when nothing is allowed yet.
 export function possibleModes(options: TypeOption[]): RunMode[] {
   if (options.length === 0) return ALL_RUN_MODES;

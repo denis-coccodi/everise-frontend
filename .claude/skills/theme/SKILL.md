@@ -27,15 +27,15 @@ Two modes, both defined only as role values:
 
 Colours chosen with the user, as palette entries:
 
-| Colour       | Hex       | Role                                              |
-| ------------ | --------- | ------------------------------------------------- |
-| Royal blue   | `#073a8c` | primary in light mode, title bars, wheel segments |
-| Crystal teal | `#00a9b0` | primary in dark mode, the crystal motif           |
-| Mist grey    | `#dcdcdc` | silver trim                                       |
-| Amber        | `#c49a0b` | accent, used sparingly                            |
-| Violet       | `#644a74` | tertiary                                          |
-| Magenta      | `#b44ba8` | highlight, for a win                              |
-| Ember        | `#c95a28` | danger                                            |
+| Colour       | Hex       | Role                                    |
+| ------------ | --------- | --------------------------------------- |
+| Royal blue   | `#073a8c` | primary in light mode, title bars       |
+| Crystal teal | `#00a9b0` | primary in dark mode, the crystal motif |
+| Mist grey    | `#dcdcdc` | silver trim                             |
+| Amber        | `#c49a0b` | accent, used sparingly                  |
+| Violet       | `#644a74` | tertiary                                |
+| Magenta      | `#b44ba8` | highlight, for a win                    |
+| Ember        | `#c95a28` | danger                                  |
 
 Keep it Final Fantasy, not Gold Saucer: no casino bulbs, no gold metal, no gold glow.
 
@@ -99,7 +99,7 @@ Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`,
    - Never use `::ng-deep` or `ViewEncapsulation.None`.
    - A parent styles a child component only through the child's host element (spacing, position), never the child's insides. If a child needs a variant, give it an input.
 3. **Reuse the UI library.** Buttons, fields, checkboxes, windows, cards, banners, dialogs, bylines, tabs, tags and pagination come from `@realworld/ui/components`. A look that more than one component needs becomes a building block, not a copied stylesheet. One exception: two components of the same library showing the same thing may share one `.scss` file (`libs/core/forms/src/lib/error-messages.scss`).
-4. **No raw values.** No colours (hex, `rgb()`, `hsl()`, named colours), font families, `box-shadow` / `text-shadow` values or gradients outside the theme. That covers templates, component stylesheets, inline `style` and SVG attributes. Use a role token (`var(--color-…)`, `var(--font-…)`, `var(--shadow-…)`, …). For SVG, set `fill`, `stroke` and `stop-color` from CSS with role tokens; see `libs/roulette/.../wheel`.
+4. **No raw values.** No colours (hex, `rgb()`, `hsl()`, named colours), font families, `box-shadow` / `text-shadow` values or gradients outside the theme. That covers templates, component stylesheets, inline `style` and SVG attributes. Use a role token (`var(--color-…)`, `var(--font-…)`, `var(--shadow-…)`, …). For SVG, set `fill`, `stroke` and `stop-color` from CSS with role tokens (as the roulette page's crystal icon does).
 5. **Never use a `--palette-*` token outside the theme folder.** If no role fits, add a role to `_tokens.scss`, in `:root` (the dark default) and in `body.light`, then use it.
 6. **Pick roles by meaning, not by colour.** Headings use `--color-heading`, links `--color-link`, the main action primary. Never pick a role because it happens to be the colour you want in one mode: check that it reads right in **both** modes.
 7. **Modes only re-point roles.** The light mode is `body.light { --color-…: … }`. Never write `body.light .some-component { … }`.

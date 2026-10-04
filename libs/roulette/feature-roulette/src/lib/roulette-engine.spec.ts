@@ -11,12 +11,11 @@ import {
   pickOptions,
   possibleModes,
   runModes,
-  shortTypeName,
+  runModeDetail,
   spreadSample,
   typeCandidates,
   upgradeSettings,
 } from './roulette-engine';
-import { segmentAt, targetRotation } from './wheel/wheel-geometry';
 
 let nextId = 1;
 
@@ -206,11 +205,10 @@ describe('candidateDetail', () => {
   });
 });
 
-describe('shortTypeName', () => {
-  it('shortens long type names for the wheel', () => {
-    expect(shortTypeName('Raids — Ultimate')).toBe('Ultimate');
-    expect(shortTypeName('Variant & Criterion Dungeons')).toBe('V&C');
-    expect(shortTypeName('Dungeons')).toBe('Dungeons');
+describe('runModeDetail', () => {
+  it('explains every party setting', () => {
+    expect(runModeDetail('Unsynced')).toBe('Unrestricted Party, no level sync');
+    expect(runModeDetail('Regular')).toBe('The Duty Finder as usual');
   });
 });
 
@@ -243,7 +241,7 @@ describe('possibleModes', () => {
     expect(modesFor([ROULETTES_TYPE])).toEqual(['Join Party in Progress', 'Regular']);
   });
 
-  it('combines the settings of every allowed type, in the wheel order', () => {
+  it('combines the settings of every allowed type, in the reel order', () => {
     expect(modesFor(['Treasure Hunt', ROULETTES_TYPE])).toEqual(['Join Party in Progress', 'Regular']);
   });
 
@@ -268,19 +266,5 @@ describe('pickIndex', () => {
     expect(pickIndex(4, () => 0)).toBe(0);
     expect(pickIndex(4, () => 0.999999)).toBe(3);
     expect(pickIndex(1, () => 0.5)).toBe(0);
-  });
-});
-
-describe('wheel geometry', () => {
-  it('stops with the chosen segment under the pointer', () => {
-    for (const count of [1, 2, 3, 7, 16]) {
-      for (let index = 0; index < count; index++) {
-        for (const offset of [-0.5, 0, 0.5]) {
-          const rotation = targetRotation(123.4, index, count, 5, offset);
-          expect(rotation).toBeGreaterThanOrEqual(123.4 + 5 * 360);
-          expect(segmentAt(rotation, count)).toBe(index);
-        }
-      }
-    }
   });
 });

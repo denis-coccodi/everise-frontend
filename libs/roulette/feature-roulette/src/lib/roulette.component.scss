@@ -33,8 +33,8 @@ h1 {
   text-align: center;
 }
 
-// Phones: settings, the wheels, then the pick lists. Wide screens: duty types
-// on the left; wheels with the pick lists under them on the right.
+// Phones: settings, the reels, then the pick lists. Wide screens: duty types
+// on the left; reels with the pick lists under them on the right.
 .layout {
   display: grid;
   gap: 1.25rem;
@@ -147,7 +147,7 @@ legend {
   font-size: 0.85rem;
 }
 
-.wheels {
+.reels {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(0, 1fr);
@@ -155,7 +155,7 @@ legend {
 }
 
 @media (min-width: 768px) {
-  .wheels {
+  .reels {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
