@@ -8,6 +8,9 @@
     <p class="unknown" aria-label="Duty chosen by the game">? ? ?</p>
   }
   <p class="detail">{{ result().detail }}</p>
+  <p class="wiki">
+    <a cdtButton="chip" [href]="result().wiki" target="_blank" rel="noopener noreferrer">Wiki guide ↗</a>
+  </p>
 
   <dl>
     <dt class="xiv-label">Party settings</dt>

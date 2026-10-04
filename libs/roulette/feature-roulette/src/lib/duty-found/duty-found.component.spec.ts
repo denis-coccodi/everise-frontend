@@ -7,6 +7,7 @@ const result: RouletteResult = {
   detail: 'Lv. 60 · i205 · Heavensward',
   mode: 'Awktrail',
   dutyUnknown: false,
+  wiki: 'https://ffxiv.consolegameswiki.com/mediawiki/index.php?title=Special:Search&go=Go&search=x',
 };
 
 describe('DutyFoundComponent', () => {
@@ -35,6 +36,16 @@ describe('DutyFoundComponent', () => {
 
     expect(document.activeElement?.textContent?.trim()).toBe('Commence');
     expect(page.contains(document.activeElement)).toBe(true);
+  });
+
+  it("links the duty's wiki page, opening in a new tab", async () => {
+    const page = await show(result);
+
+    const link = page.querySelector<HTMLAnchorElement>('.wiki a');
+    expect(link?.textContent).toContain('Wiki guide');
+    expect(link?.getAttribute('href')).toBe(result.wiki);
+    expect(link?.target).toBe('_blank');
+    expect(link?.rel).toContain('noopener');
   });
 
   it('shows no guide link without one', async () => {

@@ -114,7 +114,8 @@
           @if (result(); as last) {
             @if (!showResult()) {
               <p class="last">
-                Last result: <strong>{{ last.name }}</strong> · {{ last.mode }}
+                Last result: <strong>{{ last.name }}</strong> · {{ last.mode }} ·
+                <a [href]="last.wiki" target="_blank" rel="noopener noreferrer">Wiki guide</a>
               </p>
             }
           }
