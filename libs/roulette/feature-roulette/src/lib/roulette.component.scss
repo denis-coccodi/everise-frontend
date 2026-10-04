@@ -1,0 +1,298 @@
+// FFXIV-style windows: deep blue panels, gold trim, aether-blue highlights.
+:host {
+  --xiv-night: #0b1426;
+  --xiv-blue: #1a2c4e;
+  --xiv-blue-light: #2f5592;
+  --xiv-gold: #c9a95c;
+  --xiv-gold-light: #f1dca0;
+  --xiv-aether: #5cc8ff;
+  --xiv-text: #eef4ff;
+  --xiv-muted: #a9bddc;
+
+  display: block;
+  min-height: calc(100vh - 56px);
+  background: radial-gradient(ellipse at 20% 0%, rgba(92, 200, 255, 0.18), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(201, 169, 92, 0.14), transparent 50%),
+    linear-gradient(var(--xiv-night), #121f3a);
+  color: var(--xiv-text);
+}
+
+.roulette-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.hero-crystal {
+  width: 22px;
+  fill: var(--xiv-aether);
+  filter: drop-shadow(0 0 8px var(--xiv-aether));
+  animation: float 3s ease-in-out infinite;
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-family: Cinzel, 'Trajan Pro', Georgia, serif;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  letter-spacing: 0.12em;
+  color: var(--xiv-gold-light);
+  text-shadow: 0 0 14px rgba(241, 220, 160, 0.35);
+}
+
+.hero p,
+.notice {
+  color: var(--xiv-muted);
+  text-align: center;
+}
+
+// Phones: settings, the wheels, then the roulette choice. Wide screens: duty types
+// on the left; wheels with the roulette choice under them on the right.
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'settings' 'stage' 'roulettes';
+  align-items: start;
+}
+
+.settings {
+  grid-area: settings;
+}
+
+.stage {
+  grid-area: stage;
+}
+
+.roulettes {
+  grid-area: roulettes;
+}
+
+@media (min-width: 992px) {
+  .layout {
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-areas:
+      'settings stage'
+      'settings roulettes';
+    grid-template-rows: auto 1fr;
+  }
+}
+
+.panel {
+  border: 1px solid var(--xiv-gold);
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(47, 85, 146, 0.55), rgba(19, 33, 61, 0.92) 55%);
+  box-shadow:
+    0 0 0 1px rgba(91, 66, 20, 0.8),
+    0 10px 30px rgba(0, 0, 0, 0.45);
+  padding: 1rem;
+}
+
+h2 {
+  margin: -1rem -1rem 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--xiv-gold);
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(var(--xiv-blue-light), var(--xiv-blue));
+  font-family: Cinzel, Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--xiv-gold-light);
+}
+
+fieldset {
+  border: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  min-width: 0;
+}
+
+legend {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8fb8e8;
+  margin-bottom: 0.4rem;
+}
+
+.quick {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.quick button {
+  padding: 0.1rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid var(--xiv-gold);
+  background: var(--xiv-blue);
+  color: var(--xiv-gold-light);
+  font-size: 0.8rem;
+}
+
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checks label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.checks label:hover {
+  background: rgba(92, 200, 255, 0.1);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--xiv-gold);
+  width: 1rem;
+  height: 1rem;
+}
+
+.roulettes fieldset {
+  margin: 0;
+}
+
+.roulette-groups {
+  display: grid;
+  gap: 0.5rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 576px) {
+  .roulette-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+h3 {
+  margin: 0.4rem 0 0.2rem;
+  font-family: Cinzel, Georgia, serif;
+  font-size: 0.85rem;
+  color: var(--xiv-gold-light);
+}
+
+.levels {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.levels label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--xiv-muted);
+}
+
+.levels input {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--xiv-gold);
+  background: var(--xiv-night);
+  color: var(--xiv-text);
+}
+
+.warning {
+  margin: 0;
+  color: #ffb4a8;
+  font-size: 0.85rem;
+}
+
+.wheels {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .wheels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.step {
+  position: relative;
+  padding-top: 1.25rem;
+}
+
+.step-number {
+  position: absolute;
+  top: -0.4rem;
+  left: 0;
+  z-index: 1;
+  font-family: Cinzel, Georgia, serif;
+  color: var(--xiv-gold);
+}
+
+.commence {
+  display: block;
+  margin: 1.75rem auto 0.5rem;
+  min-width: 220px;
+  padding: 0.75rem 2rem;
+  border-radius: 28px;
+  border: 2px solid var(--xiv-gold-light);
+  background: linear-gradient(#f1dca0, #c9a95c 60%, #9c7a35);
+  color: #1a1206;
+  font-family: Cinzel, Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 18px rgba(241, 220, 160, 0.45);
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.commence:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 26px rgba(241, 220, 160, 0.7);
+}
+
+.commence:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.commence:focus-visible,
+.quick button:focus-visible {
+  outline: 2px solid var(--xiv-aether);
+  outline-offset: 3px;
+}
+
+.status,
+.last {
+  min-height: 1.5em;
+  margin: 0;
+  text-align: center;
+  color: var(--xiv-muted);
+}
+
+.last strong {
+  color: var(--xiv-gold-light);
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-crystal {
+    animation: none;
+  }
+}

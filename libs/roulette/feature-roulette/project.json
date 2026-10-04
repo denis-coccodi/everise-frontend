@@ -1,0 +1,16 @@
+{
+  "name": "roulette-feature-roulette",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/roulette/feature-roulette/src",
+  "prefix": "cdt",
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/roulette/feature-roulette"
+      }
+    }
+  }
+}
