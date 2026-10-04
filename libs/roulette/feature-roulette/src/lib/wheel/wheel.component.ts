@@ -39,7 +39,7 @@ export class WheelComponent {
 
   readonly paths = computed(() => {
     const labels = this.segments();
-    const maxLength = labels.length <= 4 ? 24 : labels.length <= 8 ? 16 : 12;
+    const maxLength = labels.length <= 4 ? 24 : labels.length <= 8 ? 16 : 13;
     return wheelSegments(labels, RADIUS, maxLength);
   });
   readonly fontSize = computed(() => (this.segments().length <= 4 ? 10 : this.segments().length <= 8 ? 8.5 : 7));

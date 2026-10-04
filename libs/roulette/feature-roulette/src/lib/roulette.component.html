@@ -29,15 +29,22 @@
               <button type="button" class="xiv-chip" (click)="setAllTypes(false)">None</button>
             </div>
             <ul class="checks">
-              @for (name of typeNames(); track name) {
+              @for (type of types(); track type.name) {
                 <li>
-                  <label class="xiv-check">
+                  <label class="xiv-check" [class.none-in-range]="type.count === 0">
                     <input
                       type="checkbox"
-                      [checked]="isTypeOn(name)"
-                      (change)="toggleType(name, $any($event.target).checked)"
+                      [checked]="isTypeOn(type.name)"
+                      (change)="toggleType(type.name, $any($event.target).checked)"
                     />
-                    {{ name }}
+                    <span class="type-name">{{ type.name }}</span>
+                    <span
+                      class="count"
+                      [attr.title]="
+                        type.count === 0 ? 'No duties within the level limits' : type.count + ' within the level limits'
+                      "
+                      >{{ type.count }}</span
+                    >
                   </label>
                 </li>
               }
@@ -109,39 +116,40 @@
           }
         </section>
 
-        @if (isTypeOn(roulettesType)) {
-          <section class="xiv-panel roulettes" aria-labelledby="roulettes-title">
-            <h2 id="roulettes-title" class="xiv-title-bar">Duty Roulettes</h2>
-            <fieldset [disabled]="spinning()">
-              <legend class="xiv-label">Roulettes the first wheel's "Duty Roulettes" can land on</legend>
-              <div class="quick">
-                <button type="button" class="xiv-chip" (click)="setAllRoulettes(true)">All</button>
-                <button type="button" class="xiv-chip" (click)="setAllRoulettes(false)">None</button>
-              </div>
-              <div class="roulette-groups">
-                @for (group of rouletteGroups(); track group.name) {
-                  <div>
-                    <h3 class="xiv-heading">{{ group.name }}</h3>
-                    <ul class="checks">
-                      @for (roulette of group.roulettes; track roulette.id) {
-                        <li>
-                          <label class="xiv-check">
-                            <input
-                              type="checkbox"
-                              [checked]="isRouletteOn(roulette.id)"
-                              (change)="toggleRoulette(roulette.id, $any($event.target).checked)"
-                            />
-                            {{ roulette.name }}
-                          </label>
-                        </li>
-                      }
-                    </ul>
-                  </div>
-                }
-              </div>
-            </fieldset>
-          </section>
-        }
+        <!-- One list per ticked type whose entries are picked one by one. -->
+        <div class="picks">
+          @for (panel of pickPanels(); track panel.type) {
+            <section class="xiv-panel" [attr.aria-label]="panel.type">
+              <h2 class="xiv-title-bar">{{ panel.type }}</h2>
+              <fieldset [disabled]="spinning()">
+                <legend class="xiv-label">{{ panel.legend }}</legend>
+                <div class="quick">
+                  <button type="button" class="xiv-chip" (click)="setAllPicks(panel.type, true)">All</button>
+                  <button type="button" class="xiv-chip" (click)="setAllPicks(panel.type, false)">None</button>
+                </div>
+                <ul class="checks pick-list">
+                  @for (option of panel.options; track option.key) {
+                    <li>
+                      <label class="xiv-check">
+                        <input
+                          type="checkbox"
+                          [checked]="isPicked(panel.type, option.key)"
+                          (change)="togglePick(panel.type, option.key, $any($event.target).checked)"
+                        />
+                        <span>
+                          {{ option.name }}
+                          @if (option.detail.startsWith('Today:')) {
+                            <small class="today">{{ option.detail }}</small>
+                          }
+                        </span>
+                      </label>
+                    </li>
+                  }
+                </ul>
+              </fieldset>
+            </section>
+          }
+        </div>
       </div>
     }
   }
