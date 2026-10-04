@@ -24,6 +24,7 @@ import {
   eligibleTypes,
   pickIndex,
   pickOptions,
+  possibleModes,
   runModes,
   shortTypeName,
   spreadSample,
@@ -35,7 +36,6 @@ import { WheelComponent, wait } from './wheel/wheel.component';
 import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
 
 const SETTINGS_KEY = 'everise-roulette-settings';
-const ALL_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
 const PAUSE_BETWEEN_WHEELS_MS = 600;
 // Most outcomes the idle reel previews.
 const REEL_PREVIEW_MAX = 60;
@@ -79,7 +79,9 @@ export class RouletteComponent {
 
   readonly spinning = signal(false);
   readonly status = signal('');
-  readonly modes = signal<string[]>(ALL_MODES);
+  // The third wheel: the winning duty's party settings after a spin, until
+  // the selection changes; before that, every setting the allowed duties offer.
+  private readonly spunModes = signal<RunMode[] | null>(null);
   readonly result = signal<RouletteResult | null>(null);
   readonly showResult = signal(false);
 
@@ -108,6 +110,7 @@ export class RouletteComponent {
   );
 
   readonly options = computed(() => eligibleTypes(this.groups(), this.pickable(), this.settings()));
+  readonly modes = computed(() => this.spunModes() ?? possibleModes(this.options()));
   // What the reel shows before a spin: the possible outcomes of the allowed
   // types, in their order, sampled across all of them when there are many.
   readonly reelPreview = computed(() =>
@@ -204,7 +207,7 @@ export class RouletteComponent {
 
       this.status.set(`${candidateName(candidate)}: choosing the party settings…`);
       const modes = runModes(candidate);
-      this.modes.set(modes);
+      this.spunModes.set(modes);
       this.cdr.detectChanges();
       const modeIndex = pickIndex(modes.length);
       await this.modeWheel().spinTo(modeIndex);
@@ -231,6 +234,7 @@ export class RouletteComponent {
   private updateSettings(change: (s: RouletteSettings) => RouletteSettings) {
     const settings = change(this.settings());
     this.settings.set(settings);
+    this.spunModes.set(null);
     saveSettings(settings);
   }
 }

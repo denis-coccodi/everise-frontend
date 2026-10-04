@@ -228,3 +228,14 @@ export function spreadSample<T>(items: T[], max: number): T[] {
   if (items.length <= max) return items;
   return Array.from({ length: max }, (_, i) => items[Math.floor((i * items.length) / max)]);
 }
+
+// Every party setting, in the order the third wheel lists them.
+export const ALL_RUN_MODES: RunMode[] = ['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular'];
+
+// The party settings the allowed duties could land on: what the third wheel
+// shows before a spin. All of them when nothing is allowed yet.
+export function possibleModes(options: TypeOption[]): RunMode[] {
+  if (options.length === 0) return ALL_RUN_MODES;
+  const possible = new Set(options.flatMap((o) => o.candidates.flatMap(runModes)));
+  return ALL_RUN_MODES.filter((mode) => possible.has(mode));
+}

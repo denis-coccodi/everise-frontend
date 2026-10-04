@@ -9,6 +9,7 @@ import {
   eligibleTypes,
   pickIndex,
   pickOptions,
+  possibleModes,
   runModes,
   shortTypeName,
   spreadSample,
@@ -229,6 +230,25 @@ describe('upgradeSettings', () => {
   it('falls back to the defaults for missing or broken settings', () => {
     expect(upgradeSettings(null, defaultSettings(options))).toEqual(defaultSettings(options));
     expect(upgradeSettings('x', defaultSettings(options))).toEqual(defaultSettings(options));
+  });
+});
+
+describe('possibleModes', () => {
+  const modesFor = (types: string[]) => possibleModes(eligibleTypes(groups, options, settings({ types })));
+
+  it('offers only the party settings the allowed duties have', () => {
+    // Treasure dungeons aren't queued through a finder: a regular run only.
+    expect(modesFor(['Treasure Hunt'])).toEqual(['Regular']);
+    // Duty roulettes allow Join Party in Progress.
+    expect(modesFor([ROULETTES_TYPE])).toEqual(['Join Party in Progress', 'Regular']);
+  });
+
+  it('combines the settings of every allowed type, in the wheel order', () => {
+    expect(modesFor(['Treasure Hunt', ROULETTES_TYPE])).toEqual(['Join Party in Progress', 'Regular']);
+  });
+
+  it('shows every setting while nothing is allowed', () => {
+    expect(modesFor([])).toEqual(['Min IL + Silence Echo', 'Unsynced', 'Join Party in Progress', 'Regular']);
   });
 });
 
