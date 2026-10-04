@@ -127,12 +127,12 @@ export class RouletteComponent {
   readonly modes = computed(() => this.spunModes() ?? possibleModes(this.options(), this.canDeal()));
 
   // What each reel shows before a spin: everything it can land on.
-  readonly typePreview = computed(() => this.options().map((o) => typeItem(o.name, o.candidates.length)));
+  readonly typePreview = computed(() => this.options().map((o) => this.typeItem(o.name, o.candidates.length)));
   // The duties of the allowed types, in their order, sampled across all of
   // them when there are many.
   readonly dutyPreview = computed(() =>
     spreadSample(
-      this.options().flatMap((o) => o.candidates.map((c) => this.reelItem(c))),
+      this.options().flatMap((o) => o.candidates.map((c) => this.reelItem(c, o.name))),
       REEL_PREVIEW_MAX,
     ),
   );
@@ -194,8 +194,22 @@ export class RouletteComponent {
     this.updateSettings((s) => ({ ...s, [which]: Number.isNaN(level) ? null : level }));
   }
 
-  private reelItem(candidate: Candidate): ReelItem {
-    return { title: candidateName(candidate), detail: candidateDetail(candidate, this.frontlineMap()) };
+  // A duty type on the first reel, with its icon and how many duties it can
+  // land on.
+  private typeItem(name: string, count: number): ReelItem {
+    return { title: name, detail: `${count} to pick from`, thumb: this.typeIcons().get(name) };
+  }
+
+  // A duty on the second reel, with its type's icon: the rows share a few
+  // small images. `winner` adds the duty's banner, so a spin loads one.
+  private reelItem(candidate: Candidate, type: string, winner = false): ReelItem {
+    const banner = candidate.kind === 'duty' ? candidate.duty.image : candidate.roulette.image;
+    return {
+      title: candidateName(candidate),
+      detail: candidateDetail(candidate, this.frontlineMap()),
+      thumb: this.typeIcons().get(type),
+      backdrop: winner ? this.dutiesService.imageUrl(banner) : undefined,
+    };
   }
 
   // Spins the three reels one after the other, then shows the result.
@@ -205,7 +219,6 @@ export class RouletteComponent {
     const options = this.options();
     const frontlineMap = this.frontlineMap();
     const jobs = this.dealable();
-    const reelItem = (c: Candidate) => this.reelItem(c);
     this.spinning.set(true);
     this.showResult.set(false);
     this.result.set(null);
@@ -213,12 +226,15 @@ export class RouletteComponent {
     try {
       this.status.set('Choosing a duty type…');
       const type = options[pickIndex(options.length)];
-      await this.typeReel().spinTo(this.typePreview(), typeItem(type.name, type.candidates.length));
+      await this.typeReel().spinTo(this.typePreview(), this.typeItem(type.name, type.candidates.length));
       await wait(PAUSE_BETWEEN_REELS_MS);
 
       this.status.set(`${type.name}: choosing a duty…`);
       const candidate = type.candidates[pickIndex(type.candidates.length)];
-      await this.dutyReel().spinTo(type.candidates.map(reelItem), reelItem(candidate));
+      await this.dutyReel().spinTo(
+        type.candidates.map((c) => this.reelItem(c, type.name)),
+        this.reelItem(candidate, type.name, true),
+      );
       await wait(PAUSE_BETWEEN_REELS_MS);
 
       this.status.set(`${candidateName(candidate)}: choosing the party settings…`);
@@ -296,11 +312,6 @@ export class RouletteComponent {
     this.spunModes.set(null);
     saveSettings(settings);
   }
-}
-
-// A duty type on the first reel, with how many duties it can land on.
-function typeItem(name: string, count: number): ReelItem {
-  return { title: name, detail: `${count} to pick from` };
 }
 
 // A party setting on the third reel, with what it means.

@@ -32,7 +32,7 @@ describe('RouletteComponent', () => {
   // The titles on a reel (0: type, 1: duty, 2: party settings).
   function reelTitles(reel: number) {
     const reels = (fixture.nativeElement as HTMLElement).querySelectorAll('cdt-roulette-reel');
-    return [...new Set([...reels[reel].querySelectorAll('.row .title')].map((t) => t.textContent?.trim()))];
+    return [...new Set([...reels[reel].querySelectorAll('.slot .title')].map((t) => t.textContent?.trim()))];
   }
 
   async function load(jobs: 'ok' | 'missing' = 'ok') {

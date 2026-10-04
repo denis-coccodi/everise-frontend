@@ -23,7 +23,7 @@ describe('ReelComponent', () => {
   });
 
   const titles = () =>
-    [...(fixture.nativeElement as HTMLElement).querySelectorAll('.row .title')].map((t) => t.textContent?.trim());
+    [...(fixture.nativeElement as HTMLElement).querySelectorAll('.slot .title')].map((t) => t.textContent?.trim());
 
   it('shows the possible outcomes while idle, scrolling when there are several', async () => {
     expect(titles()).toEqual(['· · ·', '· · ·', '· · ·', '· · ·', '· · ·', '· · ·']);
@@ -50,7 +50,7 @@ describe('ReelComponent', () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.reel().mode()).toBe('landed');
-    expect((fixture.nativeElement as HTMLElement).querySelector('.row.winner .title')?.textContent?.trim()).toBe(
+    expect((fixture.nativeElement as HTMLElement).querySelector('.slot.winner .title')?.textContent?.trim()).toBe(
       'the Aurum Vale',
     );
 
@@ -75,9 +75,32 @@ describe('ReelComponent', () => {
     vi.useRealTimers();
     await fixture.whenStable();
 
-    const winner = (fixture.nativeElement as HTMLElement).querySelector('.row.winner');
+    const winner = (fixture.nativeElement as HTMLElement).querySelector('.slot.winner');
     expect(winner?.querySelector('.title')?.textContent?.trim()).toBe('Everyone on the same job:');
     expect(winner?.querySelector('.detail')?.textContent?.trim()).toBe('Viper');
     expect(winner?.querySelector('img.icon')?.getAttribute('src')).toBe('/api/images/62141');
+  });
+
+  it("shows thumbnails on every row, and only the winner's backdrop once it lands", async () => {
+    const reel = fixture.componentInstance.reel();
+    const duty = (title: string): ReelItem => ({ title, detail: '', thumb: '/api/images/61801' });
+    const winner: ReelItem = { ...duty('Sastasha'), backdrop: '/api/images/112001' };
+    const page = fixture.nativeElement as HTMLElement;
+
+    vi.useFakeTimers();
+    const spin = reel.spinTo([duty('Brayflox'), duty('the Aurum Vale')], winner, () => 0);
+    await vi.advanceTimersByTimeAsync(10);
+    // While spinning, no banner is loaded.
+    expect(page.querySelectorAll('img.backdrop')).toHaveLength(0);
+    await vi.runAllTimersAsync();
+    await spin;
+    vi.useRealTimers();
+    await fixture.whenStable();
+
+    expect(page.querySelectorAll('.slot img.thumb').length).toBe(page.querySelectorAll('.slot').length);
+    const backdrops = page.querySelectorAll<HTMLImageElement>('img.backdrop');
+    expect(backdrops).toHaveLength(1);
+    expect(backdrops[0].closest('.slot')?.classList).toContain('winner');
+    expect(backdrops[0].getAttribute('src')).toBe('/api/images/112001');
   });
 });
