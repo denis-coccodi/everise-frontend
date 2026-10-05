@@ -19,8 +19,13 @@ export interface StagingAccessResult {
   message: string;
 }
 
+// A page of members.
 export interface MembersResponse {
   users: Member[];
+  // How many members match the search, in all.
+  usersCount: number;
+  // Whether role changes reach the staging site's access list.
+  stagingAccessConnected: boolean;
 }
 
 export interface RoleChangeResponse {
