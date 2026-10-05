@@ -27,7 +27,7 @@
 - **Live feed.** New posts appear at the top of the global feed (or a tag's list) the moment they're posted, pushed by the backend over a WebSocket (`/api/live`), with a brief highlight and an announcement for screen readers.
 - **Duty Roulette** (`/roulette`). Three reels pick the duty type, the duty and how you run it (Min IL, Unsynced, Awktrail, everyone on one job…), from the real game data. **Commence** posts the result to the feeds as a duty card: with your comment when you're signed in, or by **Tataru** for guests.
 - **Profiles and settings.** Profile pictures picked in the browser, cropped to a square and shrunk to the backend's limits before uploading; bio, email, password; an account menu in the header.
-- **Final Fantasy XIV look.** Crystal motifs, deep-blue windows, Cinzel headings, in a dark mode (default) and a "Final Fantasy white" light mode.
+- **Final Fantasy XIV look.** Crystal motifs, deep-blue windows, Cinzel headings, in a dark mode (default) and a "Final Fantasy white" light mode. Members' choice is saved with their settings, so it follows them to every browser.
 - **Works offline** on the deployed sites: the feed is cached, and favourites made offline are synced when you're back.
 - **Accessible:** built to WCAG 2.2 AA ([Accessibility](#accessibility)).
 
@@ -92,7 +92,7 @@ Both images are generated: run `node tools/diagrams/frontend-structure.js docs/f
 The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, silver-white trim and Cinzel headings. It has two modes:
 
 - **dark (default):** near-black navy backdrop with crystal-teal highlights;
-- **light:** Final Fantasy white, with royal-blue highlights. Turn Settings → Dark Mode off to switch to it.
+- **light:** Final Fantasy white, with royal-blue highlights. Turn Settings → Appearance → Dark mode off and save to switch to it. The choice is saved with the account (`darkMode` on the backend's user) and copied to this browser, so pages start in the right mode; guests' choice stays in the browser.
 
 **Only the theme is global.** The UI library ([`libs/ui/components`](libs/ui/components), imported as `@realworld/ui/components`) defines it in [`src/theme`](libs/ui/components/src/theme), and [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss) only loads it:
 

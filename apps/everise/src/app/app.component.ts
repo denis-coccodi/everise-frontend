@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  effect,
+  inject,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { SettingsStore } from '@realworld/settings/data-access';
@@ -27,6 +36,14 @@ export class AppComponent {
 
   constructor() {
     this.authStore.getUser();
+
+    // A signed-in user's saved colour mode wins over this browser's copy.
+    effect(() => {
+      const darkMode = this.authStore.user().darkMode;
+      if (this.authStore.loggedIn() && darkMode !== undefined) {
+        untracked(() => this.settingsStore.setDarkMode(darkMode));
+      }
+    });
     window.addEventListener('online', () => {
       navigator.serviceWorker.controller?.postMessage('sync-favorites');
     });

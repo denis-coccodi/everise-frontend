@@ -47,3 +47,22 @@
   font-size: 0.9rem;
   color: var(--color-danger);
 }
+
+// Appearance: a group in the form, labelled like the fields above it.
+.appearance {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.appearance .hint {
+  margin-top: 0.25rem;
+}

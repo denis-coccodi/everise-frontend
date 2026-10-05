@@ -117,7 +117,7 @@
 <text x="1490" y="532" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Settings</text>
 <text x="1040" y="557" font-size="12.5" font-weight="400" fill="#334155">•  Profile picture: choose, crop to a square, upload</text>
 <text x="1040" y="576" font-size="12.5" font-weight="400" fill="#334155">•  Username, bio, email, new password</text>
-<text x="1040" y="595" font-size="12.5" font-weight="400" fill="#334155">•  Dark mode toggle (saved in this browser)</text>
+<text x="1040" y="595" font-size="12.5" font-weight="400" fill="#334155">•  Appearance: dark mode, saved with the account</text>
 <text x="1040" y="616" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
 <text x="1040" y="635" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Update settings </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
 <rect x="1026" y="696" width="478" height="288" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.8"/>

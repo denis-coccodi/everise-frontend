@@ -3,7 +3,8 @@
   display: block;
 }
 
-.row {
+// Not ".row": the theme's layout grid styles that class globally.
+.check {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -12,7 +13,7 @@
   cursor: pointer;
 }
 
-.row:hover {
+.check:hover {
   background: var(--color-hover);
 }
 

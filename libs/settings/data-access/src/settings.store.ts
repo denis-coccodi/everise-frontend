@@ -3,8 +3,11 @@ import { patchState, signalStore, withHooks, withMethods, withState } from '@ngr
 import { SettingsState, settingsInitialState } from './models/settings.model';
 
 // The theme is dark by default; Dark Mode off switches to the light theme
-// (body.light in apps/everise/src/styles.scss). Only an explicit "false" in
-// storage turns it off.
+// (body.light, see the theme's tokens). A signed-in user's choice is saved
+// with their settings on the backend, and the app applies it when the user
+// loads (app.component.ts). This browser keeps a copy, so the page starts in
+// the right mode before the user has loaded, and guests keep their choice
+// here. Only an explicit "false" in storage means light.
 const DARK_MODE_KEY = 'darkMode';
 
 function storedDarkMode(): boolean {
@@ -19,15 +22,12 @@ export const SettingsStore = signalStore(
   { providedIn: 'root' },
   withState<SettingsState>(settingsInitialState),
   withMethods((store) => ({
-    _darkModeStatusInit: () => {
-      patchState(store, { darkMode: storedDarkMode() });
-    },
-    toggleDarkModeStatus: () => {
-      const darkMode = !store.darkMode();
+    // Shows the site in this mode and remembers it in this browser.
+    setDarkMode: (darkMode: boolean) => {
       try {
         localStorage.setItem(DARK_MODE_KEY, String(darkMode));
       } catch {
-        // Not remembered; the toggle still applies to this visit.
+        // Not remembered; the mode still applies to this visit.
       }
       patchState(store, { darkMode });
     },
@@ -35,7 +35,7 @@ export const SettingsStore = signalStore(
   withHooks({
     onInit: (store) => {
       const document = inject(DOCUMENT);
-      store._darkModeStatusInit();
+      patchState(store, { darkMode: storedDarkMode() });
 
       effect(() => {
         document.body.classList.toggle('light', !store.darkMode());

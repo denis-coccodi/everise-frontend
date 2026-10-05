@@ -5,6 +5,8 @@ export interface User {
   token?: string;
   bio: string;
   image: string;
+  // The site's colour mode, saved with the other settings (true: dark).
+  darkMode?: boolean;
 }
 
 export interface UserResponse {

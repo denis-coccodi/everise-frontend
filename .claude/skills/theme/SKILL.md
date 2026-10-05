@@ -23,7 +23,7 @@ Two modes, both defined only as role values:
 - **Dark (default):** near-black navy backdrop, deep-blue windows, silver-white trim, crystal-teal highlights, white headings.
 - **Light (`body.light`):** Final Fantasy white. White and silver windows, royal-blue highlights, ink-navy text.
 
-`SettingsStore` toggles the mode: Settings → Dark Mode is on by default, and off adds `body.light`. The choice is stored in `localStorage.darkMode`, where only `"false"` means light.
+`SettingsStore` sets the mode: Dark mode is on by default, and off adds `body.light`. Settings → Appearance saves it with the user (`darkMode` on the backend), the app applies a signed-in user's saved mode, and `localStorage.darkMode` keeps a copy for the next page load and for guests (only `"false"` means light).
 
 Colours chosen with the user, as palette entries:
 
