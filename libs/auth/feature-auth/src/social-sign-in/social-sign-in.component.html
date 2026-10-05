@@ -1,0 +1,14 @@
+@if (providers().length > 0) {
+  <ul class="providers">
+    @for (provider of providers(); track provider.id) {
+      <li>
+        <a cdtButton="outline-secondary" [href]="provider.href" [attr.data-testid]="'continue-with-' + provider.id">
+          <img [src]="provider.icon" alt="" width="20" height="20" />
+          Continue with {{ provider.name }}
+        </a>
+      </li>
+    }
+  </ul>
+  <p class="hint">One button does both: it signs you in, or makes your account if you're new.</p>
+  <p class="divider"><span>or with your email</span></p>
+}

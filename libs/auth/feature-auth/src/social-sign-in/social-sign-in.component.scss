@@ -1,0 +1,46 @@
+// Uses the theme's role tokens only (../../../../ui/components/src/theme).
+.providers {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+// The buttons fill the column, like the form's fields.
+.providers a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  white-space: normal;
+}
+
+.providers img {
+  flex: none;
+}
+
+.hint {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+  text-align: center;
+}
+
+// A line on each side of "or with your email".
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  color: var(--color-contrast-muted);
+  font-size: 0.9rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-top: var(--border-width) solid var(--color-divider);
+  }
+}
