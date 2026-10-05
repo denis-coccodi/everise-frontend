@@ -216,7 +216,7 @@ page({
   x: PX1,
   y: pub.y + 40,
   w: PW,
-  h: 236,
+  h: 256,
   c: 'home',
   path: '/home',
   title: 'Home',
@@ -226,6 +226,7 @@ page({
     'Previews with favorite ♥ and a pager',
     'Roulette results as duty cards, with the comment',
     "  or Tataru's remark for a guest's result",
+    'Live: new posts pushed over a WebSocket appear at the top',
     'Offline: cached feed, favorites synced when back online',
     { head: 'GOES TO' },
     {
@@ -238,9 +239,9 @@ page({
 });
 page({
   x: PX1,
-  y: pub.y + 288,
+  y: pub.y + 308,
   w: PW,
-  h: 396,
+  h: 376,
   c: 'roulette',
   path: '/roulette',
   title: 'Duty Roulette',

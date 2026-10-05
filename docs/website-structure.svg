@@ -47,7 +47,7 @@
 <text x="1026" y="324" font-size="11.5" font-weight="700" fill="#7c3aed">SIGNED IN ONLY — AuthGuard sends signed-out visitors to /login</text>
 <path d="M710,254 C710,284 515,270 515,298" fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#a-muted)"/>
 <path d="M850,254 C850,284 1265,270 1265,298" fill="none" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#a-auth)"/>
-<rect x="56" y="340" width="451" height="236" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.8"/>
+<rect x="56" y="340" width="451" height="256" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.8"/>
 <text x="70" y="364" font-size="14" font-weight="700" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/home</text>
 <text x="493" y="364" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Home</text>
 <text x="70" y="389" font-size="12.5" font-weight="400" fill="#334155">•  Tabs: Global Feed · Your Feed (signed in: followed authors)</text>
@@ -55,27 +55,28 @@
 <text x="70" y="427" font-size="12.5" font-weight="400" fill="#334155">•  Previews with favorite ♥ and a pager</text>
 <text x="70" y="446" font-size="12.5" font-weight="400" fill="#334155">•  Roulette results as duty cards, with the comment</text>
 <text x="87" y="465" font-size="12.5" font-weight="400" fill="#334155">or Tataru's remark for a guest's result</text>
-<text x="70" y="484" font-size="12.5" font-weight="400" fill="#334155">•  Offline: cached feed, favorites synced when back online</text>
-<text x="70" y="505" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
-<text x="70" y="524" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">article preview </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
-<text x="70" y="543" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">author </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
-<rect x="56" y="588" width="451" height="396" rx="10" fill="#ecfeff" stroke="#0e7490" stroke-width="1.8"/>
-<text x="70" y="612" font-size="14" font-weight="700" fill="#0e7490" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/roulette</text>
-<text x="493" y="612" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Duty Roulette</text>
-<text x="70" y="637" font-size="12.5" font-weight="400" fill="#334155">•  Three reels: duty type, duty, party settings</text>
-<text x="70" y="656" font-size="12.5" font-weight="400" fill="#334155">•  Duty Finder Settings: duty types, level range</text>
-<text x="70" y="675" font-size="12.5" font-weight="400" fill="#334155">•  Per-type lists to pick duties one by one</text>
-<text x="70" y="694" font-size="12.5" font-weight="400" fill="#334155">•  Commence spins; "Pause animations" stops the idle reels</text>
-<text x="70" y="713" font-size="12.5" font-weight="400" fill="#334155">•  "Duty Found" window: the result, its wiki guide</text>
-<text x="87" y="732" font-size="12.5" font-weight="400" fill="#334155">Commence posts it to the feeds</text>
-<text x="87" y="751" font-size="12.5" font-weight="400" fill="#334155">signed in: with an optional comment</text>
-<text x="87" y="770" font-size="12.5" font-weight="400" fill="#334155">guest: Tataru posts it for them</text>
-<text x="87" y="789" font-size="12.5" font-weight="400" fill="#334155">Withdraw spins again</text>
-<text x="70" y="808" font-size="12.5" font-weight="400" fill="#334155">•  Game data (duties, roulettes, jobs, images) comes</text>
-<text x="87" y="827" font-size="12.5" font-weight="400" fill="#334155">from the backend, which caches it from XIVAPI</text>
-<text x="70" y="848" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
-<text x="70" y="867" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">"See it in the feed" </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
-<text x="70" y="886" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Wiki guide </tspan><tspan fill="#64748b" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">community wiki (new tab)</tspan></text>
+<text x="70" y="484" font-size="12.5" font-weight="400" fill="#334155">•  Live: new posts pushed over a WebSocket appear at the top</text>
+<text x="70" y="503" font-size="12.5" font-weight="400" fill="#334155">•  Offline: cached feed, favorites synced when back online</text>
+<text x="70" y="524" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="70" y="543" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">article preview </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
+<text x="70" y="562" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">author </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
+<rect x="56" y="608" width="451" height="376" rx="10" fill="#ecfeff" stroke="#0e7490" stroke-width="1.8"/>
+<text x="70" y="632" font-size="14" font-weight="700" fill="#0e7490" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/roulette</text>
+<text x="493" y="632" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Duty Roulette</text>
+<text x="70" y="657" font-size="12.5" font-weight="400" fill="#334155">•  Three reels: duty type, duty, party settings</text>
+<text x="70" y="676" font-size="12.5" font-weight="400" fill="#334155">•  Duty Finder Settings: duty types, level range</text>
+<text x="70" y="695" font-size="12.5" font-weight="400" fill="#334155">•  Per-type lists to pick duties one by one</text>
+<text x="70" y="714" font-size="12.5" font-weight="400" fill="#334155">•  Commence spins; "Pause animations" stops the idle reels</text>
+<text x="70" y="733" font-size="12.5" font-weight="400" fill="#334155">•  "Duty Found" window: the result, its wiki guide</text>
+<text x="87" y="752" font-size="12.5" font-weight="400" fill="#334155">Commence posts it to the feeds</text>
+<text x="87" y="771" font-size="12.5" font-weight="400" fill="#334155">signed in: with an optional comment</text>
+<text x="87" y="790" font-size="12.5" font-weight="400" fill="#334155">guest: Tataru posts it for them</text>
+<text x="87" y="809" font-size="12.5" font-weight="400" fill="#334155">Withdraw spins again</text>
+<text x="70" y="828" font-size="12.5" font-weight="400" fill="#334155">•  Game data (duties, roulettes, jobs, images) comes</text>
+<text x="87" y="847" font-size="12.5" font-weight="400" fill="#334155">from the backend, which caches it from XIVAPI</text>
+<text x="70" y="868" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="70" y="887" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">"See it in the feed" </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
+<text x="70" y="906" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Wiki guide </tspan><tspan fill="#64748b" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">community wiki (new tab)</tspan></text>
 <rect x="523" y="340" width="451" height="270" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
 <text x="537" y="364" font-size="14" font-weight="700" fill="#2563eb" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/article/:slug</text>
 <text x="960" y="364" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Article</text>

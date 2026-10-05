@@ -24,6 +24,7 @@
 ## What's inside
 
 - **Feeds.** A public global feed, "Your Feed" of the people you follow, tag filters and paging. Anyone can read; members post, comment, favourite and follow.
+- **Live feed.** New posts appear at the top of the global feed (or a tag's list) the moment they're posted, pushed by the backend over a WebSocket (`/api/live`), with a brief highlight and an announcement for screen readers.
 - **Duty Roulette** (`/roulette`). Three reels pick the duty type, the duty and how you run it (Min IL, Unsynced, Awktrail, everyone on one job…), from the real game data. **Commence** posts the result to the feeds as a duty card: with your comment when you're signed in, or by **Tataru** for guests.
 - **Profiles and settings.** Profile pictures picked in the browser, cropped to a square and shrunk to the backend's limits before uploading; bio, email, password; an account menu in the header.
 - **Final Fantasy XIV look.** Crystal motifs, deep-blue windows, Cinzel headings, in a dark mode (default) and a "Final Fantasy white" light mode.
