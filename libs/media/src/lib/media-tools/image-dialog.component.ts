@@ -59,7 +59,7 @@ export class ImageDialogComponent {
   private readonly searches = new Subject<string>();
 
   protected readonly canAdd = computed(() => {
-    if (this.busy() || !this.description().trim()) return false;
+    if (this.busy()) return false;
     return this.mode() === 'upload' ? !!this.file() : this.mode() === 'link' && this.linkValid();
   });
 

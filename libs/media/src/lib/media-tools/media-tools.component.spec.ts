@@ -88,6 +88,23 @@ describe('MediaToolsComponent', () => {
     expect(area.value).toBe('![A cat](https://example.com/cat.gif)\n');
   });
 
+  it('adds an image without a description too', async () => {
+    const { fixture, page, area, http } = await render('', 0);
+    button(page, 'Image or GIF').click();
+    await fixture.whenStable();
+    http.expectOne('/api/gifs/available').flush({ available: false });
+    button(page, 'Link').click();
+    await fixture.whenStable();
+    type(page.querySelector('#media-link') as HTMLInputElement, 'https://example.com/cat.gif');
+    await fixture.whenStable();
+
+    expect(button(page, 'Add image').disabled).toBe(false);
+    button(page, 'Add image').click();
+    await fixture.whenStable();
+
+    expect(area.value).toBe('![](https://example.com/cat.gif)\n');
+  });
+
   it('uploads a file and puts its address in', async () => {
     const { fixture, page, area, http } = await render('', 0);
     button(page, 'Image or GIF').click();

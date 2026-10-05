@@ -13,6 +13,9 @@
 // Only /api/* and /article/* reach this script (assets.run_worker_first); the
 // ASSETS branch below is a fallback in case that routing changes.
 
+// Finds YouTube videos by the same rules the site uses to show them.
+import { splitRichText } from '../libs/media/src/lib/rich-text/rich-text';
+
 interface Fetcher {
   fetch(request: Request): Promise<Response>;
 }
@@ -97,10 +100,12 @@ function cardOf(article: Article, origin: string): string {
   const description = roulette
     ? `${roulette.type}: ${roulette.name}${roulette.detail ? ` · ${roulette.detail}` : ''}. ${article.description}`
     : article.description;
-  // The roulette's duty banner, else the post's first image, else the crest.
-  const picture = roulette?.image
-    ? `${origin}/api/images/${roulette.image}`
-    : /!\[[^\]]*\]\((https:\/\/[^)\s]+)\)/.exec(article.body)?.[1] ?? null;
+  // The roulette's duty banner, else the post's first image, else its first
+  // YouTube video's thumbnail, else the crest.
+  const firstImage = /!\[[^\]]*\]\((https:\/\/[^)\s]+)\)/.exec(article.body)?.[1];
+  const video = splitRichText(article.body).find((part) => part.kind === 'youtube');
+  const thumbnail = video?.kind === 'youtube' ? `https://i.ytimg.com/vi/${video.video.id}/hqdefault.jpg` : undefined;
+  const picture = roulette?.image ? `${origin}/api/images/${roulette.image}` : firstImage ?? thumbnail ?? null;
   const tags: [string, string, string][] = [
     ['name', 'description', description],
     ['property', 'og:site_name', 'Everise'],
