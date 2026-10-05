@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, effect, signal, untracked }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
 import { LiveUpdates } from '@realworld/core/http-client';
-import { BannerComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
+import { BannerComponent, CommunityLinksComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
 import { TagsListComponent } from './tags-list/tags-list.component';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
 import { HomeStore } from './home.store';
@@ -13,7 +13,14 @@ import { AuthStore } from '@realworld/auth/data-access';
   selector: 'cdt-home',
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  imports: [BannerComponent, TabsComponent, TabComponent, TagsListComponent, ArticleListComponent],
+  imports: [
+    BannerComponent,
+    CommunityLinksComponent,
+    TabsComponent,
+    TabComponent,
+    TagsListComponent,
+    ArticleListComponent,
+  ],
   providers: [HomeStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

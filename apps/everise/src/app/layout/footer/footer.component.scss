@@ -27,6 +27,13 @@ footer {
   border-radius: var(--radius-sm);
 }
 
-.privacy {
+// Name on the left; Discord, Lodestone and the privacy policy on the right,
+// wrapping under it on narrow screens.
+.container {
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+.community {
   margin-left: auto;
 }
