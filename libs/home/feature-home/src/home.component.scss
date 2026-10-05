@@ -1,11 +1,23 @@
 // Uses the theme's role tokens only.
+// The free company's crest beside the name.
 cdt-banner h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 1rem;
   margin-bottom: 0;
   padding-bottom: 0.5rem;
   text-align: center;
   font-size: 3.5rem;
   line-height: 1.1;
   text-shadow: var(--glow-heading);
+}
+
+.crest {
+  flex: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
 }
 
 cdt-banner p {
