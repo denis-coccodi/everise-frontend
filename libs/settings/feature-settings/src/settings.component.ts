@@ -19,6 +19,7 @@ import { AdminMembersComponent } from './admin-members/admin-members.component';
 import { AdminTataruComponent } from './admin-tataru/admin-tataru.component';
 import { PictureCropDialogComponent } from './picture-crop-dialog/picture-crop-dialog.component';
 import { PICTURE_HINT, checkChosenFile } from './profile-picture';
+import { SignInMethodsComponent } from './sign-in-methods/sign-in-methods.component';
 
 @Component({
   selector: 'cdt-settings',
@@ -35,6 +36,7 @@ import { PICTURE_HINT, checkChosenFile } from './profile-picture';
     ReactiveFormsModule,
     InputErrorsComponent,
     PictureCropDialogComponent,
+    SignInMethodsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

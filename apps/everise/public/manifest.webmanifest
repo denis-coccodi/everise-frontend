@@ -4,5 +4,11 @@
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
-  "icons": []
+  "icons": [
+    {
+      "src": "assets/images/everise-crest.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
 }
