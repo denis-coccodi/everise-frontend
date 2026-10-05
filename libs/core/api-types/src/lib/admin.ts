@@ -33,6 +33,13 @@ export interface RoleChangeResponse {
   stagingAccess: StagingAccessResult;
 }
 
+// A member deleted for good, with how many of their own posts and comments
+// went with them; stagingAccess is there when they were a staging tester.
+export interface MemberDeletedResponse {
+  deleted: { username: string; articles: number; comments: number };
+  stagingAccess?: StagingAccessResult;
+}
+
 export interface StagingAccessResponse {
   stagingAccess: StagingAccessResult;
 }
