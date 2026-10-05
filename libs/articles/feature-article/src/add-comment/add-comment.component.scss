@@ -32,3 +32,9 @@ button {
   margin-left: auto;
   font-weight: 700;
 }
+
+// Image, GIF and video tools, between the text and the footer.
+.media-tools {
+  padding: 0.5rem 1.25rem;
+  border-top: var(--border-width) solid var(--color-divider);
+}

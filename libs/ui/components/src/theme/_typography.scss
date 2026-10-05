@@ -101,3 +101,29 @@
 .xiv-prose ol ol ol {
   list-style: lower-roman;
 }
+
+/* Images and GIFs in posts and comments: never wider than the text. */
+.xiv-prose img {
+  display: block;
+  max-width: 100%;
+  max-height: 32rem;
+  height: auto;
+  margin: 0 0 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+/* Comments: the same content, at the size of the rest of the card. */
+.xiv-prose.compact p {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.xiv-prose.compact img {
+  max-height: 20rem;
+  margin-bottom: 0.75rem;
+}
+
+.xiv-prose.compact > :last-child > :last-child {
+  margin-bottom: 0;
+}

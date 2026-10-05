@@ -2,6 +2,7 @@ import { Article, User } from '@realworld/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MediaToolsComponent } from '@realworld/media';
 import { ButtonComponent, CardComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
 
 @Component({
@@ -16,6 +17,7 @@ import { ButtonComponent, CardComponent, FieldComponent, InputComponent } from '
     ListErrorsComponent,
     ReactiveFormsModule,
     InputErrorsComponent,
+    MediaToolsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -29,4 +31,10 @@ export class AddCommentComponent {
   form = this.fb.nonNullable.group({
     comment: [''],
   });
+
+  // Posts the comment and empties the box for the next one.
+  protected submit() {
+    this.submitComment.emit(this.form.controls.comment.value);
+    this.form.reset();
+  }
 }

@@ -1,0 +1,16 @@
+{
+  "name": "media",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/media/src",
+  "prefix": "cdt",
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../coverage/libs/media"
+      }
+    }
+  }
+}

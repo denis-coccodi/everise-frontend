@@ -1,6 +1,6 @@
 <cdt-list-errors> </cdt-list-errors>
 
-<form [formGroup]="form" (ngSubmit)="submitComment.emit(form.controls.comment.value)">
+<form [formGroup]="form" (ngSubmit)="submit()">
   <cdt-card [flush]="true">
     <cdt-field label="Comment" for="new-comment" hideLabel required>
       <textarea
@@ -12,6 +12,7 @@
       ></textarea>
       <cdt-input-errors [control]="form.controls.comment" />
     </cdt-field>
+    <cdt-media-tools class="media-tools" for="new-comment" />
     <div cdtCardFooter class="footer">
       <img [src]="currentUser().image" class="avatar" alt="" />
       <button cdtButton size="sm" type="submit">Post Comment</button>

@@ -1,0 +1,24 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+.preview {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 16 / 9;
+  margin: 0.75rem 0 0;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--color-base-deep);
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

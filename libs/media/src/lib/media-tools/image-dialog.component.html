@@ -1,0 +1,111 @@
+<cdt-dialog heading="Add an image or GIF" (dismissed)="dismissed.emit()">
+  <ul cdtTabs class="modes">
+    <li>
+      <button type="button" cdtTab [active]="mode() === 'upload'" (click)="setMode('upload')">Upload</button>
+    </li>
+    <li>
+      <button type="button" cdtTab [active]="mode() === 'link'" (click)="setMode('link')">Link</button>
+    </li>
+    @if (gifsAvailable()) {
+      <li>
+        <button type="button" cdtTab [active]="mode() === 'gifs'" (click)="setMode('gifs')">GIFs</button>
+      </li>
+    }
+  </ul>
+
+  @switch (mode()) {
+    @case ('upload') {
+      <input
+        #fileInput
+        type="file"
+        class="file-input"
+        tabindex="-1"
+        aria-label="Image file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        (change)="chooseFile(fileInput)"
+      />
+      <button type="button" cdtButton="outline-primary" size="sm" (click)="fileInput.click()">
+        {{ file() ? 'Choose another file' : 'Choose a file' }}
+      </button>
+      <p class="hint">PNG, JPEG, WebP or GIF, up to {{ maxMb }} MB.</p>
+      @if (preview(); as preview) {
+        <img class="preview" [src]="preview" alt="" />
+      }
+    }
+    @case ('link') {
+      <cdt-field label="Image address" for="media-link" required>
+        <input
+          id="media-link"
+          type="url"
+          cdtInput
+          placeholder="https://…"
+          [value]="link()"
+          (input)="link.set($any($event.target).value)"
+        />
+      </cdt-field>
+      @if (linkValid()) {
+        <img class="preview" [src]="link().trim()" alt="" />
+      } @else if (link().trim()) {
+        <p class="hint">Paste the image's full address, starting with https://.</p>
+      }
+    }
+    @case ('gifs') {
+      <cdt-field label="Search GIFs" for="gif-search">
+        <input
+          id="gif-search"
+          type="search"
+          cdtInput
+          autocomplete="off"
+          placeholder="Moogle, Tonberry, victory…"
+          [value]="query()"
+          (input)="search($any($event.target).value)"
+        />
+      </cdt-field>
+      <p class="visually-hidden" role="status">
+        {{ searching() ? 'Searching…' : gifs().length + ' GIFs' }}
+      </p>
+      <ul class="gifs">
+        @for (gif of gifs(); track gif.id) {
+          <li>
+            <button type="button" class="gif" (click)="pickGif(gif)">
+              <img [src]="gif.previewUrl" [alt]="gif.title" loading="lazy" />
+            </button>
+          </li>
+        }
+      </ul>
+      @if (next() !== null) {
+        <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="searching()" (click)="moreGifs()">
+          More GIFs
+        </button>
+      }
+      <p class="attribution">Powered by GIPHY</p>
+    }
+  }
+
+  @if (mode() !== 'gifs') {
+    <cdt-field label="Description" for="media-description" required>
+      <input
+        id="media-description"
+        type="text"
+        cdtInput
+        maxlength="200"
+        [value]="description()"
+        (input)="description.set($any($event.target).value)"
+      />
+    </cdt-field>
+    <p class="hint">What the image shows, for people who can't see it.</p>
+  }
+
+  @if (error(); as error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+
+  <div class="actions">
+    @if (mode() !== 'gifs') {
+      <button type="button" cdtButton [disabled]="!canAdd()" (click)="add()">
+        {{ busy() ? 'Uploading…' : 'Add image' }}
+      </button>
+    }
+    <button type="button" cdtButton="secondary" (click)="dismissed.emit()">Cancel</button>
+  </div>
+</cdt-dialog>
