@@ -5,7 +5,7 @@ const fs = require('fs');
 const out = process.argv[2];
 
 const W = 1560,
-  H = 1056,
+  H = 1236,
   X0 = 40;
 const FONT = 'Segoe UI, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif';
 const MONO = 'Consolas, SFMono-Regular, Menlo, monospace';
@@ -16,6 +16,7 @@ const C = {
   home: '#059669',
   profile: '#c2410c',
   settings: '#be185d',
+  roulette: '#0e7490',
   app: '#0f766e',
   ink: '#1e293b',
   muted: '#64748b',
@@ -27,9 +28,10 @@ const T = {
   home: '#ecfdf5',
   profile: '#fff7ed',
   settings: '#fdf2f8',
+  roulette: '#ecfeff',
   app: '#f0fdfa',
 };
-const BRAND = '#5cb85c'; // brand green
+const BRAND = '#073a8c'; // royal blue, the site's title colour
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const svg = [];
 const add = (s) => svg.push(s);
@@ -91,16 +93,26 @@ function navbar(x, y, w, label, links) {
 }
 navbar(X0 + 30, 98, 640, 'NAVBAR · SIGNED OUT', [
   { t: 'Home', path: '/home', c: 'home', active: true },
+  { t: 'Roulette', path: '/roulette', c: 'roulette' },
   { t: 'Sign in', path: '/login', c: 'auth' },
   { t: 'Sign up', path: '/register', c: 'auth' },
 ]);
 navbar(X0 + 720, 98, 760, 'NAVBAR · SIGNED IN', [
   { t: 'Home', path: '/home', c: 'home', active: true },
-  { t: 'New Article', path: '/editor', c: 'articles' },
-  { t: 'Settings', path: '/settings', c: 'settings' },
-  { t: '◉ username', path: '/profile/:username', c: 'profile' },
+  { t: 'Roulette', path: '/roulette', c: 'roulette' },
+  { t: 'New Post', path: '/editor', c: 'articles' },
+  { t: '◉ username ▾', path: 'menu: profile · settings · sign out', c: 'profile' },
 ]);
-text(X0 + 30, 172, 'Footer on every page: everise logo → /', { size: 11.5, fill: C.muted, italic: true });
+text(X0 + 30, 172, 'Before the navbar: "Skip to main content" (first Tab).  Footer on every page: everise logo → /', {
+  size: 11.5,
+  fill: C.muted,
+  italic: true,
+});
+text(X0 + 720, 172, 'Account menu: Your profile /profile/:username · Settings /settings · Sign out → /login', {
+  size: 11.5,
+  fill: C.muted,
+  italic: true,
+});
 
 // --- Root
 const RX = 630,
@@ -120,14 +132,15 @@ text(RX + RW / 2, RY + 25, '/  → redirects to /home', {
 text(RX + RW / 2, RY + 46, 'unknown paths (**) → /home', { size: 12, anchor: 'middle', mono: true, fill: C.muted });
 
 // --- Groups
-const GY = 300;
+const GY = 300,
+  GH = 700;
 const groups = {
-  pub: { x: X0, y: GY, w: 470, h: 528, title: 'PUBLIC — anyone can open', col: C.muted },
+  pub: { x: X0, y: GY, w: 950, h: GH, title: 'PUBLIC — anyone can open', col: C.muted },
   auth: {
-    x: X0 + 500,
+    x: X0 + 970,
     y: GY,
-    w: W - X0 * 2 - 500,
-    h: 528,
+    w: W - X0 * 2 - 970,
+    h: GH,
     title: 'SIGNED IN ONLY — AuthGuard sends signed-out visitors to /login',
     col: C.auth,
   },
@@ -164,7 +177,11 @@ function page(p) {
   text(p.x + p.w - 14, p.y + 24, p.title, { size: 14, weight: 700, anchor: 'end' });
   let y = p.y + 30;
   for (const l of p.lines) {
-    if (typeof l === 'string') {
+    if (typeof l === 'string' && l.startsWith('  ')) {
+      // The previous point, continued.
+      y += 19;
+      text(p.x + 31, y, l.trim(), { size: 12.5, fill: '#334155' });
+    } else if (typeof l === 'string') {
       y += 19;
       text(p.x + 14, y, '•  ' + l, { size: 12.5, fill: '#334155' });
     } else if (l.to) {
@@ -192,53 +209,73 @@ function page(p) {
 }
 
 const pub = groups.pub,
-  PW = pub.w - 32;
+  PW = (pub.w - 48) / 2,
+  PX1 = pub.x + 16,
+  PX2 = pub.x + 32 + PW;
 page({
-  x: pub.x + 16,
+  x: PX1,
   y: pub.y + 40,
   w: PW,
-  h: 108,
-  c: 'auth',
-  path: '/login',
-  title: 'Sign in',
+  h: 236,
+  c: 'home',
+  path: '/home',
+  title: 'Home',
   lines: [
-    'Email + password form, server errors listed',
+    'Tabs: Global Feed · Your Feed (signed in: followed authors)',
+    'Popular tags sidebar: pick a tag to filter (tag tab)',
+    'Previews with favorite ♥ and a pager',
+    'Roulette results as duty cards, with the comment',
+    "  or Tataru's remark for a guest's result",
+    'Offline: cached feed, favorites synced when back online',
+    { head: 'GOES TO' },
     {
       to: [
-        ['signed in:', '/home', 'home'],
-        ['"Need an account?"', '/register', 'auth'],
+        ['article preview', '/article/:slug', 'articles'],
+        ['author', '/profile/:username', 'profile'],
       ],
     },
   ],
 });
 page({
-  x: pub.x + 16,
-  y: pub.y + 160,
+  x: PX1,
+  y: pub.y + 288,
   w: PW,
-  h: 108,
-  c: 'auth',
-  path: '/register',
-  title: 'Sign up',
+  h: 396,
+  c: 'roulette',
+  path: '/roulette',
+  title: 'Duty Roulette',
   lines: [
-    'Username, email, password form',
+    'Three reels: duty type, duty, party settings',
+    'Duty Finder Settings: duty types, level range',
+    'Per-type lists to pick duties one by one',
+    'Commence spins; "Pause animations" stops the idle reels',
+    '"Duty Found" window: the result, its wiki guide',
+    '  Commence posts it to the feeds',
+    '  signed in: with an optional comment',
+    '  guest: Tataru posts it for them',
+    '  Withdraw spins again',
+    'Game data (duties, roulettes, jobs, images) comes',
+    '  from the backend, which caches it from XIVAPI',
+    { head: 'GOES TO' },
     {
       to: [
-        ['registered and signed in:', '/home', 'home'],
-        ['"Have an account?"', '/login', 'auth'],
+        ['"See it in the feed"', '/article/:slug', 'articles'],
+        ['Wiki guide', 'community wiki (new tab)', 'muted'],
       ],
     },
   ],
 });
 page({
-  x: pub.x + 16,
-  y: pub.y + 280,
+  x: PX2,
+  y: pub.y + 40,
   w: PW,
-  h: 230,
+  h: 270,
   c: 'articles',
   path: '/article/:slug',
   title: 'Article',
   lines: [
     'Banner: title, author, date',
+    "A roulette result's duty card, then the comment",
     'Body rendered from Markdown, tag list',
     'Follow author, favorite ♥ (queued offline)',
     'Comments: add, delete your own',
@@ -253,69 +290,85 @@ page({
     },
   ],
 });
-
-const ag = groups.auth,
-  AW = (ag.w - 48) / 2,
-  AX1 = ag.x + 16,
-  AX2 = ag.x + 32 + AW;
 page({
-  x: AX1,
-  y: ag.y + 40,
-  w: AW,
-  h: 170,
-  c: 'home',
-  path: '/home',
-  title: 'Home',
+  x: PX2,
+  y: pub.y + 322,
+  w: PW,
+  h: 174,
+  c: 'auth',
+  path: '/login',
+  title: 'Sign in',
   lines: [
-    'Tabs: Your Feed (followed authors) · Global Feed',
-    'Popular tags sidebar: click a tag to filter (#tag tab)',
-    'Article previews with favorite ♥, pager',
-    'Offline: cached feed, favorites synced when back online',
-    { head: 'GOES TO' },
-    { to: [['article preview', '/article/:slug', 'articles']] },
+    'Email + password, labelled fields',
+    'Wrong details: the message, email kept',
+    {
+      to: [
+        ['signed in:', '/home', 'home'],
+        ['"Need an account?"', '/register', 'auth'],
+      ],
+    },
   ],
 });
 page({
-  x: AX2,
+  x: PX2,
+  y: pub.y + 508,
+  w: PW,
+  h: 176,
+  c: 'auth',
+  path: '/register',
+  title: 'Sign up',
+  lines: [
+    'Username, email, password (8+ characters)',
+    'A problem: the message, name and email kept',
+    {
+      to: [
+        ['registered and signed in:', '/home', 'home'],
+        ['"Have an account?"', '/login', 'auth'],
+      ],
+    },
+  ],
+});
+
+const ag = groups.auth,
+  AW = ag.w - 32,
+  AX = ag.x + 16;
+page({
+  x: AX,
   y: ag.y + 40,
   w: AW,
-  h: 170,
+  h: 156,
   c: 'articles',
   path: '/editor   /editor/:slug',
   title: 'Editor',
   lines: [
     'New article at /editor',
-    'Edit yours at /editor/:slug (a resolver loads it first)',
+    'Edit yours at /editor/:slug (a resolver loads it)',
     'Title, description, Markdown body, tags',
     { head: 'GOES TO' },
     { to: [['Publish', '/article/:slug', 'articles']] },
   ],
 });
 page({
-  x: AX1,
-  y: ag.y + 222,
+  x: AX,
+  y: ag.y + 208,
   w: AW,
-  h: 290,
+  h: 176,
   c: 'settings',
   path: '/settings',
   title: 'Settings',
   lines: [
-    'Picture URL, username, bio, email, new password',
+    'Profile picture: choose, crop to a square, upload',
+    'Username, bio, email, new password',
     'Dark mode toggle (saved in this browser)',
     { head: 'GOES TO' },
-    {
-      to: [
-        ['Update settings', '/profile/:username', 'profile'],
-        ['Logout', '/login', 'auth'],
-      ],
-    },
+    { to: [['Update settings', '/profile/:username', 'profile']] },
   ],
 });
 page({
-  x: AX2,
-  y: ag.y + 222,
+  x: AX,
+  y: ag.y + 396,
   w: AW,
-  h: 290,
+  h: 288,
   c: 'profile',
   path: '/profile/:username',
   title: 'Profile',
@@ -325,10 +378,10 @@ page({
     const tw = (p.w - 42) / 2,
       ty = y + 12;
     const tabs = [
-      ['My Articles', '/profile/:username', 'their articles'],
-      ['Favorited Articles', '/profile/:username/favorites', 'articles they ♥'],
+      ['My Articles', '/profile/:username'],
+      ['Favorited Articles', '…/favorites'],
     ];
-    tabs.forEach(([t, path, d], i) => {
+    tabs.forEach(([t, path], i) => {
       const tx = p.x + 14 + i * (tw + 14);
       add(
         `<rect x="${tx}" y="${ty}" width="${tw}" height="70" rx="8" fill="#ffffff" stroke="${C.profile}" stroke-width="1.3"/>`,
@@ -354,7 +407,7 @@ page({
         12.5,
       );
     }
-    text(p.x + 14, yy + 22, 'Article lists come from feature-articles-list (shared with Home)', {
+    text(p.x + 14, yy + 22, 'Lists come from feature-articles-list (shared with Home)', {
       size: 11.5,
       fill: C.muted,
       italic: true,
@@ -363,11 +416,11 @@ page({
 });
 
 // --- Global rules
-const RY2 = 852;
+const RY2 = GY + GH + 24;
 add(
   `<rect x="${X0}" y="${RY2}" width="${
     W - X0 * 2
-  }" height="178" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.4"/>`,
+  }" height="202" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.4"/>`,
 );
 text(X0 + 16, RY2 + 26, 'Site-wide rules', { size: 14, weight: 700 });
 const rules = [
@@ -400,6 +453,11 @@ const rules = [
   [
     ['Offline (offline-sw.js, staging/production): ', null],
     ['API GETs are cached and replayed offline; favorites made offline are queued and synced later.', null],
+  ],
+  [
+    ['Accessibility (WCAG 2.2 AA): every page has its own title and one ', null],
+    ['<main>', 'app'],
+    ['; a page change moves the focus to it; dialogs keep the focus inside.', null],
   ],
   [
     ['Pages are lazy-loaded per route; the URL of a deep link (e.g. ', null],
