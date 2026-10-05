@@ -13,7 +13,11 @@
   align-items: center;
 }
 
+// The free company's crest, then the name.
 .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   margin-right: 2rem;
   padding-bottom: 0.25rem;
   font-family: var(--font-display);
@@ -22,6 +26,11 @@
   letter-spacing: var(--letter-spacing-display);
   color: var(--color-heading);
   text-shadow: var(--glow-heading);
+}
+
+.crest {
+  flex: none;
+  border-radius: var(--radius-sm);
 }
 
 .navbar-brand:focus,
