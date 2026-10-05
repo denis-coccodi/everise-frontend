@@ -58,3 +58,18 @@
 .nav-link.active {
   color: var(--color-primary-strong);
 }
+
+// The account menu's button: the user's picture and name.
+.account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-avatar);
+}

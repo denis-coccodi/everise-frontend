@@ -36,20 +36,17 @@
             <i class="ion-compose"></i>&nbsp;New Post
           </a>
         </li>
+        <!-- The account menu: the user's own pages and signing out. -->
         <li class="nav-item">
-          <a class="nav-link" routerLink="/settings" routerLinkActive="active">
-            <i class="ion-gear-a"></i>&nbsp;Settings
-          </a>
-        </li>
-        <li class="nav-item">
-          <a
-            data-testid="loggedin-user"
-            class="nav-link"
-            [routerLink]="['/profile', user().username]"
-            routerLinkActive="active"
-          >
-            {{ user().username }}
-          </a>
+          <cdt-menu label="Account">
+            <span cdtMenuTrigger class="account" data-testid="loggedin-user">
+              <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
+              {{ user().username }}
+            </span>
+            <a cdtMenuItem [routerLink]="['/profile', user().username]">Your profile</a>
+            <a cdtMenuItem routerLink="/settings">Settings</a>
+            <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
+          </cdt-menu>
         </li>
       </ul>
     }

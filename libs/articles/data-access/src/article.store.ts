@@ -130,7 +130,7 @@ export const ArticleStore = signalStore(
             articlesService.addComment(store.data.slug(), addedComment).pipe(
               tapResponse({
                 next: ({ comment }) => patchState(store, { comments: [comment, ...store.comments()] }),
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
@@ -142,7 +142,7 @@ export const ArticleStore = signalStore(
             articlesService.publishArticle(article).pipe(
               tapResponse({
                 next: ({ article }) => router.navigate(['article', article.slug]),
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors({ errors: error.errors }),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
@@ -154,7 +154,7 @@ export const ArticleStore = signalStore(
             articlesService.editArticle(editArticle, slug).pipe(
               tapResponse({
                 next: ({ article }) => router.navigate(['article', article.slug]),
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),

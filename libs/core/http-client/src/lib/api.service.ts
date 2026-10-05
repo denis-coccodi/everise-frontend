@@ -17,9 +17,10 @@ export class ApiService {
     });
   }
 
-  post<T, D>(url: string, data?: D): Observable<T> {
+  post<T, D>(url: string, data?: D, context?: HttpContext): Observable<T> {
     return this.http.post<T>(`${this.api_url}${url}`, JSON.stringify(data), {
       headers: this.headers,
+      context,
       withCredentials: true,
     });
   }
@@ -27,6 +28,17 @@ export class ApiService {
   put<T, D>(url: string, data: D): Observable<T> {
     return this.http.put<T>(`${this.api_url}${url}`, JSON.stringify(data), {
       headers: this.headers,
+      withCredentials: true,
+    });
+  }
+
+  // Sends a file as the request body, with its own content type.
+  putFile<T>(url: string, file: Blob): Observable<T> {
+    return this.http.put<T>(`${this.api_url}${url}`, file, {
+      headers: new HttpHeaders({
+        'Content-Type': file.type || 'application/octet-stream',
+        Accept: 'application/json',
+      }),
       withCredentials: true,
     });
   }

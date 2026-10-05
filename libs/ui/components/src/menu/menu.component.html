@@ -1,0 +1,26 @@
+<button
+  #trigger
+  type="button"
+  class="trigger"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="open()"
+  [attr.aria-controls]="panelId"
+  (click)="toggle()"
+  (keydown.arrowdown)="openOn('first', $event)"
+  (keydown.arrowup)="openOn('last', $event)"
+>
+  <ng-content select="[cdtMenuTrigger]" />
+  <span class="caret" aria-hidden="true"></span>
+</button>
+<div
+  #panel
+  class="panel"
+  role="menu"
+  [id]="panelId"
+  [attr.aria-label]="label()"
+  [hidden]="!open()"
+  (keydown)="onPanelKeydown($event)"
+  (click)="onPanelClick($event)"
+>
+  <ng-content />
+</div>

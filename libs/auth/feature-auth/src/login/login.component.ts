@@ -24,12 +24,13 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.nonNullable.group({
-    email: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
   });
 
   onSubmit() {
     this.authStore.login(this.form.getRawValue());
-    this.form.reset();
+    // Keep the email, so a wrong password only needs the password again.
+    this.form.controls.password.reset();
   }
 }

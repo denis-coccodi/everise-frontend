@@ -23,8 +23,24 @@ export class AuthService {
     return this.apiService.put('/user', { user });
   }
 
+  // A 401 here means a wrong email or password: the page shows the message
+  // instead of the usual redirect to the sign-in page.
   login(credentials: LoginUser): Observable<UserResponse> {
-    return this.apiService.post<UserResponse, LoginUserRequest>('/users/login', { user: credentials });
+    return this.apiService.post<UserResponse, LoginUserRequest>(
+      '/users/login',
+      { user: credentials },
+      new HttpContext().set(SKIP_LOGIN_REDIRECT, true),
+    );
+  }
+
+  // Uploads a new profile picture; the response is the updated user.
+  uploadImage(file: Blob): Observable<UserResponse> {
+    return this.apiService.putFile<UserResponse>('/user/image', file);
+  }
+
+  // Goes back to the default profile picture.
+  removeImage(): Observable<UserResponse> {
+    return this.apiService.delete<UserResponse>('/user/image');
   }
 
   logout(): Observable<{ message: string }> {

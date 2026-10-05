@@ -3,11 +3,52 @@
     <div class="row">
       <div class="col-md-6 offset-md-3 col-xs-12">
         <h1 class="text-xs-center">Your Settings</h1>
+
+        <!-- The profile picture: chosen in the browser's file window and uploaded right away. -->
+        <section class="picture" aria-labelledby="picture-heading">
+          <img class="avatar" [src]="authStore.user().image" alt="Your profile picture" width="96" height="96" />
+          <div class="picture-controls">
+            <h2 id="picture-heading" class="xiv-label">Profile picture</h2>
+            <input
+              #pictureInput
+              type="file"
+              class="file-input"
+              tabindex="-1"
+              aria-label="Profile picture file"
+              [accept]="pictureTypes"
+              (change)="onPictureChosen(pictureInput)"
+            />
+            <div class="picture-buttons">
+              <button
+                type="button"
+                cdtButton="outline-primary"
+                size="sm"
+                [disabled]="authStore.imageBusy()"
+                (click)="pictureInput.click()"
+              >
+                {{ authStore.imageBusy() ? 'Saving…' : 'Choose a picture' }}
+              </button>
+              @if (hasOwnPicture()) {
+                <button
+                  type="button"
+                  cdtButton="outline-secondary"
+                  size="sm"
+                  [disabled]="authStore.imageBusy()"
+                  (click)="removePicture()"
+                >
+                  Remove
+                </button>
+              }
+            </div>
+            <p class="hint">{{ pictureHint }}</p>
+            @if (authStore.imageError(); as error) {
+              <p class="picture-error" role="alert">{{ error }}</p>
+            }
+          </div>
+        </section>
+
         <cdt-list-errors />
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <cdt-field>
-            <input formControlName="image" type="text" id="image" placeholder="URL of profile picture" cdtInput="lg" />
-          </cdt-field>
           <cdt-field required>
             <input formControlName="username" type="text" id="username" placeholder="Your Name" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.username" />
@@ -20,8 +61,15 @@
             <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
             <cdt-input-errors [control]="form.controls.email" />
           </cdt-field>
-          <cdt-field required>
-            <input formControlName="password" type="password" id="password" placeholder="New Password" cdtInput="lg" />
+          <cdt-field>
+            <input
+              formControlName="password"
+              type="password"
+              id="password"
+              placeholder="New password (leave empty to keep yours)"
+              autocomplete="new-password"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.password" />
           </cdt-field>
           <button
@@ -36,8 +84,6 @@
         </form>
         <hr />
         <h4><cdt-checkbox [checked]="darkMode" (checkedChange)="toggleDarkMode()">Dark Mode</cdt-checkbox></h4>
-        <hr />
-        <button cdtButton="outline-danger" (click)="logout()">Or click here to logout.</button>
       </div>
     </div>
   </div>
