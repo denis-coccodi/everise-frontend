@@ -83,7 +83,7 @@
   }
 
   @if (mode() !== 'gifs') {
-    <cdt-field label="Description" for="media-description" required>
+    <cdt-field label="Description (optional)" for="media-description">
       <input
         id="media-description"
         type="text"
@@ -93,7 +93,9 @@
         (input)="description.set($any($event.target).value)"
       />
     </cdt-field>
-    <p class="hint">What the image shows, for people who can't see it.</p>
+    <p class="hint">
+      What the image shows, for people who can't see it. Worth a few words when it matters to the post.
+    </p>
   }
 
   @if (error(); as error) {
