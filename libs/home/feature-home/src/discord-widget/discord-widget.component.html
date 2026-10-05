@@ -1,0 +1,28 @@
+@if (widget(); as widget) {
+  <section class="discord" aria-labelledby="discord-heading">
+    <h2 id="discord-heading" class="heading">
+      <img src="assets/images/discord.svg" alt="" width="18" height="18" />On Discord
+    </h2>
+    <p class="online">
+      <span class="dot" aria-hidden="true"></span>{{ widget.presenceCount }}
+      {{ widget.presenceCount === 1 ? 'member' : 'members' }} online now
+    </p>
+    @if (widget.members.length > 0) {
+      <ul class="members">
+        @for (member of widget.members; track $index) {
+          <li class="member">
+            <span class="avatar">
+              <img [src]="member.avatarUrl" alt="" width="24" height="24" loading="lazy" />
+              <span class="status" [attr.data-status]="member.status" aria-hidden="true"></span>
+            </span>
+            <span class="name">{{ member.name }}</span>
+            <span class="visually-hidden">, {{ statusName(member.status) }}</span>
+          </li>
+        }
+      </ul>
+    }
+    <a cdtButton size="sm" class="join" [href]="invite" target="_blank" rel="noopener noreferrer"
+      >Join us on Discord<span class="visually-hidden"> (opens in a new tab)</span></a
+    >
+  </section>
+}

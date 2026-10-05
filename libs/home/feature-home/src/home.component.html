@@ -50,6 +50,9 @@
       </div>
 
       <div class="col-md-3">
+        <aside class="sidebar discord" aria-label="Discord">
+          <cdt-discord-widget />
+        </aside>
         @defer (when !!$tags().length) {
           <aside class="sidebar" aria-labelledby="popular-tags">
             <cdt-tags-list (setListTag)="setListTag($event)" [tags]="$tags()"></cdt-tags-list>
