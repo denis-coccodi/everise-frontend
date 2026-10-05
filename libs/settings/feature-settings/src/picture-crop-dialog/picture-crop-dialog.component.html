@@ -1,0 +1,21 @@
+<cdt-dialog heading="Crop your picture" (dismissed)="cancelled.emit()">
+  @if (unreadable()) {
+    <p class="message" role="alert">This picture can't be opened. Choose another file, such as a PNG or JPEG.</p>
+  } @else {
+    <p class="intro">Move and resize the square to choose what your profile picture shows.</p>
+    <cdt-image-cropper [src]="url()" [(crop)]="crop" (loaded)="onLoaded($event)" (failed)="unreadable.set(true)" />
+  }
+  @if (error(); as error) {
+    <p class="message" role="alert">{{ error }}</p>
+  }
+  <div class="actions">
+    @if (!unreadable()) {
+      <button type="button" cdtButton [disabled]="!crop() || busy()" (click)="use()">
+        {{ busy() ? 'Preparing…' : 'Use this picture' }}
+      </button>
+    }
+    <button type="button" cdtButton="secondary" (click)="cancelled.emit()">
+      {{ unreadable() ? 'Close' : 'Cancel' }}
+    </button>
+  </div>
+</cdt-dialog>

@@ -8,6 +8,8 @@ export * from './card/card.component';
 export * from './checkbox/checkbox.component';
 export * from './dialog/dialog.component';
 export * from './field/field.component';
+export * from './image-cropper/crop-geometry';
+export * from './image-cropper/image-cropper.component';
 export * from './input/input.component';
 export * from './menu/menu-item.component';
 export * from './menu/menu.component';

@@ -1,0 +1,43 @@
+<div class="stage">
+  <img #shown class="picture" [src]="src()" alt="" draggable="false" (load)="onLoad(shown)" (error)="failed.emit()" />
+  @if (box(); as box) {
+    <div
+      #selection
+      class="selection"
+      tabindex="0"
+      role="group"
+      aria-label="Crop area. Arrow keys move it, plus and minus resize it."
+      [style.left.%]="box.left"
+      [style.top.%]="box.top"
+      [style.width.%]="box.width"
+      [style.height.%]="box.height"
+      (pointerdown)="startDrag($event, 'move', shown)"
+      (pointermove)="onDrag($event)"
+      (pointerup)="endDrag()"
+      (pointercancel)="endDrag()"
+      (keydown)="onKeydown($event)"
+    >
+      <span
+        class="handle"
+        aria-hidden="true"
+        (pointerdown)="startDrag($event, 'resize', shown)"
+        (pointermove)="onDrag($event)"
+        (pointerup)="endDrag()"
+        (pointercancel)="endDrag()"
+      ></span>
+    </div>
+  }
+</div>
+@if (range(); as range) {
+  <label class="size">
+    <span class="xiv-label">Size</span>
+    <input
+      type="range"
+      [min]="range.min"
+      [max]="range.max"
+      step="1"
+      [value]="crop()?.size"
+      (input)="resize($any($event.target).valueAsNumber)"
+    />
+  </label>
+}
