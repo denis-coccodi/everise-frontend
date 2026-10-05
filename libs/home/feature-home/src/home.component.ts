@@ -30,8 +30,8 @@ export class HomeComponent {
   protected readonly announcement = signal('');
 
   readonly loadArticlesOnLogin = effect(() => {
-    const isLoggedIn = this.authStore.loggedIn();
-    untracked(() => this.getArticles(isLoggedIn));
+    this.authStore.loggedIn();
+    untracked(() => this.getArticles());
   });
 
   // New posts pushed by the backend go straight to the top of the list
@@ -52,12 +52,11 @@ export class HomeComponent {
     this.articlesListStore.loadArticles(this.$listConfig());
   }
 
-  getArticles(isLoggedIn: boolean) {
-    if (isLoggedIn) {
-      this.setListTo('FEED');
-    } else {
-      this.setListTo('ALL');
-    }
+  // Everyone starts on the Global Feed: "Your Feed" only shows people you
+  // follow, which is empty until you follow someone. Signing in or out
+  // reloads it, for the favourites.
+  getArticles() {
+    this.setListTo('ALL');
   }
 
   setListTag(tag: string) {
