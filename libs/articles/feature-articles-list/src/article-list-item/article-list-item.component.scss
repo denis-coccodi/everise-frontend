@@ -45,6 +45,20 @@
   vertical-align: middle;
 }
 
+// A roulette result's first line: the poster's comment, or Tataru's remark.
+.preview-link .top-line {
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-contrast-soft);
+}
+
+cdt-duty-card {
+  max-width: 420px;
+  margin: 0 auto 0.75rem;
+}
+
 .tag-list {
   float: right;
   max-width: 50%;

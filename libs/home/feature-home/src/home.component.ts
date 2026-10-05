@@ -21,6 +21,7 @@ export class HomeComponent {
   private readonly homeStore = inject(HomeStore);
 
   $listConfig = this.articlesListStore.listConfig;
+  protected readonly isLoggedIn = this.authStore.loggedIn;
   $tags = this.homeStore.tags;
 
   readonly loadArticlesOnLogin = effect(() => {

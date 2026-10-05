@@ -16,8 +16,27 @@
     </button>
   </div>
   <a (click)="navigateToArticle.emit(article().slug)" class="preview-link">
-    <h1 data-testid="article-list-title">{{ article().title }}</h1>
-    <p>{{ article().description }}</p>
+    @if (article().roulette; as card) {
+      <!-- A roulette result: the comment (or Tataru's remark), then the result. -->
+      @if (article().body) {
+        <p class="top-line">{{ article().body }}</p>
+      }
+      <cdt-duty-card
+        compact
+        data-testid="article-list-title"
+        [type]="card.type"
+        [name]="card.name"
+        [detail]="card.detail"
+        [mode]="card.mode"
+        [image]="imageUrl(card.image)"
+        [unknown]="card.dutyUnknown"
+        [jobName]="card.job?.name"
+        [jobIcon]="imageUrl(card.job?.icon)"
+      />
+    } @else {
+      <h1 data-testid="article-list-title">{{ article().title }}</h1>
+      <p>{{ article().description }}</p>
+    }
     <span>Read more...</span>
     <ul class="tag-list">
       @for (tag of article().tagList; track tag) {

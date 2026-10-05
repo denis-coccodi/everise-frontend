@@ -4,49 +4,8 @@
   text-align: center;
 }
 
-p {
-  margin: 0 0 0.35rem;
-}
-
-// The game's banner for the duty, like the in-game Duty Found window.
-.duty-banner {
-  display: block;
-  width: 100%;
-  aspect-ratio: 376 / 120;
-  object-fit: cover;
-  margin-bottom: 0.75rem;
-  border: var(--border-width) solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-}
-
-.name {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--color-primary-bright);
-}
-
-.unknown {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  color: var(--color-crystal);
-  text-shadow: var(--glow-crystal);
-}
-
-.detail {
-  font-size: 0.85rem;
-  color: var(--color-contrast-muted);
-}
-
 .wiki {
-  margin-top: 0.6rem;
-}
-
-dl {
-  margin: 1rem 0;
-  padding: 0.6rem;
-  border: var(--border-width) solid var(--color-border-soft);
-  border-radius: var(--radius-md);
-  background: var(--color-shade);
+  margin: 0.6rem 0 0;
 }
 
 .guide {
@@ -55,23 +14,43 @@ dl {
   font-weight: 400;
 }
 
-.job-icon {
-  width: 2rem;
-  height: 2rem;
-  vertical-align: middle;
+.comment {
+  display: block;
+  margin: 1rem 0 0;
+  text-align: left;
 }
 
-dd {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-primary-strong);
+.comment textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  resize: vertical;
+}
+
+.count {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  text-align: right;
+  color: var(--color-contrast-faint);
+}
+
+.note {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+.post-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-danger);
 }
 
 // Purely decorative, like the game's 45-second acceptance window.
 .timer {
   height: 6px;
-  margin-bottom: 1rem;
+  margin: 1rem 0;
   border-radius: var(--radius-sm);
   background: var(--color-base);
   overflow: hidden;

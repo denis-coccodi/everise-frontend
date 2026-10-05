@@ -6,7 +6,8 @@ import { ArticleCommentComponent } from './article-comment/article-comment.compo
 import { AddCommentComponent } from './add-comment/add-comment.component';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
-import { BannerComponent } from '@realworld/ui/components';
+import { API_URL, gameImageUrl } from '@realworld/core/http-client';
+import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-article',
@@ -14,6 +15,7 @@ import { BannerComponent } from '@realworld/ui/components';
   styleUrl: './article.component.scss',
   imports: [
     BannerComponent,
+    DutyCardComponent,
     ArticleMetaComponent,
     ArticleCommentComponent,
     MarkdownPipe,
@@ -27,6 +29,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
 
   private readonly authStore = inject(AuthStore);
   private readonly articleStore = inject(ArticleStore);
+  private readonly apiUrl = inject(API_URL);
 
   $article = this.articleStore.data;
   $comments = this.articleStore.comments;
@@ -35,6 +38,11 @@ export class ArticleComponent implements OnInit, OnDestroy {
   $isAuthenticated = this.authStore.loggedIn;
   $currentUser = this.authStore.user;
   $canModify = computed(() => this.authStore.user.username() === this.$authorUsername());
+
+  // A roulette card's game image.
+  protected imageUrl(id: number | null | undefined) {
+    return gameImageUrl(this.apiUrl, id);
+  }
 
   ngOnInit() {
     this.articleStore.getArticle(this.slug());

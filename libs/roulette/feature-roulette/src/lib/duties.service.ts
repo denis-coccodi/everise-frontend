@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { API_URL, ApiService } from '@realworld/core/http-client';
+import { ArticleResponse } from '@realworld/core/api-types';
+import { API_URL, ApiService, gameImageUrl } from '@realworld/core/http-client';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { DutyGroupsResponse, JobsResponse, RoulettesResponse } from './duties.models';
+import { DutyGroupsResponse, JobsResponse, RoulettePostRequest, RoulettesResponse } from './duties.models';
 
 @Injectable({ providedIn: 'root' })
 export class DutiesService {
@@ -29,6 +30,12 @@ export class DutiesService {
 
   // Where the backend serves a game image, by its id.
   imageUrl(id: number | null | undefined): string | undefined {
-    return id ? `${this.apiUrl}/images/${id}` : undefined;
+    return gameImageUrl(this.apiUrl, id);
+  }
+
+  // Posts an accepted result to the feeds: as the signed-in user, or by
+  // Tataru for a guest. The backend checks it and builds the card.
+  postResult(request: RoulettePostRequest) {
+    return this.apiService.post<ArticleResponse, RoulettePostRequest>('/roulette-results', request);
   }
 }

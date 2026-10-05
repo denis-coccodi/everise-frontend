@@ -52,6 +52,7 @@ Styles live with what they style.
 | `<cdt-card>`          | a card with an optional footer                                            |
 | `<cdt-banner>`        | a page's title strip                                                      |
 | `<cdt-dialog>`        | a modal window                                                            |
+| `<cdt-duty-card>`     | a roulette result, like the "Duty Found" window                           |
 | `<cdt-image-cropper>` | choosing a square area of a picture                                       |
 | `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries |
 | `<cdt-byline>`        | an avatar, author name and date                                           |

@@ -116,6 +116,9 @@
               <p class="last">
                 Last result: <strong>{{ last.name }}</strong> · {{ last.mode }} ·
                 <a [href]="last.wiki" target="_blank" rel="noopener noreferrer">Wiki guide</a>
+                @if (posted(); as post) {
+                  · <a [routerLink]="['/article', post.slug]">See it in the feed</a>
+                }
               </p>
             }
           }
@@ -158,7 +161,15 @@
 
   @if (showResult()) {
     @if (result(); as found) {
-      <cdt-duty-found [result]="found" (commence)="closeResult()" (withdraw)="withdraw()" />
+      <cdt-duty-found
+        [result]="found"
+        [signedIn]="signedIn()"
+        [posting]="posting()"
+        [postError]="postError()"
+        (commence)="accept($event)"
+        (withdraw)="withdraw()"
+        (closed)="closeResult()"
+      />
     }
   }
 </div>

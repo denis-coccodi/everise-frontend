@@ -1,5 +1,21 @@
 import { Profile } from './profile';
 
+// A roulette result posted to the feeds, built by the backend from its duty
+// data. Images are ids for GET /api/images/:id (see gameImageUrl).
+export interface RouletteCard {
+  type: string;
+  name: string;
+  detail: string;
+  mode: string;
+  // A duty roulette: the game picks the duty.
+  dutyUnknown: boolean;
+  image: number | null;
+  // The job dealt by dealer's choice.
+  job: { name: string; icon: number } | null;
+  // Posted by Tataru for someone who wasn't signed in.
+  guest: boolean;
+}
+
 export interface Article {
   slug: string;
   title: string;
@@ -11,6 +27,8 @@ export interface Article {
   favorited: boolean;
   favoritesCount: number;
   author: Profile;
+  // Only on roulette results.
+  roulette?: RouletteCard;
 }
 
 export interface CreateArticle {
