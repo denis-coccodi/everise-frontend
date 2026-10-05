@@ -7,13 +7,14 @@
   @if (connected() === false) {
     <p class="notice">
       Role changes are saved, but they don't reach the staging site's access list yet: this backend has no Cloudflare
-      settings (CF_ACCESS_API_TOKEN, CF_ACCOUNT_ID, CF_ACCESS_GROUP_ID). Only production keeps the list; see "One-time
+      settings (CF_ACCESS_API_TOKEN, CF_ACCOUNT_ID, CF_ACCESS_POLICY_ID). Only production keeps the list; see "One-time
       setup" in the backend's README.
     </p>
   }
 
   <cdt-field label="Search by username or email" for="member-search">
     <input
+      #searchField
       id="member-search"
       type="search"
       cdtInput="sm"
@@ -56,6 +57,16 @@
               <option value="user" [selected]="member.role === 'user'">User</option>
               <option value="staging-tester" [selected]="member.role === 'staging-tester'">Staging tester</option>
             </select>
+            <button
+              type="button"
+              cdtButton="outline-danger"
+              size="sm"
+              class="delete"
+              [disabled]="saving() !== null"
+              (click)="askToDelete(member)"
+            >
+              Delete<span class="visually-hidden"> {{ member.username }}</span>
+            </button>
           }
         </li>
       }
@@ -78,6 +89,27 @@
   </button>
 
   <p class="status" [class.warning]="warning()" role="status">{{ status() }}</p>
+
+  @if (confirming(); as member) {
+    <cdt-dialog heading="Delete a member" (dismissed)="closeConfirmation()">
+      <p class="confirm">
+        Delete <strong>{{ member.username }}</strong> ({{ member.email }}) for good? Their account, posts (with the
+        comments on them), comments, favourites, follows and pictures are removed. This can't be undone.
+      </p>
+      <div class="actions">
+        <button
+          type="button"
+          cdtButton="outline-danger"
+          data-testid="confirm-delete"
+          [disabled]="saving() !== null"
+          (click)="deleteMember(member)"
+        >
+          {{ saving() === member.username ? 'Deleting…' : 'Delete ' + member.username }}
+        </button>
+        <button #keepButton type="button" cdtButton="secondary" (click)="closeConfirmation()">Keep</button>
+      </div>
+    </cdt-dialog>
+  }
   @if (error(); as error) {
     <p class="error" role="alert">{{ error }}</p>
   }

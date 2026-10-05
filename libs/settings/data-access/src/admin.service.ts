@@ -2,6 +2,7 @@ import { HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
   AssignableRole,
+  MemberDeletedResponse,
   MembersResponse,
   RoleChangeResponse,
   StagingAccessResponse,
@@ -26,6 +27,11 @@ export class AdminService {
       `/admin/users/${encodeURIComponent(username)}/role`,
       { role },
     );
+  }
+
+  // Deletes a member and everything they posted, for good.
+  deleteMember(username: string) {
+    return this.api.delete<MemberDeletedResponse>(`/admin/users/${encodeURIComponent(username)}`);
   }
 
   // Writes the staging testers to the staging site's access list again.
