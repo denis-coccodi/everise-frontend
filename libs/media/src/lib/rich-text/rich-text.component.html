@@ -1,0 +1,9 @@
+<div class="xiv-prose" [class.compact]="compact()">
+  @for (part of parts(); track $index) {
+    @if (part.kind === 'youtube') {
+      <cdt-youtube-embed [video]="part.video" />
+    } @else {
+      <div [innerHTML]="part.html"></div>
+    }
+  }
+</div>

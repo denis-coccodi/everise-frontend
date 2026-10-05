@@ -4,12 +4,15 @@ import { OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ArticleStore } from '@realworld/articles/data-access';
+import { MediaToolsComponent } from '@realworld/media';
 import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-article-edit',
   templateUrl: './article-edit.component.html',
+  styleUrl: './article-edit.component.scss',
   imports: [
+    MediaToolsComponent,
     FieldComponent,
     ButtonComponent,
     InputComponent,
@@ -48,7 +51,14 @@ export class ArticleEditComponent implements OnDestroy {
 
   onSubmit() {
     const article = {
-      article: { ...this.form.getRawValue(), tagList: this.form.controls.tagList.value.split(',') },
+      // Tags are typed comma-separated; no tags (or stray commas) send none.
+      article: {
+        ...this.form.getRawValue(),
+        tagList: this.form.controls.tagList.value
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+      },
     };
     if (this.articleStore.data.slug()) {
       this.articleStore.editArticle({ editArticle: article, slug: this.articleStore.data.slug() });

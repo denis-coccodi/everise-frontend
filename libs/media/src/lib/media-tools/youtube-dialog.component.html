@@ -1,0 +1,23 @@
+<cdt-dialog heading="Add a YouTube video" (dismissed)="dismissed.emit()">
+  <cdt-field label="YouTube link" for="youtube-link" required>
+    <input
+      id="youtube-link"
+      type="url"
+      cdtInput
+      autocomplete="off"
+      placeholder="https://www.youtube.com/watch?v=…"
+      [value]="link()"
+      (input)="link.set($any($event.target).value)"
+    />
+  </cdt-field>
+  @if (thumbnail(); as thumbnail) {
+    <img class="preview" [src]="thumbnail" alt="" />
+    <p class="hint">Shows as a video people can play right in the post.</p>
+  } @else if (link().trim()) {
+    <p class="hint" role="status">That isn't a YouTube video link. Use "Share" on YouTube and copy the link.</p>
+  }
+  <div class="actions">
+    <button type="button" cdtButton [disabled]="!video()" (click)="add()">Add video</button>
+    <button type="button" cdtButton="secondary" (click)="dismissed.emit()">Cancel</button>
+  </div>
+</cdt-dialog>

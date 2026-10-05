@@ -1,0 +1,17 @@
+<div class="tools" role="group" aria-label="Add to your text">
+  <button type="button" cdtButton="outline-secondary" size="sm" (click)="open.set('image')">
+    <i class="ion-image" aria-hidden="true"></i> Image or GIF
+  </button>
+  <button type="button" cdtButton="outline-secondary" size="sm" (click)="open.set('youtube')">
+    <i class="ion-social-youtube" aria-hidden="true"></i> YouTube video
+  </button>
+</div>
+
+@switch (open()) {
+  @case ('image') {
+    <cdt-image-dialog (chosen)="insert($event)" (dismissed)="close()" />
+  }
+  @case ('youtube') {
+    <cdt-youtube-dialog (chosen)="insert($event)" (dismissed)="close()" />
+  }
+}

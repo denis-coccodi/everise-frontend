@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect
 import { Title } from '@angular/platform-browser';
 import { ArticleStore } from '@realworld/articles/data-access';
 import { ArticleMetaComponent } from './article-meta/article-meta.component';
-import { MarkdownPipe } from './pipes/markdown.pipe';
 import { ArticleCommentComponent } from './article-comment/article-comment.component';
 import { AddCommentComponent } from './add-comment/add-comment.component';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { API_URL, gameImageUrl } from '@realworld/core/http-client';
+import { RichTextComponent } from '@realworld/media';
 import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
 
 @Component({
@@ -19,7 +19,7 @@ import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
     DutyCardComponent,
     ArticleMetaComponent,
     ArticleCommentComponent,
-    MarkdownPipe,
+    RichTextComponent,
     AddCommentComponent,
     RouterLink,
   ],
