@@ -75,6 +75,21 @@
   color: var(--color-label);
 }
 
+.delete {
+  flex: 0 0 auto;
+}
+
+.confirm {
+  margin: 0 0 1rem;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .status {
   min-height: 1.5em;
   margin: 0.5rem 0 0;

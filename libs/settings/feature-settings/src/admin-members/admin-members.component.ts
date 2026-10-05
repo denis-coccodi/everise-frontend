@@ -1,11 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AssignableRole, Member, StagingAccessResult } from '@realworld/core/api-types';
 import { AdminService, adminErrorMessage } from '@realworld/settings/data-access';
 import {
   ButtonComponent,
+  DialogComponent,
   FieldComponent,
   InputComponent,
   PagerComponent,
@@ -26,16 +37,29 @@ const SEARCH_DELAY_MS = 300;
 // For admins: the members and their roles, a page at a time, found by part
 // of their username or email. Making someone a staging tester lets them open
 // the staging site (the backend updates its Cloudflare Access list); admins
-// come from the backend's settings and can't be changed here.
+// come from the backend's settings and can't be changed here. A member can
+// also be deleted for good, after a confirmation, e.g. when they ask under
+// the privacy policy.
 @Component({
   selector: 'cdt-admin-members',
   templateUrl: './admin-members.component.html',
   styleUrl: './admin-members.component.scss',
-  imports: [ButtonComponent, FieldComponent, InputComponent, PagerComponent, PanelComponent, RouterLink],
+  imports: [
+    ButtonComponent,
+    DialogComponent,
+    FieldComponent,
+    InputComponent,
+    PagerComponent,
+    PanelComponent,
+    RouterLink,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminMembersComponent {
   private readonly admin = inject(AdminService);
+  private readonly injector = inject(Injector);
+  private readonly searchField = viewChild.required('searchField', { read: ElementRef<HTMLInputElement> });
+  private readonly keepButton = viewChild('keepButton', { read: ElementRef<HTMLButtonElement> });
 
   protected readonly members = signal<Member[] | null>(null);
   protected readonly count = signal(0);
@@ -52,6 +76,8 @@ export class AdminMembersComponent {
   // The staging access list couldn't be updated: shown as a warning.
   protected readonly warning = signal(false);
   protected readonly error = signal<string | null>(null);
+  // The member the admin is asked to confirm deleting.
+  protected readonly confirming = signal<Member | null>(null);
 
   private readonly searches = new Subject<string>();
   private loading?: Subscription;
@@ -86,6 +112,40 @@ export class AdminMembersComponent {
       },
       error: (response: HttpErrorResponse) => this.failed(response),
     });
+  }
+
+  protected askToDelete(member: Member) {
+    this.confirming.set(member);
+    // Start on "Keep", the safe choice.
+    afterNextRender(() => this.keepButton()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  protected deleteMember(member: Member) {
+    this.start(member.username);
+    this.admin.deleteMember(member.username).subscribe({
+      next: ({ deleted, stagingAccess }) => {
+        this.closeConfirmation();
+        this.saving.set(null);
+        const removed = `Deleted ${deleted.username}, with ${plural(deleted.articles, 'post')} and ${plural(
+          deleted.comments,
+          'comment',
+        )}.`;
+        this.warning.set(stagingAccess ? !stagingAccess.synced : false);
+        this.status.set(`${removed} ${stagingAccess?.message ?? ''}`.trim());
+        this.load();
+      },
+      error: (response: HttpErrorResponse) => {
+        this.closeConfirmation();
+        this.failed(response);
+      },
+    });
+  }
+
+  // Closes the confirmation. Its "Delete" button may be gone with the
+  // member, so the focus goes to the search field.
+  protected closeConfirmation() {
+    this.confirming.set(null);
+    this.searchField().nativeElement.focus();
   }
 
   protected syncStagingAccess() {
@@ -126,4 +186,8 @@ export class AdminMembersComponent {
     // The list shows what the backend has; reload it after a refusal.
     this.load();
   }
+}
+
+function plural(count: number, noun: string) {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }
