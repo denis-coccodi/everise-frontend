@@ -1,18 +1,19 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable, defer, filter, ignoreElements, interval, merge, retry, share, tap, timer } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
+import { Article } from '@realworld/core/api-types';
 import { API_URL } from './api-url.token';
 
-// What the backend pushes on GET /api/live. Events say what changed; pages
-// fetch what they need to show it.
+// What the backend pushes on GET /api/live: a new post, as the API shows it
+// to someone who isn't signed in (favorited and author.following false).
 export type LiveEvent = {
   type: 'article-created';
-  slug: string;
-  author: string;
-  tags: string[];
+  article: Article;
 };
 
-// The heartbeat: the backend answers 'ping' with 'pong' without waking up.
+// Keep-alive: Cloudflare closes WebSockets silent for about 100 seconds, so
+// the client says 'ping' now and then; the backend answers 'pong' without
+// waking up. Users never see it.
 const PING = 'ping';
 const PING_EVERY_MS = 25_000;
 // Reconnecting: 1 s, then doubling, at most 30 s apart.
@@ -73,5 +74,10 @@ function parseEvent(data: unknown): LiveEvent | null {
 }
 
 function isLiveEvent(value: unknown): value is LiveEvent {
-  return typeof value === 'object' && value !== null && (value as LiveEvent).type === 'article-created';
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as LiveEvent).type === 'article-created' &&
+    typeof (value as LiveEvent).article?.slug === 'string'
+  );
 }

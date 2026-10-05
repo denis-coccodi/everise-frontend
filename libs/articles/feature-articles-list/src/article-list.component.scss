@@ -1,0 +1,22 @@
+// Uses the theme's role tokens only.
+cdt-article-list-item {
+  display: block;
+}
+
+// A post that just arrived live: a brief highlight as it appears.
+cdt-article-list-item.live {
+  animation: arrive 2.5s ease-out;
+}
+
+@keyframes arrive {
+  from {
+    background-color: var(--color-hover);
+    box-shadow: var(--glow-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  cdt-article-list-item.live {
+    animation: none;
+  }
+}

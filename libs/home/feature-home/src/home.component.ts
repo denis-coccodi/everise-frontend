@@ -1,12 +1,11 @@
-import { Component, ChangeDetectionStrategy, computed, inject, effect, signal, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, effect, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
 import { LiveUpdates } from '@realworld/core/http-client';
-import { BannerComponent, ButtonComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
+import { BannerComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
 import { TagsListComponent } from './tags-list/tags-list.component';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
 import { HomeStore } from './home.store';
-import { countsForList, newPostsLabel } from './new-posts';
 
 import { AuthStore } from '@realworld/auth/data-access';
 
@@ -14,7 +13,7 @@ import { AuthStore } from '@realworld/auth/data-access';
   selector: 'cdt-home',
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  imports: [BannerComponent, ButtonComponent, TabsComponent, TabComponent, TagsListComponent, ArticleListComponent],
+  imports: [BannerComponent, TabsComponent, TabComponent, TagsListComponent, ArticleListComponent],
   providers: [HomeStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,22 +26,22 @@ export class HomeComponent {
   protected readonly isLoggedIn = this.authStore.loggedIn;
   $tags = this.homeStore.tags;
 
-  // Posts published since the list was loaded, offered with a button rather
-  // than added to the list while someone is reading it.
-  protected readonly newPosts = signal(0);
-  protected readonly newPostsLabel = computed(() => newPostsLabel(this.newPosts(), this.$listConfig()));
+  // Read out by screen readers when a post arrives live.
+  protected readonly announcement = signal('');
 
   readonly loadArticlesOnLogin = effect(() => {
     const isLoggedIn = this.authStore.loggedIn();
     untracked(() => this.getArticles(isLoggedIn));
   });
 
+  // New posts pushed by the backend go straight to the top of the list
+  // when they belong in it.
   constructor() {
     inject(LiveUpdates)
       .events$.pipe(takeUntilDestroyed())
-      .subscribe((event) => {
-        if (countsForList(event, this.$listConfig())) {
-          this.newPosts.update((count) => count + 1);
+      .subscribe(({ article }) => {
+        if (this.articlesListStore.addLiveArticle(article)) {
+          this.announcement.set(`New post by ${article.author.username}: ${article.title}`);
         }
       });
   }
@@ -51,7 +50,6 @@ export class HomeComponent {
     const config = { ...articlesListInitialState.listConfig, type };
     this.articlesListStore.setListConfig(config);
     this.articlesListStore.loadArticles(this.$listConfig());
-    this.newPosts.set(0);
   }
 
   getArticles(isLoggedIn: boolean) {
@@ -71,19 +69,5 @@ export class HomeComponent {
       },
     });
     this.articlesListStore.loadArticles(this.$listConfig());
-    this.newPosts.set(0);
-  }
-
-  // Loads the new posts: the list again from the top, or the Global Feed
-  // when they were announced on "Your Feed".
-  showNewPosts() {
-    const list = this.$listConfig();
-    if (list.type === 'FEED') {
-      this.setListTo('ALL');
-    } else {
-      this.articlesListStore.setListConfig({ ...list, currentPage: 1, filters: { ...list.filters, offset: 0 } });
-      this.articlesListStore.loadArticles(this.$listConfig());
-      this.newPosts.set(0);
-    }
   }
 }

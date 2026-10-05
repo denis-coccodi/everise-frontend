@@ -22,12 +22,10 @@ class FakeSocket extends Subject<unknown> {
   }
 }
 
-const event: LiveEvent = {
+const event = {
   type: 'article-created',
-  slug: 'duty-found-sastasha-1',
-  author: 'Tataru',
-  tags: ['roulette'],
-};
+  article: { slug: 'duty-found-sastasha-1', title: 'Duty Found: Sastasha', tagList: ['roulette'] },
+} as LiveEvent;
 
 describe('liveUrl', () => {
   it('turns the API address into its WebSocket address', () => {

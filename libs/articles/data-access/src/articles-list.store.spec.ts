@@ -1,0 +1,55 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { Article } from '@realworld/core/api-types';
+import { API_URL } from '@realworld/core/http-client';
+import { ArticlesListStore } from './articles-list.store';
+import { ArticlesListConfig, articlesListInitialState } from './models/articles-list.model';
+
+const post = (slug: string, tagList: string[] = []) => ({ slug, title: slug, tagList }) as unknown as Article;
+
+describe('ArticlesListStore.addLiveArticle', () => {
+  let store: InstanceType<typeof ArticlesListStore>;
+
+  function viewing(change: Partial<ArticlesListConfig> = {}, filters: ArticlesListConfig['filters'] = {}) {
+    store.setListConfig({
+      ...articlesListInitialState.listConfig,
+      ...change,
+      filters: { ...articlesListInitialState.listConfig.filters, limit: 3, ...filters },
+    });
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '/api' }],
+    });
+    store = TestBed.inject(ArticlesListStore);
+  });
+
+  it("adds a new post at the top of the global feed's first page, keeping the page size", () => {
+    viewing();
+    for (const slug of ['c', 'b', 'a']) store.addLiveArticle(post(slug));
+
+    expect(store.addLiveArticle(post('new'))).toBe(true);
+
+    expect(store.articles.entities().map((a) => a.slug)).toEqual(['new', 'a', 'b']);
+    expect(store.articles.articlesCount()).toBe(4);
+    expect(store.liveSlugs()).toContain('new');
+  });
+
+  it('adds a post once, and only where it belongs', () => {
+    viewing();
+    store.addLiveArticle(post('x'));
+    expect(store.addLiveArticle(post('x'))).toBe(false);
+
+    viewing({ type: 'FEED' });
+    expect(store.addLiveArticle(post('y'))).toBe(false);
+    viewing({ currentPage: 2 });
+    expect(store.addLiveArticle(post('y'))).toBe(false);
+    viewing({}, { author: 'Tataru' });
+    expect(store.addLiveArticle(post('y'))).toBe(false);
+    viewing({}, { tag: 'roulette' });
+    expect(store.addLiveArticle(post('y', ['news']))).toBe(false);
+    expect(store.addLiveArticle(post('z', ['roulette']))).toBe(true);
+  });
+});

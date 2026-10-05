@@ -34,14 +34,8 @@
           }
         </div>
 
-        <!-- Live: posts published since the list loaded. -->
-        <div class="new-posts" aria-live="polite">
-          @if (newPosts() > 0) {
-            <button type="button" cdtButton="chip" data-testid="new-posts" (click)="showNewPosts()">
-              {{ newPostsLabel() }}
-            </button>
-          }
-        </div>
+        <!-- Live posts appear at the top of the list; screen readers hear them here. -->
+        <p class="announcement" aria-live="polite">{{ announcement() }}</p>
 
         <cdt-article-list></cdt-article-list>
       </div>
