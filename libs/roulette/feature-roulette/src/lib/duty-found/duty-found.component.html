@@ -1,41 +1,52 @@
-<cdt-dialog heading="Duty Found" (dismissed)="commence.emit()">
-  @if (result().image; as image) {
-    <img class="duty-banner" [src]="image" alt="" (error)="hideImage($event)" />
-  }
-  <p class="type xiv-label">{{ result().type }}</p>
-  <p class="name">{{ result().name }}</p>
-  @if (result().dutyUnknown) {
-    <p class="unknown" aria-label="Duty chosen by the game">? ? ?</p>
-  }
-  <p class="detail">{{ result().detail }}</p>
-  <p class="wiki">
-    <a cdtButton="chip" [href]="result().wiki" target="_blank" rel="noopener noreferrer">Wiki guide ↗</a>
-  </p>
-
-  <dl>
-    <dt class="xiv-label">Party settings</dt>
-    @if (result().job; as job) {
-      <dd>
-        Everyone on the same job:
-        @if (job.icon) {
-          <img class="job-icon" [src]="job.icon" alt="" (error)="hideImage($event)" />
-        }
-        {{ job.name }}
-      </dd>
-    } @else {
-      <dd>{{ result().mode }}</dd>
-    }
+<cdt-dialog heading="Duty Found" (dismissed)="closed.emit()">
+  <cdt-duty-card
+    [type]="result().type"
+    [name]="result().name"
+    [detail]="result().detail"
+    [mode]="result().mode"
+    [image]="result().image"
+    [unknown]="result().dutyUnknown"
+    [jobName]="result().job?.name"
+    [jobIcon]="result().job?.icon"
+  >
+    <p cdtDutyCardLinks class="wiki">
+      <a cdtButton="chip" [href]="result().wiki" target="_blank" rel="noopener noreferrer">Wiki guide ↗</a>
+    </p>
     @if (result().guide; as guide) {
       <dd class="guide">
         <a [href]="guide.url" target="_blank" rel="noopener noreferrer">{{ guide.label }}</a>
       </dd>
     }
-  </dl>
+  </cdt-duty-card>
+
+  <!-- Commence posts the result to the feeds. -->
+  @if (signedIn()) {
+    <label class="comment">
+      <span class="xiv-label">Add a comment for the feed (optional)</span>
+      <textarea
+        cdtInput
+        rows="2"
+        [attr.maxlength]="maxComment"
+        placeholder="Wish me luck…"
+        [value]="comment()"
+        [disabled]="posting()"
+        (input)="comment.set($any($event.target).value)"
+      ></textarea>
+      <span class="count" aria-live="polite">{{ comment().length }} / {{ maxComment }}</span>
+    </label>
+  } @else {
+    <p class="note">You're not signed in, so Tataru will post this to the feed for you.</p>
+  }
+  @if (postError(); as error) {
+    <p class="post-error" role="alert">{{ error }}</p>
+  }
 
   <div class="timer" aria-hidden="true"><span></span></div>
 
   <div class="actions">
-    <button #commenceButton type="button" cdtButton (click)="commence.emit()">Commence</button>
-    <button type="button" cdtButton="secondary" (click)="withdraw.emit()">Withdraw</button>
+    <button #commenceButton type="button" cdtButton [disabled]="posting()" (click)="commence.emit(comment().trim())">
+      {{ posting() ? 'Posting…' : 'Commence' }}
+    </button>
+    <button type="button" cdtButton="secondary" [disabled]="posting()" (click)="withdraw.emit()">Withdraw</button>
   </div>
 </cdt-dialog>

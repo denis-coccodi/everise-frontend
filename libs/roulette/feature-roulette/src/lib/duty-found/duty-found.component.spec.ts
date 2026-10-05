@@ -13,13 +13,57 @@ const result: RouletteResult = {
 describe('DutyFoundComponent', () => {
   let fixture: ComponentFixture<DutyFoundComponent>;
 
-  async function show(shown: RouletteResult) {
+  async function show(shown: RouletteResult, signedIn = false) {
     await TestBed.configureTestingModule({ imports: [DutyFoundComponent] }).compileComponents();
     fixture = TestBed.createComponent(DutyFoundComponent);
     fixture.componentRef.setInput('result', shown);
+    fixture.componentRef.setInput('signedIn', signedIn);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
   }
+
+  const commenceButton = (page: HTMLElement) =>
+    [...page.querySelectorAll('button')].find((b) => b.textContent?.includes('Commence')) as HTMLButtonElement;
+
+  it('lets a signed-in user add a comment, which Commence sends', async () => {
+    const page = await show(result, true);
+    const sent: string[] = [];
+    fixture.componentInstance.commence.subscribe((comment) => sent.push(comment));
+
+    const textarea = page.querySelector('textarea') as HTMLTextAreaElement;
+    textarea.value = '  Wish me luck!  ';
+    textarea.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(page.querySelector('.count')?.textContent?.trim()).toBe('17 / 280');
+
+    commenceButton(page).click();
+    expect(sent).toEqual(['Wish me luck!']);
+    expect(page.querySelector('.note')).toBeNull();
+  });
+
+  it('tells a guest Tataru will post for them, with no comment box', async () => {
+    const page = await show(result);
+    const sent: string[] = [];
+    fixture.componentInstance.commence.subscribe((comment) => sent.push(comment));
+
+    expect(page.querySelector('textarea')).toBeNull();
+    expect(page.querySelector('.note')?.textContent).toContain('Tataru will post this to the feed for you');
+    commenceButton(page).click();
+    expect(sent).toEqual(['']);
+  });
+
+  it('shows the posting state and why posting failed', async () => {
+    const page = await show(result, true);
+    fixture.componentRef.setInput('posting', true);
+    await fixture.whenStable();
+    expect(commenceButton(page)).toBeUndefined();
+    expect(page.textContent).toContain('Posting…');
+
+    fixture.componentRef.setInput('posting', false);
+    fixture.componentRef.setInput('postError', 'You can post another result in 15 seconds.');
+    await fixture.whenStable();
+    expect(page.querySelector('[role="alert"]')?.textContent).toContain('15 seconds');
+  });
 
   it('links the guide for the party setting, opening in a new tab', async () => {
     const page = await show({ ...result, guide: { label: 'Awktrail gear set', url: 'https://example.com/sheet' } });

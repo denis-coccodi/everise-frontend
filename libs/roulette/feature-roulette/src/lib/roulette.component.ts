@@ -7,8 +7,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DutyGroup, DutyRoulette, Job } from './duties.models';
+import { RouterLink } from '@angular/router';
+import { AuthStore } from '@realworld/auth/data-access';
+import { FAILURE_MESSAGE, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
+import { DutyGroup, DutyRoulette, Job, RoulettePostRequest } from './duties.models';
 import { DutiesService } from './duties.service';
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { ReelComponent, ReelItem } from './reel/reel.component';
@@ -60,11 +64,20 @@ type LoadState = 'loading' | 'ready' | 'empty' | 'error';
   selector: 'cdt-roulette',
   templateUrl: './roulette.component.html',
   styleUrls: ['./roulette.component.scss'],
-  imports: [ButtonComponent, CheckboxComponent, InputComponent, PanelComponent, ReelComponent, DutyFoundComponent],
+  imports: [
+    ButtonComponent,
+    CheckboxComponent,
+    InputComponent,
+    PanelComponent,
+    ReelComponent,
+    DutyFoundComponent,
+    RouterLink,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RouletteComponent {
   private readonly dutiesService = inject(DutiesService);
+  private readonly authStore = inject(AuthStore);
   private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly typeReel = viewChild.required<ReelComponent>('typeReel');
@@ -85,6 +98,14 @@ export class RouletteComponent {
   private readonly spunModes = signal<RunMode[] | null>(null);
   readonly result = signal<RouletteResult | null>(null);
   readonly showResult = signal(false);
+
+  // Posting the accepted result to the feeds: what the reels landed on, as
+  // ids; while it's being posted; why it failed; and the post, once done.
+  private lastSpin: RoulettePostRequest['result'] | null = null;
+  readonly posting = signal(false);
+  readonly postError = signal<string | null>(null);
+  readonly posted = signal<{ slug: string } | null>(null);
+  readonly signedIn = this.authStore.loggedIn;
 
   readonly pickable = computed(() => pickOptions(this.groups(), this.roulettes()));
   readonly frontlineMap = computed(() => todaysFrontline(this.groups()));
@@ -260,6 +281,17 @@ export class RouletteComponent {
 
       const result = this.toResult(type.name, candidate, mode, job, frontlineMap);
       this.result.set(result);
+      this.lastSpin = {
+        type: type.name,
+        candidate:
+          candidate.kind === 'duty'
+            ? { kind: 'duty', id: candidate.duty.id }
+            : { kind: 'roulette', id: candidate.roulette.id },
+        mode,
+        ...(job ? { jobId: job.id } : {}),
+      };
+      this.posted.set(null);
+      this.postError.set(null);
       this.status.set(`Duty found: ${result.name}, ${result.mode}.`);
       this.showResult.set(true);
     } finally {
@@ -272,12 +304,36 @@ export class RouletteComponent {
     (event.target as HTMLElement).hidden = true;
   }
 
+  // Closing the window keeps the result to oneself.
   closeResult() {
     this.showResult.set(false);
   }
 
+  // Commence: posts the result to the feeds, then closes the window. A guest's
+  // is posted by Tataru; the backend checks it and builds the card.
+  accept(comment: string) {
+    if (!this.lastSpin || this.posting()) return;
+    this.posting.set(true);
+    this.postError.set(null);
+    this.dutiesService
+      .postResult({ result: this.lastSpin, ...(this.signedIn() && comment ? { comment } : {}) })
+      .subscribe({
+        next: ({ article }) => {
+          this.posting.set(false);
+          this.posted.set({ slug: article.slug });
+          this.showResult.set(false);
+          this.status.set(this.signedIn() ? 'Posted to the feed.' : 'Tataru posted it to the feed for you.');
+        },
+        error: (response: HttpErrorResponse) => {
+          this.posting.set(false);
+          this.postError.set(postErrorMessage(response));
+        },
+      });
+  }
+
   withdraw() {
     this.showResult.set(false);
+    this.postError.set(null);
     void this.commence();
   }
 
@@ -356,4 +412,12 @@ function saveSettings(settings: RouletteSettings) {
   } catch {
     // Not saved; the page works the same.
   }
+}
+
+// Why posting failed: the server's message (a limit, a rejected result), or a
+// general one.
+function postErrorMessage(response: HttpErrorResponse): string {
+  const message = response.error?.errors?.body?.[0];
+  if (typeof message === 'string') return message;
+  return response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE;
 }

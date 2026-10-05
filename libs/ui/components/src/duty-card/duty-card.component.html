@@ -1,0 +1,28 @@
+@if (image(); as image) {
+  <img class="picture" [src]="image" alt="" loading="lazy" decoding="async" (error)="hideImage($event)" />
+}
+<p class="type xiv-label">{{ type() }}</p>
+<p class="name">{{ name() }}</p>
+@if (unknown()) {
+  <p class="unknown" aria-label="Duty chosen by the game">? ? ?</p>
+}
+@if (detail()) {
+  <p class="detail">{{ detail() }}</p>
+}
+<ng-content select="[cdtDutyCardLinks]" />
+
+<dl>
+  <dt class="xiv-label">Party settings</dt>
+  @if (jobName(); as jobName) {
+    <dd>
+      Everyone on the same job:
+      @if (jobIcon(); as jobIcon) {
+        <img class="job-icon" [src]="jobIcon" alt="" width="32" height="32" (error)="hideImage($event)" />
+      }
+      {{ jobName }}
+    </dd>
+  } @else {
+    <dd>{{ mode() }}</dd>
+  }
+  <ng-content />
+</dl>

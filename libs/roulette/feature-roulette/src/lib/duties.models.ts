@@ -78,3 +78,15 @@ export interface JobsResponse {
   fetchedAt: string | null;
   jobs: Job[];
 }
+
+// What the reels landed on, as ids, for POST /api/roulette-results.
+export interface RoulettePostRequest {
+  result: {
+    type: string;
+    candidate: { kind: 'duty' | 'roulette'; id: number };
+    mode: string;
+    jobId?: number;
+  };
+  // A signed-in user's comment.
+  comment?: string;
+}

@@ -17,6 +17,20 @@
     <div class="container page">
       <div class="row article-content">
         <div class="col-md-12">
+          @if (article.roulette; as card) {
+            <!-- A roulette result: the comment (or Tataru's remark) introduces it. -->
+            <cdt-duty-card
+              class="roulette-card"
+              [type]="card.type"
+              [name]="card.name"
+              [detail]="card.detail"
+              [mode]="card.mode"
+              [image]="imageUrl(card.image)"
+              [unknown]="card.dutyUnknown"
+              [jobName]="card.job?.name"
+              [jobIcon]="imageUrl(card.job?.icon)"
+            />
+          }
           <div class="xiv-prose" data-testid="article-body" [innerHTML]="article.body | markdown"></div>
         </div>
       </div>

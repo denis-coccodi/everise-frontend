@@ -10,9 +10,11 @@
         <div class="feed-toggle">
           @if ({ listConfig: $listConfig() }; as model) {
             <ul cdtTabs>
-              <li>
-                <a cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">Your Feed</a>
-              </li>
+              @if (isLoggedIn()) {
+                <li>
+                  <a cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">Your Feed</a>
+                </li>
+              }
               <li>
                 <a
                   cdtTab

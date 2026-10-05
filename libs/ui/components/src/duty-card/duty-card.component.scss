@@ -1,0 +1,86 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  text-align: center;
+}
+
+p {
+  margin: 0 0 0.35rem;
+}
+
+// The game's banner for the duty, like the in-game Duty Found window.
+.picture {
+  display: block;
+  width: 100%;
+  aspect-ratio: 376 / 120;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+}
+
+.name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-primary-bright);
+}
+
+.unknown {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--color-crystal);
+  text-shadow: var(--glow-crystal);
+}
+
+.detail {
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+dl {
+  margin: 1rem 0 0;
+  padding: 0.6rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-shade);
+}
+
+dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.job-icon {
+  width: 2rem;
+  height: 2rem;
+  vertical-align: middle;
+}
+
+// A smaller card for lists, such as the feeds.
+:host(.compact) .picture {
+  margin-bottom: 0.5rem;
+}
+
+:host(.compact) .name {
+  font-size: 1.15rem;
+}
+
+:host(.compact) .unknown {
+  font-size: 1.25rem;
+}
+
+:host(.compact) dl {
+  margin-top: 0.6rem;
+  padding: 0.4rem;
+}
+
+:host(.compact) dd {
+  font-size: 0.95rem;
+}
+
+:host(.compact) .job-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}

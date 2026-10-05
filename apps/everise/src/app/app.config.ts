@@ -29,7 +29,8 @@ export const appConfig: ApplicationConfig = {
         },
         {
           path: 'home',
-          canActivate: [AuthGuard],
+          // Open to everyone: guests see the global feed, where roulette
+          // results are posted; "Your Feed" needs an account.
           loadComponent: () => import('@realworld/home/feature-home').then((m) => m.HomeComponent),
         },
         {
