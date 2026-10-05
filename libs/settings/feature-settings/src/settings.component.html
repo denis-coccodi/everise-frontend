@@ -3,6 +3,15 @@
     <div class="row">
       <div class="col-md-6 offset-md-3 col-xs-12">
         <h1 class="text-xs-center">Your Settings</h1>
+        @if (authStore.user().role === 'staging-tester') {
+          <p class="role-note">
+            You're a staging tester: you can open
+            <a href="https://staging.everisefc.workers.dev" target="_blank" rel="noopener noreferrer"
+              >the staging site<span class="visually-hidden"> (opens in a new tab)</span></a
+            >
+            to try changes before they go live, signing in with this account's email.
+          </p>
+        }
 
         <!-- The profile picture: chosen in the browser's file window and uploaded right away. -->
         <section class="picture" aria-labelledby="picture-heading">
@@ -114,6 +123,14 @@
             Update Settings
           </button>
         </form>
+
+        <!-- Admins only (the backend checks too): Tataru and the members' roles. -->
+        @if (authStore.user().role === 'admin') {
+          <div class="admin">
+            <cdt-admin-tataru />
+            <cdt-admin-members />
+          </div>
+        }
       </div>
     </div>
   </div>

@@ -27,6 +27,7 @@
 - **Live feed.** New posts appear at the top of the global feed (or a tag's list) the moment they're posted, pushed by the backend over a WebSocket (`/api/live`), with a brief highlight and an announcement for screen readers.
 - **Duty Roulette** (`/roulette`). Three reels pick the duty type, the duty and how you run it (Min IL, Unsynced, Awktrail, everyone on one job…), from the real game data. **Commence** posts the result to the feeds as a duty card: with your comment when you're signed in, or by **Tataru** for guests.
 - **Profiles and settings.** Profile pictures picked in the browser, cropped to a square and shrunk to the backend's limits before uploading; bio, email, password; an account menu in the header.
+- **Roles.** Everyone registers as a user. Admins (set on the backend) get two more windows in Settings: **Tataru**, the account that posts guests' roulette results (her picture and bio; nobody can sign in as her), and **Members and roles**, where a member can be made a **staging tester**, which lets them open the staging site (the backend updates its Cloudflare Access list).
 - **Final Fantasy XIV look.** Crystal motifs, deep-blue windows, Cinzel headings, in a dark mode (default) and a "Final Fantasy white" light mode. Members' choice is saved with their settings, so it follows them to every browser.
 - **Works offline** on the deployed sites: the feed is cached, and favourites made offline are synced when you're back.
 - **Accessible:** built to WCAG 2.2 AA ([Accessibility](#accessibility)).

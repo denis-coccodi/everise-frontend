@@ -1,3 +1,7 @@
+// What a person may do: everyone registers as a user; an admin can make a
+// user a staging tester, who may open the staging site.
+export type Role = 'admin' | 'staging-tester' | 'user';
+
 export interface User {
   email: string;
   password?: string;
@@ -7,6 +11,7 @@ export interface User {
   image: string;
   // The site's colour mode, saved with the other settings (true: dark).
   darkMode?: boolean;
+  role?: Role;
 }
 
 export interface UserResponse {

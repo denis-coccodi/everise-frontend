@@ -66,3 +66,17 @@
 .appearance .hint {
   margin-top: 0.25rem;
 }
+
+.role-note {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  color: var(--color-contrast-muted);
+}
+
+// The admin's windows, under the form.
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
