@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
   AssignableRole,
@@ -15,8 +15,10 @@ import { ApiService } from '@realworld/core/http-client';
 export class AdminService {
   private readonly api = inject(ApiService);
 
-  members() {
-    return this.api.get<MembersResponse>('/admin/users');
+  // A page of members whose username or email contains `search`.
+  members(search: string, limit: number, offset: number) {
+    const params = new HttpParams({ fromObject: { search, limit, offset } });
+    return this.api.get<MembersResponse>('/admin/users', params);
   }
 
   setRole(username: string, role: AssignableRole) {

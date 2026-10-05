@@ -4,7 +4,36 @@
     Admins are set in the backend's settings.
   </p>
 
+  @if (connected() === false) {
+    <p class="notice">
+      Role changes are saved, but they don't reach the staging site's access list yet: this backend has no Cloudflare
+      settings (CF_ACCESS_API_TOKEN, CF_ACCOUNT_ID, CF_ACCESS_GROUP_ID). Only production keeps the list; see "One-time
+      setup" in the backend's README.
+    </p>
+  }
+
+  <cdt-field label="Search by username or email" for="member-search">
+    <input
+      id="member-search"
+      type="search"
+      cdtInput="sm"
+      autocomplete="off"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </cdt-field>
+
   @if (members(); as members) {
+    <p class="count" role="status">
+      @if (count() === 0) {
+        No member matches "{{ search() }}".
+      } @else {
+        @if (search()) {
+          {{ count() }} {{ count() === 1 ? 'member matches' : 'members match' }} "{{ search() }}".
+        } @else {
+          {{ count() }} {{ count() === 1 ? 'member' : 'members' }}.
+        }
+      }
+    </p>
     <ul class="members">
       @for (member of members; track member.username) {
         <li class="member">
@@ -31,6 +60,9 @@
         </li>
       }
     </ul>
+    @if (pages().length > 1) {
+      <cdt-pager label="Member pages" [currentPage]="page()" [totalPages]="pages()" (setPage)="setPage($event)" />
+    }
   } @else if (!error()) {
     <p role="status">Loading the members…</p>
   }

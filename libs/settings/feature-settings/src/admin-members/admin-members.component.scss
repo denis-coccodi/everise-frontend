@@ -5,8 +5,24 @@
   color: var(--color-contrast-muted);
 }
 
-.members {
+.notice {
   margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border-left: var(--border-width-strong) solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-hover);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.count {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+.members {
+  margin: 0 0 0.5rem;
   padding: 0;
   list-style: none;
 }
