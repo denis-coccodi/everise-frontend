@@ -1,0 +1,27 @@
+<section aria-labelledby="sign-in-heading">
+  <h2 id="sign-in-heading" class="xiv-label">Ways to sign in</h2>
+  <ul class="methods">
+    <li class="method">
+      <i class="ion-email method-icon" aria-hidden="true"></i>
+      <span class="name">Email and password</span>
+      @if (hasPassword()) {
+        <span class="state tied">Set</span>
+      } @else {
+        <span class="state">Not set: add a password below to also sign in with your email.</span>
+      }
+    </li>
+    @for (provider of providers(); track provider.id) {
+      <li class="method">
+        <img class="method-icon" [src]="provider.icon" alt="" width="20" height="20" />
+        <span class="name">{{ provider.name }}</span>
+        @if (provider.tied) {
+          <span class="state tied">Tied to this account</span>
+        } @else {
+          <span class="state"
+            >Not tied: sign out, then "Continue with {{ provider.name }}" with this account's email ties it.</span
+          >
+        }
+      </li>
+    }
+  </ul>
+</section>

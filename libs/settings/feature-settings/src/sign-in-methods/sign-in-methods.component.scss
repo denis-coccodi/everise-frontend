@@ -1,0 +1,50 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+:host {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+}
+
+.methods {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Icon and name, then the state; the state wraps under them when long.
+.method {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.method-icon {
+  flex: none;
+  width: 20px;
+  font-size: 20px;
+  line-height: 20px;
+  text-align: center;
+  color: var(--color-contrast-soft);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.state {
+  flex: 1 1 12rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+// Shown in words too, not by colour alone.
+.tied {
+  color: var(--color-primary-strong);
+  font-weight: 600;
+}

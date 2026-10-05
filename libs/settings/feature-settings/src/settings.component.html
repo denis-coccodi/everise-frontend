@@ -57,6 +57,8 @@
           </div>
         </section>
 
+        <cdt-sign-in-methods />
+
         @if (cropping(); as file) {
           <cdt-picture-crop-dialog [file]="file" (chosen)="onCropped($event)" (cancelled)="closeCropDialog()" />
         }
