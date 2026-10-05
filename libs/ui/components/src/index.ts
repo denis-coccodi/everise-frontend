@@ -6,6 +6,7 @@ export * from './button/button.component';
 export * from './byline/byline.component';
 export * from './card/card.component';
 export * from './checkbox/checkbox.component';
+export * from './community-links/community-links.component';
 export * from './dialog/dialog.component';
 export * from './duty-card/duty-card.component';
 export * from './field/field.component';

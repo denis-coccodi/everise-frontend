@@ -17,7 +17,11 @@ cdt-banner h1 {
 .crest {
   flex: none;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-raised);
+}
+
+cdt-banner cdt-community-links {
+  display: block;
+  margin-top: 1rem;
 }
 
 cdt-banner p {

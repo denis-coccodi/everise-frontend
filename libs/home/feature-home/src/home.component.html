@@ -3,7 +3,8 @@
     <h1 class="logo-font">
       <img class="crest" src="assets/images/everise-crest.png" alt="" width="64" height="64" />everise
     </h1>
-    <p>A place to share your knowledge.</p>
+    <p>A laid-back, friendly free company. Everyone is welcome.</p>
+    <cdt-community-links look="buttons" />
   </cdt-banner>
 
   <div class="container page">
@@ -13,13 +14,6 @@
           <h2 class="visually-hidden">Posts</h2>
           @if ({ listConfig: $listConfig() }; as model) {
             <ul cdtTabs>
-              @if (isLoggedIn()) {
-                <li>
-                  <button type="button" cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">
-                    Your Feed
-                  </button>
-                </li>
-              }
               <li>
                 <button
                   type="button"
@@ -31,6 +25,13 @@
                   Global Feed
                 </button>
               </li>
+              @if (isLoggedIn()) {
+                <li>
+                  <button type="button" cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">
+                    Your Feed
+                  </button>
+                </li>
+              }
               <li [hidden]="!model.listConfig.filters.tag">
                 <span cdtTab [active]="true">
                   <i class="ion-pound" aria-hidden="true"></i>
