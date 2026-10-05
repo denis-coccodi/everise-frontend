@@ -9,13 +9,17 @@
     <button
       [cdtButton]="article().favorited ? 'primary' : 'outline-primary'"
       size="sm"
+      [attr.aria-pressed]="article().favorited"
+      [attr.aria-label]="
+        'Favorite, ' + article().favoritesCount + (article().favoritesCount === 1 ? ' favorite' : ' favorites')
+      "
       (click)="toggleFavorite(article())"
     >
-      <i class="ion-heart"></i>
+      <i class="ion-heart" aria-hidden="true"></i>
       {{ article().favoritesCount }}
     </button>
   </div>
-  <a (click)="navigateToArticle.emit(article().slug)" class="preview-link">
+  <a [routerLink]="['/article', article().slug]" class="preview-link">
     @if (article().roulette; as card) {
       <!-- A roulette result: the comment (or Tataru's remark), then the result. -->
       @if (article().body) {
@@ -34,11 +38,11 @@
         [jobIcon]="imageUrl(card.job?.icon)"
       />
     } @else {
-      <h1 data-testid="article-list-title">{{ article().title }}</h1>
+      <h2 data-testid="article-list-title">{{ article().title }}</h2>
       <p>{{ article().description }}</p>
     }
-    <span>Read more...</span>
-    <ul class="tag-list">
+    <span class="read-more">Read more...</span>
+    <ul class="tag-list" aria-label="Tags">
       @for (tag of article().tagList; track tag) {
         <li cdtTag="outline">
           {{ tag }}

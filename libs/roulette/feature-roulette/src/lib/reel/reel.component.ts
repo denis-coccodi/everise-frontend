@@ -55,6 +55,8 @@ type Mode = 'idle' | 'spinning' | 'landed';
 export class ReelComponent {
   readonly caption = input.required<string>();
   readonly preview = input<ReelItem[]>([]);
+  // Stops the idle scrolling (the page's pause button, WCAG 2.2.2).
+  readonly paused = input(false);
 
   readonly mode = signal<Mode>('idle');
   readonly rows = signal<ReelItem[]>([]);

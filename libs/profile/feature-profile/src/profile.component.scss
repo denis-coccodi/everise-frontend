@@ -18,6 +18,11 @@
   box-shadow: var(--glow-primary);
 }
 
+// The page's heading, at the size of the name it used to be.
+.name {
+  font-size: 1.5rem;
+}
+
 .user-info p {
   max-width: 450px;
   margin: 0 auto 0.5rem;

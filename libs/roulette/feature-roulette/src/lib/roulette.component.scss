@@ -199,6 +199,15 @@ legend {
   color: var(--color-contrast-muted);
 }
 
+.motion {
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
+
+.hero-crystal.paused {
+  animation: none;
+}
+
 .last strong {
   color: var(--color-primary-strong);
 }

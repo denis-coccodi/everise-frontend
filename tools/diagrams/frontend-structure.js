@@ -5,8 +5,8 @@
 const fs = require('fs');
 const out = process.argv[2];
 
-const W = 1560,
-  H = 960,
+const W = 1760,
+  H = 1000,
   X0 = 70;
 const FONT = 'Segoe UI, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif';
 const C = {
@@ -16,6 +16,7 @@ const C = {
   home: '#059669',
   profile: '#c2410c',
   settings: '#be185d',
+  roulette: '#0e7490',
   core: '#475569',
   ui: '#475569',
   ext: '#334155',
@@ -27,6 +28,7 @@ const tint = {
   home: '#ecfdf5',
   profile: '#fff7ed',
   settings: '#fdf2f8',
+  roulette: '#ecfeff',
   core: '#f8fafc',
   ui: '#f8fafc',
   ext: '#ffffff',
@@ -112,9 +114,9 @@ text(
 // Layer bands with rotated labels
 const bands = [
   { y: 80, h: 140, label: 'APPS' },
-  { y: 236, h: 186, label: 'FEATURE LIBS' },
-  { y: 438, h: 164, label: 'DATA-ACCESS LIBS' },
-  { y: 618, h: 132, label: 'CORE & UI LIBS' },
+  { y: 236, h: 200, label: 'FEATURE LIBS' },
+  { y: 452, h: 164, label: 'DATA-ACCESS LIBS' },
+  { y: 632, h: 132, label: 'CORE & UI LIBS' },
 ];
 for (const b of bands) {
   add(`<rect x="12" y="${b.y}" width="${W - 24}" height="${b.h}" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>`);
@@ -126,14 +128,18 @@ for (const b of bands) {
     })">${esc(b.label)}</text>`,
   );
 }
-text(X0, 256, 'one per page, lazy-loaded by the router', { size: 11.5, fill: '#94a3b8', style: 'italic' });
-text(W - 28, 598, 'NgRx signal stores, API services, guards, resolvers', {
+text(X0, 256, 'one per page, lazy-loaded by the router; all of them build their pages from ui/components', {
+  size: 11.5,
+  fill: '#94a3b8',
+  style: 'italic',
+});
+text(W - 28, 612, 'NgRx signal stores, API services, guards, resolvers', {
   size: 11.5,
   fill: '#94a3b8',
   anchor: 'end',
   style: 'italic',
 });
-text(W - 28, 746, 'no dependencies on other libs', { size: 11.5, fill: '#94a3b8', anchor: 'end', style: 'italic' });
+text(W - 28, 760, 'no dependencies on other libs', { size: 11.5, fill: '#94a3b8', anchor: 'end', style: 'italic' });
 
 // --- Apps
 box({
@@ -158,14 +164,18 @@ box({
   name: 'everise  —  Angular app shell',
   x: X0 + 300,
   y: 96,
-  w: 760,
+  w: 960,
   h: 108,
   strong: true,
   lines: [
-    { t: 'app.config.ts: routes + AuthGuard, HTTP client + error interceptor, offline service worker (offline-sw.js)' },
-    { t: 'layout: navbar, footer  ·  environments/*.ts: api_url /api when deployed, a backend URL locally' },
     {
-      t: 'uses: auth/data-access, settings/data-access, core/api-types, core/error-handler, core/http-client',
+      t: 'app.config.ts: routes + AuthGuard, page titles, HTTP client + error interceptor, offline service worker (offline-sw.js)',
+    },
+    {
+      t: 'layout: skip link, navbar with account menu, <main>, footer  ·  environments/*.ts: api_url /api deployed, a backend URL locally',
+    },
+    {
+      t: 'uses: auth/data-access, settings/data-access, core/api-types, core/error-handler, core/http-client, ui/components',
       kind: 'uses',
     },
   ],
@@ -175,7 +185,7 @@ box({
   domain: 'ext',
   domainLabel: 'hosting',
   name: 'Cloudflare Workers',
-  x: X0 + 1130,
+  x: X0 + 1330,
   y: 96,
   w: 290,
   h: 108,
@@ -192,17 +202,17 @@ add(
   }" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-app)"/>`,
 );
 add(
-  `<path d="M${X0 + 1060},150 L${X0 + 1128},150" stroke="${
+  `<path d="M${X0 + 1260},150 L${X0 + 1328},150" stroke="${
     C.ext
   }" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-ext)"/>`,
 );
-text(X0 + 1094, 142, 'build', { size: 11, fill: '#64748b', anchor: 'middle' });
+text(X0 + 1294, 142, 'build', { size: 11, fill: '#64748b', anchor: 'middle' });
 
-// --- Feature libs (7)
+// --- Feature libs (8)
 const FW = 190,
   FG = 16,
   FY = 268,
-  FH = 136;
+  FH = 150;
 const fx = (i) => X0 + i * (FW + FG);
 const feats = [
   {
@@ -222,9 +232,9 @@ const feats = [
     guard: true,
     lines: [
       { t: '/settings', kind: 'route' },
-      { t: 'Edit user, dark mode,' },
-      { t: 'logout' },
-      { t: 'uses: core/forms', kind: 'uses' },
+      { t: 'Picture (crop, upload),' },
+      { t: 'edit user, dark mode' },
+      { t: 'uses: core/api-types,forms', kind: 'uses' },
     ],
   },
   {
@@ -246,14 +256,14 @@ const feats = [
       { t: '/article/:slug', kind: 'route' },
       { t: 'Article, comments,' },
       { t: 'follow, favorite' },
-      { t: 'uses: core/api-types,forms', kind: 'uses' },
+      { t: 'uses: core/api-types,', kind: 'uses' },
+      { t: '      forms, http-client', kind: 'uses' },
     ],
   },
   {
     id: 'f-home',
     domain: 'home',
     name: 'feature-home',
-    guard: true,
     lines: [
       { t: '/home', kind: 'route' },
       { t: 'Global / your feed,' },
@@ -267,9 +277,10 @@ const feats = [
     name: 'feature-articles-list',
     lines: [
       { t: 'no route (shared)', kind: 'muted' },
-      { t: 'Article list + pager' },
+      { t: 'Article list + pager,' },
+      { t: 'roulette duty cards' },
       { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      ui/components', kind: 'uses' },
+      { t: '      http-client', kind: 'uses' },
     ],
   },
   {
@@ -279,6 +290,18 @@ const feats = [
     guard: true,
     lines: [{ t: '/profile/:username', kind: 'route' }, { t: 'Profile, my and' }, { t: 'favorited articles' }],
   },
+  {
+    id: 'f-roulette',
+    domain: 'roulette',
+    name: 'feature-roulette',
+    lines: [
+      { t: '/roulette', kind: 'route' },
+      { t: 'Duty Roulette: reels,' },
+      { t: 'posts results to feeds' },
+      { t: 'uses: core/api-types,', kind: 'uses' },
+      { t: '      forms, http-client', kind: 'uses' },
+    ],
+  },
 ];
 feats.forEach((f, i) => box({ ...f, x: fx(i), y: FY, w: FW, h: FH }));
 const fcx = (id) => {
@@ -287,11 +310,11 @@ const fcx = (id) => {
 };
 // router lazy-loads the routed feature libs
 add(
-  `<path d="M${X0 + 680},204 L${X0 + 680},236" stroke="${
+  `<path d="M${X0 + 780},204 L${X0 + 780},236" stroke="${
     C.app
   }" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-app)"/>`,
 );
-text(X0 + 690, 226, 'router: loadComponent / loadChildren', { size: 11, fill: C.app, weight: 600 });
+text(X0 + 790, 226, 'router: loadComponent / loadChildren', { size: 11, fill: C.app, weight: 600 });
 
 // feature -> feature (shared list), drawn as arcs above the boxes
 function arc(fromId, toId, col) {
@@ -309,33 +332,33 @@ arc('f-home', 'f-list', C.articles);
 arc('f-profile', 'f-list', C.articles);
 
 // --- Data-access libs (4)
-const DY = 470,
+const DY = 484,
   DH = 118,
-  DW = 262;
+  DW = 290;
 const das = [
   {
     id: 'd-settings',
     domain: 'settings',
     name: 'data-access',
-    x: X0 + 120,
+    x: X0 + 140,
     lines: [{ t: 'SettingsStore (dark mode)' }, { t: 'uses: —', kind: 'uses' }],
   },
   {
     id: 'd-auth',
     domain: 'auth',
     name: 'data-access',
-    x: X0 + 455,
+    x: X0 + 520,
     lines: [
       { t: 'AuthStore, AuthGuard' },
-      { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      data-access, forms, http-client', kind: 'uses' },
+      { t: 'uses: core/api-types, data-access,', kind: 'uses' },
+      { t: '      error-handler, forms, http-client', kind: 'uses' },
     ],
   },
   {
     id: 'd-articles',
     domain: 'articles',
     name: 'data-access',
-    x: X0 + 800,
+    x: X0 + 900,
     lines: [
       { t: 'ArticleStore, ArticlesListStore,' },
       { t: 'ActionsService' },
@@ -347,7 +370,7 @@ const das = [
     id: 'd-profile',
     domain: 'profile',
     name: 'data-access',
-    x: X0 + 1150,
+    x: X0 + 1280,
     lines: [
       { t: 'ProfileStore, route resolvers' },
       { t: 'uses: core/api-types,', kind: 'uses' },
@@ -368,7 +391,8 @@ function fanIn(target, sources, m) {
     .sort((p, q) => fcx(p) - fcx(q))
     .forEach((s, i) =>
       down(
-        fcx(s) + (fcx(s) < t.x + t.w / 2 ? 18 : -18) * (s === 'f-auth' || s === 'f-profile' ? 0 : 1),
+        fcx(s) +
+          (fcx(s) < t.x + t.w / 2 ? 18 : -18) * (s === 'f-auth' || s === 'f-profile' || s === 'f-roulette' ? 0 : 1),
         FB,
         t.x + t.w / 2 - span / 2 + (n > 1 ? (span * i) / (n - 1) : span / 2),
         DY,
@@ -378,7 +402,7 @@ function fanIn(target, sources, m) {
     );
 }
 fanIn('d-settings', ['f-settings'], 'settings');
-fanIn('d-auth', ['f-auth', 'f-settings', 'f-edit', 'f-article', 'f-home', 'f-profile'], 'auth');
+fanIn('d-auth', ['f-auth', 'f-settings', 'f-edit', 'f-article', 'f-home', 'f-profile', 'f-roulette'], 'auth');
 fanIn('d-articles', ['f-edit', 'f-article', 'f-home', 'f-list'], 'articles');
 fanIn('d-profile', ['f-profile'], 'profile');
 // profile/data-access -> articles/data-access (sideways)
@@ -389,9 +413,9 @@ add(
 );
 
 // --- Core & UI libs (6)
-const CY = 650,
+const CY = 664,
   CH = 84,
-  CW = 222,
+  CW = 254,
   CG = 18;
 const cores = [
   { id: 'c-types', name: 'api-types', lines: [{ t: 'API DTOs: Article, User,' }, { t: 'Profile, Comment, Auth' }] },
@@ -403,20 +427,25 @@ const cores = [
     lines: [{ t: 'ApiService + API_URL token,' }, { t: 'withCredentials (auth cookie)' }],
   },
   { id: 'c-err', name: 'error-handler', lines: [{ t: 'HTTP error interceptor:' }, { t: '401 → /login, 404 → /' }] },
-  { id: 'c-ui', domain: 'ui', name: 'components', lines: [{ t: 'Pager' }, { t: 'shared presentational UI' }] },
+  {
+    id: 'c-ui',
+    domain: 'ui',
+    name: 'components',
+    lines: [{ t: 'FFXIV theme + building blocks:' }, { t: 'button, field, dialog, menu, pager…' }],
+  },
 ];
 cores.forEach((c, i) => box({ domain: 'core', ...c, x: X0 + i * (CW + CG), y: CY, w: CW, h: CH }));
 
 // --- Backend
 const http = boxes['c-http'];
 const BX = http.x - 40,
-  BY = 790,
+  BY = 804,
   BW = 560,
   BH = 92;
 add(
   `<rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="10" fill="#ffffff" stroke="${C.ext}" stroke-width="1.6" stroke-dasharray="6 4"/>`,
 );
-text(BX + 12, BY + 18, 'BACKEND API  ·  typescript-cloudflare-backend', { size: 10.5, weight: 700, fill: C.ext });
+text(BX + 12, BY + 18, 'BACKEND API  ·  everise-backend', { size: 10.5, weight: 700, fill: C.ext });
 text(BX + 12, BY + 38, 'deployed   /api → worker/index.ts → service binding', {
   size: 12,
   family: MONO,
@@ -441,8 +470,8 @@ text(http.x + http.w / 2 + 8, CY + CH + 32, 'same-origin /api, cookie auth', { s
 
 // --- Legend
 const LX = X0,
-  LY = 790;
-add(`<rect x="${LX}" y="${LY}" width="560" height="148" rx="10" fill="#ffffff" stroke="#e2e8f0"/>`);
+  LY = 804;
+add(`<rect x="${LX}" y="${LY}" width="560" height="170" rx="10" fill="#ffffff" stroke="#e2e8f0"/>`);
 text(LX + 14, LY + 22, 'Legend', { size: 13, weight: 700 });
 const swatch = (i, k, label) => {
   const x = LX + 14 + (i % 3) * 180,
@@ -461,24 +490,25 @@ const swatch = (i, k, label) => {
   ['home', 'home'],
   ['profile', 'profile'],
   ['settings', 'settings'],
+  ['roulette', 'roulette'],
 ].forEach(([k, l], i) => swatch(i, k, l));
-add(
-  `<path d="M${LX + 14},${LY + 98} L${LX + 54},${
-    LY + 98
-  }" stroke="#64748b" stroke-width="1.8" marker-end="url(#a-gray)"/>`,
-);
-text(LX + 62, LY + 102, 'depends on (colour of the library it points to)', { size: 12 });
 add(
   `<path d="M${LX + 14},${LY + 120} L${LX + 54},${
     LY + 120
+  }" stroke="#64748b" stroke-width="1.8" marker-end="url(#a-gray)"/>`,
+);
+text(LX + 62, LY + 124, 'depends on (colour of the library it points to)', { size: 12 });
+add(
+  `<path d="M${LX + 14},${LY + 142} L${LX + 54},${
+    LY + 142
   }" stroke="#64748b" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-gray)"/>`,
 );
-text(LX + 62, LY + 124, 'implicit / build / lazy route load', { size: 12 });
-text(LX + 310, LY + 124, 'uses: …', { size: 11, family: MONO, fill: '#64748b' });
-text(LX + 360, LY + 124, '= direct core/ui imports', { size: 12 });
-add(`<rect x="${LX + 310}" y="${LY + 88}" width="52" height="17" rx="8.5" fill="${C.auth}"/>`);
-text(LX + 336, LY + 100.5, 'guarded', { size: 10, weight: 600, fill: '#ffffff', anchor: 'middle' });
-text(LX + 370, LY + 102, '= AuthGuard on the route', { size: 12 });
+text(LX + 62, LY + 146, 'implicit / build / lazy route load', { size: 12 });
+text(LX + 310, LY + 146, 'uses: …', { size: 11, family: MONO, fill: '#64748b' });
+text(LX + 360, LY + 146, '= direct core/ui imports', { size: 12 });
+add(`<rect x="${LX + 310}" y="${LY + 110}" width="52" height="17" rx="8.5" fill="${C.auth}"/>`);
+text(LX + 336, LY + 122.5, 'guarded', { size: 10, weight: 600, fill: '#ffffff', anchor: 'middle' });
+text(LX + 370, LY + 124, '= AuthGuard on the route', { size: 12 });
 
 add('</svg>');
 fs.writeFileSync(out, svg.join('\n') + '\n');

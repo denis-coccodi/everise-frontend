@@ -9,6 +9,7 @@ import { TabsComponent } from './tabs.component';
     <ul id="tabs" cdtTabs>
       <li><a id="one" cdtTab [active]="selected() === 'one'">One</a></li>
       <li><a id="two" cdtTab [active]="selected() === 'two'">Two</a></li>
+      <li><button id="three" type="button" cdtTab [active]="selected() === 'three'">Three</button></li>
     </ul>
   `,
 })
@@ -32,5 +33,11 @@ describe('TabsComponent and TabComponent', () => {
     await fixture.whenStable();
     expect(el('one').classList).not.toContain('active');
     expect(el('two').getAttribute('aria-current')).toBe('page');
+
+    // A button tab isn't a page of its own.
+    fixture.componentInstance.selected.set('three');
+    await fixture.whenStable();
+    expect(el('three').classList).toContain('active');
+    expect(el('three').getAttribute('aria-current')).toBe('true');
   });
 });

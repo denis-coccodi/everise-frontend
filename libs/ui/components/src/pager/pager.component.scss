@@ -17,6 +17,7 @@
   border: var(--border-width) solid var(--color-border-soft);
   background-color: var(--color-surface);
   color: var(--color-link);
+  font: inherit;
   text-decoration: none;
   cursor: pointer;
   transition:

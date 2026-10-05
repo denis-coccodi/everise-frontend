@@ -8,7 +8,14 @@
       [link]="['/profile', comment().author.username]"
     />
     <span class="mod-options" [hidden]="currentUser().username !== comment().author.username">
-      <i class="ion-trash-a" (click)="delete.emit({ commentId: comment().id, slug: article().slug })"></i>
+      <button
+        type="button"
+        class="delete"
+        aria-label="Delete comment"
+        (click)="delete.emit({ commentId: comment().id, slug: article().slug })"
+      >
+        <i class="ion-trash-a" aria-hidden="true"></i>
+      </button>
     </span>
   </div>
 </cdt-card>

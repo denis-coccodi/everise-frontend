@@ -7,6 +7,7 @@ import { ProfileComponent } from './profile.component';
 export const PROFILE_ROUTES: Routes = [
   {
     path: ':username',
+    title: (route) => `${route.paramMap.get('username')}'s articles`,
     component: ProfileComponent,
     resolve: { profileResolver },
     canActivate: [AuthGuard],
@@ -18,6 +19,7 @@ export const PROFILE_ROUTES: Routes = [
       },
       {
         path: 'favorites',
+        title: (route) => `${route.parent?.paramMap.get('username')}'s favorited articles`,
         component: ArticleListComponent,
         resolve: { profileFavoritesResolver },
       },

@@ -35,5 +35,6 @@
 
 .date {
   font-size: 0.8rem;
-  color: var(--color-contrast-faint);
+  // Secondary text: readable on the blue page banners too.
+  color: var(--color-contrast-muted);
 }

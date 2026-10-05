@@ -13,3 +13,33 @@
 cdt-footer {
   margin-top: auto;
 }
+
+main {
+  display: flex;
+  flex-direction: column;
+}
+
+// The focus lands on <main> after a page change; the page itself shows where
+// the person is, so no outline around all of it.
+main:focus {
+  outline: none;
+}
+
+// Off screen until it has the keyboard focus, then in the top corner.
+.skip-link {
+  position: absolute;
+  z-index: 20;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-primary-flat);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  color: var(--color-on-primary);
+  transform: none;
+}

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-// A themed tag pill on a link, list item or span: <a cdtTag>raids</a>, or
+// A themed tag pill on a link, button, list item or span:
+// <button type="button" cdtTag (click)="...">raids</button> to pick a tag, or
 // <li cdtTag="outline">raids</li> for the quieter outlined version.
 @Component({
   selector: '[cdtTag]',

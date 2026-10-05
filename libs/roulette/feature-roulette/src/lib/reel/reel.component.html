@@ -4,7 +4,7 @@
       <!-- The possible outcomes, scrolling slowly. -->
       <div
         class="strip idle"
-        [class.moving]="idle().moving"
+        [class.moving]="idle().moving && !paused()"
         [style.--loop-distance]="idle().distance"
         [style.--loop-duration]="idle().duration"
       >

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputComponent } from './input.component';
 
 @Component({
@@ -11,7 +11,7 @@ import { InputComponent } from './input.component';
   `,
 })
 class HostComponent {
-  readonly name = new FormControl("Y'shtola");
+  readonly name = new FormControl("Y'shtola", Validators.required);
 }
 
 describe('InputComponent', () => {
@@ -30,5 +30,27 @@ describe('InputComponent', () => {
     field.value = 'Alphinaud';
     field.dispatchEvent(new Event('input'));
     expect(fixture.componentInstance.name.value).toBe('Alphinaud');
+  });
+
+  it('marks an invalid field for screen readers once the person has been in it', async () => {
+    await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(HostComponent);
+    await fixture.whenStable();
+    const field = (fixture.nativeElement as HTMLElement).querySelector('#field') as HTMLInputElement;
+    const area = (fixture.nativeElement as HTMLElement).querySelector('#area') as HTMLTextAreaElement;
+
+    expect(field.getAttribute('aria-invalid')).toBeNull();
+
+    field.value = '';
+    field.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+
+    field.value = 'Urianger';
+    field.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(field.getAttribute('aria-invalid')).toBeNull();
+    // Outside a form there is nothing to check.
+    expect(area.getAttribute('aria-invalid')).toBeNull();
   });
 });

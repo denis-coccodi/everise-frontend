@@ -54,19 +54,38 @@
 
         <cdt-list-errors />
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <cdt-field required>
-            <input formControlName="username" type="text" id="username" placeholder="Your Name" cdtInput="lg" />
+          <cdt-field label="Username" for="username" required>
+            <input
+              formControlName="username"
+              type="text"
+              id="username"
+              autocomplete="username"
+              placeholder="Your Name"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.username" />
           </cdt-field>
-          <cdt-field>
-            <textarea cdtInput="lg" rows="5" id="bio" formControlName="bio" placeholder="Short bio about you">
-            </textarea>
+          <cdt-field label="Bio" for="bio">
+            <textarea
+              cdtInput="lg"
+              rows="5"
+              id="bio"
+              formControlName="bio"
+              placeholder="Short bio about you"
+            ></textarea>
           </cdt-field>
-          <cdt-field required>
-            <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
+          <cdt-field label="Email" for="email" required>
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              autocomplete="email"
+              placeholder="Email"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.email" />
           </cdt-field>
-          <cdt-field>
+          <cdt-field label="New password" for="password">
             <input
               formControlName="password"
               type="password"
@@ -88,7 +107,7 @@
           </button>
         </form>
         <hr />
-        <h4><cdt-checkbox [checked]="darkMode" (checkedChange)="toggleDarkMode()">Dark Mode</cdt-checkbox></h4>
+        <cdt-checkbox class="dark-mode" [checked]="darkMode" (checkedChange)="toggleDarkMode()">Dark Mode</cdt-checkbox>
       </div>
     </div>
   </div>

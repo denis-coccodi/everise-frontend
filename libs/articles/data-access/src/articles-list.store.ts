@@ -10,6 +10,7 @@ import {
   ArticlesListConfig,
   ArticlesListState,
   articlesListInitialState,
+  belongsAtTop,
 } from './models/articles-list.model';
 import { ActionsService } from './services/actions.service';
 import { ArticlesService } from './services/articles.service';
@@ -38,6 +39,7 @@ export const ArticlesListStore = signalStore(
                     articlesCount: articlesCount,
                     entities: articles,
                   },
+                  liveSlugs: [],
                   ...setLoaded('getArticles'),
                 });
               },
@@ -85,6 +87,24 @@ export const ArticlesListStore = signalStore(
         ),
       ),
     ),
+    // A post pushed by the backend: added at the top when it belongs in the
+    // list being viewed (see belongsAtTop), keeping the page's size. Returns
+    // whether it was added.
+    addLiveArticle: (article: Article): boolean => {
+      const current = store.articles();
+      if (!belongsAtTop(article, store.listConfig()) || current.entities.some((a) => a.slug === article.slug)) {
+        return false;
+      }
+      const limit = store.listConfig().filters.limit ?? 10;
+      patchState(store, {
+        articles: {
+          articlesCount: current.articlesCount + 1,
+          entities: [article, ...current.entities].slice(0, limit),
+        },
+        liveSlugs: [...store.liveSlugs(), article.slug],
+      });
+      return true;
+    },
     setListConfig: (listConfig: ArticlesListConfig) => {
       patchState(store, { listConfig });
     },

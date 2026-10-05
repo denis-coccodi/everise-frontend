@@ -1,12 +1,17 @@
-<ul class="pagination">
-  @for (pageNumber of totalPages(); track pageNumber) {
-    <li
-      data-testid="pagination-item"
-      class="page-item"
-      [ngClass]="{ active: pageNumber === currentPage() }"
-      (click)="setPage.emit(pageNumber)"
-    >
-      <a data-testid="pagination-link" class="page-link">{{ pageNumber }}</a>
-    </li>
-  }
-</ul>
+<nav [attr.aria-label]="label()">
+  <ul class="pagination">
+    @for (pageNumber of totalPages(); track pageNumber) {
+      <li data-testid="pagination-item" class="page-item" [class.active]="pageNumber === currentPage()">
+        <button
+          type="button"
+          data-testid="pagination-link"
+          class="page-link"
+          [attr.aria-current]="pageNumber === currentPage() ? 'page' : null"
+          (click)="setPage.emit(pageNumber)"
+        >
+          <span class="visually-hidden">Page</span> {{ pageNumber }}
+        </button>
+      </li>
+    }
+  </ul>
+</nav>

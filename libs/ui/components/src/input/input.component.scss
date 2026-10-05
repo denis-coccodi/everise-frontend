@@ -3,7 +3,7 @@
   display: block;
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: var(--border-width) solid var(--color-border-soft);
+  border: var(--border-width) solid var(--color-border-field);
   border-radius: var(--radius-md);
   background-color: var(--color-field);
   background-clip: padding-box;
@@ -17,8 +17,13 @@
 
 :host(:focus) {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-border-faint);
+  box-shadow: 0 0 0 2px var(--color-focus);
   outline: none;
+}
+
+// A field whose value breaks a rule, once the person has been in it.
+:host([aria-invalid='true']) {
+  border-color: var(--color-danger);
 }
 
 :host::placeholder {

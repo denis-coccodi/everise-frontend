@@ -31,6 +31,9 @@ describe('BylineComponent', () => {
 
     expect(el('#linked [data-testid=article-author]').getAttribute('href')).toBe('/profile/Thancred');
     expect(el('#linked .avatar').getAttribute('src')).toBe('/a.png');
+    // The name link is the one to use; the avatar's would repeat it.
+    expect(el('#linked .avatar-link').getAttribute('tabindex')).toBe('-1');
+    expect(el('#linked .avatar-link').getAttribute('aria-hidden')).toBe('true');
     expect(el('#linked a.author').textContent?.trim()).toBe('Thancred');
     expect(el('#linked .date').textContent?.trim()).toBe('October 4, 2026');
 

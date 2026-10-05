@@ -11,11 +11,13 @@ export const ARTICLE_EDIT_ROUTES: Routes = [
       {
         path: '',
         pathMatch: 'full',
+        title: 'New article',
         component: ArticleEditComponent,
         canActivate: [AuthGuard],
       },
       {
         path: ':slug',
+        title: 'Edit article',
         component: ArticleEditComponent,
         resolve: { articleEditResolver },
       },

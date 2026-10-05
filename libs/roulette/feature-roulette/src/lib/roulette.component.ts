@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   viewChild,
+  ElementRef,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -83,6 +84,10 @@ export class RouletteComponent {
   private readonly typeReel = viewChild.required<ReelComponent>('typeReel');
   private readonly dutyReel = viewChild.required<ReelComponent>('dutyReel');
   private readonly modeReel = viewChild.required<ReelComponent>('modeReel');
+  // The Commence / Spin again button: the focus goes back to it when the
+  // "Duty Found" window closes (it was disabled while spinning, so the
+  // window can't give the focus back by itself).
+  private readonly spinButton = viewChild('spinButton', { read: ElementRef<HTMLButtonElement> });
 
   readonly loadState = signal<LoadState>('loading');
   readonly groups = signal<DutyGroup[]>([]);
@@ -93,6 +98,8 @@ export class RouletteComponent {
 
   readonly spinning = signal(false);
   readonly status = signal('');
+  // The "Pause animations" button: stops the idle reels and the crystal.
+  readonly motionPaused = signal(false);
   // The third reel: the winning duty's party settings after a spin, until
   // the selection changes; before that, every setting the allowed duties offer.
   private readonly spunModes = signal<RunMode[] | null>(null);
@@ -307,6 +314,7 @@ export class RouletteComponent {
   // Closing the window keeps the result to oneself.
   closeResult() {
     this.showResult.set(false);
+    this.spinButton()?.nativeElement.focus();
   }
 
   // Commence: posts the result to the feeds, then closes the window. A guest's
@@ -322,6 +330,7 @@ export class RouletteComponent {
           this.posting.set(false);
           this.posted.set({ slug: article.slug });
           this.showResult.set(false);
+          this.spinButton()?.nativeElement.focus();
           this.status.set(this.signedIn() ? 'Posted to the feed.' : 'Tataru posted it to the feed for you.');
         },
         error: (response: HttpErrorResponse) => {

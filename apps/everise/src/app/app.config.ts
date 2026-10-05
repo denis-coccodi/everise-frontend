@@ -1,11 +1,12 @@
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
+import { TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { AuthGuard } from '@realworld/auth/data-access';
 import { errorHandlingInterceptor } from '@realworld/core/error-handler';
 import { API_URL } from '@realworld/core/http-client';
 import { environment } from '../environments/environment';
+import { PageTitleStrategy } from './page-title.strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,31 +30,36 @@ export const appConfig: ApplicationConfig = {
         },
         {
           path: 'home',
+          title: 'Home',
           // Open to everyone: guests see the global feed, where roulette
           // results are posted; "Your Feed" needs an account.
           loadComponent: () => import('@realworld/home/feature-home').then((m) => m.HomeComponent),
         },
         {
           path: 'login',
+          title: 'Sign in',
           loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.LoginComponent),
         },
         {
           path: 'register',
+          title: 'Sign up',
           loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.RegisterComponent),
         },
         {
           path: 'article',
+          title: 'Article',
           loadChildren: () => import('@realworld/articles/article').then((m) => m.ARTICLE_ROUTES),
         },
         {
           path: 'roulette',
-          title: 'Duty Roulette · Everise',
+          title: 'Duty Roulette',
           loadComponent: () => import('@realworld/roulette/feature-roulette').then((m) => m.RouletteComponent),
           // Open to everyone. Features that need an account (saving or sharing
           // a result) check the login themselves.
         },
         {
           path: 'settings',
+          title: 'Settings',
           loadComponent: () =>
             import('@realworld/settings/feature-settings').then((settings) => settings.SettingsComponent),
           canActivate: [AuthGuard],
@@ -78,6 +84,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideHttpClient(withXhr(), withInterceptors([errorHandlingInterceptor])),
     { provide: API_URL, useValue: environment.api_url },
+    { provide: TitleStrategy, useClass: PageTitleStrategy },
     // provideServiceWorker('ngsw-worker.js', {
     //   enabled: !isDevMode(),
     //   registrationStrategy: 'registerWhenStable:30000',

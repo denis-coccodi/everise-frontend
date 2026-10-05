@@ -7,6 +7,7 @@ import { TagComponent } from './tag.component';
   template: `
     <a id="filled" cdtTag>raids</a>
     <span id="outline" cdtTag="outline">savage</span>
+    <button id="button" type="button" cdtTag>static</button>
   `,
 })
 class HostComponent {}
@@ -21,5 +22,6 @@ describe('TagComponent', () => {
     expect(el('filled').dataset['variant']).toBe('filled');
     expect(el('filled').textContent).toBe('raids');
     expect(el('outline').dataset['variant']).toBe('outline');
+    expect(el('button').dataset['variant']).toBe('filled');
   });
 });

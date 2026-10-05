@@ -8,40 +8,49 @@
     <div class="row">
       <div class="col-md-9">
         <div class="feed-toggle">
+          <h2 class="visually-hidden">Posts</h2>
           @if ({ listConfig: $listConfig() }; as model) {
             <ul cdtTabs>
               @if (isLoggedIn()) {
                 <li>
-                  <a cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">Your Feed</a>
+                  <button type="button" cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">
+                    Your Feed
+                  </button>
                 </li>
               }
               <li>
-                <a
+                <button
+                  type="button"
                   cdtTab
                   data-testid="global-feed"
                   [active]="model.listConfig.type === 'ALL' && !model.listConfig.filters.tag"
                   (click)="setListTo('ALL')"
-                  >Global Feed</a
                 >
+                  Global Feed
+                </button>
               </li>
               <li [hidden]="!model.listConfig.filters.tag">
-                <a cdtTab [active]="true">
-                  <i class="ion-pound"></i>
+                <span cdtTab [active]="true">
+                  <i class="ion-pound" aria-hidden="true"></i>
+                  <span class="visually-hidden">Tag</span>
                   {{ model.listConfig.filters.tag }}
-                </a>
+                </span>
               </li>
             </ul>
           }
         </div>
+
+        <!-- Live posts appear at the top of the list; screen readers hear them here. -->
+        <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
         <cdt-article-list></cdt-article-list>
       </div>
 
       <div class="col-md-3">
         @defer (when !!$tags().length) {
-          <div class="sidebar">
+          <aside class="sidebar" aria-labelledby="popular-tags">
             <cdt-tags-list (setListTag)="setListTag($event)" [tags]="$tags()"></cdt-tags-list>
-          </div>
+          </aside>
         }
       </div>
     </div>

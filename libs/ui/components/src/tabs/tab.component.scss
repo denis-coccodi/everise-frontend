@@ -6,6 +6,7 @@
   border-bottom: var(--border-width-strong) solid transparent;
   background: transparent;
   color: var(--color-contrast-muted);
+  font: inherit;
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -13,8 +14,8 @@
     border-color 0.15s ease;
 }
 
-:host(:hover),
-:host(:focus) {
+:host(:not(span):hover),
+:host(:not(span):focus) {
   color: var(--color-contrast);
   text-decoration: none;
 }
@@ -22,4 +23,8 @@
 :host(.active) {
   border-bottom-color: var(--color-primary);
   color: var(--color-primary-strong);
+}
+
+:host(span) {
+  cursor: default;
 }

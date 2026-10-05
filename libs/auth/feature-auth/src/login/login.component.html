@@ -10,12 +10,26 @@
         <cdt-list-errors></cdt-list-errors>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <cdt-field>
-            <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
+          <cdt-field label="Email" for="email" required>
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              autocomplete="email"
+              placeholder="Email"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.email"></cdt-input-errors>
           </cdt-field>
-          <cdt-field>
-            <input formControlName="password" type="password" id="password" placeholder="Password" cdtInput="lg" />
+          <cdt-field label="Password" for="password" required>
+            <input
+              formControlName="password"
+              type="password"
+              id="password"
+              autocomplete="current-password"
+              placeholder="Password"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.password"></cdt-input-errors>
           </cdt-field>
           <button

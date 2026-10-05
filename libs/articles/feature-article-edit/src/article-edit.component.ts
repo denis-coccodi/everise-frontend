@@ -2,6 +2,7 @@ import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ArticleStore } from '@realworld/articles/data-access';
 import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
 
@@ -21,6 +22,10 @@ import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/c
 export class ArticleEditComponent implements OnDestroy {
   private readonly articleStore = inject(ArticleStore);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute).snapshot;
+
+  // /editor/:slug edits an article; /editor writes a new one.
+  protected readonly editing = () => this.route.paramMap.has('slug') || !!this.route.firstChild?.paramMap.has('slug');
 
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required]],
