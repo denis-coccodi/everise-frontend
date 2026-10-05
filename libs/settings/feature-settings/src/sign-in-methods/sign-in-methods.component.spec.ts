@@ -26,10 +26,12 @@ describe('SignInMethodsComponent', () => {
   }
 
   it('shows the password and the tied accounts in words', async () => {
-    expect(await render(['password', 'google'], ['google', 'facebook'])).toEqual([
+    expect(await render(['password', 'google', 'discord'], ['google', 'facebook', 'microsoft', 'discord'])).toEqual([
       'Email and password Set',
       'Google Tied to this account',
       'Facebook Not tied: sign out, then "Continue with Facebook" with this account\'s email ties it.',
+      'Microsoft Not tied: sign out, then "Continue with Microsoft" with this account\'s email ties it.',
+      'Discord Tied to this account',
     ]);
   });
 
