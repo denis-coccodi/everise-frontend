@@ -5,13 +5,14 @@ export type InputSize = 'sm' | 'md' | 'lg';
 
 // A themed text field on a native <input>, <textarea> or <select>, so forms,
 // validation and accessibility work as usual: <input cdtInput="lg" ...>. An
-// empty cdtInput is the medium size. A component with no template (allowed on
-// these elements) so its styles live here. In a reactive or template-driven
+// empty cdtInput is the medium size. A component (allowed on these elements)
+// so its styles live here; its template only passes the content through, so
+// a <select>'s <option>s stay in it. In a reactive or template-driven
 // form, it sets aria-invalid once the person has been in an invalid field, so
 // screen readers announce it and it gets the danger outline.
 @Component({
   selector: 'input[cdtInput], textarea[cdtInput], select[cdtInput]',
-  template: '',
+  template: '<ng-content />',
   styleUrl: './input.component.scss',
   host: {
     '[attr.data-size]': "cdtInput() || 'md'",

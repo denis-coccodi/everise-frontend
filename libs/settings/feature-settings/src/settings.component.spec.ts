@@ -1,7 +1,11 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthStore } from '@realworld/auth/data-access';
 import { User } from '@realworld/core/api-types';
+import { API_URL } from '@realworld/core/http-client';
+import { provideRouter } from '@angular/router';
 import { SettingsStore } from '@realworld/settings/data-access';
 import { SettingsComponent } from './settings.component';
 
@@ -27,11 +31,17 @@ describe('SettingsComponent dark mode', () => {
     darkMode: false,
   };
 
-  async function render() {
-    const authStore = fakeAuthStore(user);
+  async function render(as: User = user) {
+    const authStore = fakeAuthStore(as);
     TestBed.configureTestingModule({
       imports: [SettingsComponent],
-      providers: [{ provide: AuthStore, useValue: authStore }],
+      providers: [
+        { provide: AuthStore, useValue: authStore },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: API_URL, useValue: '' },
+      ],
     });
     const fixture = TestBed.createComponent(SettingsComponent);
     await fixture.whenStable();
@@ -72,5 +82,16 @@ describe('SettingsComponent dark mode', () => {
 
     fixture.destroy();
     expect(settings.darkMode()).toBe(false);
+  });
+
+  it("shows Tataru's and the members' windows to admins only", async () => {
+    const member = await render();
+    expect(member.page.querySelector('cdt-admin-tataru')).toBeNull();
+    expect(member.page.querySelector('cdt-admin-members')).toBeNull();
+
+    TestBed.resetTestingModule();
+    const admin = await render({ ...user, role: 'admin' });
+    expect(admin.page.querySelector('cdt-admin-tataru')).not.toBeNull();
+    expect(admin.page.querySelector('cdt-admin-members')).not.toBeNull();
   });
 });

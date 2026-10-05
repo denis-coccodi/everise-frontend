@@ -1,0 +1,75 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+.intro {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+.members {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+// Avatar, name and email, then the role; the role wraps under them on a
+// narrow screen.
+.member {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.avatar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-avatar);
+}
+
+.who {
+  display: flex;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.email {
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+.role {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.admin {
+  padding: 0 0.5rem;
+  font-weight: 600;
+  color: var(--color-label);
+}
+
+.status {
+  min-height: 1.5em;
+  margin: 0.5rem 0 0;
+  color: var(--color-contrast-muted);
+}
+
+.status.warning,
+.error {
+  color: var(--color-danger);
+}
+
+.error {
+  margin: 0.25rem 0 0;
+}

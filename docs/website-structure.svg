@@ -112,29 +112,31 @@
 <text x="1040" y="427" font-size="12.5" font-weight="400" fill="#334155">•  Title, description, Markdown body, tags</text>
 <text x="1040" y="448" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
 <text x="1040" y="467" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Publish </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
-<rect x="1026" y="508" width="478" height="176" rx="10" fill="#fdf2f8" stroke="#be185d" stroke-width="1.8"/>
+<rect x="1026" y="508" width="478" height="196" rx="10" fill="#fdf2f8" stroke="#be185d" stroke-width="1.8"/>
 <text x="1040" y="532" font-size="14" font-weight="700" fill="#be185d" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/settings</text>
 <text x="1490" y="532" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Settings</text>
 <text x="1040" y="557" font-size="12.5" font-weight="400" fill="#334155">•  Profile picture: choose, crop to a square, upload</text>
 <text x="1040" y="576" font-size="12.5" font-weight="400" fill="#334155">•  Username, bio, email, new password</text>
 <text x="1040" y="595" font-size="12.5" font-weight="400" fill="#334155">•  Appearance: dark mode, saved with the account</text>
-<text x="1040" y="616" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
-<text x="1040" y="635" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Update settings </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
-<rect x="1026" y="696" width="478" height="288" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.8"/>
-<text x="1040" y="720" font-size="14" font-weight="700" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
-<text x="1490" y="720" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Profile</text>
-<text x="1040" y="745" font-size="12.5" font-weight="400" fill="#334155">•  Avatar, bio; Follow (others) or Edit settings (you)</text>
-<rect x="1040" y="763" width="218" height="70" rx="8" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
-<text x="1050" y="783" font-size="10" font-weight="700" fill="#c2410c">TAB · default</text>
-<text x="1050" y="801" font-size="13" font-weight="700" fill="#1e293b">My Articles</text>
-<text x="1050" y="819" font-size="11.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
-<rect x="1272" y="763" width="218" height="70" rx="8" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
-<text x="1282" y="783" font-size="10" font-weight="700" fill="#c2410c">TAB</text>
-<text x="1282" y="801" font-size="13" font-weight="700" fill="#1e293b">Favorited Articles</text>
-<text x="1282" y="819" font-size="11.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">…/favorites</text>
-<text x="1040" y="854" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Edit settings (you) </tspan><tspan fill="#be185d" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/settings</tspan></text>
-<text x="1040" y="875" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">article preview </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
-<text x="1040" y="897" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Lists come from feature-articles-list (shared with Home)</text>
+<text x="1040" y="614" font-size="12.5" font-weight="400" fill="#334155">•  Admins: Tataru's picture and bio; members' roles</text>
+<text x="1057" y="633" font-size="12.5" font-weight="400" fill="#334155">(staging tester: may open the staging site)</text>
+<text x="1040" y="654" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="1040" y="673" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Update settings </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>
+<rect x="1026" y="716" width="478" height="268" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.8"/>
+<text x="1040" y="740" font-size="14" font-weight="700" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
+<text x="1490" y="740" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Profile</text>
+<text x="1040" y="765" font-size="12.5" font-weight="400" fill="#334155">•  Avatar, bio; Follow (others) or Edit settings (you)</text>
+<rect x="1040" y="783" width="218" height="70" rx="8" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1050" y="803" font-size="10" font-weight="700" fill="#c2410c">TAB · default</text>
+<text x="1050" y="821" font-size="13" font-weight="700" fill="#1e293b">My Articles</text>
+<text x="1050" y="839" font-size="11.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/profile/:username</text>
+<rect x="1272" y="783" width="218" height="70" rx="8" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1282" y="803" font-size="10" font-weight="700" fill="#c2410c">TAB</text>
+<text x="1282" y="821" font-size="13" font-weight="700" fill="#1e293b">Favorited Articles</text>
+<text x="1282" y="839" font-size="11.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">…/favorites</text>
+<text x="1040" y="874" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Edit settings (you) </tspan><tspan fill="#be185d" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/settings</tspan></text>
+<text x="1040" y="895" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">article preview </tspan><tspan fill="#2563eb" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/article/:slug</tspan></text>
+<text x="1040" y="917" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Lists come from feature-articles-list (shared with Home)</text>
 <rect x="40" y="1024" width="1480" height="202" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.4"/>
 <text x="56" y="1050" font-size="14" font-weight="700" fill="#1e293b">Site-wide rules</text>
 <text x="56" y="1078" font-size="12.5" xml:space="preserve"><tspan fill="#334155" font-weight="400">Routing: </tspan><tspan fill="#0f766e" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/</tspan><tspan fill="#334155" font-weight="400"> and unknown paths go to </tspan><tspan fill="#059669" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/home</tspan><tspan fill="#334155" font-weight="400">; signed-out visitors of a guarded page go to </tspan><tspan fill="#7c3aed" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/login</tspan><tspan fill="#334155" font-weight="400">.</tspan></text>

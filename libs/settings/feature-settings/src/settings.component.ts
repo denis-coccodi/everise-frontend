@@ -15,6 +15,8 @@ import { User } from '@realworld/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
 import { SettingsStore } from '@realworld/settings/data-access';
 import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { AdminMembersComponent } from './admin-members/admin-members.component';
+import { AdminTataruComponent } from './admin-tataru/admin-tataru.component';
 import { PictureCropDialogComponent } from './picture-crop-dialog/picture-crop-dialog.component';
 import { PICTURE_HINT, checkChosenFile } from './profile-picture';
 
@@ -23,6 +25,8 @@ import { PICTURE_HINT, checkChosenFile } from './profile-picture';
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   imports: [
+    AdminMembersComponent,
+    AdminTataruComponent,
     FieldComponent,
     ButtonComponent,
     CheckboxComponent,
