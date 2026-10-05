@@ -6,6 +6,8 @@ import { catchError, map, of } from 'rxjs';
 const PROVIDERS = [
   { id: 'google', name: 'Google', icon: 'assets/images/google.svg' },
   { id: 'facebook', name: 'Facebook', icon: 'assets/images/facebook.svg' },
+  { id: 'microsoft', name: 'Microsoft', icon: 'assets/images/microsoft.svg' },
+  { id: 'discord', name: 'Discord', icon: 'assets/images/discord.svg' },
 ] as const;
 
 // In the settings: the ways into this account. The password, and the Google

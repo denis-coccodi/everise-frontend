@@ -12,12 +12,12 @@ export interface User {
   // The site's colour mode, saved with the other settings (true: dark).
   darkMode?: boolean;
   role?: Role;
-  // How the account can be signed in to: its password, and the Google or
-  // Facebook accounts tied to it.
+  // How the account can be signed in to: its password, and the provider
+  // accounts (Google, Facebook, Microsoft, Discord) tied to it.
   signInMethods?: SignInMethod[];
 }
 
-export type SignInMethod = 'password' | 'google' | 'facebook';
+export type SignInMethod = 'password' | 'google' | 'facebook' | 'microsoft' | 'discord';
 
 export interface UserResponse {
   user: User;

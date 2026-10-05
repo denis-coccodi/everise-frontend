@@ -31,13 +31,23 @@ describe('SocialSignInComponent', () => {
   afterEach(() => TestBed.inject(FormErrorsStore).setErrors({}));
 
   it('links to the backend for each provider it is set up for', async () => {
-    const page = await render(['google', 'facebook']);
+    const page = await render(['google', 'facebook', 'microsoft', 'discord']);
 
     const links = [...page.querySelectorAll('a')];
-    expect(links.map((a) => a.textContent?.trim())).toEqual(['Continue with Google', 'Continue with Facebook']);
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/api/auth/google', '/api/auth/facebook']);
+    expect(links.map((a) => a.textContent?.trim())).toEqual([
+      'Continue with Google',
+      'Continue with Facebook',
+      'Continue with Microsoft',
+      'Continue with Discord',
+    ]);
+    expect(links.map((a) => a.getAttribute('href'))).toEqual([
+      '/api/auth/google',
+      '/api/auth/facebook',
+      '/api/auth/microsoft',
+      '/api/auth/discord',
+    ]);
     // The logos are decorative: the link's text names the provider.
-    expect(links.map((a) => a.querySelector('img')?.getAttribute('alt'))).toEqual(['', '']);
+    expect(links.map((a) => a.querySelector('img')?.getAttribute('alt'))).toEqual(['', '', '', '']);
     expect(page.querySelector('.divider')?.textContent?.trim()).toBe('or with your email');
   });
 
