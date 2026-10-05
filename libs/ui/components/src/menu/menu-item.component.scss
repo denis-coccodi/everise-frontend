@@ -1,0 +1,33 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--color-contrast-soft);
+  cursor: pointer;
+}
+
+// The highlighted item: under the pointer, or reached with the keyboard (the
+// menu moves the focus, also after a click). Never the links' underline.
+:host(:hover),
+:host(:focus) {
+  background: var(--color-hover);
+  color: var(--color-contrast);
+  text-decoration: none;
+  outline: none;
+}
+
+:host(:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+:host(.divided) {
+  margin-top: 0.35rem;
+  border-top: var(--border-width) solid var(--color-divider);
+  padding-top: 0.65rem;
+}

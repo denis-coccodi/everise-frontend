@@ -1,3 +1,3 @@
 export { ListErrorsComponent } from './lib/list-errors/list-errors.component';
 export { InputErrorsComponent } from './lib/input-errors/input-errors.component';
-export { FormErrorsStore } from './lib/forms-errors.store';
+export { FAILURE_MESSAGE, FormErrorsStore, UNREACHABLE_MESSAGE } from './lib/forms-errors.store';

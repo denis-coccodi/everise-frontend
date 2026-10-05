@@ -25,12 +25,13 @@ export class RegisterComponent {
 
   form = this.fb.nonNullable.group({
     username: ['', [Validators.required]],
-    email: ['', [Validators.required]],
-    password: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   onSubmit() {
     this.authStore.register(this.form.getRawValue());
-    this.form.reset();
+    // Keep the name and email, so a problem only needs that field fixed.
+    this.form.controls.password.reset();
   }
 }

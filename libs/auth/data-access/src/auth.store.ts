@@ -6,7 +6,7 @@ import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { LoginUser, NewUser, User } from '@realworld/core/api-types';
 import { setLoaded, setLoading, withCallState } from '@realworld/core/data-access';
-import { FormErrorsStore } from '@realworld/core/forms';
+import { FAILURE_MESSAGE, FormErrorsStore, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
 import { AuthState, authInitialState, initialUserValue } from './auth.model';
 import { AuthService } from './services/auth.service';
@@ -43,7 +43,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user, loggedIn: true });
                   router.navigateByUrl('/');
                 },
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
@@ -58,7 +58,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user, loggedIn: true });
                   router.navigateByUrl('/');
                 },
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
@@ -73,12 +73,46 @@ export const AuthStore = signalStore(
                   patchState(store, { user });
                   router.navigate(['profile', user.username]);
                 },
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
         ),
       ),
+      // Uploads a new profile picture. The page checks the limits first; the
+      // server's message explains anything it still rejects.
+      uploadImage: rxMethod<Blob>(
+        pipe(
+          tap(() => patchState(store, { imageBusy: true, imageError: null })),
+          exhaustMap((file) =>
+            authService.uploadImage(file).pipe(
+              tapResponse({
+                next: ({ user }) => patchState(store, { user, imageBusy: false }),
+                error: (response: HttpErrorResponse) =>
+                  patchState(store, { imageBusy: false, imageError: imageErrorMessage(response) }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      removeImage: rxMethod<void>(
+        pipe(
+          tap(() => patchState(store, { imageBusy: true, imageError: null })),
+          exhaustMap(() =>
+            authService.removeImage().pipe(
+              tapResponse({
+                next: ({ user }) => patchState(store, { user, imageBusy: false }),
+                error: (response: HttpErrorResponse) =>
+                  patchState(store, { imageBusy: false, imageError: imageErrorMessage(response) }),
+              }),
+            ),
+          ),
+        ),
+      ),
+      // A problem the page found before uploading, or null to clear it.
+      setImageError(message: string | null) {
+        patchState(store, { imageError: message });
+      },
       logout: rxMethod<void>(
         pipe(
           exhaustMap(() =>
@@ -88,7 +122,7 @@ export const AuthStore = signalStore(
                   patchState(store, { user: initialUserValue, loggedIn: false });
                   router.navigateByUrl('login');
                 },
-                error: ({ error }: HttpErrorResponse) => formErrorsStore.setErrors(error.errors),
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
@@ -98,3 +132,10 @@ export const AuthStore = signalStore(
   ),
   withCallState({ collection: 'getUser' }),
 );
+
+// The server's explanation of a failed picture upload, or a general one.
+function imageErrorMessage(response: HttpErrorResponse): string {
+  const message = response.error?.errors?.body?.[0];
+  if (typeof message === 'string') return message;
+  return response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE;
+}

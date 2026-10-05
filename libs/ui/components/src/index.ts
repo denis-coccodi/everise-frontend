@@ -9,6 +9,8 @@ export * from './checkbox/checkbox.component';
 export * from './dialog/dialog.component';
 export * from './field/field.component';
 export * from './input/input.component';
+export * from './menu/menu-item.component';
+export * from './menu/menu.component';
 export * from './pager/pager.component';
 export * from './panel/panel.component';
 export * from './tabs/tab.component';

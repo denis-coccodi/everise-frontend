@@ -1,0 +1,49 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+.picture {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.avatar {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: var(--border-width-strong) solid var(--color-border);
+  background: var(--color-avatar);
+}
+
+.picture-controls h2 {
+  margin: 0 0 0.5rem;
+}
+
+// The native file input stays in the page for forms and screen readers, but
+// is opened by the "Choose a picture" button.
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.picture-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+.picture-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-danger);
+}
