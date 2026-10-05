@@ -46,6 +46,11 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.RegisterComponent),
         },
         {
+          path: 'privacy',
+          title: 'Privacy policy',
+          loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.PrivacyComponent),
+        },
+        {
           path: 'article',
           title: 'Article',
           loadChildren: () => import('@realworld/articles/article').then((m) => m.ARTICLE_ROUTES),
