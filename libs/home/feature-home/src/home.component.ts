@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
 import { LiveUpdates } from '@realworld/core/http-client';
 import { BannerComponent, CommunityLinksComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
+import { DiscordWidgetComponent } from './discord-widget/discord-widget.component';
 import { TagsListComponent } from './tags-list/tags-list.component';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
 import { HomeStore } from './home.store';
@@ -16,6 +17,7 @@ import { AuthStore } from '@realworld/auth/data-access';
   imports: [
     BannerComponent,
     CommunityLinksComponent,
+    DiscordWidgetComponent,
     TabsComponent,
     TabComponent,
     TagsListComponent,
