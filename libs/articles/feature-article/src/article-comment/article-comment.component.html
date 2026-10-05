@@ -1,5 +1,5 @@
 <cdt-card>
-  <p>{{ comment().body }}</p>
+  <cdt-rich-text [text]="comment().body" [compact]="true" />
   <div cdtCardFooter class="footer">
     <cdt-byline
       [image]="comment().author.image"

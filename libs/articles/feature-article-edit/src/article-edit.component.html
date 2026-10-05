@@ -33,12 +33,13 @@
               formControlName="body"
               rows="5"
               type="text"
-              placeholder="Write your article (in markdown)"
+              placeholder="Write your post (Markdown). A YouTube link on its own line shows as the video."
               cdtInput="lg"
               data-testid="body-textarea"
             ></textarea>
             <cdt-input-errors data-testid="body-textarea-error" [control]="form.controls.body" />
           </cdt-field>
+          <cdt-media-tools class="media-tools" for="body" />
           <cdt-field label="Tags" for="tags">
             <input
               id="tags"

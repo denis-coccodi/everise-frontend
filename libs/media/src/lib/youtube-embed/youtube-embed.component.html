@@ -1,0 +1,20 @@
+<div class="frame">
+  @if (playing()) {
+    <iframe
+      [src]="player()"
+      title="YouTube video"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen
+    ></iframe>
+  } @else {
+    <button type="button" class="poster" (click)="play()">
+      <img [src]="thumbnail()" alt="" loading="lazy" decoding="async" />
+      <span class="play" aria-hidden="true"></span>
+      <span class="visually-hidden">Play YouTube video</span>
+    </button>
+  }
+</div>
+<a class="watch" [href]="watchLink()" target="_blank" rel="noopener noreferrer"
+  >Watch on YouTube<span class="visually-hidden"> (opens in a new tab)</span></a
+>

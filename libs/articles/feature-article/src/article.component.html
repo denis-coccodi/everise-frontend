@@ -31,7 +31,7 @@
               [jobIcon]="imageUrl(card.job?.icon)"
             />
           }
-          <div class="xiv-prose" data-testid="article-body" [innerHTML]="article.body | markdown"></div>
+          <cdt-rich-text data-testid="article-body" [text]="article.body" />
         </div>
       </div>
       <hr />

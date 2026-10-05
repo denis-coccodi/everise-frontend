@@ -23,6 +23,7 @@
       "@realworld/articles/data-access": ["./libs/articles/data-access/src/index.ts"],
       "@realworld/auth/data-access": ["./libs/auth/data-access/src/index.ts"],
       "@realworld/auth/feature-auth": ["./libs/auth/feature-auth/src/index.ts"],
+      "@realworld/media": ["./libs/media/src/index.ts"],
       "@realworld/core/api-types": ["./libs/core/api-types/src/index.ts"],
       "@realworld/core/data-access": ["./libs/core/data-access/src/index.ts"],
       "@realworld/core/error-handler": ["./libs/core/error-handler/src/index.ts"],
