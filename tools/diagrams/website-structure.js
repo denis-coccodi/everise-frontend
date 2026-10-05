@@ -360,7 +360,7 @@ page({
   lines: [
     'Profile picture: choose, crop to a square, upload',
     'Username, bio, email, new password',
-    'Dark mode toggle (saved in this browser)',
+    'Appearance: dark mode, saved with the account',
     { head: 'GOES TO' },
     { to: [['Update settings', '/profile/:username', 'profile']] },
   ],

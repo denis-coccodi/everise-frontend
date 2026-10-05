@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  OnDestroy,
   computed,
   effect,
   inject,
@@ -33,7 +34,7 @@ import { PICTURE_HINT, checkChosenFile } from './profile-picture';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnDestroy {
   protected readonly authStore = inject(AuthStore);
   private readonly settingsStore = inject(SettingsStore);
   private readonly fb = inject(FormBuilder);
@@ -52,9 +53,8 @@ export class SettingsComponent {
     bio: [''],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.minLength(8)]],
+    darkMode: [this.settingsStore.darkMode()],
   });
-
-  darkMode = this.settingsStore.darkMode();
 
   constructor() {
     // A problem from an earlier visit is old news.
@@ -64,17 +64,30 @@ export class SettingsComponent {
   readonly setUserDataToForm = effect(() => {
     const userLoaded = this.authStore.getUserLoaded();
     if (userLoaded) {
-      this.form.patchValue({ ...this.authStore.user(), password: '' });
+      const user = this.authStore.user();
+      this.form.patchValue({ ...user, password: '', darkMode: user.darkMode ?? this.settingsStore.darkMode() });
     }
   });
 
-  toggleDarkMode() {
-    this.settingsStore.toggleDarkModeStatus();
+  // Dark mode is saved with "Update Settings", but shows straight away.
+  previewDarkMode(darkMode: boolean) {
+    this.form.controls.darkMode.setValue(darkMode);
+    this.form.controls.darkMode.markAsDirty();
+    this.settingsStore.setDarkMode(darkMode);
+  }
+
+  // Leaving without saving puts the saved mode back.
+  ngOnDestroy() {
+    const saved = this.authStore.user().darkMode;
+    if (saved !== undefined) {
+      this.settingsStore.setDarkMode(saved);
+    }
   }
 
   onSubmit() {
-    const { password, ...fields } = this.form.getRawValue();
-    this.authStore.updateUser({ ...fields, ...(password ? { password } : {}) } as User);
+    const { password, bio, ...fields } = this.form.getRawValue();
+    // The backend sends no bio as null, and only takes text back.
+    this.authStore.updateUser({ ...fields, bio: bio ?? '', ...(password ? { password } : {}) } as User);
   }
 
   // A file chosen in the browser's file window: checked, then cropped in the

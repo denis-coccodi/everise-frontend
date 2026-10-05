@@ -96,6 +96,14 @@
             />
             <cdt-input-errors [control]="form.controls.password" />
           </cdt-field>
+          <!-- Saved with the rest; previewed as soon as it changes. -->
+          <fieldset class="appearance">
+            <legend class="legend">Appearance</legend>
+            <cdt-checkbox [checked]="form.controls.darkMode.value" (checkedChange)="previewDarkMode($event)">
+              Dark mode
+            </cdt-checkbox>
+            <p class="hint">On: night-blue windows and crystal light. Off: Final Fantasy white.</p>
+          </fieldset>
           <button
             data-testid="edit-button-container"
             cdtButton
@@ -106,8 +114,6 @@
             Update Settings
           </button>
         </form>
-        <hr />
-        <cdt-checkbox class="dark-mode" [checked]="darkMode" (checkedChange)="toggleDarkMode()">Dark Mode</cdt-checkbox>
       </div>
     </div>
   </div>
