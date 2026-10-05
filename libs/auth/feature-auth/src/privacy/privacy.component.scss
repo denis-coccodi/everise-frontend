@@ -1,0 +1,13 @@
+// Uses the theme's role tokens only.
+.updated {
+  color: var(--color-contrast-muted);
+}
+
+// Lists read like the paragraphs around them.
+li {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-reading);
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  color: var(--color-contrast-soft);
+}
