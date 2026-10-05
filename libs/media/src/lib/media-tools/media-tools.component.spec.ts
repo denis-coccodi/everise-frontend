@@ -103,6 +103,8 @@ describe('MediaToolsComponent', () => {
     type(page.querySelector('#media-description') as HTMLInputElement, 'A moogle');
     await fixture.whenStable();
     button(page, 'Add image').click();
+    // The picture is prepared first (a small GIF is kept as it is).
+    await fixture.whenStable();
 
     const request = http.expectOne('/api/media');
     expect(request.request.method).toBe('POST');
@@ -128,6 +130,22 @@ describe('MediaToolsComponent', () => {
     await fixture.whenStable();
 
     expect(page.querySelector('[role=alert]')?.textContent?.trim()).toBe('Choose a PNG, JPEG, WebP or GIF image.');
+  });
+
+  it('refuses a GIF over 1 MB right away, since it would lose its animation', async () => {
+    const { fixture, page, http } = await render('', 0);
+    button(page, 'Image or GIF').click();
+    await fixture.whenStable();
+    http.expectOne('/api/gifs/available').flush({ available: false });
+
+    const input = page.querySelector('input[type=file]') as HTMLInputElement;
+    const big = new File([new Uint8Array(1024 * 1024 + 1)], 'huge.gif', { type: 'image/gif' });
+    Object.defineProperty(input, 'files', { value: [big] });
+    input.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    expect(page.querySelector('[role=alert]')?.textContent).toContain('GIFs keep their animation');
+    http.expectNone('/api/media');
   });
 
   it('picks a GIF from the search, credited to GIPHY', async () => {

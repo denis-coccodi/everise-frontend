@@ -27,7 +27,7 @@
       <button type="button" cdtButton="outline-primary" size="sm" (click)="fileInput.click()">
         {{ file() ? 'Choose another file' : 'Choose a file' }}
       </button>
-      <p class="hint">PNG, JPEG, WebP or GIF, up to {{ maxMb }} MB.</p>
+      <p class="hint">PNG, JPEG, WebP or GIF. Big pictures are made smaller to fit 1 MB; GIFs can be up to 1 MB.</p>
       @if (preview(); as preview) {
         <img class="preview" [src]="preview" alt="" />
       }
@@ -103,7 +103,7 @@
   <div class="actions">
     @if (mode() !== 'gifs') {
       <button type="button" cdtButton [disabled]="!canAdd()" (click)="add()">
-        {{ busy() ? 'Uploading…' : 'Add image' }}
+        {{ busy() === 'preparing' ? 'Preparing…' : busy() === 'uploading' ? 'Uploading…' : 'Add image' }}
       </button>
     }
     <button type="button" cdtButton="secondary" (click)="dismissed.emit()">Cancel</button>

@@ -10,13 +10,16 @@ import {
   TabsComponent,
 } from '@realworld/ui/components';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
-import { Gif, MAX_UPLOAD_MB, MediaService } from '../media.service';
+import { Gif, MediaService } from '../media.service';
+import { GIF_TOO_LARGE, MAX_UPLOAD_BYTES, canvasRenderer, fitImage } from './image-fitter';
 import { markdownImage } from './markdown-image';
 
 type Mode = 'upload' | 'link' | 'gifs';
 
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 const SEARCH_DELAY_MS = 400;
+// Bigger files aren't worth decoding in the browser to shrink.
+const MAX_SOURCE_MB = 30;
 
 // "Add an image or GIF": upload one, link to one, or pick a GIF from GIPHY.
 // Emits the Markdown to put in the text.
@@ -33,12 +36,12 @@ export class ImageDialogComponent {
   readonly chosen = output<string>();
   readonly dismissed = output<void>();
 
-  protected readonly maxMb = MAX_UPLOAD_MB;
   protected readonly gifsAvailable = toSignal(this.media.gifsAvailable$, { initialValue: false });
   protected readonly mode = signal<Mode>('upload');
   protected readonly description = signal('');
   protected readonly error = signal<string | null>(null);
-  protected readonly busy = signal(false);
+  // What the Add button is doing: making the picture smaller, or uploading.
+  protected readonly busy = signal<'preparing' | 'uploading' | false>(false);
 
   // Upload.
   protected readonly file = signal<File | null>(null);
@@ -103,8 +106,12 @@ export class ImageDialogComponent {
       this.error.set('Choose a PNG, JPEG, WebP or GIF image.');
       return;
     }
-    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
-      this.error.set(`That file is too large: it can be at most ${MAX_UPLOAD_MB} MB.`);
+    if (file.type === 'image/gif' && file.size > MAX_UPLOAD_BYTES) {
+      this.error.set(GIF_TOO_LARGE);
+      return;
+    }
+    if (file.size > MAX_SOURCE_MB * 1024 * 1024) {
+      this.error.set(`That file is too large: choose one under ${MAX_SOURCE_MB} MB.`);
       return;
     }
     this.error.set(null);
@@ -136,7 +143,7 @@ export class ImageDialogComponent {
     this.chosen.emit(markdownImage(gif.title, gif.url));
   }
 
-  protected add() {
+  protected async add() {
     const description = this.description();
     if (this.mode() === 'link') {
       this.chosen.emit(markdownImage(description, this.link().trim()));
@@ -144,9 +151,19 @@ export class ImageDialogComponent {
     }
     const file = this.file();
     if (!file) return;
-    this.busy.set(true);
     this.error.set(null);
-    this.media.upload(file).subscribe({
+    this.busy.set('preparing');
+    let upload: Blob;
+    try {
+      // Made to fit 1 MB here, so the backend gets a small file.
+      upload = await fitImage(file, () => canvasRenderer(file));
+    } catch (err) {
+      this.busy.set(false);
+      this.error.set((err as Error).message);
+      return;
+    }
+    this.busy.set('uploading');
+    this.media.upload(upload).subscribe({
       next: (media) => {
         this.busy.set(false);
         this.chosen.emit(markdownImage(description, media.url));

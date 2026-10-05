@@ -22,8 +22,6 @@ export interface Gif {
   height: number;
 }
 
-export const MAX_UPLOAD_MB = 5;
-
 // Uploads and the GIF search, from the backend's /api/media and /api/gifs.
 @Injectable({ providedIn: 'root' })
 export class MediaService {
