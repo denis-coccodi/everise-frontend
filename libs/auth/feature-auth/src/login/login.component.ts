@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { SocialSignInComponent } from '../social-sign-in/social-sign-in.component';
 
 @Component({
   selector: 'cdt-login',
@@ -16,6 +17,7 @@ import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/c
     RouterLink,
     ReactiveFormsModule,
     InputErrorsComponent,
+    SocialSignInComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
