@@ -6,6 +6,7 @@ import { ArticlesListStore } from '@realworld/articles/data-access';
 @Component({
   selector: 'cdt-article-list',
   templateUrl: './article-list.component.html',
+  styleUrl: './article-list.component.scss',
   imports: [ArticleListItemComponent, PagerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -16,6 +17,7 @@ export class ArticleListComponent {
   $articles = this.articlesListStore.articles.entities;
   $listConfig = this.articlesListStore.listConfig;
   $isLoading = this.articlesListStore.getArticlesLoading;
+  $liveSlugs = this.articlesListStore.liveSlugs;
 
   favorite(slug: string) {
     this.articlesListStore.favouriteArticle(slug);

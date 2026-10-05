@@ -40,6 +40,9 @@
           }
         </div>
 
+        <!-- Live posts appear at the top of the list; screen readers hear them here. -->
+        <p class="announcement" aria-live="polite">{{ announcement() }}</p>
+
         <cdt-article-list></cdt-article-list>
       </div>
 

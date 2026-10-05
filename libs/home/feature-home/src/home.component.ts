@@ -1,5 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject, effect, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, effect, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
+import { LiveUpdates } from '@realworld/core/http-client';
 import { BannerComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
 import { TagsListComponent } from './tags-list/tags-list.component';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
@@ -24,10 +26,25 @@ export class HomeComponent {
   protected readonly isLoggedIn = this.authStore.loggedIn;
   $tags = this.homeStore.tags;
 
+  // Read out by screen readers when a post arrives live.
+  protected readonly announcement = signal('');
+
   readonly loadArticlesOnLogin = effect(() => {
     const isLoggedIn = this.authStore.loggedIn();
     untracked(() => this.getArticles(isLoggedIn));
   });
+
+  // New posts pushed by the backend go straight to the top of the list
+  // when they belong in it.
+  constructor() {
+    inject(LiveUpdates)
+      .events$.pipe(takeUntilDestroyed())
+      .subscribe(({ article }) => {
+        if (this.articlesListStore.addLiveArticle(article)) {
+          this.announcement.set(`New post by ${article.author.username}: ${article.title}`);
+        }
+      });
+  }
 
   setListTo(type: ListType = 'ALL') {
     const config = { ...articlesListInitialState.listConfig, type };

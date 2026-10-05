@@ -76,7 +76,7 @@ One Angular app (`apps/everise`) is a thin shell: routes, guard, page titles, HT
 
 - **feature** libs: one per page, lazy-loaded by the router (`feature-articles-list` is the exception: a shared list used by Home and Profile);
 - **data-access** libs: NgRx signal stores, API services, guards and resolvers;
-- **core** and **ui** libs: API types, HTTP client, form errors and error handling; the **ui** lib also holds the theme and the themed building blocks every page uses ([Theme](#theme)). They have no dependencies on other libs.
+- **core** and **ui** libs: API types, HTTP client (with `LiveUpdates`, the live updates WebSocket), form errors and error handling; the **ui** lib also holds the theme and the themed building blocks every page uses ([Theme](#theme)). They have no dependencies on other libs.
 
 Dependencies only point down a layer or sideways within a domain.
 

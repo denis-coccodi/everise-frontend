@@ -5,6 +5,7 @@
       (unFavorite)="unFavorite($event)"
       (favorite)="favorite($event)"
       [article]="article"
+      [class.live]="$liveSlugs().includes(article.slug)"
     >
     </cdt-article-list-item>
   } @empty {
