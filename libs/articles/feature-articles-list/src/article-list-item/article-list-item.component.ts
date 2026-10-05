@@ -14,7 +14,6 @@ export class ArticleListItemComponent {
   article = input.required<Article>();
   favorite = output<string>();
   unFavorite = output<string>();
-  navigateToArticle = output<string>();
 
   private readonly apiUrl = inject(API_URL);
 

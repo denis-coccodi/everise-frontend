@@ -1,6 +1,6 @@
 <div class="roulette-page">
   <header class="hero">
-    <svg class="hero-crystal" viewBox="-12 -16 24 32" aria-hidden="true">
+    <svg class="hero-crystal" [class.paused]="motionPaused()" viewBox="-12 -16 24 32" aria-hidden="true">
       <polygon points="0,-15 9,-3 0,15 -9,-3" />
     </svg>
     <h1 class="xiv-title">Duty Roulette</h1>
@@ -94,22 +94,45 @@
           <div class="reels">
             <div class="step">
               <span class="step-number">I</span>
-              <cdt-roulette-reel #typeReel caption="Duty type" [preview]="typePreview()" />
+              <cdt-roulette-reel #typeReel caption="Duty type" [preview]="typePreview()" [paused]="motionPaused()" />
             </div>
             <div class="step">
               <span class="step-number">II</span>
-              <cdt-roulette-reel #dutyReel caption="Duty" [preview]="dutyPreview()" />
+              <cdt-roulette-reel #dutyReel caption="Duty" [preview]="dutyPreview()" [paused]="motionPaused()" />
             </div>
             <div class="step">
               <span class="step-number">III</span>
-              <cdt-roulette-reel #modeReel caption="Party settings" [preview]="modePreview()" />
+              <cdt-roulette-reel
+                #modeReel
+                caption="Party settings"
+                [preview]="modePreview()"
+                [paused]="motionPaused()"
+              />
             </div>
           </div>
 
-          <button type="button" cdtButton="cta" class="commence" [disabled]="!canSpin()" (click)="commence()">
+          <button
+            #spinButton
+            type="button"
+            cdtButton="cta"
+            class="commence"
+            [disabled]="!canSpin()"
+            (click)="commence()"
+          >
             {{ spinning() ? 'Spinning…' : result() ? 'Spin again' : 'Commence' }}
           </button>
           <p class="status" aria-live="polite">{{ status() }}</p>
+          <!-- The idle reels scroll on and on; this stops them (WCAG 2.2.2). -->
+          <p class="motion">
+            <button
+              type="button"
+              cdtButton="chip"
+              [attr.aria-pressed]="motionPaused()"
+              (click)="motionPaused.set(!motionPaused())"
+            >
+              Pause animations
+            </button>
+          </p>
 
           @if (result(); as last) {
             @if (!showResult()) {

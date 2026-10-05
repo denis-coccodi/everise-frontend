@@ -3,10 +3,10 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-12 col-md-10 offset-md-1">
-          <img [src]="$image()" class="user-img" />
-          <h4 data-testid="article-author-profile" [hidden]="$profileLoading()">
+          <img [src]="$image()" class="user-img" alt="" />
+          <h1 class="name" data-testid="article-author-profile" [hidden]="$profileLoading()">
             {{ $username() }}
-          </h4>
+          </h1>
           <p>{{ $bio() }}</p>
           <div class="profile-ctas">
             @if (!$isUser()) {
@@ -16,7 +16,7 @@
                 class="action-btn"
                 (click)="toggleFollowing()"
               >
-                <i class="ion-plus-round"></i>
+                <i class="ion-plus-round" aria-hidden="true"></i>
                 &nbsp; {{ $following() ? 'Unfollow' : 'Follow' }}
                 {{ $username() }}
               </button>
@@ -28,7 +28,7 @@
               size="sm"
               class="action-btn"
             >
-              <i class="ion-gear-a"></i> Edit Profile Settings
+              <i class="ion-gear-a" aria-hidden="true"></i> Edit Profile Settings
             </a>
           </div>
         </div>
@@ -39,7 +39,7 @@
   <div class="container">
     <div class="row">
       <div class="col-xs-12 col-md-10 offset-md-1">
-        <div class="articles-toggle">
+        <nav class="articles-toggle" aria-label="Articles">
           <ul cdtTabs>
             <li>
               <a
@@ -60,7 +60,7 @@
               >
             </li>
           </ul>
-        </div>
+        </nav>
 
         <router-outlet></router-outlet>
       </div>

@@ -2,7 +2,7 @@
   <div class="container page">
     <div class="row">
       <div class="col-md-6 offset-md-3 col-xs-12">
-        <h1 class="text-xs-center">Sign in</h1>
+        <h1 class="text-xs-center">Sign up</h1>
         <p class="text-xs-center">
           <a [routerLink]="['/login']">Have an account?</a>
         </p>
@@ -10,16 +10,37 @@
         <cdt-list-errors></cdt-list-errors>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <cdt-field>
-            <input formControlName="username" type="text" id="username" placeholder="Username" cdtInput="lg" />
+          <cdt-field label="Username" for="username" required>
+            <input
+              formControlName="username"
+              type="text"
+              id="username"
+              autocomplete="username"
+              placeholder="Username"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.username" />
           </cdt-field>
-          <cdt-field>
-            <input formControlName="email" type="email" id="email" placeholder="Email" cdtInput="lg" />
+          <cdt-field label="Email" for="email" required>
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              autocomplete="email"
+              placeholder="Email"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.email" />
           </cdt-field>
-          <cdt-field>
-            <input formControlName="password" type="password" id="password" placeholder="Password" cdtInput="lg" />
+          <cdt-field label="Password" for="password" required>
+            <input
+              formControlName="password"
+              type="password"
+              id="password"
+              autocomplete="new-password"
+              placeholder="Password"
+              cdtInput="lg"
+            />
             <cdt-input-errors [control]="form.controls.password" />
           </cdt-field>
           <button

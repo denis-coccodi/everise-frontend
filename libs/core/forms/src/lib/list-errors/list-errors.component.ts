@@ -5,6 +5,8 @@ import { FormErrorsStore } from '../forms-errors.store';
   selector: 'cdt-list-errors',
   templateUrl: './list-errors.component.html',
   styleUrl: '../error-messages.scss',
+  // The server's answer to a form: announced as soon as it appears.
+  host: { role: 'alert' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListErrorsComponent implements OnDestroy {

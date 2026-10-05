@@ -5,7 +5,19 @@
   margin-bottom: 1rem;
 }
 
-:host(.required)::after {
+.label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.mark {
+  color: var(--color-danger);
+}
+
+// Without a visible label, the asterisk sits in the field's corner.
+:host(.required:not(.labelled))::after {
   content: '*';
   position: absolute;
   top: 5px;

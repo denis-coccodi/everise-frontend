@@ -32,6 +32,21 @@
   letter-spacing: var(--letter-spacing-display);
 }
 
+/* Text for screen readers only: a hidden label or a word that the layout
+   already shows visually. Global because any template may need it, like the
+   other text helpers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Long-form text such as a rendered article. Global on purpose: content set
    through [innerHTML] is outside Angular's style scoping, so a component
    stylesheet can't reach it. */

@@ -2,14 +2,13 @@
   @for (article of $articles(); track article.slug) {
     <cdt-article-list-item
       data-testid="article-list"
-      (navigateToArticle)="navigateToArticle($event)"
       (unFavorite)="unFavorite($event)"
       (favorite)="favorite($event)"
       [article]="article"
     >
     </cdt-article-list-item>
   } @empty {
-    <div>No articles are here... yet.</div>
+    <p class="empty">No articles are here... yet.</p>
   }
 
   <cdt-pager
@@ -18,5 +17,5 @@
     [totalPages]="$totalPages()"
   ></cdt-pager>
 } @else {
-  <div>Loading articles...</div>
+  <p role="status">Loading articles...</p>
 }

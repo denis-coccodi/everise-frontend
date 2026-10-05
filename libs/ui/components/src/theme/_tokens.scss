@@ -41,7 +41,9 @@
   /* Haze and ink: text. */
   --palette-haze-300: #c9d4e8;
   --palette-haze-400: #a9b8d6;
+  --palette-haze-500: #8292b4;
   --palette-haze-600: #6f7f9f;
+  --palette-slate-500: #5f677a;
   --palette-slate-600: #4f5a70;
   --palette-ink-800: #26314a;
   --palette-ink-900: #10182b;
@@ -84,7 +86,8 @@
   --color-contrast: var(--palette-mist-50);
   --color-contrast-soft: var(--palette-haze-300);
   --color-contrast-muted: var(--palette-haze-400);
-  --color-contrast-faint: var(--palette-haze-600);
+  /* Hints and placeholders: still at least 4.5:1 on every surface (WCAG AA). */
+  --color-contrast-faint: var(--palette-haze-500);
   /* Titles and window headers. */
   --color-heading: var(--palette-mist-0);
   /* Small uppercase labels ("eyebrows"). */
@@ -142,6 +145,9 @@
   --color-border-soft: rgba(220, 220, 220, 0.28);
   --color-border-faint: rgba(220, 220, 220, 0.14);
   --color-divider: rgba(169, 184, 214, 0.16);
+  /* The outline of a text field or checkbox: at least 3:1 against what is
+     around it, so the control can be seen (WCAG 1.4.11). */
+  --color-border-field: rgba(220, 220, 220, 0.55);
 
   /* States and overlays. */
   --color-hover: rgba(0, 169, 176, 0.12);
@@ -215,7 +221,7 @@ body.light {
   --color-contrast: var(--palette-ink-900);
   --color-contrast-soft: var(--palette-ink-800);
   --color-contrast-muted: var(--palette-slate-600);
-  --color-contrast-faint: var(--palette-mist-500);
+  --color-contrast-faint: var(--palette-slate-500);
   --color-heading: var(--palette-royal-600);
   --color-label: var(--palette-royal-500);
 
@@ -248,9 +254,11 @@ body.light {
   --color-border-soft: var(--palette-mist-300);
   --color-border-faint: var(--palette-mist-200);
   --color-divider: rgba(16, 24, 43, 0.1);
+  --color-border-field: var(--palette-haze-600);
 
   --color-hover: rgba(7, 58, 140, 0.06);
-  --color-focus: var(--palette-crystal-500);
+  /* Darker than crystal-500, which is under 3:1 on white. */
+  --color-focus: var(--palette-crystal-600);
   --color-overlay: rgba(16, 24, 43, 0.45);
   --color-shade: rgba(7, 58, 140, 0.04);
 

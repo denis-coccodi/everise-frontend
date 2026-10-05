@@ -8,6 +8,8 @@ import { IsErrorVisibleDirective } from './is-error-visible.directive';
   selector: 'cdt-input-errors',
   templateUrl: './input-errors.component.html',
   styleUrl: '../error-messages.scss',
+  // Always present, so screen readers announce a message when it appears.
+  host: { 'aria-live': 'polite' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [KeyValuePipe, ErrorMapperPipe, IsErrorVisibleDirective],
 })

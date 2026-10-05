@@ -1,17 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DialogComponent } from './dialog.component';
 
 @Component({
   imports: [DialogComponent],
   template: `
-    <cdt-dialog heading="Duty Found" (dismissed)="dismissals = dismissals + 1">
-      <button id="inside">OK</button>
-    </cdt-dialog>
+    <button id="opener">Open</button>
+    @if (open()) {
+      <cdt-dialog heading="Duty Found" (dismissed)="dismissals = dismissals + 1">
+        <button id="inside">OK</button>
+        <button id="last">Cancel</button>
+      </cdt-dialog>
+    }
   `,
 })
 class HostComponent {
   dismissals = 0;
+  readonly open = signal(true);
 }
 
 describe('DialogComponent', () => {
@@ -30,5 +35,35 @@ describe('DialogComponent', () => {
     el('.backdrop').click();
     el('#inside').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(fixture.componentInstance.dismissals).toBe(2);
+  });
+
+  it('keeps the focus inside while open and gives it back when closed', async () => {
+    await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(HostComponent);
+    document.body.appendChild(fixture.nativeElement);
+    const el = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector(selector) as HTMLElement;
+    fixture.componentInstance.open.set(false);
+    await fixture.whenStable();
+    el('#opener').focus();
+
+    fixture.componentInstance.open.set(true);
+    await fixture.whenStable();
+    // Nothing in the content took the focus, so the window has it.
+    expect(document.activeElement).toBe(el('[role=dialog]'));
+
+    const tab = (shiftKey: boolean) =>
+      (document.activeElement as HTMLElement).dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true }),
+      );
+    el('#last').focus();
+    tab(false);
+    expect(document.activeElement).toBe(el('#inside'));
+    tab(true);
+    expect(document.activeElement).toBe(el('#last'));
+
+    fixture.componentInstance.open.set(false);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(el('#opener'));
+    fixture.nativeElement.remove();
   });
 });

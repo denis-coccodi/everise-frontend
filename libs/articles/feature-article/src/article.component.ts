@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, input } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { ArticleStore } from '@realworld/articles/data-access';
 import { ArticleMetaComponent } from './article-meta/article-meta.component';
 import { MarkdownPipe } from './pipes/markdown.pipe';
@@ -38,6 +39,17 @@ export class ArticleComponent implements OnInit, OnDestroy {
   $isAuthenticated = this.authStore.loggedIn;
   $currentUser = this.authStore.user;
   $canModify = computed(() => this.authStore.user.username() === this.$authorUsername());
+
+  constructor() {
+    // The page's title is the article's, once it has loaded.
+    const title = inject(Title);
+    effect(() => {
+      const article = this.$article();
+      if (article.slug === this.slug() && article.title) {
+        title.setTitle(`${article.title} · Everise`);
+      }
+    });
+  }
 
   // A roulette card's game image.
   protected imageUrl(id: number | null | undefined) {

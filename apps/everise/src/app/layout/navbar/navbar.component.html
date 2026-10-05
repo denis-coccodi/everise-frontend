@@ -1,39 +1,37 @@
-<nav class="navbar navbar-light">
+<nav class="navbar navbar-light" aria-label="Main">
   <div class="container">
-    <a class="navbar-brand" routerLink="/">everise</a>
+    <a class="navbar-brand" routerLink="/" aria-label="Everise, home">everise</a>
 
     @if (!isLoggedIn()) {
       <ul class="nav navbar-nav pull-xs-right">
         <li class="nav-item">
-          <a class="nav-link" routerLink="/">Home</a>
+          <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/roulette" routerLinkActive="active">
-            <i class="ion-shuffle"></i>&nbsp;Roulette
+          <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <i class="ion-shuffle" aria-hidden="true"></i>&nbsp;Roulette
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/login" routerLinkActive="active">Sign in</a>
+          <a class="nav-link" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Sign in</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/register" routerLinkActive="active">Sign up</a>
+          <a class="nav-link" routerLink="/register" routerLinkActive="active" ariaCurrentWhenActive="page">Sign up</a>
         </li>
       </ul>
     } @else {
       <ul class="nav navbar-nav pull-xs-right">
         <li class="nav-item">
-          <a class="nav-link" [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-            >Home</a
-          >
+          <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/roulette" routerLinkActive="active">
-            <i class="ion-shuffle"></i>&nbsp;Roulette
+          <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <i class="ion-shuffle" aria-hidden="true"></i>&nbsp;Roulette
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/editor" routerLinkActive="active">
-            <i class="ion-compose"></i>&nbsp;New Post
+          <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <i class="ion-compose" aria-hidden="true"></i>&nbsp;New Post
           </a>
         </li>
         <!-- The account menu: the user's own pages and signing out. -->
