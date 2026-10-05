@@ -1,11 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthStore } from '@realworld/auth/data-access';
 import { User } from '@realworld/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
 import { SettingsStore } from '@realworld/settings/data-access';
 import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
-import { PICTURE_HINT, PICTURE_TYPES, checkPicture } from './profile-picture';
+import { PictureCropDialogComponent } from './picture-crop-dialog/picture-crop-dialog.component';
+import { PICTURE_HINT, checkChosenFile } from './profile-picture';
 
 @Component({
   selector: 'cdt-settings',
@@ -19,6 +29,7 @@ import { PICTURE_HINT, PICTURE_TYPES, checkPicture } from './profile-picture';
     ListErrorsComponent,
     ReactiveFormsModule,
     InputErrorsComponent,
+    PictureCropDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,7 +39,10 @@ export class SettingsComponent {
   private readonly fb = inject(FormBuilder);
 
   protected readonly pictureHint = PICTURE_HINT;
-  protected readonly pictureTypes = PICTURE_TYPES.join(',');
+  // The picture being cropped in the dialog.
+  protected readonly cropping = signal<File | null>(null);
+  // The element, not the cdtButton component on it.
+  private readonly chooseButton = viewChild('chooseButton', { read: ElementRef<HTMLButtonElement> });
   // An uploaded picture can be removed; the default one can't.
   protected readonly hasOwnPicture = computed(() => this.authStore.user().image.includes('/api/profile-images/'));
 
@@ -63,19 +77,30 @@ export class SettingsComponent {
     this.authStore.updateUser({ ...fields, ...(password ? { password } : {}) } as User);
   }
 
-  // A file chosen in the browser's file window: checked here, then uploaded.
-  async onPictureChosen(input: HTMLInputElement) {
+  // A file chosen in the browser's file window: checked, then cropped in the
+  // dialog.
+  onPictureChosen(input: HTMLInputElement) {
     const file = input.files?.[0];
-    // Lets the same file be chosen again after fixing a problem.
+    // Lets the same file be chosen again.
     input.value = '';
     if (!file) return;
 
-    const problem = await checkPicture(file);
-    if (problem) {
-      this.authStore.setImageError(problem);
-      return;
+    const problem = checkChosenFile(file);
+    this.authStore.setImageError(problem);
+    if (!problem) {
+      this.cropping.set(file);
     }
-    this.authStore.uploadImage(file);
+  }
+
+  // The cropped picture, ready to store.
+  onCropped(picture: Blob) {
+    this.closeCropDialog();
+    this.authStore.uploadImage(picture);
+  }
+
+  closeCropDialog() {
+    this.cropping.set(null);
+    this.chooseButton()?.nativeElement.focus();
   }
 
   removePicture() {

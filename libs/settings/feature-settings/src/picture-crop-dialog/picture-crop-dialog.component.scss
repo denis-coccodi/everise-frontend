@@ -1,0 +1,20 @@
+// The window, cropper and buttons come from the UI library; this lays out
+// the content only.
+.intro {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-soft);
+}
+
+.message {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}

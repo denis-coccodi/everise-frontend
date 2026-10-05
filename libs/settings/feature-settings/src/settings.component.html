@@ -15,11 +15,12 @@
               class="file-input"
               tabindex="-1"
               aria-label="Profile picture file"
-              [accept]="pictureTypes"
+              accept="image/*"
               (change)="onPictureChosen(pictureInput)"
             />
             <div class="picture-buttons">
               <button
+                #chooseButton
                 type="button"
                 cdtButton="outline-primary"
                 size="sm"
@@ -46,6 +47,10 @@
             }
           </div>
         </section>
+
+        @if (cropping(); as file) {
+          <cdt-picture-crop-dialog [file]="file" (chosen)="onCropped($event)" (cancelled)="closeCropDialog()" />
+        }
 
         <cdt-list-errors />
         <form [formGroup]="form" (ngSubmit)="onSubmit()">

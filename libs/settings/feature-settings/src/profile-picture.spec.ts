@@ -1,25 +1,19 @@
-import { MAX_PICTURE_BYTES, checkPicture } from './profile-picture';
+import { checkChosenFile } from './profile-picture';
 
 const file = (type: string, bytes = 100) => new File([new Uint8Array(bytes)], 'picture', { type });
-const sized = (width: number, height: number) => async () => ({ width, height });
 
-describe('checkPicture', () => {
-  it('accepts a PNG, JPEG, WebP or GIF within the limits', async () => {
-    for (const type of ['image/png', 'image/jpeg', 'image/webp', 'image/gif']) {
-      expect(await checkPicture(file(type), sized(500, 500))).toBeNull();
+describe('checkChosenFile', () => {
+  it('accepts any picture, whatever its size in pixels', () => {
+    for (const type of ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']) {
+      expect(checkChosenFile(file(type))).toBeNull();
     }
   });
 
-  it('explains each limit', async () => {
-    expect(await checkPicture(file('image/svg+xml'), sized(10, 10))).toBe('Choose a PNG, JPEG, WebP or GIF picture.');
-    expect(await checkPicture(file('image/png', MAX_PICTURE_BYTES + 1), sized(10, 10))).toBe(
-      'The picture is too large (301 KB): it can be at most 300 KB.',
-    );
-    expect(await checkPicture(file('image/png'), sized(501, 300))).toBe(
-      'The picture is 501 × 300 pixels; it can be at most 500 × 500.',
-    );
-    expect(await checkPicture(file('image/png'), async () => null)).toBe(
-      "That picture can't be opened. Choose another file.",
+  it('turns away other files, SVG drawings and huge files', () => {
+    expect(checkChosenFile(file('text/plain'))).toBe('Choose a picture, such as a PNG, JPEG or WebP file.');
+    expect(checkChosenFile(file('image/svg+xml'))).toBe('Choose a picture, such as a PNG, JPEG or WebP file.');
+    expect(checkChosenFile(file('image/jpeg', 25 * 1024 * 1024))).toBe(
+      'The file is too large to edit (25 MB): choose one under 20 MB.',
     );
   });
 });

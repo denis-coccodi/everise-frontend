@@ -42,21 +42,22 @@ Styles live with what they style.
 
 **The UI library provides the dumb, themed building blocks** every page uses. Each sits in its own folder with its `.ts`, `.scss` and `.spec.ts`:
 
-| Building block       | For                                                                       |
-| -------------------- | ------------------------------------------------------------------------- |
-| `cdtButton`          | buttons and button links                                                  |
-| `cdtInput`           | text fields and text areas                                                |
-| `<cdt-field>`        | a form field with its errors                                              |
-| `<cdt-checkbox>`     | a checkbox with its label                                                 |
-| `<cdt-panel>`        | a window                                                                  |
-| `<cdt-card>`         | a card with an optional footer                                            |
-| `<cdt-banner>`       | a page's title strip                                                      |
-| `<cdt-dialog>`       | a modal window                                                            |
-| `<cdt-menu>`         | a button that opens a menu (the account menu), with `cdtMenuItem` entries |
-| `<cdt-byline>`       | an avatar, author name and date                                           |
-| `cdtTabs` / `cdtTab` | tab bars                                                                  |
-| `cdtTag`             | tag pills                                                                 |
-| `<cdt-pager>`        | pagination                                                                |
+| Building block        | For                                                                       |
+| --------------------- | ------------------------------------------------------------------------- |
+| `cdtButton`           | buttons and button links                                                  |
+| `cdtInput`            | text fields and text areas                                                |
+| `<cdt-field>`         | a form field with its errors                                              |
+| `<cdt-checkbox>`      | a checkbox with its label                                                 |
+| `<cdt-panel>`         | a window                                                                  |
+| `<cdt-card>`          | a card with an optional footer                                            |
+| `<cdt-banner>`        | a page's title strip                                                      |
+| `<cdt-dialog>`        | a modal window                                                            |
+| `<cdt-image-cropper>` | choosing a square area of a picture                                       |
+| `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries |
+| `<cdt-byline>`        | an avatar, author name and date                                           |
+| `cdtTabs` / `cdtTab`  | tab bars                                                                  |
+| `cdtTag`              | tag pills                                                                 |
+| `<cdt-pager>`         | pagination                                                                |
 
 The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTag`, `cdtMenuItem`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 
