@@ -12,7 +12,7 @@ import {
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
 import { Gif, MediaService } from '../media.service';
 import { GIF_TOO_LARGE, MAX_UPLOAD_BYTES, canvasRenderer, fitImage } from './image-fitter';
-import { markdownImage } from './markdown-image';
+import { NewAttachment } from '@realworld/core/api-types';
 
 type Mode = 'upload' | 'link' | 'gifs';
 
@@ -22,7 +22,7 @@ const SEARCH_DELAY_MS = 400;
 const MAX_SOURCE_MB = 30;
 
 // "Add an image or GIF": upload one, link to one, or pick a GIF from GIPHY.
-// Emits the Markdown to put in the text.
+// Emits the attachment.
 @Component({
   selector: 'cdt-image-dialog',
   templateUrl: './image-dialog.component.html',
@@ -33,7 +33,7 @@ const MAX_SOURCE_MB = 30;
 export class ImageDialogComponent {
   private readonly media = inject(MediaService);
 
-  readonly chosen = output<string>();
+  readonly chosen = output<NewAttachment>();
   readonly dismissed = output<void>();
 
   protected readonly gifsAvailable = toSignal(this.media.gifsAvailable$, { initialValue: false });
@@ -47,8 +47,9 @@ export class ImageDialogComponent {
   protected readonly file = signal<File | null>(null);
   protected readonly preview = signal<string | null>(null);
 
-  // Link.
+  // Link, and the linked picture's size once its preview loads.
   protected readonly link = signal('');
+  private readonly linkedSize = signal<{ width: number; height: number } | null>(null);
   protected readonly linkValid = computed(() => /^https:\/\/\S+$/i.test(this.link().trim()));
 
   // GIFs.
@@ -120,6 +121,16 @@ export class ImageDialogComponent {
     this.preview.set(URL.createObjectURL(file));
   }
 
+  // The linked picture loaded: its size keeps its space in the feeds.
+  protected linkedLoaded(image: HTMLImageElement) {
+    this.linkedSize.set({ width: image.naturalWidth, height: image.naturalHeight });
+  }
+
+  protected setLink(value: string) {
+    this.link.set(value);
+    this.linkedSize.set(null);
+  }
+
   protected search(query: string) {
     this.query.set(query);
     this.searches.next(query.trim());
@@ -140,13 +151,25 @@ export class ImageDialogComponent {
   }
 
   protected pickGif(gif: Gif) {
-    this.chosen.emit(markdownImage(gif.title, gif.url));
+    this.chosen.emit({
+      kind: 'gif',
+      url: gif.url,
+      alt: gif.title,
+      width: gif.width || undefined,
+      height: gif.height || undefined,
+    });
   }
 
   protected async add() {
     const description = this.description();
     if (this.mode() === 'link') {
-      this.chosen.emit(markdownImage(description, this.link().trim()));
+      const url = this.link().trim();
+      this.chosen.emit({
+        kind: /\.gif(\?|$)/i.test(url) ? 'gif' : 'image',
+        url,
+        alt: description.trim(),
+        ...(this.linkedSize() ?? {}),
+      });
       return;
     }
     const file = this.file();
@@ -166,7 +189,13 @@ export class ImageDialogComponent {
     this.media.upload(upload).subscribe({
       next: (media) => {
         this.busy.set(false);
-        this.chosen.emit(markdownImage(description, media.url));
+        this.chosen.emit({
+          kind: media.contentType === 'image/gif' ? 'gif' : 'image',
+          url: media.url,
+          alt: description.trim(),
+          width: media.width,
+          height: media.height,
+        });
       },
       error: (response: HttpErrorResponse) => this.failed(response),
     });

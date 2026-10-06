@@ -7,10 +7,17 @@ import {
   CreateArticle,
   EditArticle,
   MultipleCommentsResponse,
+  NewAttachment,
   SingleCommentResponse,
 } from '@realworld/core/api-types';
 import { HttpParams } from '@angular/common/http';
 import { ArticlesListConfig } from '../models/articles-list.model';
+
+// A comment as written: text, and at most one attachment.
+export interface NewComment {
+  body: string;
+  media: NewAttachment[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class ArticlesService {
@@ -32,13 +39,10 @@ export class ArticlesService {
     return this.apiService.delete<void>(`/articles/${articleId}/comments/${commentId}`);
   }
 
-  addComment(articleId: string, comment: string): Observable<SingleCommentResponse> {
-    return this.apiService.post<SingleCommentResponse, { comment: { body: string } }>(
-      `/articles/${articleId}/comments`,
-      {
-        comment: { body: comment },
-      },
-    );
+  addComment(articleId: string, comment: NewComment): Observable<SingleCommentResponse> {
+    return this.apiService.post<SingleCommentResponse, { comment: NewComment }>(`/articles/${articleId}/comments`, {
+      comment,
+    });
   }
 
   query(config: ArticlesListConfig): Observable<{ articles: Article[]; articlesCount: number }> {

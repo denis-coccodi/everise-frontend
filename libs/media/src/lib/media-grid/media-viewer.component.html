@@ -1,0 +1,25 @@
+<cdt-dialog [heading]="heading()" [wide]="true" (dismissed)="closed.emit()">
+  @if (current(); as item) {
+    <figure class="figure">
+      @if (item.kind === 'gif') {
+        <cdt-gif [src]="item.url" [alt]="item.alt ?? ''" [contain]="true" />
+      } @else {
+        <img class="large" [src]="item.url" [alt]="item.alt ?? ''" />
+      }
+      @if (item.alt) {
+        <figcaption class="caption">{{ item.alt }}</figcaption>
+      }
+    </figure>
+  }
+  <div class="actions">
+    @if (items().length > 1) {
+      <button type="button" cdtButton="outline-secondary" size="sm" (click)="step(-1)">
+        <i class="ion-chevron-left" aria-hidden="true"></i> Previous
+      </button>
+      <button type="button" cdtButton="outline-secondary" size="sm" (click)="step(1)">
+        Next <i class="ion-chevron-right" aria-hidden="true"></i>
+      </button>
+    }
+    <button type="button" cdtButton="secondary" size="sm" class="close" (click)="closed.emit()">Close</button>
+  </div>
+</cdt-dialog>

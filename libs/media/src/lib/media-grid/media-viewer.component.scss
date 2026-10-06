@@ -1,0 +1,32 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+.figure {
+  margin: 0;
+}
+
+.large {
+  display: block;
+  max-width: 100%;
+  // Room left for the title, caption and buttons.
+  max-height: calc(100vh - 220px);
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-soft);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.close {
+  margin-left: auto;
+}

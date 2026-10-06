@@ -3,11 +3,12 @@ import { RouterModule } from '@angular/router';
 import { Article } from '@realworld/core/api-types';
 import { API_URL, gameImageUrl } from '@realworld/core/http-client';
 import { BylineComponent, ButtonComponent, DutyCardComponent, TagComponent } from '@realworld/ui/components';
+import { MediaGridComponent } from '@realworld/media';
 @Component({
   selector: 'cdt-article-list-item',
   templateUrl: './article-list-item.component.html',
   styleUrl: './article-list-item.component.scss',
-  imports: [BylineComponent, ButtonComponent, DutyCardComponent, TagComponent, RouterModule],
+  imports: [MediaGridComponent, BylineComponent, ButtonComponent, DutyCardComponent, TagComponent, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleListItemComponent {

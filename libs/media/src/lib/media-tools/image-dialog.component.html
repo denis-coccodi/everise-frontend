@@ -40,11 +40,11 @@
           cdtInput
           placeholder="https://…"
           [value]="link()"
-          (input)="link.set($any($event.target).value)"
+          (input)="setLink($any($event.target).value)"
         />
       </cdt-field>
       @if (linkValid()) {
-        <img class="preview" [src]="link().trim()" alt="" />
+        <img #linked class="preview" [src]="link().trim()" alt="" (load)="linkedLoaded(linked)" />
       } @else if (link().trim()) {
         <p class="hint">Paste the image's full address, starting with https://.</p>
       }

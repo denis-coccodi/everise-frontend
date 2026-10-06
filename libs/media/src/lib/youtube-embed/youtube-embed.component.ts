@@ -9,12 +9,15 @@ import { YouTubeVideo, youTubeLink } from '../youtube';
   selector: 'cdt-youtube-embed',
   templateUrl: './youtube-embed.component.html',
   styleUrl: './youtube-embed.component.scss',
+  host: { '[class.fill]': 'fill()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class YouTubeEmbedComponent {
   private readonly sanitizer = inject(DomSanitizer);
 
   readonly video = input.required<YouTubeVideo>();
+  // Fills a tile of a media grid (no "Watch on YouTube" link under it).
+  readonly fill = input(false);
 
   protected readonly playing = signal(false);
   protected readonly thumbnail = computed(() => `https://i.ytimg.com/vi/${this.video().id}/hqdefault.jpg`);

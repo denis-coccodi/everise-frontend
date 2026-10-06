@@ -1,3 +1,4 @@
+import { Attachment } from './attachment';
 import { Profile } from './profile';
 
 export interface SingleCommentResponse {
@@ -13,4 +14,6 @@ export interface Comment {
   body: string;
   createdAt: string;
   author: Profile;
+  // One image, GIF or video, or null.
+  media: Attachment | null;
 }

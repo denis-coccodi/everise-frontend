@@ -1,0 +1,30 @@
+@if (items().length > 0) {
+  <div class="grid" [attr.data-count]="count()" [style.aspect-ratio]="ratio()">
+    @for (item of items(); track $index) {
+      <div class="tile">
+        @switch (item.kind) {
+          @case ('video') {
+            <cdt-youtube-embed [video]="videoOf(item)" [fill]="true" />
+          }
+          @case ('gif') {
+            <cdt-gif [src]="item.url" [alt]="item.alt ?? ''" (opened)="open(item)" />
+          }
+          @default {
+            <button type="button" class="open" [attr.aria-label]="label(item)" (click)="open(item)">
+              <img [src]="item.url" [alt]="item.alt ?? ''" loading="lazy" decoding="async" />
+            </button>
+          }
+        }
+      </div>
+    }
+  </div>
+}
+
+@if (viewing() !== null) {
+  <cdt-media-viewer
+    [items]="viewable()"
+    [index]="viewing()!"
+    (indexChange)="viewing.set($event)"
+    (closed)="viewing.set(null)"
+  />
+}

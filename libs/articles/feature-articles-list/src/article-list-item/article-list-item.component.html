@@ -41,7 +41,12 @@
       <h2 data-testid="article-list-title">{{ article().title }}</h2>
       <p>{{ article().description }}</p>
     }
-    <span class="read-more">Read more...</span>
+  </a>
+  <!-- Outside the link: the grid has its own buttons (open, play, pause). -->
+  <cdt-media-grid [items]="article().media" />
+  <div class="footer">
+    <!-- The title above already links here, for keyboard and screen readers. -->
+    <a [routerLink]="['/article', article().id]" class="read-more" tabindex="-1" aria-hidden="true">Read more...</a>
     <ul class="tag-list" aria-label="Tags">
       @for (tag of article().tagList; track tag) {
         <li cdtTag="outline">
@@ -49,5 +54,5 @@
         </li>
       }
     </ul>
-  </a>
+  </div>
 </div>

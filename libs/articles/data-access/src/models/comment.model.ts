@@ -1,3 +1,4 @@
+import { Attachment } from '@realworld/core/api-types';
 import { Profile } from '@realworld/core/api-types';
 
 export interface SingleCommentResponse {
@@ -13,4 +14,5 @@ export interface Comment {
   body: string;
   createdAt: string;
   author: Profile;
+  media: Attachment | null;
 }

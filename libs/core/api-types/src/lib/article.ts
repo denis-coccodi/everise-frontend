@@ -1,3 +1,4 @@
+import { Attachment, NewAttachment } from './attachment';
 import { Profile } from './profile';
 
 // A roulette result posted to the feeds, built by the backend from its duty
@@ -30,6 +31,8 @@ export interface Article {
   favorited: boolean;
   favoritesCount: number;
   author: Profile;
+  // Images, GIFs and videos, shown apart from the text.
+  media: Attachment[];
   // Only on roulette results.
   roulette?: RouletteCard;
 }
@@ -40,6 +43,7 @@ export interface CreateArticle {
     description: string;
     body: string;
     tagList: string[];
+    media: NewAttachment[];
   };
 }
 

@@ -1,0 +1,81 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+:host {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  gap: 2px;
+  max-height: 32rem;
+  margin: 0 0 1rem;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-base-deep);
+}
+
+.grid[data-count='1'] {
+  grid-template-columns: 1fr;
+}
+
+.grid[data-count='2'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.grid[data-count='3'],
+.grid[data-count='4'] {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+// Three: the first is the large one on the left.
+.grid[data-count='3'] .tile:first-child {
+  grid-row: span 2;
+}
+
+.tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.open img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// A single image of unknown size: its own shape, up to the grid's height.
+.grid[data-count='1']:not([style*='aspect-ratio']) .open img {
+  height: auto;
+  max-height: 32rem;
+  object-fit: contain;
+}
+
+.open:focus-visible {
+  outline: var(--border-width-strong) solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+// A comment's media: smaller, and only as wide as it needs.
+:host(.compact) .grid {
+  max-width: 22rem;
+  max-height: 14rem;
+  margin: 0.5rem 0 0;
+}
+
+:host(.compact) .grid[data-count='1']:not([style*='aspect-ratio']) .open img {
+  max-height: 14rem;
+}
