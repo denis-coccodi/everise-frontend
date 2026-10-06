@@ -4,8 +4,21 @@
       ><img class="crest" src="assets/images/everise-crest.png" alt="" width="32" height="32" />everise</a
     >
 
-    @if (!isLoggedIn()) {
-      <ul class="nav navbar-nav pull-xs-right">
+    <!-- On a phone the links fold into this button's panel. -->
+    <button
+      #toggle
+      type="button"
+      class="menu-toggle"
+      aria-controls="site-menu"
+      [attr.aria-expanded]="open()"
+      (click)="open.set(!open())"
+    >
+      <i [class]="open() ? 'ion-close-round' : 'ion-navicon-round'" aria-hidden="true"></i>
+      Menu
+    </button>
+
+    <div id="site-menu" class="menu" [class.open]="open()">
+      <ul class="nav navbar-nav">
         <li class="nav-item">
           <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">Home</a>
         </li>
@@ -14,41 +27,57 @@
             <i class="ion-shuffle" aria-hidden="true"></i>&nbsp;Roulette
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Sign in</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/register" routerLinkActive="active" ariaCurrentWhenActive="page">Sign up</a>
-        </li>
+        @if (!isLoggedIn()) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Sign in</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/register" routerLinkActive="active" ariaCurrentWhenActive="page"
+              >Sign up</a
+            >
+          </li>
+        } @else {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
+              <i class="ion-compose" aria-hidden="true"></i>&nbsp;New Post
+            </a>
+          </li>
+          <!-- The account menu: the user's own pages and signing out. -->
+          <li class="nav-item wide-only">
+            <cdt-menu label="Account">
+              <span cdtMenuTrigger class="account" data-testid="loggedin-user">
+                <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
+                {{ user().username }}
+              </span>
+              <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
+              <a cdtMenuItem routerLink="/settings">Settings</a>
+              <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
+            </cdt-menu>
+          </li>
+          <!-- In the phone panel the same, laid out flat under the user's name. -->
+          <li class="nav-item narrow-only account-heading">
+            <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
+            <span class="name">{{ user().username }}</span>
+          </li>
+          <li class="nav-item narrow-only">
+            <a
+              class="nav-link"
+              [routerLink]="['/profile', user().id]"
+              routerLinkActive="active"
+              ariaCurrentWhenActive="page"
+              >Your profile</a
+            >
+          </li>
+          <li class="nav-item narrow-only">
+            <a class="nav-link" routerLink="/settings" routerLinkActive="active" ariaCurrentWhenActive="page"
+              >Settings</a
+            >
+          </li>
+          <li class="nav-item narrow-only">
+            <button type="button" class="nav-link sign-out" (click)="logout.emit()">Sign out</button>
+          </li>
+        }
       </ul>
-    } @else {
-      <ul class="nav navbar-nav pull-xs-right">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <i class="ion-shuffle" aria-hidden="true"></i>&nbsp;Roulette
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <i class="ion-compose" aria-hidden="true"></i>&nbsp;New Post
-          </a>
-        </li>
-        <!-- The account menu: the user's own pages and signing out. -->
-        <li class="nav-item">
-          <cdt-menu label="Account">
-            <span cdtMenuTrigger class="account" data-testid="loggedin-user">
-              <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
-              {{ user().username }}
-            </span>
-            <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
-            <a cdtMenuItem routerLink="/settings">Settings</a>
-            <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
-          </cdt-menu>
-        </li>
-      </ul>
-    }
+    </div>
   </div>
 </nav>

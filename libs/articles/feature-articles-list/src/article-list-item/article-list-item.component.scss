@@ -73,9 +73,13 @@ cdt-duty-card {
   margin: 0 auto 0.75rem;
 }
 
+// The tags wrap from the right, beside "Read more" while they fit.
 .tag-list {
-  max-width: 50%;
-  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin: 0 0 0 auto;
   padding: 0;
   list-style: none;
 }
