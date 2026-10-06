@@ -236,6 +236,12 @@ describe('candidateDetail', () => {
     );
     expect(candidateDetail({ kind: 'roulette', roulette: roulettes[0] }, 'Seal Rock (Seize)')).toBe('Duty: ???');
   });
+
+  it('says when the Frontline map changes, in the time given', () => {
+    expect(candidateDetail({ kind: 'roulette', roulette: roulettes[3] }, 'Seal Rock (Seize)', '17:00')).toBe(
+      'Today: Seal Rock (Seize) · until 17:00',
+    );
+  });
 });
 
 describe('runModeDetail', () => {

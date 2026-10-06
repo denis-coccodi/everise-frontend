@@ -20,12 +20,20 @@ export class DutiesService {
     }).pipe(
       map(({ duties, roulettes, jobs }) => ({
         fetchedAt: duties.fetchedAt,
+        dayEndsAt: dayEndsAt(duties),
         groups: duties.groups,
         roulettes: roulettes.roulettes,
         rouletteIcon: roulettes.icon ?? null,
         jobs: jobs.jobs,
       })),
     );
+  }
+
+  // The duties again, for the next game day's Frontline map.
+  getDutyGroups() {
+    return this.apiService
+      .get<DutyGroupsResponse>('/duties')
+      .pipe(map((duties) => ({ groups: duties.groups, dayEndsAt: dayEndsAt(duties) })));
   }
 
   // Where the backend serves a game image, by its id.
@@ -38,4 +46,8 @@ export class DutiesService {
   postResult(request: RoulettePostRequest) {
     return this.apiService.post<ArticleResponse, RoulettePostRequest>('/roulette-results', request);
   }
+}
+
+function dayEndsAt(duties: DutyGroupsResponse) {
+  return duties.dayEndsAt ? new Date(duties.dayEndsAt) : null;
 }

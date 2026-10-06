@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   computed,
+  DestroyRef,
   inject,
   signal,
   viewChild,
@@ -49,6 +50,9 @@ const SETTINGS_KEY = 'everise-roulette-settings';
 const PAUSE_BETWEEN_REELS_MS = 600;
 // The pause between landing on dealer's choice and dealing the job.
 const PAUSE_BEFORE_DEAL_MS = 500;
+// setTimeout's longest wait (about 24.8 days).
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+
 // Most outcomes the idle duty reel previews.
 const REEL_PREVIEW_MAX = 60;
 
@@ -80,6 +84,7 @@ export class RouletteComponent {
   private readonly dutiesService = inject(DutiesService);
   private readonly authStore = inject(AuthStore);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly typeReel = viewChild.required<ReelComponent>('typeReel');
   private readonly dutyReel = viewChild.required<ReelComponent>('dutyReel');
@@ -93,6 +98,9 @@ export class RouletteComponent {
   readonly groups = signal<DutyGroup[]>([]);
   readonly roulettes = signal<DutyRoulette[]>([]);
   readonly jobs = signal<Job[]>([]);
+  // The next daily reset, when the Frontline map changes (null if unknown).
+  private readonly dayEndsAt = signal<Date | null>(null);
+  private dayEndTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly rouletteIcon = signal<number | null>(null);
   readonly settings = signal<RouletteSettings>(defaultSettings({}));
 
@@ -116,6 +124,12 @@ export class RouletteComponent {
 
   readonly pickable = computed(() => pickOptions(this.groups(), this.roulettes()));
   readonly frontlineMap = computed(() => todaysFrontline(this.groups()));
+  // The daily reset in the reader's time: 17:00 in Italy in summer, 16:00 in
+  // winter, as the game keeps it on UTC.
+  readonly frontlineChangesAt = computed(() => {
+    const at = this.dayEndsAt();
+    return at ? at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+  });
   // The jobs dealer's choice deals; without any it isn't offered.
   private readonly dealable = computed(() => dealableJobs(this.jobs()));
   private readonly canDeal = computed(() => this.dealable().length > 0);
@@ -146,7 +160,7 @@ export class RouletteComponent {
       options: (this.pickable()[type] ?? []).map((o) => ({
         key: o.key,
         name: candidateName(o.candidate),
-        detail: candidateDetail(o.candidate, this.frontlineMap()),
+        detail: candidateDetail(o.candidate, this.frontlineMap(), this.frontlineChangesAt()),
       })),
     })),
   );
@@ -180,8 +194,9 @@ export class RouletteComponent {
       .getDutyLists()
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: ({ groups, roulettes, rouletteIcon, jobs }) => {
+        next: ({ groups, roulettes, rouletteIcon, jobs, dayEndsAt }) => {
           this.groups.set(groups);
+          this.startDay(dayEndsAt);
           this.roulettes.set(roulettes);
           this.rouletteIcon.set(rouletteIcon);
           this.jobs.set(jobs);
@@ -189,6 +204,44 @@ export class RouletteComponent {
           this.loadState.set(groups.length > 0 ? 'ready' : 'empty');
         },
         error: () => this.loadState.set('error'),
+      });
+
+    // A page left open past the daily reset reads the new Frontline map.
+    // Timers wait longer in a hidden tab or a sleeping computer, so coming
+    // back to the page checks too.
+    const onVisible = () => {
+      const at = this.dayEndsAt();
+      if (document.visibilityState === 'visible' && at && Date.now() >= at.getTime()) this.readNewDay();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    this.destroyRef.onDestroy(() => {
+      document.removeEventListener('visibilitychange', onVisible);
+      clearTimeout(this.dayEndTimer);
+    });
+  }
+
+  // Remembers when the game day ends and reads the duties again then.
+  private startDay(dayEndsAt: Date | null) {
+    this.dayEndsAt.set(dayEndsAt);
+    clearTimeout(this.dayEndTimer);
+    if (!dayEndsAt) return;
+    // A moment after the reset, so the backend is on the new day.
+    const delay = Math.min(dayEndsAt.getTime() - Date.now() + 2000, MAX_TIMEOUT_MS);
+    this.dayEndTimer = setTimeout(() => this.readNewDay(), Math.max(delay, 0));
+  }
+
+  private readNewDay() {
+    clearTimeout(this.dayEndTimer);
+    this.dutiesService
+      .getDutyGroups()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ groups, dayEndsAt }) => {
+          this.groups.set(groups);
+          this.startDay(dayEndsAt);
+        },
+        // Tried again when the page is next shown.
+        error: () => undefined,
       });
   }
 
@@ -234,7 +287,7 @@ export class RouletteComponent {
     const banner = candidate.kind === 'duty' ? candidate.duty.image : candidate.roulette.image;
     return {
       title: candidateName(candidate),
-      detail: candidateDetail(candidate, this.frontlineMap()),
+      detail: candidateDetail(candidate, this.frontlineMap(), this.frontlineChangesAt()),
       thumb: this.typeIcons().get(type),
       backdrop: winner ? this.dutiesService.imageUrl(banner) : undefined,
     };
@@ -246,6 +299,7 @@ export class RouletteComponent {
 
     const options = this.options();
     const frontlineMap = this.frontlineMap();
+    const changesAt = this.frontlineChangesAt();
     const jobs = this.dealable();
     this.spinning.set(true);
     this.showResult.set(false);
@@ -286,7 +340,7 @@ export class RouletteComponent {
       }
       await wait(PAUSE_BETWEEN_REELS_MS / 2);
 
-      const result = this.toResult(type.name, candidate, mode, job, frontlineMap);
+      const result = this.toResult(type.name, candidate, mode, job, frontlineMap, changesAt);
       this.result.set(result);
       this.lastSpin = {
         type: type.name,
@@ -357,12 +411,13 @@ export class RouletteComponent {
     mode: RunMode,
     job: Job | undefined,
     frontlineMap: string | null,
+    changesAt: string | null,
   ): RouletteResult {
     const image = candidate.kind === 'duty' ? candidate.duty.image : candidate.roulette.image;
     // Awktrail links the duty's gear set, when the community sheet has one.
     const guideUrl = mode === 'Awktrail' && candidate.kind === 'duty' ? awktrailGuideUrl(candidate.duty.name) : null;
     return {
-      ...describe(type, candidate, frontlineMap),
+      ...describe(type, candidate, frontlineMap, changesAt),
       mode: job ? `${SAME_JOB}: ${job.name}` : mode,
       job: job && { name: job.name, icon: this.dutiesService.imageUrl(job.icon) },
       image: this.dutiesService.imageUrl(image),
@@ -390,8 +445,8 @@ function toggled<T>(list: T[], item: T, on: boolean) {
 }
 
 // What the result says about the duty.
-function describe(type: string, candidate: Candidate, frontlineMap: string | null) {
-  const detail = candidateDetail(candidate, frontlineMap);
+function describe(type: string, candidate: Candidate, frontlineMap: string | null, changesAt: string | null) {
+  const detail = candidateDetail(candidate, frontlineMap, changesAt);
   if (candidate.kind === 'roulette') {
     // The game picks the duty, except for today's known Frontline map.
     const known = detail.startsWith('Today:');
