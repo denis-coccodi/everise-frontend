@@ -17,10 +17,18 @@ export interface User {
   // How the account can be signed in to: its password, and the provider
   // accounts (Google, Facebook, Microsoft, Discord) tied to it.
   signInMethods?: SignInMethod[];
+  // A new address from the settings, used once the link sent to it is
+  // opened.
+  pendingEmail?: string | null;
 }
 
 export type SignInMethod = 'password' | 'google' | 'facebook' | 'microsoft' | 'discord';
 
 export interface UserResponse {
   user: User;
+}
+
+// A sign-up whose email has to be confirmed first: a link went to `email`.
+export interface ConfirmationResponse {
+  confirmation: { email: string };
 }

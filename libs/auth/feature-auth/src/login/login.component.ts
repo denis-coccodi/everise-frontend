@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { CheckEmailComponent } from '../check-email/check-email.component';
 import { SocialSignInComponent } from '../social-sign-in/social-sign-in.component';
 
 @Component({
@@ -18,12 +19,16 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
     ReactiveFormsModule,
     InputErrorsComponent,
     SocialSignInComponent,
+    CheckEmailComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private readonly authStore = inject(AuthStore);
   private readonly fb = inject(FormBuilder);
+
+  // Set when the password was right but the email isn't confirmed yet.
+  protected readonly unconfirmed = this.authStore.awaitingConfirmation;
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

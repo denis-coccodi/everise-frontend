@@ -1,6 +1,14 @@
 import { HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { LoginUser, LoginUserRequest, NewUser, NewUserRequest, User, UserResponse } from '@realworld/core/api-types';
+import {
+  ConfirmationResponse,
+  LoginUser,
+  LoginUserRequest,
+  NewUser,
+  NewUserRequest,
+  User,
+  UserResponse,
+} from '@realworld/core/api-types';
 import { SKIP_LOGIN_REDIRECT } from '@realworld/core/error-handler';
 import { ApiService } from '@realworld/core/http-client';
 import { Observable } from 'rxjs';
@@ -53,7 +61,23 @@ export class AuthService {
     return this.apiService.post<{ message: string }, void>('/users/logout');
   }
 
-  register(credentials: NewUser): Observable<UserResponse> {
-    return this.apiService.post<UserResponse, NewUserRequest>('/users', { user: credentials });
+  // Signs in, or (when the backend confirms emails) sends a link to the
+  // email instead.
+  register(credentials: NewUser): Observable<UserResponse | ConfirmationResponse> {
+    return this.apiService.post<UserResponse | ConfirmationResponse, NewUserRequest>('/users', {
+      user: credentials,
+    });
+  }
+
+  // Opens the link from a confirmation email: confirms it and signs in.
+  confirmEmail(token: string): Observable<UserResponse> {
+    return this.apiService.post<UserResponse, { token: string }>('/users/confirm-email', { token });
+  }
+
+  // Sends a sign-up's confirmation link again.
+  resendConfirmation(email: string): Observable<ConfirmationResponse> {
+    return this.apiService.post<ConfirmationResponse, { user: { email: string } }>('/users/confirm-email/resend', {
+      user: { email },
+    });
   }
 }

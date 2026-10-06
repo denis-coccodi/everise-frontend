@@ -95,6 +95,12 @@
               cdtInput="lg"
             />
             <cdt-input-errors [control]="form.controls.email" />
+            @if (authStore.user().pendingEmail; as pending) {
+              <p class="pending-email" role="status">
+                We sent a link to <strong>{{ pending }}</strong
+                >. Your email changes to it once you open the link; until then, sign in with this one.
+              </p>
+            }
           </cdt-field>
           <cdt-field label="New password" for="password">
             <input

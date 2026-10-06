@@ -7,6 +7,9 @@ export type AuthState = {
   // failed.
   imageBusy: boolean;
   imageError: string | null;
+  // The address a confirmation link went to (after signing up, or signing
+  // in before opening it), while the page offers to send it again.
+  awaitingConfirmation: string | null;
 };
 
 export const initialUserValue: User = {
@@ -23,4 +26,5 @@ export const authInitialState: AuthState = {
   user: initialUserValue,
   imageBusy: false,
   imageError: null,
+  awaitingConfirmation: null,
 };

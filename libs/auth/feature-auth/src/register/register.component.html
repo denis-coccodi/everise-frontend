@@ -9,53 +9,57 @@
 
         <cdt-list-errors></cdt-list-errors>
 
-        <cdt-social-sign-in />
+        @if (linkSentTo(); as email) {
+          <cdt-check-email [email]="email" />
+        } @else {
+          <cdt-social-sign-in />
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <cdt-field label="Username" for="username" required>
-            <input
-              formControlName="username"
-              type="text"
-              id="username"
-              autocomplete="username"
-              placeholder="Username"
-              cdtInput="lg"
-            />
-            <cdt-input-errors [control]="form.controls.username" />
-          </cdt-field>
-          <cdt-field label="Email" for="email" required>
-            <input
-              formControlName="email"
-              type="email"
-              id="email"
-              autocomplete="email"
-              placeholder="Email"
-              cdtInput="lg"
-            />
-            <cdt-input-errors [control]="form.controls.email" />
-          </cdt-field>
-          <cdt-field label="Password" for="password" required>
-            <input
-              formControlName="password"
-              type="password"
-              id="password"
-              autocomplete="new-password"
-              placeholder="Password"
-              cdtInput="lg"
-            />
-            <cdt-input-errors [control]="form.controls.password" />
-          </cdt-field>
-          <button
-            data-testid="sign-up"
-            cdtButton
-            size="lg"
-            class="pull-xs-right"
-            [disabled]="form.invalid || form.pending"
-            type="submit"
-          >
-            Sign up
-          </button>
-        </form>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <cdt-field label="Username" for="username" required>
+              <input
+                formControlName="username"
+                type="text"
+                id="username"
+                autocomplete="username"
+                placeholder="Username"
+                cdtInput="lg"
+              />
+              <cdt-input-errors [control]="form.controls.username" />
+            </cdt-field>
+            <cdt-field label="Email" for="email" required>
+              <input
+                formControlName="email"
+                type="email"
+                id="email"
+                autocomplete="email"
+                placeholder="Email"
+                cdtInput="lg"
+              />
+              <cdt-input-errors [control]="form.controls.email" />
+            </cdt-field>
+            <cdt-field label="Password" for="password" required>
+              <input
+                formControlName="password"
+                type="password"
+                id="password"
+                autocomplete="new-password"
+                placeholder="Password"
+                cdtInput="lg"
+              />
+              <cdt-input-errors [control]="form.controls.password" />
+            </cdt-field>
+            <button
+              data-testid="sign-up"
+              cdtButton
+              size="lg"
+              class="pull-xs-right"
+              [disabled]="form.invalid || form.pending"
+              type="submit"
+            >
+              Sign up
+            </button>
+          </form>
+        }
       </div>
     </div>
   </div>

@@ -9,6 +9,10 @@
 
         <cdt-list-errors></cdt-list-errors>
 
+        @if (unconfirmed(); as email) {
+          <cdt-check-email [email]="email" />
+        }
+
         <cdt-social-sign-in />
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">

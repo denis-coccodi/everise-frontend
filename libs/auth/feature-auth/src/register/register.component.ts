@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { CheckEmailComponent } from '../check-email/check-email.component';
 import { SocialSignInComponent } from '../social-sign-in/social-sign-in.component';
 
 @Component({
@@ -18,12 +19,16 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
     ReactiveFormsModule,
     InputErrorsComponent,
     SocialSignInComponent,
+    CheckEmailComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
   private readonly authStore = inject(AuthStore);
   private readonly fb = inject(FormBuilder);
+
+  // Where the confirmation link went, once one has.
+  protected readonly linkSentTo = this.authStore.awaitingConfirmation;
 
   form = this.fb.nonNullable.group({
     username: ['', [Validators.required]],
