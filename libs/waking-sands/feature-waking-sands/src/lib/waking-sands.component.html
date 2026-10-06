@@ -1,7 +1,7 @@
 <div class="sands-page">
   <header class="hero">
     <h1 class="xiv-title">The Waking Sands</h1>
-    <p>Drop by the Scions' rooms in Vesper Bay and talk with whoever is in.</p>
+    <p>Drop by the Scions' rooms in Vesper Bay and talk with whoever is in, members and characters alike.</p>
   </header>
 
   @switch (loadState()) {
@@ -18,7 +18,7 @@
         <div class="layout">
           <cdt-panel class="people" heading="Who's here">
             @if (present().length === 0) {
-              <p class="hint">Nobody's talking yet. Invite someone to join you.</p>
+              <p class="hint">No characters are in. Members can still talk, or invite someone.</p>
             }
             <ul class="cast">
               @for (character of characters(); track character.id) {
@@ -27,56 +27,41 @@
                   <span class="who">
                     <span class="name">{{ character.name }}</span>
                     <span class="title">{{ character.title }}</span>
+                    <span class="visually-hidden">{{ isPresent(character.id) ? '(in the room)' : '' }}</span>
                   </span>
-                  @if (isPresent(character.id)) {
-                    <button type="button" cdtButton="outline-secondary" size="sm" (click)="leave(character)">
-                      Leave<span class="visually-hidden">: {{ character.name }}</span>
-                    </button>
-                  } @else {
-                    <button type="button" cdtButton size="sm" (click)="invite(character)">
-                      Invite<span class="visually-hidden"> {{ character.name }}</span>
-                    </button>
+                  @if (authStore.loggedIn()) {
+                    @if (isPresent(character.id)) {
+                      <button type="button" cdtButton="outline-secondary" size="sm" (click)="dismiss(character)">
+                        Send out<span class="visually-hidden"> {{ character.name }}</span>
+                      </button>
+                    } @else {
+                      <button type="button" cdtButton size="sm" (click)="invite(character)">
+                        Invite<span class="visually-hidden"> {{ character.name }}</span>
+                      </button>
+                    }
                   }
                 </li>
               }
             </ul>
             <p class="fan-note">
-              FINAL FANTASY XIV's characters and the free company's own, voiced here by an AI as fan work. They can get
-              things wrong, and some of them swear.
+              Everyone on this page shares the room. FINAL FANTASY XIV's characters and the free company's own are
+              voiced by an AI as fan work: they can get things wrong, and some of them swear.
             </p>
           </cdt-panel>
 
           <cdt-panel class="chat" heading="Conversation">
             <div #logBox class="log" role="log" aria-label="Conversation" tabindex="0">
-              @for (entry of log(); track $index) {
-                @switch (entry.kind) {
-                  @case ('note') {
-                    <p class="note">{{ entry.text }}</p>
-                  }
-                  @case ('member') {
-                    <div class="line mine">
-                      <img class="avatar" [src]="entry.image || defaultPicture" alt="" width="36" height="36" />
-                      <div class="bubble">
-                        <span class="speaker">{{ entry.name || 'You' }}</span>
-                        <p>{{ entry.text }}</p>
-                      </div>
+              @for (line of lines(); track line.id) {
+                @if (line.from === 'note') {
+                  <p class="note">{{ line.text }}</p>
+                } @else {
+                  <div class="line" [class.mine]="isMine(line)" [class.member]="line.from === 'member'">
+                    <img class="avatar" [src]="line.image || defaultPicture" alt="" width="36" height="36" />
+                    <div class="bubble">
+                      <span class="speaker">{{ line.name }}</span>
+                      <p>{{ line.text }}</p>
                     </div>
-                  }
-                  @case ('character') {
-                    <div class="line">
-                      <img
-                        class="avatar"
-                        [src]="character(entry.id)?.image || defaultPicture"
-                        alt=""
-                        width="36"
-                        height="36"
-                      />
-                      <div class="bubble">
-                        <span class="speaker">{{ character(entry.id)?.name ?? entry.id }}</span>
-                        <p>{{ entry.text }}</p>
-                      </div>
-                    </div>
-                  }
+                  </div>
                 }
               } @empty {
                 <p class="note">The room is quiet.</p>
@@ -84,8 +69,8 @@
             </div>
 
             <p class="status" aria-live="polite">
-              @if (writing()) {
-                {{ writing() }} {{ present().length > 1 ? 'are' : 'is' }} writing…
+              @if (writingName(); as name) {
+                {{ name }} is writing…
               }
             </p>
             <p class="error" role="alert">{{ error() }}</p>
@@ -101,22 +86,11 @@
                     [value]="draft()"
                     (input)="draft.set($any($event.target).value)"
                     (keydown.enter)="onEnter($event)"
-                    [placeholder]="
-                      present().length ? 'Say something… (Shift+Enter for a new line)' : 'Invite someone first'
-                    "
+                    placeholder="Say something… (Shift+Enter for a new line)"
                   ></textarea>
                 </cdt-field>
                 <div class="actions">
-                  <button
-                    type="button"
-                    cdtButton="outline-secondary"
-                    size="sm"
-                    [disabled]="log().length === 0 || !!writing()"
-                    (click)="startOver()"
-                  >
-                    Start over
-                  </button>
-                  <button type="submit" cdtButton [disabled]="!canSend()">Send</button>
+                  <button type="submit" cdtButton [disabled]="!canSend()">{{ sending() ? 'Sending…' : 'Send' }}</button>
                 </div>
               </form>
             } @else {

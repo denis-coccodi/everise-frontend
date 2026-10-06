@@ -1,5 +1,5 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
-import { Observable, defer, filter, ignoreElements, interval, merge, retry, share, tap, timer } from 'rxjs';
+import { Observable, Subject, defer, filter, ignoreElements, interval, merge, retry, share, tap, timer } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
 import { Article } from '@realworld/core/api-types';
 import { API_URL } from './api-url.token';
@@ -10,6 +10,25 @@ export type LiveEvent = {
   type: 'article-created';
   article: Article;
 };
+
+// A line in the Waking Sands room, as the backend lists them.
+export interface SandsLine {
+  id: string;
+  at: string;
+  // "member", "note", or the id of the character who said it.
+  from: string;
+  name: string;
+  image?: string;
+  memberId?: string;
+  text: string;
+}
+
+// What the Waking Sands room pushes: a new line, who's in the room now, and
+// which character is writing (null: nobody).
+export type SandsEvent =
+  | { type: 'sands-line'; line: SandsLine }
+  | { type: 'sands-presence'; present: string[] }
+  | { type: 'sands-writing'; character: string | null };
 
 // Keep-alive: Cloudflare closes WebSockets silent for about 100 seconds, so
 // the client says 'ping' now and then; the backend answers 'pong' without
@@ -44,13 +63,17 @@ export class LiveUpdates {
   private readonly url = liveUrl(inject(API_URL));
   private readonly openSocket = inject(WEB_SOCKET);
 
-  readonly events$: Observable<LiveEvent> = defer(() => {
-    const socket = this.openSocket<LiveEvent | string | null>({
+  private readonly opened = new Subject<void>();
+
+  // Every message, from the one socket.
+  private readonly messages$: Observable<unknown> = defer(() => {
+    const socket = this.openSocket<unknown>({
       url: this.url,
       // Not every message is JSON ('pong').
       deserializer: (message) => parseEvent(message.data),
       // The heartbeat is sent as it is, not as JSON.
       serializer: (value) => value as string,
+      openObserver: { next: () => this.opened.next() },
     });
     const heartbeat = interval(PING_EVERY_MS).pipe(
       tap(() => socket.next(PING)),
@@ -58,13 +81,22 @@ export class LiveUpdates {
     );
     return merge(socket, heartbeat);
   }).pipe(
-    filter(isLiveEvent),
     retry({ delay: (_error, attempt) => timer(Math.min(RETRY_MAX_MS, RETRY_FIRST_MS * 2 ** (attempt - 1))) }),
     share(),
   );
+
+  // New posts.
+  readonly events$: Observable<LiveEvent> = this.messages$.pipe(filter(isLiveEvent));
+
+  // What happens in the Waking Sands room.
+  readonly sands$: Observable<SandsEvent> = this.messages$.pipe(filter(isSandsEvent));
+
+  // Each time the socket (re)connects. Events sent while it was connecting
+  // or down are lost, so a page that must not miss any reloads then.
+  readonly opened$: Observable<void> = this.opened.asObservable();
 }
 
-function parseEvent(data: unknown): LiveEvent | null {
+function parseEvent(data: unknown): unknown {
   if (typeof data !== 'string') return null;
   try {
     return JSON.parse(data);
@@ -80,4 +112,19 @@ function isLiveEvent(value: unknown): value is LiveEvent {
     (value as LiveEvent).type === 'article-created' &&
     typeof (value as LiveEvent).article?.id === 'string'
   );
+}
+
+function isSandsEvent(value: unknown): value is SandsEvent {
+  const event = value as SandsEvent | null;
+  if (typeof event !== 'object' || event === null) return false;
+  switch (event.type) {
+    case 'sands-line':
+      return typeof event.line?.id === 'string' && typeof event.line.text === 'string';
+    case 'sands-presence':
+      return Array.isArray(event.present);
+    case 'sands-writing':
+      return event.character === null || typeof event.character === 'string';
+    default:
+      return false;
+  }
 }

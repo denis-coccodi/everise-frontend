@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { ApiService } from '@realworld/core/http-client';
-import { map } from 'rxjs';
+import { ApiService, SandsLine } from '@realworld/core/http-client';
 
-// Someone who can join a conversation in the Waking Sands.
+// Someone who can be brought into the Waking Sands.
 export interface Character {
   id: string;
   name: string;
@@ -10,34 +9,34 @@ export interface Character {
   image?: string;
 }
 
-// A line as the backend reads it: `from` is "member" or a character's id.
-export interface ChatLine {
-  from: string;
-  text: string;
-}
-
-export interface Reply {
-  character: string;
-  text: string;
+// The room as the backend shows it: the characters, who's in, the day's lines.
+export interface Room {
+  available: boolean;
+  characters: Character[];
+  present: string[];
+  lines: SandsLine[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class WakingSandsService {
   private readonly api = inject(ApiService);
 
-  // The characters, and whether the chat is open (Workers AI set up).
-  characters() {
-    return this.api.get<{ available: boolean; characters: Character[] }>('/waking-sands/characters');
+  room() {
+    return this.api.get<Room>('/waking-sands/room');
   }
 
-  // Every character in the conversation answers the member's latest line,
-  // in turn.
-  replies(characters: string[], lines: ChatLine[]) {
-    return this.api
-      .post<{ replies: Reply[] }, { characters: string[]; lines: ChatLine[] }>('/waking-sands/replies', {
-        characters,
-        lines,
-      })
-      .pipe(map((response) => response.replies));
+  // Brings a character in, or sends them out, for everyone.
+  invite(id: string) {
+    return this.api.post<{ present: string[] }, void>(`/waking-sands/room/characters/${encodeURIComponent(id)}`);
+  }
+
+  dismiss(id: string) {
+    return this.api.delete<{ present: string[] }>(`/waking-sands/room/characters/${encodeURIComponent(id)}`);
+  }
+
+  // Says something in the room. The characters' answers arrive live; the
+  // request ends when they're done.
+  say(text: string) {
+    return this.api.post<{ line: SandsLine }, { text: string }>('/waking-sands/room/lines', { text });
   }
 }

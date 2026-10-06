@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { WebSocketSubjectConfig } from 'rxjs/webSocket';
 import { API_URL } from './api-url.token';
-import { LiveEvent, LiveUpdates, WEB_SOCKET, liveUrl } from './live-updates.service';
+import { LiveEvent, LiveUpdates, SandsEvent, WEB_SOCKET, liveUrl } from './live-updates.service';
 
 // A stand-in for the socket: what the app sent, and a way to push messages
 // through the service's deserializer, as a real socket would.
@@ -81,6 +81,41 @@ describe('LiveUpdates', () => {
     sockets[0].receive('{"type":"something-else"}');
 
     expect(received).toEqual([event]);
+  });
+
+  it('says each time the socket opens', () => {
+    let opens = 0;
+    live.opened$.subscribe(() => opens++);
+    live.sands$.subscribe();
+
+    sockets[0].config.openObserver?.next(new Event('open'));
+
+    expect(opens).toBe(1);
+  });
+
+  it("passes the Waking Sands room's events to its own stream, over the same socket", () => {
+    const posts: LiveEvent[] = [];
+    const room: SandsEvent[] = [];
+    live.events$.subscribe((e) => posts.push(e));
+    live.sands$.subscribe((e) => room.push(e));
+    const line: SandsEvent = {
+      type: 'sands-line',
+      line: { id: '1', at: '2026-10-06T12:00:00Z', from: 'tataru', name: 'Tataru', text: 'Hello!' },
+    };
+
+    sockets[0].receive(JSON.stringify(line));
+    sockets[0].receive('{"type":"sands-presence","present":["tataru"]}');
+    sockets[0].receive('{"type":"sands-writing","character":null}');
+    sockets[0].receive('{"type":"sands-line","line":{"id":2}}');
+    sockets[0].receive(JSON.stringify(event));
+
+    expect(sockets).toHaveLength(1);
+    expect(room).toEqual([
+      line,
+      { type: 'sands-presence', present: ['tataru'] },
+      { type: 'sands-writing', character: null },
+    ]);
+    expect(posts).toEqual([event]);
   });
 
   it('sends a heartbeat every 25 seconds', () => {
