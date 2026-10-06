@@ -247,11 +247,12 @@ export function todaysFrontline(groups: DutyGroup[]) {
 }
 
 // What to show under a candidate's name. For a roulette the game picks the
-// duty, except the Frontline daily challenge, whose map is known for today.
-export function candidateDetail(candidate: Candidate, frontlineMap: string | null) {
+// duty, except the Frontline daily challenge, whose map is known for today;
+// `changesAt` is when the next map takes over, in the reader's time.
+export function candidateDetail(candidate: Candidate, frontlineMap: string | null, changesAt: string | null = null) {
   if (candidate.kind === 'roulette') {
     if (candidate.roulette.pvp && candidate.roulette.name.includes('Frontline') && frontlineMap) {
-      return `Today: ${frontlineMap}`;
+      return changesAt ? `Today: ${frontlineMap} · until ${changesAt}` : `Today: ${frontlineMap}`;
     }
     return 'Duty: ???';
   }

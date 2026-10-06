@@ -67,6 +67,43 @@ describe('RouletteComponent', () => {
     await fixture.whenStable();
   }
 
+  it('reads the duties again once the game day ends, for the next Frontline map', async () => {
+    const frontline = (name: string) => ({
+      id: 2,
+      name,
+      level: 30,
+      pvp: true,
+      pvpType: 'Frontline',
+      activeFrontline: true,
+      roulettes: [],
+    });
+    // The reset has just passed.
+    http.expectOne('/api/duties').flush({
+      fetchedAt: null,
+      dayEndsAt: new Date(Date.now() - 2000).toISOString(),
+      groups: [{ name: 'PvP', order: 0, duties: [frontline('Seal Rock (Seize)')] }],
+    });
+    http.expectOne('/api/roulettes').flush({ fetchedAt: null, roulettes: [] });
+    http.expectOne('/api/jobs').flush({ fetchedAt: null, jobs: [] });
+    await fixture.whenStable();
+    expect(fixture.componentInstance.frontlineMap()).toBe('Seal Rock (Seize)');
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    http.expectOne('/api/duties').flush({
+      fetchedAt: null,
+      dayEndsAt: new Date(Date.now() + 86_400_000).toISOString(),
+      groups: [{ name: 'PvP', order: 0, duties: [frontline('the Borderland Ruins (Secure)')] }],
+    });
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.frontlineMap()).toBe('the Borderland Ruins (Secure)');
+    // In the reader's time zone, so only its shape is known.
+    expect(fixture.componentInstance.frontlineChangesAt()).toMatch(/\d/);
+    // Nothing more until the next day.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    http.expectNone('/api/duties');
+  });
+
   it('shows the duty types once the lists load, with Commence enabled', async () => {
     await load();
 

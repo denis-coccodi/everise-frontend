@@ -64,6 +64,9 @@ export interface Job {
 
 export interface DutyGroupsResponse {
   fetchedAt: string | null;
+  // The next daily reset (15:00 UTC), when activeFrontline moves to the next
+  // map. Missing from older backends.
+  dayEndsAt?: string;
   groups: DutyGroup[];
 }
 
