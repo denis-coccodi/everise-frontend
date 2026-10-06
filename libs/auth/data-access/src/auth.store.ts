@@ -36,6 +36,7 @@ export const AuthStore = signalStore(
       ),
       login: rxMethod<LoginUser>(
         pipe(
+          tap(() => patchState(store, { awaitingConfirmation: null })),
           exhaustMap((credentials) =>
             authService.login(credentials).pipe(
               tapResponse({
@@ -43,7 +44,14 @@ export const AuthStore = signalStore(
                   patchState(store, { user, loggedIn: true });
                   router.navigateByUrl('/');
                 },
-                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
+                error: (response: HttpErrorResponse) => {
+                  formErrorsStore.setResponseErrors(response);
+                  // The right password, but the email isn't confirmed yet.
+                  const unconfirmed = response.error?.unconfirmedEmail;
+                  if (response.status === 403 && typeof unconfirmed === 'string') {
+                    patchState(store, { awaitingConfirmation: unconfirmed });
+                  }
+                },
               }),
             ),
           ),
@@ -51,11 +59,16 @@ export const AuthStore = signalStore(
       ),
       register: rxMethod<NewUser>(
         pipe(
+          tap(() => patchState(store, { awaitingConfirmation: null })),
           exhaustMap((newUserData) =>
             authService.register(newUserData).pipe(
               tapResponse({
-                next: ({ user }) => {
-                  patchState(store, { user, loggedIn: true });
+                next: (response) => {
+                  if ('confirmation' in response) {
+                    patchState(store, { awaitingConfirmation: response.confirmation.email });
+                    return;
+                  }
+                  patchState(store, { user: response.user, loggedIn: true });
                   router.navigateByUrl('/');
                 },
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
@@ -70,8 +83,10 @@ export const AuthStore = signalStore(
             authService.update(user).pipe(
               tapResponse({
                 next: ({ user }) => {
+                  const newPending = !!user.pendingEmail && user.pendingEmail !== store.user().pendingEmail;
                   patchState(store, { user });
-                  router.navigate(['profile', user.username]);
+                  // A new email waits for its link: the settings say so.
+                  if (!newPending) router.navigate(['profile', user.id]);
                 },
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
@@ -109,6 +124,10 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
+      // Signed in from a confirmation link.
+      confirmed(user: User) {
+        patchState(store, { user, loggedIn: true, awaitingConfirmation: null });
+      },
       // A problem the page found before uploading, or null to clear it.
       setImageError(message: string | null) {
         patchState(store, { imageError: message });

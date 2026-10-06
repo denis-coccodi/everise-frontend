@@ -1,0 +1,22 @@
+// Uses the theme's role tokens only.
+:host {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.check-email p {
+  margin-bottom: 0.75rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--color-contrast-soft);
+}
+
+// Empty until something was sent; the region is there before, as live
+// regions must be.
+.status {
+  min-height: 1.5em;
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}

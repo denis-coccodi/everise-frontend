@@ -46,6 +46,12 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.RegisterComponent),
         },
         {
+          // The link in a confirmation email.
+          path: 'confirm-email',
+          title: 'Confirm your email',
+          loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.ConfirmEmailComponent),
+        },
+        {
           path: 'privacy',
           title: 'Privacy policy',
           loadComponent: () => import('@realworld/auth/feature-auth').then((m) => m.PrivacyComponent),

@@ -80,3 +80,10 @@
   gap: 1.5rem;
   margin-top: 2.5rem;
 }
+
+// A new email address waiting for its link.
+.pending-email {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast-soft);
+}
