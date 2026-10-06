@@ -78,6 +78,6 @@ function isLiveEvent(value: unknown): value is LiveEvent {
     typeof value === 'object' &&
     value !== null &&
     (value as LiveEvent).type === 'article-created' &&
-    typeof (value as LiveEvent).article?.slug === 'string'
+    typeof (value as LiveEvent).article?.id === 'string'
   );
 }

@@ -1,13 +1,25 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { ResolveFn, Routes } from '@angular/router';
+import { ProfileService } from '@realworld/profile/data-access';
+import { map } from 'rxjs';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
 import { AuthGuard } from '@realworld/auth/data-access';
 import { profileArticlesResolver, profileFavoritesResolver, profileResolver } from '@realworld/profile/data-access';
 import { ProfileComponent } from './profile.component';
 
+// The page title names the member, read from their profile: the link only
+// has their id.
+const titleOf =
+  (what: string): ResolveFn<string> =>
+  (route) =>
+    inject(ProfileService)
+      .getProfile(route.paramMap.get('id') ?? route.parent?.paramMap.get('id') ?? '')
+      .pipe(map((profile) => `${profile.username}'s ${what}`));
+
 export const PROFILE_ROUTES: Routes = [
   {
-    path: ':username',
-    title: (route) => `${route.paramMap.get('username')}'s articles`,
+    path: ':id',
+    title: titleOf('articles'),
     component: ProfileComponent,
     resolve: { profileResolver },
     canActivate: [AuthGuard],
@@ -19,7 +31,7 @@ export const PROFILE_ROUTES: Routes = [
       },
       {
         path: 'favorites',
-        title: (route) => `${route.parent?.paramMap.get('username')}'s favorited articles`,
+        title: titleOf('favorited articles'),
         component: ArticleListComponent,
         resolve: { profileFavoritesResolver },
       },

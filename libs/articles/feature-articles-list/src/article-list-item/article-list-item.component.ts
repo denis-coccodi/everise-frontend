@@ -24,9 +24,9 @@ export class ArticleListItemComponent {
 
   toggleFavorite(article: Article) {
     if (article.favorited) {
-      this.unFavorite.emit(article.slug);
+      this.unFavorite.emit(article.id);
     } else {
-      this.favorite.emit(article.slug);
+      this.favorite.emit(article.id);
     }
   }
 }

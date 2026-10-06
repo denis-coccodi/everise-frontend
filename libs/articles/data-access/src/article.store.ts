@@ -25,9 +25,9 @@ export const ArticleStore = signalStore(
     ) => ({
       getArticle: rxMethod<string>(
         pipe(
-          switchMap((slug) => {
+          switchMap((articleId) => {
             patchState(store, { data: articleInitialState.data, ...setLoading('getArticle') });
-            return articlesService.getArticle(slug).pipe(
+            return articlesService.getArticle(articleId).pipe(
               tapResponse({
                 next: ({ article }) => {
                   patchState(store, { data: article, ...setLoaded('getArticle') });
@@ -42,9 +42,9 @@ export const ArticleStore = signalStore(
       ),
       getComments: rxMethod<string>(
         pipe(
-          switchMap((slug) => {
+          switchMap((articleId) => {
             patchState(store, { comments: articleInitialState.comments, ...setLoading('getComments') });
-            return articlesService.getComments(slug).pipe(
+            return articlesService.getComments(articleId).pipe(
               tapResponse({
                 next: ({ comments }) => {
                   patchState(store, { comments: comments, ...setLoaded('getComments') });
@@ -59,20 +59,20 @@ export const ArticleStore = signalStore(
       ),
       followUser: rxMethod<string>(
         pipe(
-          switchMap((username) => actionsService.followUser(username)),
+          switchMap((authorId) => actionsService.followUser(authorId)),
           tap(({ profile }) => patchState(store, { data: { ...store.data(), author: profile } })),
         ),
       ),
       unfollowUser: rxMethod<string>(
         pipe(
-          switchMap((username) => actionsService.unfollowUser(username)),
+          switchMap((authorId) => actionsService.unfollowUser(authorId)),
           tap(({ profile }) => patchState(store, { data: { ...store.data(), author: profile } })),
         ),
       ),
       favouriteArticle: rxMethod<string>(
         pipe(
-          concatMap((slug) =>
-            actionsService.favorite(slug).pipe(
+          concatMap((articleId) =>
+            actionsService.favorite(articleId).pipe(
               tapResponse({
                 next: ({ article }) => {
                   patchState(store, { data: article });
@@ -87,8 +87,8 @@ export const ArticleStore = signalStore(
       ),
       unFavouriteArticle: rxMethod<string>(
         pipe(
-          concatMap((slug) =>
-            actionsService.unfavorite(slug).pipe(
+          concatMap((articleId) =>
+            actionsService.unfavorite(articleId).pipe(
               tapResponse({
                 next: ({ article }) => {
                   patchState(store, { data: article });
@@ -101,11 +101,11 @@ export const ArticleStore = signalStore(
           ),
         ),
       ),
-      deleteComment: rxMethod<{ commentId: number; slug: string }>(
+      deleteComment: rxMethod<{ commentId: string; articleId: string }>(
         pipe(
-          switchMap(({ commentId, slug }) =>
+          switchMap(({ commentId, articleId }) =>
             articlesService
-              .deleteComment(commentId, slug)
+              .deleteComment(commentId, articleId)
               .pipe(
                 tap(() => patchState(store, { comments: store.comments().filter((item) => item.id !== commentId) })),
               ),
@@ -114,8 +114,8 @@ export const ArticleStore = signalStore(
       ),
       deleteArticle: rxMethod<string>(
         pipe(
-          switchMap((slug) =>
-            articlesService.deleteArticle(slug).pipe(
+          switchMap((articleId) =>
+            articlesService.deleteArticle(articleId).pipe(
               tapResponse({
                 next: () => router.navigate(['/']),
                 error: () => patchState(store, articleInitialState),
@@ -127,7 +127,7 @@ export const ArticleStore = signalStore(
       addComment: rxMethod<string>(
         pipe(
           switchMap((addedComment) =>
-            articlesService.addComment(store.data.slug(), addedComment).pipe(
+            articlesService.addComment(store.data.id(), addedComment).pipe(
               tapResponse({
                 next: ({ comment }) => patchState(store, { comments: [comment, ...store.comments()] }),
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
@@ -141,19 +141,19 @@ export const ArticleStore = signalStore(
           switchMap((article) =>
             articlesService.publishArticle(article).pipe(
               tapResponse({
-                next: ({ article }) => router.navigate(['article', article.slug]),
+                next: ({ article }) => router.navigate(['article', article.id]),
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),
           ),
         ),
       ),
-      editArticle: rxMethod<{ editArticle: EditArticle; slug: string }>(
+      editArticle: rxMethod<{ editArticle: EditArticle; articleId: string }>(
         pipe(
-          switchMap(({ editArticle, slug }) =>
-            articlesService.editArticle(editArticle, slug).pipe(
+          switchMap(({ editArticle, articleId }) =>
+            articlesService.editArticle(editArticle, articleId).pipe(
               tapResponse({
-                next: ({ article }) => router.navigate(['article', article.slug]),
+                next: ({ article }) => router.navigate(['article', article.id]),
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
             ),

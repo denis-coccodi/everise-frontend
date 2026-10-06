@@ -111,7 +111,7 @@ export class RouletteComponent {
   private lastSpin: RoulettePostRequest['result'] | null = null;
   readonly posting = signal(false);
   readonly postError = signal<string | null>(null);
-  readonly posted = signal<{ slug: string } | null>(null);
+  readonly posted = signal<{ articleId: string } | null>(null);
   readonly signedIn = this.authStore.loggedIn;
 
   readonly pickable = computed(() => pickOptions(this.groups(), this.roulettes()));
@@ -328,7 +328,7 @@ export class RouletteComponent {
       .subscribe({
         next: ({ article }) => {
           this.posting.set(false);
-          this.posted.set({ slug: article.slug });
+          this.posted.set({ articleId: article.id });
           this.showResult.set(false);
           this.spinButton()?.nativeElement.focus();
           this.status.set(this.signedIn() ? 'Posted to the feed.' : 'Tataru posted it to the feed for you.');

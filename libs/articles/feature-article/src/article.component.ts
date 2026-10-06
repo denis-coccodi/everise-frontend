@@ -4,7 +4,7 @@ import { ArticleStore } from '@realworld/articles/data-access';
 import { ArticleMetaComponent } from './article-meta/article-meta.component';
 import { ArticleCommentComponent } from './article-comment/article-comment.component';
 import { AddCommentComponent } from './add-comment/add-comment.component';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { API_URL, gameImageUrl } from '@realworld/core/http-client';
 import { RichTextComponent } from '@realworld/media';
@@ -26,7 +26,7 @@ import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleComponent implements OnInit, OnDestroy {
-  slug = input<string>('');
+  articleId = input<string>('');
 
   private readonly authStore = inject(AuthStore);
   private readonly articleStore = inject(ArticleStore);
@@ -35,18 +35,25 @@ export class ArticleComponent implements OnInit, OnDestroy {
   $article = this.articleStore.data;
   $comments = this.articleStore.comments;
 
-  $authorUsername = this.articleStore.data.author.username;
+  $authorId = this.articleStore.data.author.id;
   $isAuthenticated = this.authStore.loggedIn;
   $currentUser = this.authStore.user;
-  $canModify = computed(() => this.authStore.user.username() === this.$authorUsername());
+  $canModify = computed(() => this.authStore.user.id() === this.$authorId());
 
   constructor() {
     // The page's title is the article's, once it has loaded.
     const title = inject(Title);
+    const router = inject(Router);
     effect(() => {
       const article = this.$article();
-      if (article.slug === this.slug() && article.title) {
+      const requested = this.articleId();
+      if (!article.id || !article.title) return;
+      if (article.id === requested) {
         title.setTitle(`${article.title} · Everise`);
+      } else if (article.slug === requested) {
+        // An old link, by the slug made from the title: the address becomes
+        // the post's id, which every link uses now.
+        router.navigate(['/article', article.id], { replaceUrl: true });
       }
     });
   }
@@ -57,26 +64,26 @@ export class ArticleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.articleStore.getArticle(this.slug());
-    this.articleStore.getComments(this.slug());
+    this.articleStore.getArticle(this.articleId());
+    this.articleStore.getComments(this.articleId());
   }
 
-  follow(username: string) {
-    this.articleStore.followUser(username);
+  follow(authorId: string) {
+    this.articleStore.followUser(authorId);
   }
-  unfollow(username: string) {
-    this.articleStore.unfollowUser(username);
+  unfollow(authorId: string) {
+    this.articleStore.unfollowUser(authorId);
   }
-  favorite(slug: string) {
-    this.articleStore.favouriteArticle(slug);
+  favorite(articleId: string) {
+    this.articleStore.favouriteArticle(articleId);
   }
-  unfavorite(slug: string) {
-    this.articleStore.unFavouriteArticle(slug);
+  unfavorite(articleId: string) {
+    this.articleStore.unFavouriteArticle(articleId);
   }
-  delete(slug: string) {
-    this.articleStore.deleteArticle(slug);
+  delete(articleId: string) {
+    this.articleStore.deleteArticle(articleId);
   }
-  deleteComment(data: { commentId: number; slug: string }) {
+  deleteComment(data: { commentId: string; articleId: string }) {
     this.articleStore.deleteComment(data);
   }
   submit(comment: string) {

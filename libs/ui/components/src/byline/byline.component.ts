@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 
 // Who wrote something and when: an avatar, the author's name and the date.
 // <cdt-byline [image]="a.image" [name]="a.username" [date]="createdAt"
-//   [link]="['/profile', a.username]" />. With a link, the avatar and name
+//   [link]="['/profile', a.id]" />. With a link, the avatar and name
 // lead to it; `avatarTestId` sets a data-testid on the avatar link. The avatar
 // link repeats the name's, so it is skipped by the keyboard and screen readers
 // when the name is shown.

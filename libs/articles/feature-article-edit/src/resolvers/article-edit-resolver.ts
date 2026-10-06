@@ -4,11 +4,11 @@ import { ArticleStore } from '@realworld/articles/data-access/src';
 import { of } from 'rxjs';
 
 export const articleEditResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
-  const slug = route.params['slug'];
+  const articleId = route.params['articleId'];
   const articleStore = inject(ArticleStore);
 
-  if (slug) {
-    articleStore.getArticle(slug);
+  if (articleId) {
+    articleStore.getArticle(articleId);
   }
 
   return of(true);

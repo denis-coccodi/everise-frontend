@@ -17,18 +17,19 @@ export class ProfileComponent {
 
   $profileLoading = this.profileStore.getProfileLoading;
   $username = this.profileStore.username;
+  $id = this.profileStore.id;
   $image = this.profileStore.image;
   $bio = this.profileStore.bio;
   $following = this.profileStore.following;
-  $currentUser = this.authStore.user.username;
+  $currentUser = this.authStore.user.id;
 
-  $isUser = computed(() => this.$currentUser() === this.$username());
+  $isUser = computed(() => this.$currentUser() === this.$id());
 
   toggleFollowing() {
     if (this.$following()) {
-      this.profileStore.unfollowUser(this.$username);
+      this.profileStore.unfollowUser(this.$id);
     } else {
-      this.profileStore.followUser(this.$username);
+      this.profileStore.followUser(this.$id);
     }
   }
 }

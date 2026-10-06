@@ -24,7 +24,7 @@ class FakeSocket extends Subject<unknown> {
 
 const event = {
   type: 'article-created',
-  article: { slug: 'duty-found-sastasha-1', title: 'Duty Found: Sastasha', tagList: ['roulette'] },
+  article: { id: '4f8e2c1a-0000-4000-8000-000000000001', title: 'Duty Found: Sastasha', tagList: ['roulette'] },
 } as LiveEvent;
 
 describe('liveUrl', () => {

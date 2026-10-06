@@ -4,6 +4,7 @@ import { Role } from './user';
 
 // A member as the admin's list shows them.
 export interface Member {
+  id: string;
   username: string;
   email: string;
   image: string;

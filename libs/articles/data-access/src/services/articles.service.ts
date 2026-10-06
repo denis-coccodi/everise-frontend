@@ -16,26 +16,29 @@ import { ArticlesListConfig } from '../models/articles-list.model';
 export class ArticlesService {
   private readonly apiService = inject(ApiService);
 
-  getArticle(slug: string): Observable<ArticleResponse> {
-    return this.apiService.get<ArticleResponse>('/articles/' + slug);
+  getArticle(articleId: string): Observable<ArticleResponse> {
+    return this.apiService.get<ArticleResponse>('/articles/' + articleId);
   }
 
-  getComments(slug: string): Observable<MultipleCommentsResponse> {
-    return this.apiService.get<MultipleCommentsResponse>(`/articles/${slug}/comments`);
+  getComments(articleId: string): Observable<MultipleCommentsResponse> {
+    return this.apiService.get<MultipleCommentsResponse>(`/articles/${articleId}/comments`);
   }
 
-  deleteArticle(slug: string): Observable<void> {
-    return this.apiService.delete<void>('/articles/' + slug);
+  deleteArticle(articleId: string): Observable<void> {
+    return this.apiService.delete<void>('/articles/' + articleId);
   }
 
-  deleteComment(commentId: number, slug: string): Observable<void> {
-    return this.apiService.delete<void>(`/articles/${slug}/comments/${commentId}`);
+  deleteComment(commentId: string, articleId: string): Observable<void> {
+    return this.apiService.delete<void>(`/articles/${articleId}/comments/${commentId}`);
   }
 
-  addComment(slug: string, comment: string): Observable<SingleCommentResponse> {
-    return this.apiService.post<SingleCommentResponse, { comment: { body: string } }>(`/articles/${slug}/comments`, {
-      comment: { body: comment },
-    });
+  addComment(articleId: string, comment: string): Observable<SingleCommentResponse> {
+    return this.apiService.post<SingleCommentResponse, { comment: { body: string } }>(
+      `/articles/${articleId}/comments`,
+      {
+        comment: { body: comment },
+      },
+    );
   }
 
   query(config: ArticlesListConfig): Observable<{ articles: Article[]; articlesCount: number }> {
@@ -49,8 +52,8 @@ export class ArticlesService {
     return this.apiService.post<ArticleResponse, CreateArticle>('/articles/', article);
   }
 
-  editArticle(article: EditArticle, slug: string): Observable<ArticleResponse> {
-    return this.apiService.put<ArticleResponse, EditArticle>('/articles/' + slug, article);
+  editArticle(article: EditArticle, articleId: string): Observable<ArticleResponse> {
+    return this.apiService.put<ArticleResponse, EditArticle>('/articles/' + articleId, article);
   }
 
   // TODO: remove any

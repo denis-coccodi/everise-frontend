@@ -1,11 +1,11 @@
 @if (!$isLoading()) {
-  @for (article of $articles(); track article.slug) {
+  @for (article of $articles(); track article.id) {
     <cdt-article-list-item
       data-testid="article-list"
       (unFavorite)="unFavorite($event)"
       (favorite)="favorite($event)"
       [article]="article"
-      [class.live]="$liveSlugs().includes(article.slug)"
+      [class.live]="$liveIds().includes(article.id)"
     >
     </cdt-article-list-item>
   } @empty {

@@ -4,14 +4,14 @@ import { ArticlesListStore, articlesListInitialState } from '@realworld/articles
 import { of } from 'rxjs';
 
 export const profileArticlesResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
-  const username = route.params['username'];
+  const id = route.params['id'];
   const articlesListStore = inject(ArticlesListStore);
 
   const config = {
     ...articlesListInitialState.listConfig,
     filters: {
       ...articlesListInitialState.listConfig.filters,
-      author: username,
+      author: id,
     },
   };
 

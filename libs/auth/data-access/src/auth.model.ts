@@ -10,6 +10,7 @@ export type AuthState = {
 };
 
 export const initialUserValue: User = {
+  id: '',
   email: '',
   username: '',
   password: '',

@@ -3,6 +3,8 @@
 export type Role = 'admin' | 'staging-tester' | 'user';
 
 export interface User {
+  // The member's id, as in links to their profile.
+  id: string;
   email: string;
   password?: string;
   username: string;
