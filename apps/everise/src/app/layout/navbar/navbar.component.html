@@ -13,7 +13,7 @@
       [attr.aria-expanded]="open()"
       (click)="open.set(!open())"
     >
-      <i [class]="open() ? 'ion-close-round' : 'ion-navicon-round'" aria-hidden="true"></i>
+      <cdt-icon class="menu-icon" [name]="open() ? 'close' : 'menu'" />
       Menu
     </button>
 
@@ -24,7 +24,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <i class="ion-shuffle" aria-hidden="true"></i>&nbsp;Roulette
+            <cdt-icon name="shuffle" />&nbsp;Roulette
           </a>
         </li>
         @if (!isLoggedIn()) {
@@ -39,7 +39,7 @@
         } @else {
           <li class="nav-item">
             <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
-              <i class="ion-compose" aria-hidden="true"></i>&nbsp;New Post
+              <cdt-icon name="compose" />&nbsp;New Post
             </a>
           </li>
           <!-- The account menu: the user's own pages and signing out. -->
