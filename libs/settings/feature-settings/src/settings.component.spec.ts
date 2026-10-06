@@ -86,12 +86,12 @@ describe('SettingsComponent dark mode', () => {
 
   it("shows Tataru's and the members' windows to admins only", async () => {
     const member = await render();
-    expect(member.page.querySelector('cdt-admin-tataru')).toBeNull();
+    expect(member.page.querySelector('cdt-admin-characters')).toBeNull();
     expect(member.page.querySelector('cdt-admin-members')).toBeNull();
 
     TestBed.resetTestingModule();
     const admin = await render({ ...user, role: 'admin' });
-    expect(admin.page.querySelector('cdt-admin-tataru')).not.toBeNull();
+    expect(admin.page.querySelector('cdt-admin-characters')).not.toBeNull();
     expect(admin.page.querySelector('cdt-admin-members')).not.toBeNull();
   });
 });

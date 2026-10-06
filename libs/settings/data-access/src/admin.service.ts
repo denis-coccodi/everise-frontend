@@ -2,11 +2,13 @@ import { HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
   AssignableRole,
+  CharacterChanges,
+  CharacterResponse,
+  CharactersResponse,
   MemberDeletedResponse,
   MembersResponse,
   RoleChangeResponse,
   StagingAccessResponse,
-  TataruResponse,
 } from '@realworld/core/api-types';
 import { FAILURE_MESSAGE, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
 import { ApiService } from '@realworld/core/http-client';
@@ -38,16 +40,20 @@ export class AdminService {
     return this.api.post<StagingAccessResponse, void>('/admin/staging-access');
   }
 
-  tataru() {
-    return this.api.get<TataruResponse>('/admin/tataru');
+  // The Waking Sands characters, with their personalities and pictures.
+  characters() {
+    return this.api.get<CharactersResponse>('/admin/characters');
   }
 
-  updateTataru(bio: string) {
-    return this.api.put<TataruResponse, { tataru: { bio: string } }>('/admin/tataru', { tataru: { bio } });
+  updateCharacter(id: string, character: CharacterChanges) {
+    return this.api.put<CharacterResponse, { character: CharacterChanges }>(
+      `/admin/characters/${encodeURIComponent(id)}`,
+      { character },
+    );
   }
 
-  uploadTataruPicture(picture: Blob) {
-    return this.api.putFile<TataruResponse>('/admin/tataru/image', picture);
+  uploadCharacterPicture(id: string, picture: Blob) {
+    return this.api.putFile<CharacterResponse>(`/admin/characters/${encodeURIComponent(id)}/image`, picture);
   }
 }
 

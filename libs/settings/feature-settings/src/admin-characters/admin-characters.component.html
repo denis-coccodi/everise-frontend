@@ -1,0 +1,106 @@
+<cdt-panel heading="Waking Sands characters">
+  <p class="intro">
+    Who members can talk to in the Waking Sands. The personality tells the AI who a character is and how they talk;
+    Tataru's bio is also her profile's, on the roulette results she posts for guests.
+  </p>
+
+  @if (characters(); as characters) {
+    <ul cdtTabs class="tabs" aria-label="Characters">
+      @for (character of characters; track character.id) {
+        <li>
+          <button type="button" cdtTab [active]="character.id === selectedId()" (click)="select(character.id)">
+            {{ tabName(character) }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    @if (selected(); as character) {
+      <h3 class="name">{{ character.name }}</h3>
+      <div class="picture">
+        <img class="avatar" [src]="character.image" [alt]="character.name + '\'s picture'" width="72" height="72" />
+        <div>
+          <input
+            #pictureInput
+            type="file"
+            class="visually-hidden"
+            tabindex="-1"
+            [attr.aria-label]="character.name + '\'s picture file'"
+            accept="image/*"
+            (change)="onPictureChosen(pictureInput)"
+          />
+          <button
+            #chooseButton
+            type="button"
+            cdtButton="outline-primary"
+            size="sm"
+            [disabled]="busy()"
+            (click)="pictureInput.click()"
+          >
+            Change the picture
+          </button>
+          <p class="hint">{{ pictureHint }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <cdt-field label="Title" for="character-title">
+          <input id="character-title" cdtInput formControlName="title" [attr.maxlength]="maxTitle" />
+        </cdt-field>
+        <p class="hint field-hint">Under the name in the Waking Sands. Empty goes back to the original.</p>
+
+        @if (character.bio !== undefined) {
+          <cdt-field label="Bio" for="character-bio">
+            <textarea id="character-bio" cdtInput rows="3" formControlName="bio"></textarea>
+          </cdt-field>
+        }
+
+        <cdt-field label="Personality" for="character-persona">
+          <textarea
+            id="character-persona"
+            cdtInput
+            rows="12"
+            formControlName="persona"
+            [attr.maxlength]="maxPersona"
+            aria-describedby="character-persona-hint"
+          ></textarea>
+        </cdt-field>
+        <p id="character-persona-hint" class="hint field-hint">
+          @if (character.edited.persona) {
+            Changed from the original.
+          } @else {
+            The original personality.
+          }
+          The site's rules still apply on top: no slurs, nothing sexual, nothing harmful, and no spoilers past A Realm
+          Reborn.
+        </p>
+
+        <div class="actions">
+          <button cdtButton type="submit" size="sm" [disabled]="busy()">
+            {{ busy() ? 'Saving…' : 'Save changes' }}
+          </button>
+          <button
+            type="button"
+            cdtButton="outline-secondary"
+            size="sm"
+            [disabled]="busy() || !character.edited.persona"
+            (click)="restorePersona()"
+          >
+            Restore the original personality
+          </button>
+        </div>
+      </form>
+    }
+  } @else if (!error()) {
+    <p role="status">Gathering the characters…</p>
+  }
+
+  <p class="status" role="status">{{ status() }}</p>
+  @if (error(); as error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+</cdt-panel>
+
+@if (cropping(); as file) {
+  <cdt-picture-crop-dialog [file]="file" (chosen)="onCropped($event)" (cancelled)="closeCropDialog()" />
+}

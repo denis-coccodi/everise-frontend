@@ -45,13 +45,31 @@ export interface StagingAccessResponse {
   stagingAccess: StagingAccessResult;
 }
 
-// Tataru, the account that posts guests' roulette results.
-export interface TataruProfile {
-  username: string;
-  bio: string | null;
-  image: string;
+// A Waking Sands character as admins edit it: the shipped personality
+// (defaultPersona) with the admin's changes. Only Tataru has a bio: she is
+// also the account that posts guests' roulette results.
+export interface CharacterSettings {
+  id: string;
+  name: string;
+  title: string;
+  persona: string;
+  defaultPersona: string;
+  image?: string;
+  bio?: string | null;
+  edited: { title: boolean; persona: boolean };
 }
 
-export interface TataruResponse {
-  tataru: TataruProfile;
+export interface CharactersResponse {
+  characters: CharacterSettings[];
+}
+
+export interface CharacterResponse {
+  character: CharacterSettings;
+}
+
+// What an admin changes; an empty title or persona goes back to the default.
+export interface CharacterChanges {
+  title?: string;
+  persona?: string;
+  bio?: string;
 }
