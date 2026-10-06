@@ -3,7 +3,7 @@
 # backend over a service binding, so the API is checked through <frontend-url>/api.
 #
 # Usage: scripts/smoke.sh read|create <frontend-url> [cookie-jar]
-#   e.g. scripts/smoke.sh read https://prod.everisefc.workers.dev
+#   e.g. scripts/smoke.sh read https://everise.dev
 #   read:   app shell, a deep link (SPA fallback), the service worker, the default
 #           avatar, that the deployed bundle calls the relative /api, and that
 #           <frontend-url>/api reaches the backend. Writes nothing.

@@ -29,9 +29,7 @@ const event = {
 
 describe('liveUrl', () => {
   it('turns the API address into its WebSocket address', () => {
-    expect(liveUrl('/api', { href: 'https://prod.everisefc.workers.dev/home' })).toBe(
-      'wss://prod.everisefc.workers.dev/api/live',
-    );
+    expect(liveUrl('/api', { href: 'https://everise.dev/home' })).toBe('wss://everise.dev/api/live');
     expect(liveUrl('http://localhost:8080/api', { href: 'http://localhost:4200/' })).toBe(
       'ws://localhost:8080/api/live',
     );
