@@ -50,6 +50,11 @@
 /* Long-form text such as a rendered article. Global on purpose: content set
    through [innerHTML] is outside Angular's style scoping, so a component
    stylesheet can't reach it. */
+/* Long links and words break rather than push a phone screen sideways. */
+.xiv-prose {
+  overflow-wrap: anywhere;
+}
+
 .xiv-prose p {
   margin-bottom: 2rem;
   font-family: var(--font-reading);

@@ -135,6 +135,8 @@
 
 // Small pill (All / None, filters).
 :host([data-variant='chip']) {
+  // At least 24 px tall: the smallest target a finger or pointer should need.
+  min-height: 24px;
   padding: 0.1rem 0.7rem;
   border-color: var(--color-border);
   background: var(--color-surface);

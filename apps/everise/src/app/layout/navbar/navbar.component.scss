@@ -1,7 +1,8 @@
 // The site's top bar: a title strip with a silver rule. Uses the theme's
-// role tokens only.
+// role tokens only. Under 768 px the links fold into the Menu button's panel.
 .navbar {
   position: relative;
+  z-index: 5;
   padding: 0.5rem 1rem;
   border-bottom: var(--border-width) solid var(--color-border);
   background: var(--gradient-navbar);
@@ -39,14 +40,8 @@
   text-decoration: none;
 }
 
-// The links wrap onto a second line on narrow screens.
 .navbar-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0 1rem;
-  margin: 0 0 0 auto;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -76,9 +71,140 @@
 }
 
 .avatar {
+  flex: none;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--color-avatar);
+}
+
+// Phone: the Menu button, and the panel it opens under the bar.
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  font: inherit;
+  color: var(--color-contrast);
+  cursor: pointer;
+}
+
+.menu-toggle i {
+  width: 1rem;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.menu-toggle:hover {
+  border-color: var(--color-border-strong);
+}
+
+.menu {
+  display: none;
+}
+
+.menu.open {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding: 0.5rem 1rem 1rem;
+  border-bottom: var(--border-width) solid var(--color-border);
+  // The bar's gradient lets the page show through; the panel covers it.
+  background-color: var(--color-base-deep);
+  background-image: var(--gradient-navbar);
+  box-shadow: var(--shadow-panel);
+}
+
+.menu .nav-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  font-size: 1.1rem;
+}
+
+.menu .nav-item + .nav-item {
+  border-top: var(--border-width) solid var(--color-border-faint);
+}
+
+.sign-out {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+// The user's name above their own links.
+.account-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 0.25rem 0.5rem;
+  color: var(--color-contrast);
+  font-weight: 600;
+}
+
+.account-heading .name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.wide-only {
+  display: none;
+}
+
+// Wider screens: the links in the bar, the account in its own menu.
+@media (min-width: 768px) {
+  .menu-toggle,
+  .narrow-only {
+    display: none;
+  }
+
+  .wide-only {
+    display: list-item;
+  }
+
+  .menu,
+  .menu.open {
+    display: block;
+    position: static;
+    max-height: none;
+    overflow: visible;
+    margin-left: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+
+  .navbar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0 1rem;
+  }
+
+  .menu .nav-link {
+    display: block;
+    min-height: 0;
+    padding: 0.425rem 0;
+    font-size: inherit;
+  }
+
+  .menu .nav-item + .nav-item {
+    border-top: none;
+  }
 }
