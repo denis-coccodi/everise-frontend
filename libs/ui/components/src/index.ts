@@ -10,6 +10,7 @@ export * from './community-links/community-links.component';
 export * from './dialog/dialog.component';
 export * from './duty-card/duty-card.component';
 export * from './field/field.component';
+export * from './icon/icon.component';
 export * from './image-cropper/crop-geometry';
 export * from './image-cropper/image-cropper.component';
 export * from './input/input.component';

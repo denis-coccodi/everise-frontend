@@ -51,11 +51,15 @@ describe('NavbarComponent', () => {
     expect(toggle().getAttribute('aria-controls')).toBe('site-menu');
     expect(toggle().getAttribute('aria-expanded')).toBe('false');
     expect(panel().classList).not.toContain('open');
+    // Drawn in the page, so it shows even when no icon font loads.
+    expect(toggle().querySelector('cdt-icon')?.getAttribute('data-icon')).toBe('menu');
+    expect(toggle().querySelector('svg')).toBeTruthy();
 
     toggle().click();
     await fixture.whenStable();
     expect(toggle().getAttribute('aria-expanded')).toBe('true');
     expect(panel().classList).toContain('open');
+    expect(toggle().querySelector('cdt-icon')?.getAttribute('data-icon')).toBe('close');
 
     toggle().click();
     await fixture.whenStable();

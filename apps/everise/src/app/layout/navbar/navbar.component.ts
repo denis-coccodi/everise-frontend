@@ -11,7 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { User } from '@realworld/core/api-types';
-import { MenuComponent, MenuItemComponent } from '@realworld/ui/components';
+import { IconComponent, MenuComponent, MenuItemComponent } from '@realworld/ui/components';
 import { filter } from 'rxjs';
 
 // The site's top bar. On a phone (under 768 px) the links fold into a panel
@@ -21,7 +21,7 @@ import { filter } from 'rxjs';
   selector: 'cdt-navbar',
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
-  imports: [RouterModule, MenuComponent, MenuItemComponent],
+  imports: [RouterModule, IconComponent, MenuComponent, MenuItemComponent],
   host: {
     '(document:click)': 'closeOutside($event)',
     '(keydown.escape)': 'closeAndFocus()',
