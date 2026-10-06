@@ -132,10 +132,10 @@
           </button>
         </form>
 
-        <!-- Admins only (the backend checks too): Tataru and the members' roles. -->
+        <!-- Admins only (the backend checks too): the Waking Sands characters (Tataru among them) and the members' roles. -->
         @if (authStore.user().role === 'admin') {
           <div class="admin">
-            <cdt-admin-tataru />
+            <cdt-admin-characters />
             <cdt-admin-members />
           </div>
         }

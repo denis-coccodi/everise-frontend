@@ -16,7 +16,7 @@ import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms
 import { SettingsStore } from '@realworld/settings/data-access';
 import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
 import { AdminMembersComponent } from './admin-members/admin-members.component';
-import { AdminTataruComponent } from './admin-tataru/admin-tataru.component';
+import { AdminCharactersComponent } from './admin-characters/admin-characters.component';
 import { PictureCropDialogComponent } from './picture-crop-dialog/picture-crop-dialog.component';
 import { PICTURE_HINT, checkChosenFile } from './profile-picture';
 import { SignInMethodsComponent } from './sign-in-methods/sign-in-methods.component';
@@ -27,7 +27,7 @@ import { SignInMethodsComponent } from './sign-in-methods/sign-in-methods.compon
   styleUrl: './settings.component.scss',
   imports: [
     AdminMembersComponent,
-    AdminTataruComponent,
+    AdminCharactersComponent,
     FieldComponent,
     ButtonComponent,
     CheckboxComponent,
