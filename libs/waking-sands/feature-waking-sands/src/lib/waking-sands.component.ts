@@ -125,12 +125,7 @@ export class WakingSandsComponent {
     this.log.update((log) => [...log, { kind: 'member', text }]);
 
     const present = this.present();
-    this.writing.set(
-      present
-        .map((id) => this.character(id)?.name)
-        .filter(Boolean)
-        .join(' and '),
-    );
+    this.writing.set(namesList(present.map((id) => this.character(id)?.name ?? id)));
     this.service.replies(present, this.lines()).subscribe({
       next: (replies) => {
         this.log.update((log) => [
@@ -193,6 +188,11 @@ function isLogEntry(value: unknown): value is LogEntry {
       entry.kind === 'note' ||
       (entry.kind === 'character' && typeof (entry as { id?: unknown }).id === 'string'))
   );
+}
+
+// "Tataru", "Tataru and Urianger", "Tataru, Urianger and Y'shtola".
+function namesList(names: string[]) {
+  return names.length < 2 ? names[0] ?? '' : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
 // The backend's own words for a limit ("come back after midnight"), or a

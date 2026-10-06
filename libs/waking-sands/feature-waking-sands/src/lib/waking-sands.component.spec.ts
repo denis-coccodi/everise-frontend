@@ -13,13 +13,15 @@ const TATARU = {
   title: 'Receptionist of the Scions of the Seventh Dawn',
   image: '/tataru.png',
 };
+const URIANGER = { id: 'urianger', name: 'Urianger', title: 'Astrologian', image: '/urianger.png' };
+const YSHTOLA = { id: 'yshtola', name: "Y'shtola", title: 'Sorceress', image: '/yshtola.png' };
 
 describe('WakingSandsComponent', () => {
   let fixture: ComponentFixture<WakingSandsComponent>;
   let http: HttpTestingController;
   let page: HTMLElement;
 
-  async function render(loggedIn = true, available = true) {
+  async function render(loggedIn = true, available = true, characters = [TATARU]) {
     try {
       sessionStorage.clear();
     } catch {
@@ -44,7 +46,7 @@ describe('WakingSandsComponent', () => {
     fixture = TestBed.createComponent(WakingSandsComponent);
     http = TestBed.inject(HttpTestingController);
     page = fixture.nativeElement as HTMLElement;
-    http.expectOne('/api/waking-sands/characters').flush({ available, characters: [TATARU] });
+    http.expectOne('/api/waking-sands/characters').flush({ available, characters });
     await fixture.whenStable();
   }
 
@@ -143,6 +145,34 @@ describe('WakingSandsComponent', () => {
 
     expect(page.querySelector('textarea')).toBeNull();
     expect(page.querySelector('.sign-in')?.textContent).toContain('to join the conversation');
+  });
+
+  it('lets everyone invited answer, in the order they joined', async () => {
+    await render(true, true, [TATARU, URIANGER, YSHTOLA]);
+    for (const name of ["Y'shtola", 'Tataru', 'Urianger']) {
+      await click(`Invite ${name}`);
+    }
+    await type('Hello, everyone!');
+
+    await click('Send');
+
+    const request = http.expectOne('/api/waking-sands/replies');
+    expect(JSON.parse(request.request.body).characters).toEqual(['yshtola', 'tataru', 'urianger']);
+    expect(page.querySelector('.status')?.textContent).toContain("Y'shtola, Tataru and Urianger are writing…");
+    request.flush({
+      replies: [
+        { character: 'yshtola', text: 'Hello.' },
+        { character: 'tataru', text: 'Welcome!' },
+        { character: 'urianger', text: 'Well met.' },
+      ],
+    });
+    await fixture.whenStable();
+
+    expect([...page.querySelectorAll('.line:not(.mine) .speaker')].map((s) => s.textContent)).toEqual([
+      "Y'shtola",
+      'Tataru',
+      'Urianger',
+    ]);
   });
 
   it("says when the chat isn't open", async () => {
