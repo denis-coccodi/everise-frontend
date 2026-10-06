@@ -33,13 +33,15 @@ h1 {
   text-align: center;
 }
 
-// Phones: settings, the reels, then the pick lists. Wide screens: duty types
-// on the left; reels with the pick lists under them on the right.
+// Phones: the reels first, then the Duty Finder settings, then the pick
+// lists. Wide screens: duty types on the left; reels with the pick lists
+// under them on the right. The page's order (settings, reels, lists) stays
+// the keyboard's and screen readers' order: set up, then spin.
 .layout {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: 'settings' 'stage' 'picks';
+  grid-template-areas: 'stage' 'settings' 'picks';
   align-items: start;
 }
 
