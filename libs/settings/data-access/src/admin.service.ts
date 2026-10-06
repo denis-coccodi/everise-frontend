@@ -22,16 +22,15 @@ export class AdminService {
     return this.api.get<MembersResponse>('/admin/users', params);
   }
 
-  setRole(username: string, role: AssignableRole) {
-    return this.api.put<RoleChangeResponse, { role: AssignableRole }>(
-      `/admin/users/${encodeURIComponent(username)}/role`,
-      { role },
-    );
+  setRole(id: string, role: AssignableRole) {
+    return this.api.put<RoleChangeResponse, { role: AssignableRole }>(`/admin/users/${encodeURIComponent(id)}/role`, {
+      role,
+    });
   }
 
   // Deletes a member and everything they posted, for good.
-  deleteMember(username: string) {
-    return this.api.delete<MemberDeletedResponse>(`/admin/users/${encodeURIComponent(username)}`);
+  deleteMember(id: string) {
+    return this.api.delete<MemberDeletedResponse>(`/admin/users/${encodeURIComponent(id)}`);
   }
 
   // Writes the staging testers to the staging site's access list again.

@@ -4,10 +4,10 @@ import { of } from 'rxjs';
 import { ProfileStore } from '../profile.store';
 
 export const profileResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
-  const username = route.params['username'];
+  const id = route.params['id'];
   const profileStore = inject(ProfileStore);
 
-  profileStore.getProfile(username);
+  profileStore.getProfile(id);
 
   return of(true);
 };

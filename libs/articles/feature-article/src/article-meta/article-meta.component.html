@@ -3,12 +3,12 @@
     [image]="article().author.image"
     [name]="article().author.username"
     [date]="article().createdAt"
-    [link]="['/profile', article().author.username]"
+    [link]="['/profile', article().author.id]"
     avatarTestId="article-author"
   />
 
   <span [hidden]="!canModify()">
-    <a cdtButton="outline-secondary" size="sm" [routerLink]="['/editor', article().slug]">
+    <a cdtButton="outline-secondary" size="sm" [routerLink]="['/editor', article().id]">
       <i class="ion-edit" aria-hidden="true"></i> Edit Article
     </a>
 

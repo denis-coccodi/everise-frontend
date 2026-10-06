@@ -39,7 +39,7 @@ export const ArticlesListStore = signalStore(
                     articlesCount: articlesCount,
                     entities: articles,
                   },
-                  liveSlugs: [],
+                  liveIds: [],
                   ...setLoaded('getArticles'),
                 });
               },
@@ -53,8 +53,8 @@ export const ArticlesListStore = signalStore(
     ),
     favouriteArticle: rxMethod<string>(
       pipe(
-        concatMap((slug) =>
-          actionsService.favorite(slug).pipe(
+        concatMap((articleId) =>
+          actionsService.favorite(articleId).pipe(
             tapResponse({
               next: ({ article }) => {
                 patchState(store, {
@@ -71,8 +71,8 @@ export const ArticlesListStore = signalStore(
     ),
     unFavouriteArticle: rxMethod<string>(
       pipe(
-        concatMap((slug) =>
-          actionsService.unfavorite(slug).pipe(
+        concatMap((articleId) =>
+          actionsService.unfavorite(articleId).pipe(
             tapResponse({
               next: ({ article }) => {
                 patchState(store, {
@@ -92,7 +92,7 @@ export const ArticlesListStore = signalStore(
     // whether it was added.
     addLiveArticle: (article: Article): boolean => {
       const current = store.articles();
-      if (!belongsAtTop(article, store.listConfig()) || current.entities.some((a) => a.slug === article.slug)) {
+      if (!belongsAtTop(article, store.listConfig()) || current.entities.some((a) => a.id === article.id)) {
         return false;
       }
       const limit = store.listConfig().filters.limit ?? 10;
@@ -101,7 +101,7 @@ export const ArticlesListStore = signalStore(
           articlesCount: current.articlesCount + 1,
           entities: [article, ...current.entities].slice(0, limit),
         },
-        liveSlugs: [...store.liveSlugs(), article.slug],
+        liveIds: [...store.liveIds(), article.id],
       });
       return true;
     },
@@ -125,7 +125,7 @@ export const ArticlesListStore = signalStore(
 );
 
 function replaceArticle(articles: Articles, payload: Article): Articles {
-  const articleIndex = articles.entities.findIndex((a) => a.slug === payload.slug);
+  const articleIndex = articles.entities.findIndex((a) => a.id === payload.id);
   const entities = [
     ...articles.entities.slice(0, articleIndex),
     Object.assign({}, articles.entities[articleIndex], payload),

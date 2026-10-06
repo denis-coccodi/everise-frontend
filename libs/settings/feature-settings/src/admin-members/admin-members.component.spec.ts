@@ -7,8 +7,8 @@ import { API_URL } from '@realworld/core/http-client';
 import { AdminMembersComponent } from './admin-members.component';
 
 const members: Member[] = [
-  { username: 'Minfilia', email: 'minfilia@example.com', image: '/m.png', role: 'admin' },
-  { username: 'Thancred', email: 'thancred@example.com', image: '/t.png', role: 'user' },
+  { id: 'id-minfilia', username: 'Minfilia', email: 'minfilia@example.com', image: '/m.png', role: 'admin' },
+  { id: 'id-thancred', username: 'Thancred', email: 'thancred@example.com', image: '/t.png', role: 'user' },
 ];
 
 describe('AdminMembersComponent', () => {
@@ -53,7 +53,7 @@ describe('AdminMembersComponent', () => {
 
     select.value = 'staging-tester';
     select.dispatchEvent(new Event('change'));
-    const request = http.expectOne('/admin/users/Thancred/role');
+    const request = http.expectOne('/admin/users/id-thancred/role');
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toBe(JSON.stringify({ role: 'staging-tester' }));
     request.flush({
@@ -133,10 +133,10 @@ describe('AdminMembersComponent', () => {
     const dialog = page.querySelector('[role=dialog]') as HTMLElement;
     expect(dialog.textContent).toContain('Delete Thancred (thancred@example.com) for good?');
     expect(document.activeElement?.textContent?.trim()).toBe('Keep');
-    http.expectNone('/admin/users/Thancred');
+    http.expectNone('/admin/users/id-thancred');
 
     button(page, 'Delete Thancred', dialog).click();
-    const request = http.expectOne('/admin/users/Thancred');
+    const request = http.expectOne('/admin/users/id-thancred');
     expect(request.request.method).toBe('DELETE');
     request.flush({
       deleted: { username: 'Thancred', articles: 2, comments: 1 },
@@ -161,13 +161,13 @@ describe('AdminMembersComponent', () => {
     button(page, 'Keep').click();
     await fixture.whenStable();
     expect(page.querySelector('[role=dialog]')).toBeNull();
-    http.expectNone('/admin/users/Thancred');
+    http.expectNone('/admin/users/id-thancred');
 
     (page.querySelector('.delete') as HTMLButtonElement).click();
     await fixture.whenStable();
     button(page, 'Delete Thancred', page.querySelector('[role=dialog]') as HTMLElement).click();
     http
-      .expectOne('/admin/users/Thancred')
+      .expectOne('/admin/users/id-thancred')
       .flush({ errors: { body: ['Only an admin can do that.'] } }, { status: 403, statusText: 'Forbidden' });
     http.expectOne(list).flush({ users: members, usersCount: 2, stagingAccessConnected: true });
     await fixture.whenStable();

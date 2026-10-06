@@ -8,7 +8,9 @@ import { map } from 'rxjs/operators';
 export class ProfileService {
   private readonly apiService = inject(ApiService);
 
-  getProfile(username: string): Observable<Profile> {
-    return this.apiService.get<ProfileResponse>('/profiles/' + username).pipe(map((data) => data.profile));
+  getProfile(id: string): Observable<Profile> {
+    return this.apiService
+      .get<ProfileResponse>('/profiles/' + encodeURIComponent(id))
+      .pipe(map((data) => data.profile));
   }
 }

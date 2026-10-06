@@ -27,8 +27,9 @@ export class ArticleEditComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute).snapshot;
 
-  // /editor/:slug edits an article; /editor writes a new one.
-  protected readonly editing = () => this.route.paramMap.has('slug') || !!this.route.firstChild?.paramMap.has('slug');
+  // /editor/:articleId edits an article; /editor writes a new one.
+  protected readonly editing = () =>
+    this.route.paramMap.has('articleId') || !!this.route.firstChild?.paramMap.has('articleId');
 
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required]],
@@ -60,8 +61,8 @@ export class ArticleEditComponent implements OnDestroy {
           .filter(Boolean),
       },
     };
-    if (this.articleStore.data.slug()) {
-      this.articleStore.editArticle({ editArticle: article, slug: this.articleStore.data.slug() });
+    if (this.articleStore.data.id()) {
+      this.articleStore.editArticle({ editArticle: article, articleId: this.articleStore.data.id() });
     } else {
       this.articleStore.publishArticle(article);
     }

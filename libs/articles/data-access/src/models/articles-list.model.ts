@@ -4,7 +4,7 @@ export interface ArticlesListState {
   listConfig: ArticlesListConfig;
   articles: Articles;
   // Posts that arrived live since the list was loaded.
-  liveSlugs: string[];
+  liveIds: string[];
 }
 
 export interface ArticlesListConfig {
@@ -40,7 +40,7 @@ export const articlesListInitialState: ArticlesListState = {
     entities: [],
     articlesCount: 0,
   },
-  liveSlugs: [],
+  liveIds: [],
 };
 
 // Whether a new post belongs at the top of this list: the newest posts of

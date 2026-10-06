@@ -36,11 +36,11 @@
       }
     </p>
     <ul class="members">
-      @for (member of members; track member.username) {
+      @for (member of members; track member.id) {
         <li class="member">
           <img class="avatar" [src]="member.image" alt="" width="36" height="36" />
           <span class="who">
-            <a class="name" [routerLink]="['/profile', member.username]">{{ member.username }}</a>
+            <a class="name" [routerLink]="['/profile', member.id]">{{ member.username }}</a>
             <span class="email">{{ member.email }}</span>
           </span>
           @if (member.role === 'admin') {

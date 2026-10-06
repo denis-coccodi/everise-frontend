@@ -7,7 +7,7 @@ export interface ArticleState {
 
 export const articleInitialState: ArticleState = {
   data: {
-    slug: '',
+    id: '',
     title: '',
     description: '',
     body: '',
@@ -17,6 +17,7 @@ export const articleInitialState: ArticleState = {
     favorited: false,
     favoritesCount: 0,
     author: {
+      id: '',
       username: '',
       bio: '',
       image: '',

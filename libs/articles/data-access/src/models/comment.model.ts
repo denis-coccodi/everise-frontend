@@ -9,7 +9,7 @@ export interface MultipleCommentsResponse {
 }
 
 export interface Comment {
-  id: number;
+  id: string;
   body: string;
   createdAt: string;
   author: Profile;

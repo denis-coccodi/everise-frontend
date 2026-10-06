@@ -4,14 +4,14 @@ import { of } from 'rxjs';
 import { ArticlesListStore, articlesListInitialState } from '@realworld/articles/data-access';
 
 export const profileFavoritesResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
-  const username = route?.parent?.params['username'];
+  const id = route?.parent?.params['id'];
   const articlesListStore = inject(ArticlesListStore);
 
   const config = {
     ...articlesListInitialState.listConfig,
     filters: {
       ...articlesListInitialState.listConfig.filters,
-      favorited: username,
+      favorited: id,
     },
   };
 

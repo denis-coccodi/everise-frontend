@@ -16,7 +16,7 @@ export class ArticleCommentComponent {
   comment = input.required<Comment>();
   article = input.required<Article>();
   delete = output<{
-    commentId: number;
-    slug: string;
+    commentId: string;
+    articleId: string;
   }>();
 }

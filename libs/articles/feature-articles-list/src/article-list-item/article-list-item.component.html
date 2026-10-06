@@ -4,7 +4,7 @@
       [image]="article().author.image"
       [name]="article().author.username"
       [date]="article().createdAt"
-      [link]="['/profile', article().author.username]"
+      [link]="['/profile', article().author.id]"
     />
     <button
       [cdtButton]="article().favorited ? 'primary' : 'outline-primary'"
@@ -19,7 +19,7 @@
       {{ article().favoritesCount }}
     </button>
   </div>
-  <a [routerLink]="['/article', article().slug]" class="preview-link">
+  <a [routerLink]="['/article', article().id]" class="preview-link">
     @if (article().roulette; as card) {
       <!-- A roulette result: the comment (or Tataru's remark), then the result. -->
       @if (article().body) {

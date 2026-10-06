@@ -43,7 +43,7 @@
               <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
               {{ user().username }}
             </span>
-            <a cdtMenuItem [routerLink]="['/profile', user().username]">Your profile</a>
+            <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
             <a cdtMenuItem routerLink="/settings">Settings</a>
             <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
           </cdt-menu>

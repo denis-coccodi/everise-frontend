@@ -44,7 +44,7 @@
             <li>
               <a
                 cdtTab
-                [routerLink]="['/profile', $username()]"
+                [routerLink]="['/profile', $id()]"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: true }"
                 >My Articles</a
@@ -53,7 +53,7 @@
             <li>
               <a
                 cdtTab
-                [routerLink]="['/profile', $username(), 'favorites']"
+                [routerLink]="['/profile', $id(), 'favorites']"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: true }"
                 >Favorited Articles</a

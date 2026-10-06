@@ -6,7 +6,7 @@ import { API_URL } from '@realworld/core/http-client';
 import { ArticlesListStore } from './articles-list.store';
 import { ArticlesListConfig, articlesListInitialState } from './models/articles-list.model';
 
-const post = (slug: string, tagList: string[] = []) => ({ slug, title: slug, tagList }) as unknown as Article;
+const post = (id: string, tagList: string[] = []) => ({ id, title: id, tagList }) as unknown as Article;
 
 describe('ArticlesListStore.addLiveArticle', () => {
   let store: InstanceType<typeof ArticlesListStore>;
@@ -28,13 +28,13 @@ describe('ArticlesListStore.addLiveArticle', () => {
 
   it("adds a new post at the top of the global feed's first page, keeping the page size", () => {
     viewing();
-    for (const slug of ['c', 'b', 'a']) store.addLiveArticle(post(slug));
+    for (const id of ['c', 'b', 'a']) store.addLiveArticle(post(id));
 
     expect(store.addLiveArticle(post('new'))).toBe(true);
 
-    expect(store.articles.entities().map((a) => a.slug)).toEqual(['new', 'a', 'b']);
+    expect(store.articles.entities().map((a) => a.id)).toEqual(['new', 'a', 'b']);
     expect(store.articles.articlesCount()).toBe(4);
-    expect(store.liveSlugs()).toContain('new');
+    expect(store.liveIds()).toContain('new');
   });
 
   it('adds a post once, and only where it belongs', () => {

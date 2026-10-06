@@ -105,9 +105,9 @@ export class AdminMembersComponent {
   protected changeRole(member: Member, role: AssignableRole) {
     if (role === member.role) return;
     this.start(member.username);
-    this.admin.setRole(member.username, role).subscribe({
+    this.admin.setRole(member.id, role).subscribe({
       next: ({ user, stagingAccess }) => {
-        this.members.update((list) => list?.map((m) => (m.username === user.username ? user : m)) ?? null);
+        this.members.update((list) => list?.map((m) => (m.id === user.id ? user : m)) ?? null);
         this.done(`${user.username} is now ${ROLE_NAMES[role]}.`, stagingAccess);
       },
       error: (response: HttpErrorResponse) => this.failed(response),
@@ -122,7 +122,7 @@ export class AdminMembersComponent {
 
   protected deleteMember(member: Member) {
     this.start(member.username);
-    this.admin.deleteMember(member.username).subscribe({
+    this.admin.deleteMember(member.id).subscribe({
       next: ({ deleted, stagingAccess }) => {
         this.closeConfirmation();
         this.saving.set(null);

@@ -16,7 +16,7 @@ export const ARTICLE_EDIT_ROUTES: Routes = [
         canActivate: [AuthGuard],
       },
       {
-        path: ':slug',
+        path: ':articleId',
         title: 'Edit article',
         component: ArticleEditComponent,
         resolve: { articleEditResolver },

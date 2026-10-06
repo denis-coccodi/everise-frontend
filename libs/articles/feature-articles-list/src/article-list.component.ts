@@ -17,14 +17,14 @@ export class ArticleListComponent {
   $articles = this.articlesListStore.articles.entities;
   $listConfig = this.articlesListStore.listConfig;
   $isLoading = this.articlesListStore.getArticlesLoading;
-  $liveSlugs = this.articlesListStore.liveSlugs;
+  $liveIds = this.articlesListStore.liveIds;
 
-  favorite(slug: string) {
-    this.articlesListStore.favouriteArticle(slug);
+  favorite(articleId: string) {
+    this.articlesListStore.favouriteArticle(articleId);
   }
 
-  unFavorite(slug: string) {
-    this.articlesListStore.unFavouriteArticle(slug);
+  unFavorite(articleId: string) {
+    this.articlesListStore.unFavouriteArticle(articleId);
   }
 
   setPage(page: number) {

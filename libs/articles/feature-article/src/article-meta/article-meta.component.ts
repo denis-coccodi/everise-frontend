@@ -20,21 +20,21 @@ export class ArticleMetaComponent {
 
   toggleFavorite() {
     if (this.article().favorited) {
-      this.unfavorite.emit(this.article().slug);
+      this.unfavorite.emit(this.article().id);
     } else {
-      this.favorite.emit(this.article().slug);
+      this.favorite.emit(this.article().id);
     }
   }
 
   toggleFollow() {
     if (this.article().author.following) {
-      this.unfollow.emit(this.article().author.username);
+      this.unfollow.emit(this.article().author.id);
     } else {
-      this.follow.emit(this.article().author.username);
+      this.follow.emit(this.article().author.id);
     }
   }
 
   deleteArticle() {
-    this.delete.emit(this.article().slug);
+    this.delete.emit(this.article().id);
   }
 }

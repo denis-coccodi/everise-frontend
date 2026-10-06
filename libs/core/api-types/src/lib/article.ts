@@ -17,7 +17,10 @@ export interface RouletteCard {
 }
 
 export interface Article {
-  slug: string;
+  // What identifies the post in links and API paths. Never its title.
+  id: string;
+  // Only on posts from before ids were in links: what their old links used.
+  slug?: string;
   title: string;
   description: string;
   body: string;
