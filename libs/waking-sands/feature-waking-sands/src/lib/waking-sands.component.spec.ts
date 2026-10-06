@@ -175,6 +175,32 @@ describe('WakingSandsComponent', () => {
     ]);
   });
 
+  it('keeps your name and picture on your lines after signing out and reloading', async () => {
+    await render();
+    await click('Invite');
+    await type('Hello!');
+    await click('Send');
+    http.expectOne('/api/waking-sands/replies').flush({ replies: [{ character: 'tataru', text: 'Hi!' }] });
+    await fixture.whenStable();
+
+    // Signed out: the store forgets the user; the page is opened again.
+    const authStore = TestBed.inject(AuthStore) as unknown as {
+      loggedIn: ReturnType<typeof signal<boolean>>;
+      user: ReturnType<typeof signal<{ username: string; image: string }>>;
+    };
+    authStore.loggedIn.set(false);
+    authStore.user.set({ username: '', image: '' });
+    fixture.destroy();
+    fixture = TestBed.createComponent(WakingSandsComponent);
+    page = fixture.nativeElement as HTMLElement;
+    http.expectOne('/api/waking-sands/characters').flush({ available: true, characters: [TATARU] });
+    await fixture.whenStable();
+
+    const mine = page.querySelector('.line.mine') as HTMLElement;
+    expect(mine.querySelector('.speaker')?.textContent).toBe('Minfilia');
+    expect(mine.querySelector('img')?.getAttribute('src')).toBe('/minfilia.png');
+  });
+
   it("says when the chat isn't open", async () => {
     await render(true, false);
 

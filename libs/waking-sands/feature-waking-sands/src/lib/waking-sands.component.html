@@ -23,7 +23,7 @@
             <ul class="cast">
               @for (character of characters(); track character.id) {
                 <li class="person" [class.present]="isPresent(character.id)">
-                  <img class="portrait" [src]="character.image" alt="" width="48" height="48" />
+                  <img class="portrait" [src]="character.image || defaultPicture" alt="" width="48" height="48" />
                   <span class="who">
                     <span class="name">{{ character.name }}</span>
                     <span class="title">{{ character.title }}</span>
@@ -55,16 +55,22 @@
                   }
                   @case ('member') {
                     <div class="line mine">
-                      <img class="avatar" [src]="authStore.user().image" alt="" width="36" height="36" />
+                      <img class="avatar" [src]="entry.image || defaultPicture" alt="" width="36" height="36" />
                       <div class="bubble">
-                        <span class="speaker">{{ authStore.user().username || 'You' }}</span>
+                        <span class="speaker">{{ entry.name || 'You' }}</span>
                         <p>{{ entry.text }}</p>
                       </div>
                     </div>
                   }
                   @case ('character') {
                     <div class="line">
-                      <img class="avatar" [src]="character(entry.id)?.image" alt="" width="36" height="36" />
+                      <img
+                        class="avatar"
+                        [src]="character(entry.id)?.image || defaultPicture"
+                        alt=""
+                        width="36"
+                        height="36"
+                      />
                       <div class="bubble">
                         <span class="speaker">{{ character(entry.id)?.name ?? entry.id }}</span>
                         <p>{{ entry.text }}</p>

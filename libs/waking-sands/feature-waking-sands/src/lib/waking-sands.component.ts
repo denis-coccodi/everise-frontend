@@ -16,9 +16,11 @@ import { ButtonComponent, FieldComponent, InputComponent, PanelComponent } from 
 import { Character, ChatLine, WakingSandsService } from './waking-sands.service';
 
 // What the conversation shows: the member's lines, the characters' lines,
-// and notes such as "Tataru joins the conversation" (never sent).
+// and notes such as "Tataru joins the conversation" (never sent). A member's
+// line keeps the name and picture they had when they wrote it, so it still
+// shows after signing out and reloading.
 export type LogEntry =
-  | { kind: 'member'; text: string }
+  | { kind: 'member'; text: string; name?: string; image?: string }
   | { kind: 'character'; id: string; text: string }
   | { kind: 'note'; text: string };
 
@@ -27,6 +29,8 @@ const MAX_LINES = 40;
 const MAX_LENGTH = 1000;
 // The conversation survives a reload in this tab, nowhere else.
 const STORAGE_KEY = 'wakingSands';
+// For a line whose writer had no picture (as on the rest of the site).
+const DEFAULT_PICTURE = '/assets/images/avatar-profile.png';
 
 // The Waking Sands: a chat with FINAL FANTASY XIV characters, played by an
 // AI model on the backend. The member invites who joins; everyone present
@@ -55,6 +59,7 @@ export class WakingSandsComponent {
   protected readonly error = signal('');
 
   protected readonly maxLength = MAX_LENGTH;
+  protected readonly defaultPicture = DEFAULT_PICTURE;
   protected readonly canSend = computed(
     () => this.authStore.loggedIn() && !this.writing() && this.present().length > 0 && !!this.draft().trim(),
   );
@@ -122,7 +127,8 @@ export class WakingSandsComponent {
     const text = this.draft().trim();
     this.draft.set('');
     this.error.set('');
-    this.log.update((log) => [...log, { kind: 'member', text }]);
+    const { username, image } = this.authStore.user();
+    this.log.update((log) => [...log, { kind: 'member', text, name: username, image }]);
 
     const present = this.present();
     this.writing.set(namesList(present.map((id) => this.character(id)?.name ?? id)));
