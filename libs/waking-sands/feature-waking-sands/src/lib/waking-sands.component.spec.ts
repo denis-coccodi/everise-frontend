@@ -10,6 +10,8 @@ import { WakingSandsComponent } from './waking-sands.component';
 
 const TATARU = { id: 'tataru', name: 'Tataru', title: 'Receptionist', image: '/tataru.png' };
 const BARNABY = { id: 'barnaby', name: 'Barnaby Bollocksworth', title: 'Braggart', image: '/barnaby.png' };
+const URIANGER = { id: 'urianger', name: 'Urianger', title: 'Astrologian', image: '/urianger.png' };
+const YSHTOLA = { id: 'yshtola', name: "Y'shtola", title: 'Sorceress', image: '/yshtola.png' };
 
 const line = (id: string, from: string, name: string, text: string, extra: Partial<SandsLine> = {}): SandsLine => ({
   id,
@@ -32,6 +34,7 @@ describe('WakingSandsComponent', () => {
     available = true,
     present = [] as string[],
     lines = [] as SandsLine[],
+    characters = [TATARU, BARNABY],
   } = {}) {
     live = new Subject<SandsEvent>();
     opened = new Subject<void>();
@@ -55,7 +58,7 @@ describe('WakingSandsComponent', () => {
     fixture = TestBed.createComponent(WakingSandsComponent);
     http = TestBed.inject(HttpTestingController);
     page = fixture.nativeElement as HTMLElement;
-    http.expectOne('/api/waking-sands/room').flush({ available, characters: [TATARU, BARNABY], present, lines });
+    http.expectOne('/api/waking-sands/room').flush({ available, characters, present, lines });
     await fixture.whenStable();
   }
 
@@ -207,6 +210,23 @@ describe('WakingSandsComponent', () => {
     expect(button('Invite')).toBeUndefined();
     expect(button('Send out')).toBeUndefined();
     expect(text(page.querySelector('.sign-in'))).toContain('to join the conversation');
+  });
+
+  it('offers no invitations while three characters are in, and says why', async () => {
+    await render({ characters: [TATARU, URIANGER, YSHTOLA, BARNABY], present: ['tataru', 'urianger', 'yshtola'] });
+
+    expect(button('Invite')).toBeUndefined();
+    expect(text(page.querySelector('.hint'))).toContain('The room is full');
+
+    live.next({ type: 'sands-presence', present: ['tataru', 'yshtola'] });
+    await fixture.whenStable();
+
+    expect([...page.querySelectorAll('.cast button')].map((b) => text(b))).toEqual([
+      'Send out Tataru',
+      'Invite Urianger',
+      "Send out Y'shtola",
+      'Invite Barnaby Bollocksworth',
+    ]);
   });
 
   it("says when the room isn't open", async () => {

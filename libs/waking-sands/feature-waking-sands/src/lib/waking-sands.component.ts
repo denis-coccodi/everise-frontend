@@ -18,6 +18,8 @@ import { Observable } from 'rxjs';
 import { Character, WakingSandsService } from './waking-sands.service';
 
 const MAX_LENGTH = 1000;
+// The backend lets this many characters in at once.
+const MAX_PRESENT = 3;
 // For a line whose writer had no picture (as on the rest of the site).
 const DEFAULT_PICTURE = '/assets/images/avatar-profile.png';
 
@@ -49,6 +51,8 @@ export class WakingSandsComponent {
   protected readonly error = signal('');
 
   protected readonly maxLength = MAX_LENGTH;
+  protected readonly maxPresent = MAX_PRESENT;
+  protected readonly full = computed(() => this.present().length >= MAX_PRESENT);
   protected readonly defaultPicture = DEFAULT_PICTURE;
   protected readonly canSend = computed(() => this.authStore.loggedIn() && !this.sending() && !!this.draft().trim());
   protected readonly writingName = computed(() => {
