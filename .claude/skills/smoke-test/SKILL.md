@@ -19,11 +19,11 @@ sh scripts/smoke.sh create <frontend-url> <scratchpad>/jar.txt
 
 ## Targets
 
-| Target                 | Frontend URL                          | `create` allowed?                                                                                                                                                                                                |
-| ---------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| local (`wrangler dev`) | http://localhost:4200                 | yes                                                                                                                                                                                                              |
-| staging                | https://staging.everisefc.workers.dev | yes; CI already does on every merge to `main`. Behind Cloudflare Access: export `CF_ACCESS_CLIENT_ID`/`CF_ACCESS_CLIENT_SECRET` (a service token the user holds) or every check gets a `302` to the Access login |
-| production             | https://prod.everisefc.workers.dev    | ask the user first; `read` is always fine                                                                                                                                                                        |
+| Target                 | Frontend URL                | `create` allowed?                                                                                                                                                                                                |
+| ---------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| local (`wrangler dev`) | http://localhost:4200       | yes                                                                                                                                                                                                              |
+| staging                | https://staging.everise.dev | yes; CI already does on every merge to `main`. Behind Cloudflare Access: export `CF_ACCESS_CLIENT_ID`/`CF_ACCESS_CLIENT_SECRET` (a service token the user holds) or every check gets a `302` to the Access login |
+| production             | https://everise.dev         | ask the user first; `read` is always fine                                                                                                                                                                        |
 
 ## Local
 

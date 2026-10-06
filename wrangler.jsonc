@@ -21,6 +21,11 @@
   // the public internet): the app calls the relative /api and this site forwards it.
   "services": [{ "binding": "API", "service": "be-prod" }],
 
+  // The site's address. Its workers.dev address stays on for links saved
+  // before the move (pictures, uploads, emails).
+  "routes": [{ "pattern": "everise.dev", "custom_domain": true }],
+  "workers_dev": true,
+
   "observability": { "enabled": true },
 
   "dev": { "port": 4200 },
@@ -31,6 +36,9 @@
     "staging": {
       // Set explicitly: the default would be "prod-staging".
       "name": "staging",
+      // Not inherited either.
+      "routes": [{ "pattern": "staging.everise.dev", "custom_domain": true }],
+      "workers_dev": true,
       "services": [{ "binding": "API", "service": "be-staging" }]
     }
   }

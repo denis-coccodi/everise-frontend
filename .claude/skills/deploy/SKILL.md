@@ -7,11 +7,11 @@ description: Ship the Everise Angular frontend to Cloudflare Workers (staging, t
 
 Repo: `denis-coccodi/everise-frontend`, branch `main`. Cloudflare account ID: `ba2955b2991a5a38d46bc4144212e9cc` (same account as the backend).
 
-| Environment | Worker    | URL                                   | Build configuration / env file            | `/api` goes to                                        | wrangler                                                       |
-| ----------- | --------- | ------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
-| local       | —         | http://localhost:4200                 | `development` / `debug`: `environment.ts` | http://localhost:8080/api, called directly (editable) | `npx wrangler dev` (`npm run start-sw`)                        |
-| staging     | `staging` | https://staging.everisefc.workers.dev | `staging`: `environment.staging.ts`       | backend Worker `be-staging` (service binding)         | `npx wrangler deploy --env staging` (`npm run deploy:staging`) |
-| production  | `prod`    | https://prod.everisefc.workers.dev    | `production`: `environment.prod.ts`       | backend Worker `be-prod` (service binding)            | `npx wrangler deploy` (`npm run deploy`)                       |
+| Environment | Worker    | URL                         | Build configuration / env file            | `/api` goes to                                        | wrangler                                                       |
+| ----------- | --------- | --------------------------- | ----------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
+| local       | —         | http://localhost:4200       | `development` / `debug`: `environment.ts` | http://localhost:8080/api, called directly (editable) | `npx wrangler dev` (`npm run start-sw`)                        |
+| staging     | `staging` | https://staging.everise.dev | `staging`: `environment.staging.ts`       | backend Worker `be-staging` (service binding)         | `npx wrangler deploy --env staging` (`npm run deploy:staging`) |
+| production  | `prod`    | https://everise.dev         | `production`: `environment.prod.ts`       | backend Worker `be-prod` (service binding)            | `npx wrangler deploy` (`npm run deploy`)                       |
 
 ## How it fits together
 

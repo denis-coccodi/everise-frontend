@@ -11,7 +11,7 @@
 ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare&logoColor=white)
 ![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2%20AA-073a8c)
 
-[**prod.everisefc.workers.dev**](https://prod.everisefc.workers.dev) · [Backend](https://github.com/denis-coccodi/everise-backend) · [Architecture](#architecture) · [Accessibility](#accessibility) · [Deployment](#environments-and-deployment)
+[**everise.dev**](https://everise.dev) · [Backend](https://github.com/denis-coccodi/everise-backend) · [Architecture](#architecture) · [Accessibility](#accessibility) · [Deployment](#environments-and-deployment)
 
 ![The global feed in dark mode: Tataru's post of a guest's roulette result, then a member's](docs/screenshots/feed.png)
 
@@ -151,11 +151,13 @@ Browser ──> prod / staging  ├─ static files (Angular build)
                              └─ /api/* ──service binding──> be-prod / be-staging backend
 ```
 
-| Environment | URL                                   | Environment file                                                               | API                                                 | Deployed by                                                                               |
-| ----------- | ------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| local       | http://localhost:4200                 | [environment.ts](apps/everise/src/environments/environment.ts)                 | http://localhost:8080/api (direct, CORS)            | `npm start`                                                                               |
-| staging     | https://staging.everisefc.workers.dev | [environment.staging.ts](apps/everise/src/environments/environment.staging.ts) | `/api` → `be-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
-| production  | https://prod.everisefc.workers.dev    | [environment.prod.ts](apps/everise/src/environments/environment.prod.ts)       | `/api` → `be-prod` (binding in `wrangler.jsonc`)    | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+| Environment | URL                         | Environment file                                                               | API                                                 | Deployed by                                                                               |
+| ----------- | --------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| local       | http://localhost:4200       | [environment.ts](apps/everise/src/environments/environment.ts)                 | http://localhost:8080/api (direct, CORS)            | `npm start`                                                                               |
+| staging     | https://staging.everise.dev | [environment.staging.ts](apps/everise/src/environments/environment.staging.ts) | `/api` → `be-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
+| production  | https://everise.dev         | [environment.prod.ts](apps/everise/src/environments/environment.prod.ts)       | `/api` → `be-prod` (binding in `wrangler.jsonc`)    | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
+
+Each Worker's custom domain is declared under `routes` in `wrangler.jsonc` (`everise.dev`, `staging.everise.dev`); the backends answer at `apis.everise.dev` and `staging.apis.everise.dev`. The old `workers.dev` addresses (`prod.everisefc.workers.dev`, `staging.everisefc.workers.dev`) stay on, so links saved before the move keep working.
 
 Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/): only allowed people can open it, after logging in once. CI gets through with an Access service token (`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` repository secrets).
 

@@ -40,7 +40,7 @@ jobs:
       cancel-in-progress: false
     environment:
       name: staging
-      url: https://staging.everisefc.workers.dev
+      url: https://staging.everise.dev
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -56,7 +56,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       # App shell, SPA fallback, avatar, /api in the bundle, /api through the service binding, register + cookie auth.
       - name: Smoke test staging
-        run: sh scripts/smoke.sh create https://staging.everisefc.workers.dev "$RUNNER_TEMP/jar.txt"
+        run: sh scripts/smoke.sh create https://staging.everise.dev "$RUNNER_TEMP/jar.txt"
         # Both staging Workers are behind Cloudflare Access; this service token
         # lets CI through. While the secrets are unset, no Access headers are sent.
         env:
@@ -65,7 +65,7 @@ jobs:
       - name: Summary
         run: |
           {
-            echo "Staging is live at https://staging.everisefc.workers.dev with \`${GITHUB_REF_NAME}\` @ \`${GITHUB_SHA::7}\`."
+            echo "Staging is live at https://staging.everise.dev with \`${GITHUB_REF_NAME}\` @ \`${GITHUB_SHA::7}\`."
             echo
             if [ "$GITHUB_REF" = refs/heads/main ]; then
               echo "To ship this commit to production, open [Deploy production](${{ github.server_url }}/${{ github.repository }}/actions/workflows/deploy-production.yaml) and click **Run workflow**."
