@@ -12,5 +12,5 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PrivacyComponent {
-  protected readonly contact = 'denis.coccodi@gmail.com';
+  protected readonly contact = 'denis.coccodi@everise.dev';
 }
