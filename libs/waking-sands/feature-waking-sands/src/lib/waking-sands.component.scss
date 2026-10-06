@@ -154,9 +154,17 @@ h1 {
   background: var(--color-surface-strong);
 }
 
+// Other members: plain surface, set apart from the characters'.
+.member .bubble {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+// Yours, on the right, trimmed in the primary colour. (The highlight surface
+// is dark blue in light mode too, too dark for body text.)
 .mine .bubble {
-  border-color: var(--color-primary-strong);
-  background: var(--color-surface-highlight);
+  border: var(--border-width-strong) solid var(--color-primary-strong);
+  background: var(--color-surface-strong);
 }
 
 .speaker {

@@ -5,37 +5,27 @@ import {
   ElementRef,
   afterRenderEffect,
   computed,
-  effect,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
+import { LiveUpdates, SandsLine } from '@realworld/core/http-client';
 import { ButtonComponent, FieldComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
-import { Character, ChatLine, WakingSandsService } from './waking-sands.service';
+import { Observable } from 'rxjs';
+import { Character, WakingSandsService } from './waking-sands.service';
 
-// What the conversation shows: the member's lines, the characters' lines,
-// and notes such as "Tataru joins the conversation" (never sent). A member's
-// line keeps the name and picture they had when they wrote it, so it still
-// shows after signing out and reloading.
-export type LogEntry =
-  | { kind: 'member'; text: string; name?: string; image?: string }
-  | { kind: 'character'; id: string; text: string }
-  | { kind: 'note'; text: string };
-
-// The latest lines the backend takes.
-const MAX_LINES = 40;
 const MAX_LENGTH = 1000;
-// The conversation survives a reload in this tab, nowhere else.
-const STORAGE_KEY = 'wakingSands';
 // For a line whose writer had no picture (as on the rest of the site).
 const DEFAULT_PICTURE = '/assets/images/avatar-profile.png';
 
-// The Waking Sands: a chat with FINAL FANTASY XIV characters, played by an
-// AI model on the backend. The member invites who joins; everyone present
-// answers each line in turn. Open to guests, who can look around; talking
-// needs an account, like posting.
+// The Waking Sands: one room every member shares, with FINAL FANTASY XIV
+// characters (and the free company's own) voiced by an AI on the backend.
+// Members bring characters in or send them out for everyone, and talk; the
+// characters answer as they see fit, each other too. Everything arrives
+// live, so everyone on the page sees the same room. Guests can watch.
 @Component({
   selector: 'cdt-waking-sands',
   templateUrl: './waking-sands.component.html',
@@ -50,40 +40,47 @@ export class WakingSandsComponent {
   protected readonly loadState = signal<'loading' | 'ready' | 'error'>('loading');
   protected readonly available = signal(false);
   protected readonly characters = signal<Character[]>([]);
-
   protected readonly present = signal<string[]>([]);
-  protected readonly log = signal<LogEntry[]>([]);
-  protected readonly draft = signal('');
-  // Who is writing an answer right now ("Tataru"), or null.
+  protected readonly lines = signal<SandsLine[]>([]);
+  // The character writing an answer right now, or null.
   protected readonly writing = signal<string | null>(null);
+  protected readonly draft = signal('');
+  protected readonly sending = signal(false);
   protected readonly error = signal('');
 
   protected readonly maxLength = MAX_LENGTH;
   protected readonly defaultPicture = DEFAULT_PICTURE;
-  protected readonly canSend = computed(
-    () => this.authStore.loggedIn() && !this.writing() && this.present().length > 0 && !!this.draft().trim(),
-  );
+  protected readonly canSend = computed(() => this.authStore.loggedIn() && !this.sending() && !!this.draft().trim());
+  protected readonly writingName = computed(() => {
+    const id = this.writing();
+    return id ? this.character(id)?.name ?? null : null;
+  });
 
   private readonly logBox = viewChild<ElementRef<HTMLElement>>('logBox');
 
   constructor() {
-    this.restore();
-    this.service.characters().subscribe({
-      next: ({ available, characters }) => {
-        this.available.set(available);
-        this.characters.set(characters);
-        // Only characters that still exist stay in the conversation.
-        this.present.update((ids) => ids.filter((id) => characters.some((c) => c.id === id)));
-        this.loadState.set('ready');
-      },
-      error: () => this.loadState.set('error'),
-    });
+    this.load();
 
-    effect(() => this.save(this.present(), this.log()));
+    const live = inject(LiveUpdates);
+    // Whatever happened while the live connection was opening or down.
+    live.opened$.pipe(takeUntilDestroyed()).subscribe(() => this.load());
+    live.sands$.pipe(takeUntilDestroyed()).subscribe((event) => {
+      switch (event.type) {
+        case 'sands-line':
+          this.addLine(event.line);
+          break;
+        case 'sands-presence':
+          this.present.set(event.present);
+          break;
+        case 'sands-writing':
+          this.writing.set(event.character);
+          break;
+      }
+    });
 
     // The newest line in view.
     afterRenderEffect(() => {
-      this.log();
+      this.lines();
       this.writing();
       const box = this.logBox()?.nativeElement;
       if (box) box.scrollTop = box.scrollHeight;
@@ -98,19 +95,17 @@ export class WakingSandsComponent {
     return this.present().includes(id);
   }
 
+  // A member's line of the one signed in, shown on the right.
+  protected isMine(line: SandsLine) {
+    return line.from === 'member' && !!line.memberId && line.memberId === this.authStore.user().id;
+  }
+
   protected invite(character: Character) {
-    this.present.update((ids) => [...ids, character.id]);
-    this.note(`${character.name} joins the conversation.`);
+    this.run(this.service.invite(character.id));
   }
 
-  protected leave(character: Character) {
-    this.present.update((ids) => ids.filter((id) => id !== character.id));
-    this.note(`${character.name} leaves the conversation.`);
-  }
-
-  protected startOver() {
-    this.log.set([]);
-    this.error.set('');
+  protected dismiss(character: Character) {
+    this.run(this.service.dismiss(character.id));
   }
 
   // Enter sends; Shift+Enter starts a new line.
@@ -123,90 +118,60 @@ export class WakingSandsComponent {
   protected send(event?: Event) {
     event?.preventDefault();
     if (!this.canSend()) return;
-
     const text = this.draft().trim();
-    this.draft.set('');
+    this.sending.set(true);
     this.error.set('');
-    const { username, image } = this.authStore.user();
-    this.log.update((log) => [...log, { kind: 'member', text, name: username, image }]);
-
-    const present = this.present();
-    this.writing.set(namesList(present.map((id) => this.character(id)?.name ?? id)));
-    this.service.replies(present, this.lines()).subscribe({
-      next: (replies) => {
-        this.log.update((log) => [
-          ...log,
-          ...replies.map((reply) => ({ kind: 'character' as const, id: reply.character, text: reply.text })),
-        ]);
-        this.writing.set(null);
+    this.service.say(text).subscribe({
+      next: ({ line }) => {
+        this.addLine(line);
+        this.draft.set('');
+        this.sending.set(false);
+        // Anything the live updates missed (a dropped connection).
+        this.load();
       },
       error: (error: unknown) => {
-        this.writing.set(null);
+        this.sending.set(false);
         this.error.set(messageOf(error));
       },
     });
   }
 
-  // The conversation as the backend reads it.
-  private lines(): ChatLine[] {
-    return this.log()
-      .flatMap((entry): ChatLine[] =>
-        entry.kind === 'member'
-          ? [{ from: 'member', text: entry.text }]
-          : entry.kind === 'character'
-            ? [{ from: entry.id, text: entry.text }]
-            : [],
-      )
-      .slice(-MAX_LINES);
+  private run(request: Observable<{ present: string[] }>) {
+    this.error.set('');
+    request.subscribe({
+      next: ({ present }) => this.present.set(present),
+      error: (error: unknown) => this.error.set(messageOf(error)),
+    });
   }
 
-  private note(text: string) {
-    this.log.update((log) => [...log, { kind: 'note', text }]);
+  private load() {
+    this.service.room().subscribe({
+      next: (room) => {
+        this.available.set(room.available);
+        this.characters.set(room.characters);
+        this.present.set(room.present);
+        for (const line of room.lines) this.addLine(line);
+        this.loadState.set('ready');
+      },
+      error: () => {
+        if (this.loadState() === 'loading') this.loadState.set('error');
+      },
+    });
   }
 
-  private restore() {
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null') as {
-        present?: unknown;
-        log?: unknown;
-      } | null;
-      if (Array.isArray(saved?.present)) this.present.set(saved.present.filter((id) => typeof id === 'string'));
-      if (Array.isArray(saved?.log)) this.log.set(saved.log.filter(isLogEntry));
-    } catch {
-      // No storage, or something unreadable in it: start afresh.
-    }
-  }
-
-  private save(present: string[], log: LogEntry[]) {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ present, log }));
-    } catch {
-      // No storage: the conversation lasts as long as the page.
-    }
+  // A line once, in the order it was said, whether it came live or loaded.
+  private addLine(line: SandsLine) {
+    this.lines.update((lines) =>
+      lines.some((l) => l.id === line.id) ? lines : [...lines, line].sort((a, b) => a.at.localeCompare(b.at)),
+    );
   }
 }
 
-function isLogEntry(value: unknown): value is LogEntry {
-  const entry = value as Partial<LogEntry> | null;
-  return (
-    typeof entry?.text === 'string' &&
-    (entry.kind === 'member' ||
-      entry.kind === 'note' ||
-      (entry.kind === 'character' && typeof (entry as { id?: unknown }).id === 'string'))
-  );
-}
-
-// "Tataru", "Tataru and Urianger", "Tataru, Urianger and Y'shtola".
-function namesList(names: string[]) {
-  return names.length < 2 ? names[0] ?? '' : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-}
-
-// The backend's own words for a limit ("come back after midnight"), or a
-// general apology.
+// The backend's own words (a daily limit, a refused line), or an apology.
 function messageOf(error: unknown) {
-  if (error instanceof HttpErrorResponse && error.status === 429) {
+  if (error instanceof HttpErrorResponse) {
     const message = (error.error as { errors?: { body?: string[] } } | null)?.errors?.body?.[0];
-    if (message) return message;
+    if (message && error.status !== 0) return message;
   }
-  return 'Nobody could answer just now. Try again in a moment.';
+  return "That didn't go through. Try again in a moment.";
 }
