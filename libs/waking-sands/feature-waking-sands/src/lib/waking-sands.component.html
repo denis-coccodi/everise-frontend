@@ -19,6 +19,10 @@
           <cdt-panel class="people" heading="Who's here">
             @if (present().length === 0) {
               <p class="hint">No characters are in. Members can still talk, or invite someone.</p>
+            } @else if (full()) {
+              <p class="hint">
+                The room is full: {{ maxPresent }} characters at most. Send someone out to invite another.
+              </p>
             }
             <ul class="cast">
               @for (character of characters(); track character.id) {
@@ -34,7 +38,7 @@
                       <button type="button" cdtButton="outline-secondary" size="sm" (click)="dismiss(character)">
                         Send out<span class="visually-hidden"> {{ character.name }}</span>
                       </button>
-                    } @else {
+                    } @else if (!full()) {
                       <button type="button" cdtButton size="sm" (click)="invite(character)">
                         Invite<span class="visually-hidden"> {{ character.name }}</span>
                       </button>
