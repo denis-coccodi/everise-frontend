@@ -16,6 +16,7 @@ export const articleInitialState: ArticleState = {
     updatedAt: '',
     favorited: false,
     favoritesCount: 0,
+    media: [],
     author: {
       id: '',
       username: '',

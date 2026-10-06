@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, input } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { ArticleStore } from '@realworld/articles/data-access';
+import { ArticleStore, NewComment } from '@realworld/articles/data-access';
 import { ArticleMetaComponent } from './article-meta/article-meta.component';
 import { ArticleCommentComponent } from './article-comment/article-comment.component';
 import { AddCommentComponent } from './add-comment/add-comment.component';
 import { RouterLink, Router } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { API_URL, gameImageUrl } from '@realworld/core/http-client';
-import { RichTextComponent } from '@realworld/media';
+import { MediaGridComponent, RichTextComponent } from '@realworld/media';
 import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
 
 @Component({
@@ -15,6 +15,7 @@ import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
   templateUrl: './article.component.html',
   styleUrl: './article.component.scss',
   imports: [
+    MediaGridComponent,
     BannerComponent,
     DutyCardComponent,
     ArticleMetaComponent,
@@ -86,7 +87,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
   deleteComment(data: { commentId: string; articleId: string }) {
     this.articleStore.deleteComment(data);
   }
-  submit(comment: string) {
+  submit(comment: NewComment) {
     this.articleStore.addComment(comment);
   }
   ngOnDestroy() {

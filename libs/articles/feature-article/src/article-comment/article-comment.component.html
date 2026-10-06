@@ -1,5 +1,8 @@
 <cdt-card>
-  <cdt-rich-text [text]="comment().body" [compact]="true" />
+  @if (comment().body) {
+    <cdt-rich-text [text]="comment().body" [compact]="true" />
+  }
+  <cdt-media-grid [items]="media()" [compact]="true" />
   <div cdtCardFooter class="footer">
     <cdt-byline
       [image]="comment().author.image"

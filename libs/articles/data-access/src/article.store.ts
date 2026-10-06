@@ -10,7 +10,7 @@ import { FormErrorsStore } from '@realworld/core/forms';
 import { concatMap, pipe, switchMap, tap } from 'rxjs';
 import { ArticleState, articleInitialState } from './models/article.model';
 import { ActionsService } from './services/actions.service';
-import { ArticlesService } from './services/articles.service';
+import { ArticlesService, NewComment } from './services/articles.service';
 
 export const ArticleStore = signalStore(
   { providedIn: 'root' },
@@ -124,7 +124,7 @@ export const ArticleStore = signalStore(
           ),
         ),
       ),
-      addComment: rxMethod<string>(
+      addComment: rxMethod<NewComment>(
         pipe(
           switchMap((addedComment) =>
             articlesService.addComment(store.data.id(), addedComment).pipe(

@@ -28,6 +28,7 @@ const FOCUSABLE =
     <section
       #window
       class="window"
+      [class.wide]="wide()"
       role="dialog"
       aria-modal="true"
       tabindex="-1"
@@ -45,6 +46,8 @@ const FOCUSABLE =
 })
 export class DialogComponent {
   readonly heading = input.required<string>();
+  // As wide as the screen allows (up to 1100px), for pictures.
+  readonly wide = input(false);
   readonly dismissed = output<void>();
 
   protected readonly headingId = `cdt-dialog-${nextDialogId++}`;

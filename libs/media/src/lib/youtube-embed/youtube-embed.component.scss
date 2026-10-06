@@ -83,3 +83,17 @@ iframe,
     transition: none;
   }
 }
+
+// In a media grid: the whole tile, whatever its shape.
+:host(.fill) {
+  max-width: none;
+  height: 100%;
+  margin: 0;
+}
+
+:host(.fill) .frame {
+  height: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+}

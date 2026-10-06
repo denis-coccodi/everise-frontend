@@ -13,9 +13,6 @@
 // Only /api/* and /article/* reach this script (assets.run_worker_first); the
 // ASSETS branch below is a fallback in case that routing changes.
 
-// Finds YouTube videos by the same rules the site uses to show them.
-import { splitRichText } from '../libs/media/src/lib/rich-text/rich-text';
-
 interface Fetcher {
   fetch(request: Request): Promise<Response>;
 }
@@ -45,6 +42,8 @@ interface Article {
   body: string;
   author: { username: string };
   roulette?: { type: string; name: string; detail: string; image: number | null };
+  // Images, GIFs and YouTube videos (older backends: absent).
+  media?: { kind: 'image' | 'gif' | 'video'; url: string; videoId?: string }[];
 }
 
 const ARTICLE_PAGE = /^\/article\/([^/]+)\/?$/;
@@ -104,9 +103,10 @@ function cardOf(article: Article, origin: string): string {
     : article.description;
   // The roulette's duty banner, else the post's first image, else its first
   // YouTube video's thumbnail, else the crest.
-  const firstImage = /!\[[^\]]*\]\((https:\/\/[^)\s]+)\)/.exec(article.body)?.[1];
-  const video = splitRichText(article.body).find((part) => part.kind === 'youtube');
-  const thumbnail = video?.kind === 'youtube' ? `https://i.ytimg.com/vi/${video.video.id}/hqdefault.jpg` : undefined;
+  const media = article.media ?? [];
+  const firstImage = media.find((item) => item.kind !== 'video')?.url;
+  const video = media.find((item) => item.kind === 'video' && item.videoId);
+  const thumbnail = video ? `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` : undefined;
   const picture = roulette?.image ? `${origin}/api/images/${roulette.image}` : firstImage ?? thumbnail ?? null;
   const tags: [string, string, string][] = [
     ['name', 'description', description],

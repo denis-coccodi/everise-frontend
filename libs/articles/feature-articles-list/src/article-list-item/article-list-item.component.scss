@@ -38,6 +38,20 @@
   color: var(--color-contrast-muted);
 }
 
+// "Read more" on the left, the tags on the right.
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.read-more,
+.read-more:hover {
+  text-decoration: none;
+}
+
 .read-more {
   font-size: 0.8rem;
   font-weight: 300;
@@ -60,7 +74,6 @@ cdt-duty-card {
 }
 
 .tag-list {
-  float: right;
   max-width: 50%;
   margin: 0;
   padding: 0;

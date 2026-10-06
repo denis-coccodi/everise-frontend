@@ -1,0 +1,53 @@
+@if (thumbnails().length > 0) {
+  <ul class="attached" aria-label="Attached">
+    @for (thumbnail of thumbnails(); track $index; let first = $first; let last = $last) {
+      <li class="thumb">
+        <img [src]="thumbnail.src" alt="" loading="lazy" />
+        @if (thumbnail.item.kind === 'video') {
+          <span class="badge" aria-hidden="true">▶</span>
+        } @else if (thumbnail.item.kind === 'gif') {
+          <span class="badge" aria-hidden="true">GIF</span>
+        }
+        <span class="visually-hidden">{{ thumbnail.label }}</span>
+        <span class="controls">
+          @if (max() > 1) {
+            <button type="button" class="control" [disabled]="first" (click)="move($index, -1)">
+              <i class="ion-chevron-left" aria-hidden="true"></i
+              ><span class="visually-hidden">Move {{ thumbnail.label }} earlier</span>
+            </button>
+            <button type="button" class="control" [disabled]="last" (click)="move($index, 1)">
+              <i class="ion-chevron-right" aria-hidden="true"></i
+              ><span class="visually-hidden">Move {{ thumbnail.label }} later</span>
+            </button>
+          }
+          <button type="button" class="control remove" (click)="remove($index)">
+            <i class="ion-close" aria-hidden="true"></i
+            ><span class="visually-hidden">Remove {{ thumbnail.label }}</span>
+          </button>
+        </span>
+      </li>
+    }
+  </ul>
+}
+
+<div class="tools" role="group" aria-label="Attach">
+  <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="full()" (click)="open.set('image')">
+    <i class="ion-image" aria-hidden="true"></i> Image or GIF
+  </button>
+  <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="full()" (click)="open.set('youtube')">
+    <i class="ion-social-youtube" aria-hidden="true"></i> YouTube video
+  </button>
+  @if (max() > 1) {
+    <span class="count">{{ items().length }} of {{ max() }}</span>
+  }
+</div>
+<p class="visually-hidden" role="status">{{ status() }}</p>
+
+@switch (open()) {
+  @case ('image') {
+    <cdt-image-dialog (chosen)="add($event)" (dismissed)="open.set(null)" />
+  }
+  @case ('youtube') {
+    <cdt-youtube-dialog (chosen)="add($event)" (dismissed)="open.set(null)" />
+  }
+}

@@ -1,8 +1,10 @@
 import { Article, User } from '@realworld/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { MediaToolsComponent } from '@realworld/media';
+import { AttachmentsEditorComponent } from '@realworld/media';
+import { NewComment } from '@realworld/articles/data-access';
+import { NewAttachment } from '@realworld/core/api-types';
 import { ButtonComponent, CardComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
 
 @Component({
@@ -17,7 +19,7 @@ import { ButtonComponent, CardComponent, FieldComponent, InputComponent } from '
     ListErrorsComponent,
     ReactiveFormsModule,
     InputErrorsComponent,
-    MediaToolsComponent,
+    AttachmentsEditorComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -26,15 +28,21 @@ export class AddCommentComponent {
 
   article = input.required<Article>();
   currentUser = input.required<User>();
-  submitComment = output<string>();
+  submitComment = output<NewComment>();
+  // An image, GIF or video to go with the comment.
+  protected readonly attachments = signal<NewAttachment[]>([]);
 
   form = this.fb.nonNullable.group({
     comment: [''],
   });
 
-  // Posts the comment and empties the box for the next one.
+  // Posts the comment and empties the box for the next one. Text, an
+  // attachment, or both.
   protected submit() {
-    this.submitComment.emit(this.form.controls.comment.value);
+    const body = this.form.controls.comment.value;
+    if (!body.trim() && this.attachments().length === 0) return;
+    this.submitComment.emit({ body, media: this.attachments() });
     this.form.reset();
+    this.attachments.set([]);
   }
 }

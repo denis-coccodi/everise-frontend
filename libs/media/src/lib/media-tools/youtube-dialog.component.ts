@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, afterNextRender, computed, output, signal } from '@angular/core';
 import { ButtonComponent, DialogComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { NewAttachment } from '@realworld/core/api-types';
 import { youTubeLink, youTubeVideo } from '../youtube';
 
 // "Add a YouTube video": a link YouTube shares, checked and previewed.
-// Emits the link to put on a line of its own, where it shows as the video.
+// Emits the attachment.
 @Component({
   selector: 'cdt-youtube-dialog',
   templateUrl: './youtube-dialog.component.html',
@@ -12,7 +13,7 @@ import { youTubeLink, youTubeVideo } from '../youtube';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class YouTubeDialogComponent {
-  readonly chosen = output<string>();
+  readonly chosen = output<NewAttachment>();
   readonly dismissed = output<void>();
 
   protected readonly link = signal('');
@@ -29,6 +30,6 @@ export class YouTubeDialogComponent {
 
   protected add() {
     const video = this.video();
-    if (video) this.chosen.emit(youTubeLink(video));
+    if (video) this.chosen.emit({ kind: 'video', url: youTubeLink(video) });
   }
 }

@@ -27,19 +27,19 @@
             />
             <cdt-input-errors data-testid="description-input-error" [control]="form.controls.description" />
           </cdt-field>
-          <cdt-field label="Article (in Markdown)" for="body" required>
+          <cdt-field label="Text (Markdown)" for="body">
             <textarea
               id="body"
               formControlName="body"
               rows="5"
               type="text"
-              placeholder="Write your post (Markdown). A YouTube link on its own line shows as the video."
+              placeholder="Write your post (Markdown)"
               cdtInput="lg"
               data-testid="body-textarea"
             ></textarea>
             <cdt-input-errors data-testid="body-textarea-error" [control]="form.controls.body" />
           </cdt-field>
-          <cdt-media-tools class="media-tools" for="body" />
+          <cdt-attachments-editor class="media-tools" [(items)]="attachments" [max]="maxAttachments" />
           <cdt-field label="Tags" for="tags">
             <input
               id="tags"

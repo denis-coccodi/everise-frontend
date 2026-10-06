@@ -1,5 +1,4 @@
 import { splitRichText } from './rich-text/rich-text';
-import { markdownImage } from './media-tools/markdown-image';
 import { youTubeLink, youTubeVideo } from './youtube';
 
 describe('youTubeVideo', () => {
@@ -41,13 +40,5 @@ describe('splitRichText', () => {
       { kind: 'youtube', video: { id: 'aaaaaaaaaaa', start: 0 } },
       { kind: 'markdown', text: 'Nice, see https://youtu.be/dQw4w9WgXcQ too' },
     ]);
-  });
-});
-
-describe('markdownImage', () => {
-  it('keeps the description on one line and the address whole', () => {
-    expect(markdownImage(' A [moogle]\nwaving ', 'https://example.com/a (1).gif')).toBe(
-      '![A moogle waving](https://example.com/a%20%281%29.gif)',
-    );
   });
 });
