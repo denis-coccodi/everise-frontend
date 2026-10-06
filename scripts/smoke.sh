@@ -7,8 +7,13 @@
 #   read:   app shell, a deep link (SPA fallback), the service worker, the default
 #           avatar, that the deployed bundle calls the relative /api, and that
 #           <frontend-url>/api reaches the backend. Writes nothing.
-#   create: read, then register a random user and read it back with the auth
-#           cookie, like the browser does. Writes test data: not for production.
+#   create: read, then register a random user. When the backend confirms
+#           emails, the sign-up answers "check your email" and signing in
+#           is refused until the link is opened; otherwise the user is read
+#           back with the auth cookie, like the browser does. The address is
+#           Resend's test inbox (delivered+...@resend.dev), which accepts the
+#           email and delivers it nowhere. Writes test data: not for
+#           production.
 #
 # BUNDLE_API overrides the api_url expected in the bundle (default: /api).
 #
@@ -101,9 +106,26 @@ case "$MODE" in
   create)
     read_checks
     U="websmoke$(date +%s)"
-    req 201 "\"$U\"" "register $U" -X POST -H 'Content-Type: application/json' "$API/users" \
-      -d "{\"user\":{\"email\":\"$U@example.com\",\"username\":\"$U\",\"password\":\"Passw0rd!\"}}"
-    req 200 "\"$U\"" "current user via cookie" "$API/user"
+    E="delivered+$U@resend.dev"
+    signup=$(http -s -b "$J" -c "$J" -H 'Content-Type: application/json' "$API/users" \
+      -d "{\"user\":{\"email\":\"$E\",\"username\":\"$U\",\"password\":\"Passw0rd!\"}}")
+    case "$signup" in
+      *'"confirmation"'*)
+        ok "[201] register $U: a confirmation link was emailed"
+        req 403 '"unconfirmedEmail"' "sign-in refused until the email is confirmed" \
+          -X POST -H 'Content-Type: application/json' "$API/users/login" \
+          -d "{\"user\":{\"email\":\"$E\",\"password\":\"Passw0rd!\"}}"
+        ;;
+      *"\"$U\""*)
+        ok "[201] register $U: signed in (emails aren't confirmed)"
+        req 200 "\"$U\"" "current user via cookie" "$API/user"
+        ;;
+      *)
+        fail "register $U"
+        printf '%s\n' "$signup" | head -c 500
+        echo
+        ;;
+    esac
     ;;
   *)
     echo "usage: $0 read|create <frontend-url> [cookie-jar]" >&2
