@@ -5,7 +5,7 @@
 // Cloudflare Access login on staging. Everything else is a static file, with
 // index.html for unknown paths (single-page-application fallback).
 //
-// A post's page (/article/<slug>) also passes through here, so a link to it
+// A post's page (/article/<id>) also passes through here, so a link to it
 // pasted in Discord (or anywhere that reads Open Graph tags) shows a card with
 // the post's title, description and picture: the app itself only fills those
 // in after it runs, which link previews never wait for.
@@ -37,9 +37,9 @@ interface HtmlRewriter {
 }
 declare const HTMLRewriter: { new (): HtmlRewriter };
 
-// A post as GET /api/articles/:slug returns it (the parts the card uses).
+// A post as GET /api/articles/:id returns it (the parts the card uses).
 interface Article {
-  slug: string;
+  id: string;
   title: string;
   description: string;
   body: string;
@@ -68,7 +68,8 @@ export default {
 
 // The app's page, with the post's card tags in its <head>. If the post can't
 // be read, the page is served as it is.
-async function articlePage(request: Request, env: Env, slug: string): Promise<Response> {
+// `key` is the post's id, or the slug an old link used.
+async function articlePage(request: Request, env: Env, key: string): Promise<Response> {
   const origin = new URL(request.url).origin;
   const page = await env.ASSETS.fetch(new Request(`${origin}/`, { headers: request.headers }));
   if (!page.ok) return page;
@@ -76,7 +77,7 @@ async function articlePage(request: Request, env: Env, slug: string): Promise<Re
   let article: Article | undefined;
   try {
     const answer = await env.API.fetch(
-      new Request(`${origin}/api/articles/${encodeURIComponent(slug)}`, { headers: { Accept: 'application/json' } }),
+      new Request(`${origin}/api/articles/${encodeURIComponent(key)}`, { headers: { Accept: 'application/json' } }),
     );
     if (answer.ok) article = ((await answer.json()) as { article: Article }).article;
   } catch {
@@ -95,7 +96,8 @@ async function articlePage(request: Request, env: Env, slug: string): Promise<Re
 }
 
 function cardOf(article: Article, origin: string): string {
-  const url = `${origin}/article/${encodeURIComponent(article.slug)}`;
+  // Always the id, even when an old link was followed.
+  const url = `${origin}/article/${encodeURIComponent(article.id)}`;
   const roulette = article.roulette;
   const description = roulette
     ? `${roulette.type}: ${roulette.name}${roulette.detail ? ` · ${roulette.detail}` : ''}. ${article.description}`
