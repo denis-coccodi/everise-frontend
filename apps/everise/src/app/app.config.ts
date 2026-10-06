@@ -69,6 +69,14 @@ export const appConfig: ApplicationConfig = {
           // a result) check the login themselves.
         },
         {
+          path: 'waking-sands',
+          title: 'The Waking Sands',
+          // Open to everyone to look around; talking needs an account, which
+          // the page checks itself.
+          loadComponent: () =>
+            import('@realworld/waking-sands/feature-waking-sands').then((m) => m.WakingSandsComponent),
+        },
+        {
           path: 'settings',
           title: 'Settings',
           loadComponent: () =>

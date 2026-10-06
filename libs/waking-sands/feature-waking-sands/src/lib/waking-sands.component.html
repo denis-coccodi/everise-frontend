@@ -1,0 +1,125 @@
+<div class="sands-page">
+  <header class="hero">
+    <h1 class="xiv-title">The Waking Sands</h1>
+    <p>Drop by the Scions' rooms in Vesper Bay and talk with whoever is in.</p>
+  </header>
+
+  @switch (loadState()) {
+    @case ('loading') {
+      <p class="notice">Opening the doors…</p>
+    }
+    @case ('error') {
+      <p class="notice">The Waking Sands couldn't be reached. Try again in a moment.</p>
+    }
+    @default {
+      @if (!available()) {
+        <p class="notice">The Waking Sands isn't open yet. Come back soon!</p>
+      } @else {
+        <div class="layout">
+          <cdt-panel class="people" heading="Who's here">
+            @if (present().length === 0) {
+              <p class="hint">Nobody's talking yet. Invite someone to join you.</p>
+            }
+            <ul class="cast">
+              @for (character of characters(); track character.id) {
+                <li class="person" [class.present]="isPresent(character.id)">
+                  <img class="portrait" [src]="character.image" alt="" width="48" height="48" />
+                  <span class="who">
+                    <span class="name">{{ character.name }}</span>
+                    <span class="title">{{ character.title }}</span>
+                  </span>
+                  @if (isPresent(character.id)) {
+                    <button type="button" cdtButton="outline-secondary" size="sm" (click)="leave(character)">
+                      Leave<span class="visually-hidden">: {{ character.name }}</span>
+                    </button>
+                  } @else {
+                    <button type="button" cdtButton size="sm" (click)="invite(character)">
+                      Invite<span class="visually-hidden"> {{ character.name }}</span>
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+            <p class="fan-note">
+              The characters are FINAL FANTASY XIV's, voiced here by an AI as fan work. They can get things wrong.
+            </p>
+          </cdt-panel>
+
+          <cdt-panel class="chat" heading="Conversation">
+            <div #logBox class="log" role="log" aria-label="Conversation" tabindex="0">
+              @for (entry of log(); track $index) {
+                @switch (entry.kind) {
+                  @case ('note') {
+                    <p class="note">{{ entry.text }}</p>
+                  }
+                  @case ('member') {
+                    <div class="line mine">
+                      <img class="avatar" [src]="authStore.user().image" alt="" width="36" height="36" />
+                      <div class="bubble">
+                        <span class="speaker">{{ authStore.user().username || 'You' }}</span>
+                        <p>{{ entry.text }}</p>
+                      </div>
+                    </div>
+                  }
+                  @case ('character') {
+                    <div class="line">
+                      <img class="avatar" [src]="character(entry.id)?.image" alt="" width="36" height="36" />
+                      <div class="bubble">
+                        <span class="speaker">{{ character(entry.id)?.name ?? entry.id }}</span>
+                        <p>{{ entry.text }}</p>
+                      </div>
+                    </div>
+                  }
+                }
+              } @empty {
+                <p class="note">The room is quiet.</p>
+              }
+            </div>
+
+            <p class="status" aria-live="polite">
+              @if (writing()) {
+                {{ writing() }} {{ present().length > 1 ? 'are' : 'is' }} writing…
+              }
+            </p>
+            <p class="error" role="alert">{{ error() }}</p>
+
+            @if (authStore.loggedIn()) {
+              <form class="compose" (submit)="send($event)">
+                <cdt-field label="Your message" for="sands-message">
+                  <textarea
+                    id="sands-message"
+                    cdtInput
+                    rows="2"
+                    [attr.maxlength]="maxLength"
+                    [value]="draft()"
+                    (input)="draft.set($any($event.target).value)"
+                    (keydown.enter)="onEnter($event)"
+                    [placeholder]="
+                      present().length ? 'Say something… (Shift+Enter for a new line)' : 'Invite someone first'
+                    "
+                  ></textarea>
+                </cdt-field>
+                <div class="actions">
+                  <button
+                    type="button"
+                    cdtButton="outline-secondary"
+                    size="sm"
+                    [disabled]="log().length === 0 || !!writing()"
+                    (click)="startOver()"
+                  >
+                    Start over
+                  </button>
+                  <button type="submit" cdtButton [disabled]="!canSend()">Send</button>
+                </div>
+              </form>
+            } @else {
+              <p class="sign-in">
+                <a routerLink="/login">Sign in</a> or <a routerLink="/register">sign up</a> to join the conversation.
+              </p>
+            }
+          </cdt-panel>
+        </div>
+      }
+    }
+  }
+</div>
