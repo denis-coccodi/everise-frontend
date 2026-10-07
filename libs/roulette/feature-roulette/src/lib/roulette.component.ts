@@ -22,7 +22,7 @@ import {
   runModes,
   spreadSample,
 } from '@realworld/roulette/data-access';
-import { ButtonComponent, PanelComponent } from '@realworld/ui/components';
+import { ButtonComponent, MessageComponent, PanelComponent } from '@realworld/ui/components';
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { wait } from './motion';
 import { ReelComponent, ReelItem } from './reel/reel.component';
@@ -52,6 +52,7 @@ const REEL_PREVIEW_MAX = 60;
     RouletteSettingsComponent,
     RoulettePicksComponent,
     RouterLink,
+    MessageComponent,
   ],
   providers: [RouletteStore],
   changeDetection: ChangeDetectionStrategy.OnPush,

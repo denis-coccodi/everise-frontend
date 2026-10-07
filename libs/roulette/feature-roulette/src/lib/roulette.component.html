@@ -52,7 +52,7 @@
           >
             {{ spinning() ? 'Spinning…' : result() ? 'Spin again' : 'Commence' }}
           </button>
-          <p class="status" aria-live="polite">{{ status() }}</p>
+          <cdt-message class="status">{{ status() }}</cdt-message>
           <!-- The idle reels scroll on and on; this stops them (WCAG 2.2.2). -->
           <p class="motion">
             <button

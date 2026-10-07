@@ -1,0 +1,19 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  min-height: 1.5em;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+:host([data-tone='warning']),
+:host([data-tone='error']) {
+  color: var(--color-danger);
+}
+
+// An error takes no room until there is one.
+:host([data-tone='error']:empty) {
+  min-height: 0;
+  margin: 0;
+}

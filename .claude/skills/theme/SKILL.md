@@ -61,6 +61,8 @@ Keep it Final Fantasy, not Gold Saucer: no casino bulbs, no gold metal, no gold 
 | Tab bar                  | `<ul cdtTabs><li>…</li></ul>`: `<a cdtTab routerLink routerLinkActive="active">` for a tab that changes the page, `<button type="button" cdtTab [active]="…">` for one that changes the view, `<span cdtTab [active]="true">` for a current filter. Never an `<a>` without `href`: it can't be reached by the keyboard.                                                                                  |
 | Tag pill                 | `<button type="button" cdtTag>` to pick a tag, `<a cdtTag routerLink>` to go somewhere, `<li cdtTag="outline">` to show one.                                                                                                                                                                                                                                                                             |
 | Icon                     | `<cdt-icon name="trash" />`: the only icons on the site, line drawings (heart, play, pause filled) as inline SVG in the text colour, 1em square, `aria-hidden`. The names are `ICON_NAMES` in its `.ts`; a new icon is drawn there in the same 24 × 24 line style. **No icon font** (some phones don't load them) and no icons as images. In the navbar every page link has an icon, account links none. |
+| Profile picture          | `<cdt-avatar [src]="user.image" [size]="36" />`: round, on the avatar disc, the default picture when `src` is empty; `alt` only when it is the only thing saying who it is; `frame` = `none`, `soft`, `line`, `strong` or `highlight` (primary ring and glow). Never style a round `<img>` yourself.                                                                                                     |
+| Status / warning / error | `<cdt-message>{{ status() }}</cdt-message>`, `tone="warning"`, `tone="error"`: a live region that stays on the page while empty (`role="status"`, or `role="alert"` for an error). Never a hand-styled `<p class="status">`.                                                                                                                                                                             |
 | Pagination               | `<cdt-pager>`: a named navigation of page buttons, the current one `aria-current`.                                                                                                                                                                                                                                                                                                                       |
 
 Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`, `cdtTag`, `cdtMenuItem`) are **components with attribute selectors**, as Angular Material does (`button[mat-button]`). They keep native semantics, forms and accessibility, and, unlike directives, they can carry their own styles. The UI library's ESLint config allows attribute selectors for exactly those files.
@@ -72,7 +74,7 @@ Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`,
 1. **Palette** (`--palette-*`): raw colours. Referenced **only inside the theme folder**, to define roles.
 2. **Roles**: what everything else uses.
    - Base, the page behind everything: `--color-base`, `--color-base-deep`, `--color-base-raised`.
-   - Surfaces (windows, cards, inputs): `--color-surface`, `--color-surface-strong`, `--color-surface-highlight`, `--color-field`.
+   - Surfaces (windows, cards, inputs): `--color-surface`, `--color-surface-strong`, `--color-field`.
    - Contrast (text and icons): `--color-contrast`, `-soft`, `-muted`, `-faint`.
      - Titles and window headers: `--color-heading`.
      - Small uppercase labels: `--color-label`.
@@ -106,27 +108,30 @@ Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`,
    - Never use `::ng-deep` or `ViewEncapsulation.None`.
    - A parent styles a child component only through the child's host element (spacing, position), never the child's insides. If a child needs a variant, give it an input.
 3. **Reuse the UI library.** Buttons, fields, checkboxes, windows, cards, banners, dialogs, bylines, tabs, tags and pagination come from `@realworld/ui/components`. A look that more than one component needs becomes a building block, not a copied stylesheet. One exception: two components of the same library showing the same thing may share one `.scss` file (`libs/core/forms/src/lib/error-messages.scss`).
-4. **No raw values.** No colours (hex, `rgb()`, `hsl()`, named colours), font families, `box-shadow` / `text-shadow` values or gradients outside the theme. That covers templates, component stylesheets, inline `style` and SVG attributes. Use a role token (`var(--color-…)`, `var(--font-…)`, `var(--shadow-…)`, …). For SVG, set `fill`, `stroke` and `stop-color` from CSS with role tokens (as the roulette page's crystal icon does).
-5. **Never use a `--palette-*` token outside the theme folder.** If no role fits, add a role to `_tokens.scss`, in `:root` (the dark default) and in `body.light`, then use it.
-6. **Pick roles by meaning, not by colour.** Headings use `--color-heading`, links `--color-link`, the main action primary. Never pick a role because it happens to be the colour you want in one mode: check that it reads right in **both** modes.
-7. **Modes only re-point roles.** The light mode is `body.light { --color-…: … }`. Never write `body.light .some-component { … }`.
-8. **Keep it Final Fantasy.**
+4. **Breakpoints by name.** A layout changes only at the theme's widths: `@use '<relative path>/libs/ui/components/src/theme/breakpoints' as bp;` then `@include bp.up(sm | md | lg | xl) { … }` (576, 768, 992, 1200 px). Never `@media (min-width: 900px)`.
+5. **No raw values.** No colours (hex, `rgb()`, `hsl()`, named colours), font families, `box-shadow` / `text-shadow` values or gradients outside the theme. That covers templates, component stylesheets, inline `style` and SVG attributes. Use a role token (`var(--color-…)`, `var(--font-…)`, `var(--shadow-…)`, …). For SVG, set `fill`, `stroke` and `stop-color` from CSS with role tokens (as the roulette page's crystal icon does).
+6. **Never use a `--palette-*` token outside the theme folder.** If no role fits, add a role to `_tokens.scss`, in `:root` (the dark default) and in `body.light`, then use it.
+7. **Pick roles by meaning, not by colour.** Headings use `--color-heading`, links `--color-link`, the main action primary. Never pick a role because it happens to be the colour you want in one mode: check that it reads right in **both** modes.
+8. **Modes only re-point roles.** The light mode is `body.light { --color-…: … }`. Never write `body.light .some-component { … }`.
+9. **Keep it Final Fantasy.**
    - Crystal motifs, silver-white trim, deep blue and white.
    - Primary for main actions and the active state; accent amber only in small doses; magenta only for a highlight.
    - Cinzel only for titles, window headers and big buttons; body text in Source Sans Pro.
    - Rounded windows (`--radius-lg`), pill buttons. No casino or Gold Saucer flourishes (blinking bulbs, gold metal, gold glow), no green UI.
-9. **Readable and accessible.**
-   - Body text on surfaces uses `--color-contrast` or `-soft`; `-muted` is for secondary text and `-faint` for hints only.
-   - The site targets WCAG 2.2 AA. Text on its background is at least 4.5:1 (3:1 for large text), control outlines and the focus ring at least 3:1, in **both** modes; a new role or palette value must be checked for that. `-faint` is the lowest that still passes.
-   - Keep visible focus (`--color-focus`). Keep native elements under the building blocks, for keyboard and screen-reader support: links (with `href`) go somewhere, buttons do something. Decorative icons get `aria-hidden="true"`; an icon-only button gets an `aria-label`.
-   - Every field has a label (`<cdt-field label>`), every page one `<h1>` and a `title` on its route.
-   - When a style sets `display` on an element that can be `[hidden]`, add `[hidden] { display: none; }` for it, or the element shows anyway.
-   - Animations respect `prefers-reduced-motion`, and anything that keeps moving on its own (the roulette's idle reels) has a way to pause it.
-10. **Exceptions are rare and marked.** A value that truly can't be a token, such as `<meta name="theme-color">` or a third-party widget, gets a comment saying why.
+10. **Readable and accessible.**
+
+- Body text on surfaces uses `--color-contrast` or `-soft`; `-muted` is for secondary text and `-faint` for hints only.
+- The site targets WCAG 2.2 AA. Text on its background is at least 4.5:1 (3:1 for large text), control outlines and the focus ring at least 3:1, in **both** modes; a new role or palette value must be checked for that. `-faint` is the lowest that still passes.
+- Keep visible focus (`--color-focus`). Keep native elements under the building blocks, for keyboard and screen-reader support: links (with `href`) go somewhere, buttons do something. Decorative icons get `aria-hidden="true"`; an icon-only button gets an `aria-label`.
+- Every field has a label (`<cdt-field label>`), every page one `<h1>` and a `title` on its route.
+- When a style sets `display` on an element that can be `[hidden]`, add `[hidden] { display: none; }` for it, or the element shows anyway.
+- Animations respect `prefers-reduced-motion`, and anything that keeps moving on its own (the roulette's idle reels) has a way to pause it.
+
+11. **Exceptions are rare and marked.** A value that truly can't be a token, such as `<meta name="theme-color">` or a third-party widget, gets a comment saying why.
 
 ## Before finishing a change that touches templates or styles
 
-Run from the repo root. All five should print nothing; anything printed needs a token, a building block, a component stylesheet, or a marked exception:
+Run from the repo root. All seven should print nothing (the first one prints the `theme-color` meta, a marked exception); anything printed needs a token, a building block, a component stylesheet, or a marked exception:
 
 ```
 grep -rnE "#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|gradient\(|font-family:\s*'" apps libs --include=*.css --include=*.scss --include=*.html --include=*.ts | grep -v "libs/ui/components/src/theme/" | grep -v node_modules | grep -vE 'href="#|routerLink="#'
@@ -134,6 +139,8 @@ grep -rn -- "--palette-" apps libs | grep -v "libs/ui/components/src/theme/"
 grep -rnE 'type="checkbox"|class="([^"]* )?(btn|form-control|xiv-(panel|title-bar|chip|cta|check|dialog|backdrop)|nav-pills|tag-default|tag-pill|card|card-footer|banner|form-group|error-messages)( [^"]*)?"' libs apps --include=*.html | grep -vE "libs/ui/components/|libs/core/forms/"
 grep -vE '^\s*(//.*)?$' apps/everise/src/styles.scss | grep -v "@use '../../../libs/ui/components/src/theme'"
 grep -rn "ng-deep\|ViewEncapsulation.None" apps libs --include=*.ts --include=*.scss | grep -v node_modules
+grep -rnE "@media \((min|max)-width" apps libs --include=*.scss | grep -v "theme/_breakpoints.scss"
+grep -rnE "<img [^>]*class=\"(avatar|portrait|user-img)" apps libs --include=*.html
 ```
 
 Then check the page in **both modes** (Settings → Dark Mode on and off; or set `localStorage.darkMode` to `"false"` for light) on a desktop and a 390 px wide viewport, with the keyboard alone, and with [axe](https://github.com/dequelabs/axe-core) (README → Accessibility). Component styles must stay under the 6 kB `anyComponentStyle` budget.

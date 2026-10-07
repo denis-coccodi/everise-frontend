@@ -23,7 +23,7 @@
     @if (store.selected(); as character) {
       <h3 class="name">{{ character.name }}</h3>
       <div class="picture">
-        <img class="avatar" [src]="character.image" [alt]="character.name + '\'s picture'" width="72" height="72" />
+        <cdt-avatar [src]="character.image" [alt]="character.name + '\'s picture'" [size]="72" frame="strong" />
         <div>
           <input
             #pictureInput
@@ -100,10 +100,8 @@
     <p role="status">Gathering the characters…</p>
   }
 
-  <p class="status" role="status">{{ store.status() }}</p>
-  @if (store.error(); as error) {
-    <p class="error" role="alert">{{ error }}</p>
-  }
+  <cdt-message class="status">{{ store.status() }}</cdt-message>
+  <cdt-message class="error" tone="error">{{ store.error() }}</cdt-message>
 </cdt-panel>
 
 @if (cropping(); as file) {

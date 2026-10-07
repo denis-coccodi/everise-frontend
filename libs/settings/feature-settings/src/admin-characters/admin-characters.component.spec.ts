@@ -47,7 +47,7 @@ describe('AdminCharactersComponent', () => {
 
     expect([...page.querySelectorAll('[cdtTab]')].map((t) => t.textContent?.trim())).toEqual(['Tataru', 'Barnaby']);
     expect(tab('Tataru').getAttribute('aria-current')).toBe('true');
-    expect((page.querySelector('.avatar') as HTMLImageElement).alt).toBe("Tataru's picture");
+    expect((page.querySelector('cdt-avatar img') as HTMLImageElement).alt).toBe("Tataru's picture");
     expect(field('character-title')?.value).toBe('Receptionist');
     expect(field('character-bio')?.value).toBe('Keeper of the books.');
     expect(field('character-persona')?.value).toBe('You are Tataru.');

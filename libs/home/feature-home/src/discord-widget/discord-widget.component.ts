@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ApiService } from '@realworld/core/http-client';
-import { ButtonComponent, EVERISE_DISCORD } from '@realworld/ui/components';
+import { AvatarComponent, ButtonComponent, EVERISE_DISCORD } from '@realworld/ui/components';
 import { catchError, map, of } from 'rxjs';
 
 // The Discord server's public widget, from GET /api/discord/widget.
@@ -19,7 +19,7 @@ const STATUS_NAMES: Record<string, string> = { online: 'online', idle: 'away', d
   selector: 'cdt-discord-widget',
   templateUrl: './discord-widget.component.html',
   styleUrl: './discord-widget.component.scss',
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, AvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiscordWidgetComponent {

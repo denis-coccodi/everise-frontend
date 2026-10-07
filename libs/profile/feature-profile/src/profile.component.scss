@@ -9,13 +9,7 @@
 
 // The default avatar is a dark outline, so it sits on a light disc.
 .user-img {
-  width: 100px;
-  height: 100px;
   margin-bottom: 1rem;
-  border: var(--border-width-strong) solid var(--color-primary);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-avatar);
-  box-shadow: var(--glow-primary);
 }
 
 // The page's heading, at the size of the name it used to be.

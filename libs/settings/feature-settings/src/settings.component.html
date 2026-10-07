@@ -15,7 +15,7 @@
 
         <!-- The profile picture: chosen in the browser's file window and uploaded right away. -->
         <section class="picture" aria-labelledby="picture-heading">
-          <img class="avatar" [src]="authStore.user().image" alt="Your profile picture" width="96" height="96" />
+          <cdt-avatar [src]="authStore.user().image" alt="Your profile picture" [size]="96" frame="strong" />
           <div class="picture-controls">
             <h2 id="picture-heading" class="xiv-label">Profile picture</h2>
             <input

@@ -1,5 +1,8 @@
 // The site's top bar: a title strip with a silver rule. Uses the theme's
 // role tokens only. Under 768 px the links fold into the Menu button's panel.
+
+@use '../../../../../../libs/ui/components/src/theme/breakpoints' as bp;
+
 .navbar {
   position: relative;
   z-index: 5;
@@ -73,15 +76,6 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.avatar {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--color-avatar);
 }
 
 // Phone: the Menu button, and the panel it opens under the bar.
@@ -169,7 +163,7 @@
 }
 
 // Wider screens: the links in the bar, the account in its own menu.
-@media (min-width: 768px) {
+@include bp.up(md) {
   .menu-toggle,
   .narrow-only {
     display: none;

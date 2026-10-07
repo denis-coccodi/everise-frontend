@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { RouletteStore } from '@realworld/roulette/data-access';
-import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
+import {
+  ButtonComponent,
+  CheckboxComponent,
+  InputComponent,
+  MessageComponent,
+  PanelComponent,
+} from '@realworld/ui/components';
 
 // The "Duty Finder Settings" window: which duty types the first reel can
 // land on, with how many duties each has within the level limits, and the
@@ -9,7 +15,7 @@ import { ButtonComponent, CheckboxComponent, InputComponent, PanelComponent } fr
   selector: 'cdt-roulette-settings',
   templateUrl: './roulette-settings.component.html',
   styleUrl: './roulette-settings.component.scss',
-  imports: [ButtonComponent, CheckboxComponent, InputComponent, PanelComponent],
+  imports: [ButtonComponent, CheckboxComponent, InputComponent, PanelComponent, MessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RouletteSettingsComponent {

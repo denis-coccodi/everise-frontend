@@ -79,7 +79,6 @@
   /* Surfaces: windows, cards, inputs. */
   --color-surface: var(--palette-night-800);
   --color-surface-strong: var(--palette-night-700);
-  --color-surface-highlight: var(--palette-royal-600);
   --color-field: var(--palette-abyss-950);
 
   /* Contrast: text and icons on base and surfaces. */
@@ -215,7 +214,6 @@ body.light {
   --color-base-raised: var(--palette-mist-50);
   --color-surface: var(--palette-mist-0);
   --color-surface-strong: var(--palette-mist-100);
-  --color-surface-highlight: var(--palette-royal-600);
   --color-field: var(--palette-mist-0);
 
   --color-contrast: var(--palette-ink-900);

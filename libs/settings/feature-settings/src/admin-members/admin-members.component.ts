@@ -14,10 +14,12 @@ import { RouterLink } from '@angular/router';
 import { Member } from '@realworld/core/api-types';
 import { AdminMembersStore, isAssignableRole } from '@realworld/settings/data-access';
 import {
+  AvatarComponent,
   ButtonComponent,
   DialogComponent,
   FieldComponent,
   InputComponent,
+  MessageComponent,
   PagerComponent,
   PanelComponent,
 } from '@realworld/ui/components';
@@ -39,6 +41,8 @@ import {
     PagerComponent,
     PanelComponent,
     RouterLink,
+    AvatarComponent,
+    MessageComponent,
   ],
   providers: [AdminMembersStore],
   changeDetection: ChangeDetectionStrategy.OnPush,

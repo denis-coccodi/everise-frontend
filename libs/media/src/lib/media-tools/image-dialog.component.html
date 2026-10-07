@@ -101,9 +101,7 @@
     </p>
   }
 
-  @if (error(); as error) {
-    <p class="error" role="alert">{{ error }}</p>
-  }
+  <cdt-message class="error" tone="error">{{ error() }}</cdt-message>
 
   <div class="actions">
     @if (mode() !== 'gifs') {

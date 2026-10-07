@@ -65,8 +65,8 @@
   </fieldset>
 
   @if (store.levelError()) {
-    <p class="warning">{{ store.levelError() }}</p>
+    <cdt-message tone="warning">{{ store.levelError() }}</cdt-message>
   } @else if (store.options().length === 0) {
-    <p class="warning">No duty matches these settings.</p>
+    <cdt-message tone="warning">No duty matches these settings.</cdt-message>
   }
 </cdt-panel>

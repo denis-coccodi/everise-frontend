@@ -3,9 +3,11 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CHARACTER_LIMITS, CharacterChanges } from '@realworld/core/api-types';
 import { AdminCharactersStore } from '@realworld/settings/data-access';
 import {
+  AvatarComponent,
   ButtonComponent,
   FieldComponent,
   InputComponent,
+  MessageComponent,
   PanelComponent,
   TabComponent,
   TabsComponent,
@@ -31,6 +33,8 @@ import { PICTURE_HINT, checkChosenFile } from '../profile-picture';
     ReactiveFormsModule,
     TabComponent,
     TabsComponent,
+    AvatarComponent,
+    MessageComponent,
   ],
   providers: [AdminCharactersStore],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -55,7 +55,7 @@
           <li class="nav-item wide-only">
             <cdt-menu label="Account">
               <span cdtMenuTrigger class="account" data-testid="loggedin-user">
-                <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
+                <cdt-avatar [src]="user().image" [size]="28" />
                 {{ user().username }}
               </span>
               <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
@@ -65,7 +65,7 @@
           </li>
           <!-- In the phone panel the same, laid out flat under the user's name. -->
           <li class="nav-item narrow-only account-heading">
-            <img class="avatar" [src]="user().image" alt="" width="28" height="28" />
+            <cdt-avatar [src]="user().image" [size]="28" />
             <span class="name">{{ user().username }}</span>
           </li>
           <li class="nav-item narrow-only">

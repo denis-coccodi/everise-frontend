@@ -20,14 +20,6 @@ textarea {
   width: 100%;
 }
 
-// The default avatar is a dark outline, so it sits on a light disc.
-.avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-pill);
-  background-color: var(--color-avatar);
-}
-
 button {
   margin-left: auto;
   font-weight: 700;

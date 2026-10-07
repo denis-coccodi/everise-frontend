@@ -13,15 +13,6 @@
   display: inline-flex;
 }
 
-// The default avatar is a dark outline, so avatars sit on a light disc.
-.avatar {
-  width: 32px;
-  height: 32px;
-  border: var(--border-width) solid var(--color-border-soft);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-avatar);
-}
-
 .info {
   display: flex;
   flex-direction: column;

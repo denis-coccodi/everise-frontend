@@ -7,7 +7,11 @@
   <ul class="cast">
     @for (character of store.characters(); track character.id) {
       <li class="person" [class.present]="store.isPresent(character.id)">
-        <img class="portrait" [src]="character.image || defaultPicture" alt="" width="48" height="48" />
+        <cdt-avatar
+          [src]="character.image"
+          [size]="48"
+          [frame]="store.isPresent(character.id) ? 'highlight' : 'line'"
+        />
         <span class="who">
           <span class="name">{{ character.name }}</span>
           <span class="title">{{ character.title }}</span>

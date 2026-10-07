@@ -67,7 +67,7 @@ describe('AdminMembersComponent', () => {
     expect(status.textContent?.trim()).toBe(
       "Thancred is now a staging tester. Staging access isn't connected on this backend.",
     );
-    expect(status.classList).toContain('warning');
+    expect(status.getAttribute('data-tone')).toBe('warning');
   });
 
   it('syncs staging access on request', async () => {
@@ -82,7 +82,7 @@ describe('AdminMembersComponent', () => {
     expect(page.querySelector('.status')?.textContent?.trim()).toBe(
       'Staging access updated: 2 people can open staging.',
     );
-    expect(page.querySelector('.status')?.classList).not.toContain('warning');
+    expect(page.querySelector('.status')?.getAttribute('data-tone')).toBe('status');
   });
 
   it('searches by username or email once typing pauses, and says how many match', async () => {

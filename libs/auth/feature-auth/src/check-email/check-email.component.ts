@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { AuthService } from '@realworld/auth/data-access';
 import { serverMessage } from '@realworld/core/forms';
-import { ButtonComponent, PanelComponent } from '@realworld/ui/components';
+import { ButtonComponent, MessageComponent, PanelComponent } from '@realworld/ui/components';
 
 // "Check your email": a confirmation link went to `email`, after signing up
 // or signing in before opening it. It can be sent again; the backend allows
@@ -19,11 +19,11 @@ import { ButtonComponent, PanelComponent } from '@realworld/ui/components';
       <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="sending()" (click)="resend()">
         Send the link again
       </button>
-      <p class="status" role="status">{{ status() }}</p>
+      <cdt-message class="status">{{ status() }}</cdt-message>
     </cdt-panel>
   `,
   styleUrl: './check-email.component.scss',
-  imports: [ButtonComponent, PanelComponent],
+  imports: [ButtonComponent, PanelComponent, MessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckEmailComponent {

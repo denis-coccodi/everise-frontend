@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterModule } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { ProfileStore } from '@realworld/profile/data-access';
-import { ButtonComponent, IconComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
+import { AvatarComponent, ButtonComponent, IconComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-profile',
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
-  imports: [ButtonComponent, TabsComponent, TabComponent, RouterModule, IconComponent],
+  imports: [ButtonComponent, TabsComponent, TabComponent, RouterModule, IconComponent, AvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {

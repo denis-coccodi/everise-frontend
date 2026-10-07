@@ -2,6 +2,8 @@
 // and its utilities. Component looks live with the components.
 // Part of the Everise theme: see index.scss in this folder.
 
+@use 'breakpoints' as bp;
+
 /* ============================================================================
  * CSS RESET & BASE
  * ============================================================================ */
@@ -210,25 +212,25 @@ fieldset {
   padding-right: 15px;
 }
 
-@media (min-width: 544px) {
+@include bp.up(sm) {
   .container {
     max-width: 576px;
   }
 }
 
-@media (min-width: 768px) {
+@include bp.up(md) {
   .container {
     max-width: 720px;
   }
 }
 
-@media (min-width: 992px) {
+@include bp.up(lg) {
   .container {
     max-width: 940px;
   }
 }
 
-@media (min-width: 1200px) {
+@include bp.up(xl) {
   .container {
     max-width: 1140px;
   }
@@ -260,7 +262,7 @@ fieldset {
   max-width: 100%;
 }
 
-@media (min-width: 768px) {
+@include bp.up(md) {
   .col-md-3 {
     position: relative;
     min-height: 1px;

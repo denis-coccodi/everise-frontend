@@ -21,23 +21,6 @@
   border-top: var(--border-width) solid var(--color-border-faint);
 }
 
-.portrait {
-  flex: none;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--color-avatar);
-}
-
-.portrait {
-  width: 48px;
-  height: 48px;
-  border: var(--border-width) solid var(--color-border);
-}
-
-.person.present .portrait {
-  border-color: var(--color-primary-strong);
-}
-
 .who {
   display: flex;
   flex: 1;

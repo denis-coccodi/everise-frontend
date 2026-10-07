@@ -5,7 +5,13 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AttachmentsEditorComponent } from '@realworld/media';
 import { NewComment } from '@realworld/articles/data-access';
 import { NewAttachment } from '@realworld/core/api-types';
-import { ButtonComponent, CardComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import {
+  AvatarComponent,
+  ButtonComponent,
+  CardComponent,
+  FieldComponent,
+  InputComponent,
+} from '@realworld/ui/components';
 
 @Component({
   selector: 'cdt-add-comment',
@@ -20,6 +26,7 @@ import { ButtonComponent, CardComponent, FieldComponent, InputComponent } from '
     ReactiveFormsModule,
     InputErrorsComponent,
     AttachmentsEditorComponent,
+    AvatarComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
