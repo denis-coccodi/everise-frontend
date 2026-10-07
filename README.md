@@ -37,14 +37,16 @@ Game data and images come from the backend, which caches them from [XIVAPI](http
 
 ## Tech stack
 
-| Part      | Choice                                                                                                                                             |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Framework | [Angular 22](https://angular.dev): standalone components, signals, zoneless change detection, control flow blocks                                  |
-| Workspace | [Nx 23](https://nx.dev) monorepo: one app, libraries by domain and layer                                                                           |
-| State     | [NgRx Signal Store](https://ngrx.io/guide/signals)                                                                                                 |
-| Tests     | [Vitest](https://vitest.dev) unit tests in every project; [Playwright](https://playwright.dev) end-to-end tests (`apps/everise-e2e`)               |
-| Hosting   | [Cloudflare Workers](https://developers.cloudflare.com/workers/) static assets, with `/api` forwarded to the backend Worker over a service binding |
-| Backend   | [everise-backend](https://github.com/denis-coccodi/everise-backend): Express on Cloudflare Workers, a Durable Object as the database               |
+| Part      | Choice                                                                                                                                                                                                                           |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework | [Angular 22](https://angular.dev): standalone components, signals, zoneless change detection, control flow blocks                                                                                                                |
+| Workspace | [Nx 23](https://nx.dev) monorepo: one app, libraries by domain and layer                                                                                                                                                         |
+| State     | [NgRx Signal Store](https://ngrx.io/guide/signals)                                                                                                                                                                               |
+| API types | Generated from the backend's OpenAPI document with [openapi-typescript](https://openapi-ts.dev) ([below](#api-types)); a CI job fails on drift                                                                                   |
+| Language  | [TypeScript 6](https://www.typescriptlang.org/), strict templates, no `any` outside specs                                                                                                                                        |
+| Tests     | [Vitest](https://vitest.dev) unit tests in every project; [Playwright](https://playwright.dev) end-to-end tests (`apps/everise-e2e`)                                                                                             |
+| Hosting   | [Cloudflare Workers](https://developers.cloudflare.com/workers/) static assets, with `/api` forwarded to the backend Worker over a service binding                                                                               |
+| Backend   | [everise-backend](https://github.com/denis-coccodi/everise-backend): Express 5 and zod on Cloudflare Workers, a SQLite Durable Object as the database, R2 for images, Workers AI ([API docs](https://apis.everise.dev/api/docs)) |
 
 ## Getting started
 
@@ -57,17 +59,19 @@ The local build calls the backend directly at `http://localhost:8080/api` ([`env
 
 The Duty Roulette needs game data: run the backend's duty refresh once (its README explains how), or the page says the list hasn't been downloaded yet.
 
-| Command                                                                 | What it does                                                                        |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `npm start`                                                             | Dev server on port 4200                                                             |
-| `npx nx run-many -t lint test`                                          | Lint and unit-test every project                                                    |
-| `npx nx run everise:build --configuration=production`                   | Production build in `dist/apps/everise` (`staging` for the staging build)           |
-| `npm run e2e`                                                           | Playwright end-to-end tests                                                         |
-| `npm run start-sw`                                                      | Build, then serve with `wrangler dev`, as deployed (try the service worker locally) |
-| `npx nx graph`                                                          | The live project graph                                                              |
-| `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` | Regenerate a diagram ([below](#architecture))                                       |
+| Command                                                                 | What it does                                                                         |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `npm start`                                                             | Dev server on port 4200                                                              |
+| `npx nx run-many -t lint test`                                          | Lint and unit-test every project                                                     |
+| `npx nx run everise:build --configuration=production`                   | Production build in `dist/apps/everise` (`staging` for the staging build)            |
+| `npm run e2e`                                                           | Playwright end-to-end tests                                                          |
+| `npm run start-sw`                                                      | Build, then serve with `wrangler dev`, as deployed (try the service worker locally)  |
+| `npx nx graph`                                                          | The live project graph                                                               |
+| `npm run api-types`                                                     | Regenerate the API types from the backend's `openapi.json` ([API types](#api-types)) |
+| `node scripts/check-sizes.mjs`                                          | Check every file is within its size limit ([Code conventions](#code-conventions))    |
+| `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` | Regenerate a diagram ([below](#architecture))                                        |
 
-Before pushing, `npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must pass: it's the same as the required `test` check. Every change goes through a `feature/<name>` branch and a pull request to `main`.
+Before pushing, `node scripts/check-sizes.mjs && npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must pass: it's the same as the required `test` check. Every change goes through a `feature/<name>` branch and a pull request to `main`.
 
 ## Architecture
 
@@ -82,6 +86,10 @@ One Angular app (`apps/everise`) is a thin shell: routes, guard, page titles, HT
 - **core** and **ui** libs: API types, HTTP client (with `LiveUpdates`, the live updates WebSocket), form errors and error handling; the **ui** lib also holds the theme and the themed building blocks every page uses ([Theme](#theme)). They have no dependencies on other libs.
 
 Dependencies only point down a layer or sideways within a domain.
+
+### API types
+
+The shapes the app sends and receives aren't written by hand. The backend describes its API as OpenAPI 3.1 (browse it at [apis.everise.dev/api/docs](https://apis.everise.dev/api/docs)) and commits the document; `npm run api-types` turns it into `libs/core/api-types/src/lib/generated/openapi.ts` with [openapi-typescript](https://openapi-ts.dev), and the library names its schemas (`export type Article = Schemas['Article']`). Requests use their own types (`UserChanges`, `CreateArticle`), never a cast, and limits the forms enforce come from the API's answers. CI's `api-types` job regenerates them from the backend's `main` and fails when the committed file differs, so the two sides can't drift apart. Only the live updates' events, which OpenAPI can't describe, are typed by hand.
 
 ### Website structure
 
@@ -128,6 +136,17 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTab`, `cdtTag`, `cdtMenuItem`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 
 Feature libraries reuse the building blocks and don't define colours, fonts, shadows or control styles of their own. The rules, and check commands, are in [`.claude/skills/theme/SKILL.md`](.claude/skills/theme/SKILL.md).
+
+## Code conventions
+
+The rules the code follows are written down for people and AI assistants alike, as skills in [`.claude/skills`](.claude/skills): [`frontend-best-practices`](.claude/skills/frontend-best-practices/SKILL.md) (code and structure), [`theme`](.claude/skills/theme/SKILL.md) (looks) and [`accessibility`](.claude/skills/accessibility/SKILL.md) (WCAG). In short:
+
+- **Libraries by type, enforced by lint.** Every project is tagged (app, feature, widget, data-access, ui, util, testing) and `@nx/enforce-module-boundaries` fails an import that breaks the layering. A page never imports another page; what two pages share becomes a widget, a data-access library or a UI building block.
+- **State in NgRx signal stores**, components with signals and `OnPush`, typed templates.
+- **No `any`** outside specs, and no `$any()` in templates (both fail lint). API shapes come only from the generated types ([API types](#api-types)).
+- **Errors** are shown with the backend's own message (`serverMessage()`), in the shared message component.
+- **Size limits** (`scripts/check-sizes.mjs`, first step of the `test` check): component classes 200 lines, templates 150, styles 250, stores and services 250, other TypeScript 350. A file that grows past them is split, never exempted; generated code is skipped.
+- **Specs** next to the code in every project, with a shared test setup (`@everise/core/testing`).
 
 ## Accessibility
 
