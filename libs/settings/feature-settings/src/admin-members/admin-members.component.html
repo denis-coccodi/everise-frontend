@@ -4,7 +4,7 @@
     Admins are set in the backend's settings.
   </p>
 
-  @if (connected() === false) {
+  @if (store.connected() === false) {
     <p class="notice">
       Role changes are saved, but they don't reach the staging site's access list yet: this backend has no Cloudflare
       settings (CF_ACCESS_API_TOKEN, CF_ACCOUNT_ID, CF_ACCESS_POLICY_ID). Only production keeps the list; see "One-time
@@ -23,15 +23,15 @@
     />
   </cdt-field>
 
-  @if (members(); as members) {
+  @if (store.members(); as members) {
     <p class="count" role="status">
-      @if (count() === 0) {
-        No member matches "{{ search() }}".
+      @if (store.count() === 0) {
+        No member matches "{{ store.searchTerm() }}".
       } @else {
-        @if (search()) {
-          {{ count() }} {{ count() === 1 ? 'member matches' : 'members match' }} "{{ search() }}".
+        @if (store.searchTerm()) {
+          {{ store.count() }} {{ store.count() === 1 ? 'member matches' : 'members match' }} "{{ store.searchTerm() }}".
         } @else {
-          {{ count() }} {{ count() === 1 ? 'member' : 'members' }}.
+          {{ store.count() }} {{ store.count() === 1 ? 'member' : 'members' }}.
         }
       }
     </p>
@@ -52,7 +52,7 @@
               cdtInput="sm"
               class="role"
               [id]="'role-' + $index"
-              [disabled]="saving() !== null"
+              [disabled]="store.saving() !== null"
               (change)="changeRole(member, roleSelect.value)"
             >
               <option value="user" [selected]="member.role === 'user'">User</option>
@@ -63,7 +63,7 @@
               cdtButton="outline-danger"
               size="sm"
               class="delete"
-              [disabled]="saving() !== null"
+              [disabled]="store.saving() !== null"
               (click)="askToDelete(member)"
             >
               Delete<span class="visually-hidden"> {{ member.username }}</span>
@@ -72,10 +72,15 @@
         </li>
       }
     </ul>
-    @if (pages().length > 1) {
-      <cdt-pager label="Member pages" [currentPage]="page()" [totalPages]="pages()" (setPage)="setPage($event)" />
+    @if (store.pages().length > 1) {
+      <cdt-pager
+        label="Member pages"
+        [currentPage]="store.page()"
+        [totalPages]="store.pages()"
+        (setPage)="store.setPage($event)"
+      />
     }
-  } @else if (!error()) {
+  } @else if (!store.error()) {
     <p role="status">Loading the members…</p>
   }
 
@@ -83,13 +88,13 @@
     type="button"
     cdtButton="outline-secondary"
     size="sm"
-    [disabled]="saving() !== null"
-    (click)="syncStagingAccess()"
+    [disabled]="store.saving() !== null"
+    (click)="store.syncStagingAccess()"
   >
-    {{ saving() === 'sync' ? 'Syncing…' : 'Sync staging access' }}
+    {{ store.saving() === 'sync' ? 'Syncing…' : 'Sync staging access' }}
   </button>
 
-  <p class="status" [class.warning]="warning()" role="status">{{ status() }}</p>
+  <p class="status" [class.warning]="store.warning()" role="status">{{ store.status() }}</p>
 
   @if (confirming(); as member) {
     <cdt-dialog heading="Delete a member" (dismissed)="closeConfirmation()">
@@ -102,16 +107,16 @@
           type="button"
           cdtButton="outline-danger"
           data-testid="confirm-delete"
-          [disabled]="saving() !== null"
+          [disabled]="store.saving() !== null"
           (click)="deleteMember(member)"
         >
-          {{ saving() === member.username ? 'Deleting…' : 'Delete ' + member.username }}
+          {{ store.saving() === member.username ? 'Deleting…' : 'Delete ' + member.username }}
         </button>
         <button #keepButton type="button" cdtButton="secondary" (click)="closeConfirmation()">Keep</button>
       </div>
     </cdt-dialog>
   }
-  @if (error(); as error) {
+  @if (store.error(); as error) {
     <p class="error" role="alert">{{ error }}</p>
   }
 </cdt-panel>

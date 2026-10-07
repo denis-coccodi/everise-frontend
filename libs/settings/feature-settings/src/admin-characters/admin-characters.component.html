@@ -4,18 +4,23 @@
     Tataru's bio is also her profile's, on the roulette results she posts for guests.
   </p>
 
-  @if (characters(); as characters) {
+  @if (store.characters(); as characters) {
     <ul cdtTabs class="tabs" aria-label="Characters">
       @for (character of characters; track character.id) {
         <li>
-          <button type="button" cdtTab [active]="character.id === selectedId()" (click)="select(character.id)">
-            {{ tabName(character) }}
+          <button
+            type="button"
+            cdtTab
+            [active]="character.id === store.selectedId()"
+            (click)="store.select(character.id)"
+          >
+            {{ store.firstName(character.name) }}
           </button>
         </li>
       }
     </ul>
 
-    @if (selected(); as character) {
+    @if (store.selected(); as character) {
       <h3 class="name">{{ character.name }}</h3>
       <div class="picture">
         <img class="avatar" [src]="character.image" [alt]="character.name + '\'s picture'" width="72" height="72" />
@@ -34,7 +39,7 @@
             type="button"
             cdtButton="outline-primary"
             size="sm"
-            [disabled]="busy()"
+            [disabled]="store.busy()"
             (click)="pictureInput.click()"
           >
             Change the picture
@@ -76,27 +81,27 @@
         </p>
 
         <div class="actions">
-          <button cdtButton type="submit" size="sm" [disabled]="busy()">
-            {{ busy() ? 'Saving…' : 'Save changes' }}
+          <button cdtButton type="submit" size="sm" [disabled]="store.busy()">
+            {{ store.busy() ? 'Saving…' : 'Save changes' }}
           </button>
           <button
             type="button"
             cdtButton="outline-secondary"
             size="sm"
-            [disabled]="busy() || !character.edited.persona"
-            (click)="restorePersona()"
+            [disabled]="store.busy() || !character.edited.persona"
+            (click)="store.restorePersona()"
           >
             Restore the original personality
           </button>
         </div>
       </form>
     }
-  } @else if (!error()) {
+  } @else if (!store.error()) {
     <p role="status">Gathering the characters…</p>
   }
 
-  <p class="status" role="status">{{ status() }}</p>
-  @if (error(); as error) {
+  <p class="status" role="status">{{ store.status() }}</p>
+  @if (store.error(); as error) {
     <p class="error" role="alert">{{ error }}</p>
   }
 </cdt-panel>

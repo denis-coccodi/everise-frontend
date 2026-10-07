@@ -7,7 +7,7 @@
     <p>Three reels decide your next run: the kind of duty, the duty, and how you run it.</p>
   </header>
 
-  @switch (loadState()) {
+  @switch (store.loadState()) {
     @case ('loading') {
       <p class="notice">Gathering the duty list…</p>
     }
@@ -19,78 +19,7 @@
     }
     @default {
       <div class="layout">
-        <cdt-panel class="settings" heading="Duty Finder Settings">
-          <fieldset [disabled]="spinning()">
-            <legend class="xiv-label">Duty types</legend>
-            <div class="quick">
-              <button type="button" cdtButton="chip" (click)="setAllTypes(true)">All</button>
-              <button type="button" cdtButton="chip" (click)="setAllTypes(false)">None</button>
-            </div>
-            <ul class="checks">
-              @for (type of types(); track type.name) {
-                <li>
-                  <cdt-checkbox
-                    [class.none-in-range]="type.count === 0"
-                    [checked]="isTypeOn(type.name)"
-                    (checkedChange)="toggleType(type.name, $event)"
-                  >
-                    <span class="type-name">
-                      @if (type.icon) {
-                        <img class="type-icon" [src]="type.icon" alt="" (error)="hideImage($event)" />
-                      }
-                      {{ type.name }}</span
-                    >
-                    <span
-                      class="count"
-                      [attr.title]="
-                        type.count === 0 ? 'No duties within the level limits' : type.count + ' within the level limits'
-                      "
-                      >{{ type.count }}</span
-                    >
-                  </cdt-checkbox>
-                </li>
-              }
-            </ul>
-          </fieldset>
-
-          <fieldset class="levels" [disabled]="spinning()">
-            <legend class="xiv-label">Duty level</legend>
-            <label>
-              Minimum
-              <input
-                #minLevelInput="cdtInput"
-                cdtInput="sm"
-                type="number"
-                min="1"
-                max="100"
-                inputmode="numeric"
-                placeholder="Any"
-                [value]="settings().minLevel ?? ''"
-                (change)="setLevel('minLevel', minLevelInput.value)"
-              />
-            </label>
-            <label>
-              Maximum
-              <input
-                #maxLevelInput="cdtInput"
-                cdtInput="sm"
-                type="number"
-                min="1"
-                max="100"
-                inputmode="numeric"
-                placeholder="Any"
-                [value]="settings().maxLevel ?? ''"
-                (change)="setLevel('maxLevel', maxLevelInput.value)"
-              />
-            </label>
-          </fieldset>
-
-          @if (levelError()) {
-            <p class="warning">{{ levelError() }}</p>
-          } @else if (options().length === 0) {
-            <p class="warning">No duty matches these settings.</p>
-          }
-        </cdt-panel>
+        <cdt-roulette-settings class="settings" [disabled]="spinning()" />
 
         <cdt-panel class="stage" label="Roulette">
           <div class="reels">
@@ -141,7 +70,7 @@
               <p class="last">
                 Last result: <strong>{{ last.name }}</strong> · {{ last.mode }} ·
                 <a [href]="last.wiki" target="_blank" rel="noopener noreferrer">Wiki guide</a>
-                @if (posted(); as post) {
+                @if (store.posted(); as post) {
                   · <a [routerLink]="['/article', post.articleId]">See it in the feed</a>
                 }
               </p>
@@ -149,37 +78,7 @@
           }
         </cdt-panel>
 
-        <!-- One list per ticked type whose entries are picked one by one. -->
-        <div class="picks">
-          @for (panel of pickPanels(); track panel.type) {
-            <cdt-panel [heading]="panel.type">
-              <fieldset [disabled]="spinning()">
-                <legend class="xiv-label">{{ panel.legend }}</legend>
-                <div class="quick">
-                  <button type="button" cdtButton="chip" (click)="setAllPicks(panel.type, true)">All</button>
-                  <button type="button" cdtButton="chip" (click)="setAllPicks(panel.type, false)">None</button>
-                </div>
-                <ul class="checks pick-list">
-                  @for (option of panel.options; track option.key) {
-                    <li>
-                      <cdt-checkbox
-                        [checked]="isPicked(panel.type, option.key)"
-                        (checkedChange)="togglePick(panel.type, option.key, $event)"
-                      >
-                        <span>
-                          {{ option.name }}
-                          @if (option.detail.startsWith('Today:')) {
-                            <small class="today">{{ option.detail }}</small>
-                          }
-                        </span>
-                      </cdt-checkbox>
-                    </li>
-                  }
-                </ul>
-              </fieldset>
-            </cdt-panel>
-          }
-        </div>
+        <cdt-roulette-picks class="picks" [disabled]="spinning()" />
       </div>
     }
   }
@@ -189,8 +88,8 @@
       <cdt-duty-found
         [result]="found"
         [signedIn]="signedIn()"
-        [posting]="posting()"
-        [postError]="postError()"
+        [posting]="store.posting()"
+        [postError]="store.postError()"
         (commence)="accept($event)"
         (withdraw)="withdraw()"
         (closed)="closeResult()"

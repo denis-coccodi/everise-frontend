@@ -1,0 +1,28 @@
+@for (list of store.pickLists(); track list.type) {
+  <cdt-panel [heading]="list.type">
+    <fieldset [disabled]="disabled()">
+      <legend class="xiv-label">{{ legends[list.type] }}</legend>
+      <div class="quick">
+        <button type="button" cdtButton="chip" (click)="store.setAllPicks(list.type, true)">All</button>
+        <button type="button" cdtButton="chip" (click)="store.setAllPicks(list.type, false)">None</button>
+      </div>
+      <ul class="checks pick-list">
+        @for (option of list.options; track option.key) {
+          <li>
+            <cdt-checkbox
+              [checked]="store.isPicked(list.type, option.key)"
+              (checkedChange)="store.togglePick(list.type, option.key, $event)"
+            >
+              <span>
+                {{ option.name }}
+                @if (option.detail.startsWith('Today:')) {
+                  <small class="today">{{ option.detail }}</small>
+                }
+              </span>
+            </cdt-checkbox>
+          </li>
+        }
+      </ul>
+    </fieldset>
+  </cdt-panel>
+}

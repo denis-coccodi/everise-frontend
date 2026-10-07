@@ -1,0 +1,16 @@
+{
+  "name": "roulette-data-access",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/roulette/data-access/src",
+  "prefix": "cdt",
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/roulette/data-access"
+      }
+    }
+  }
+}
