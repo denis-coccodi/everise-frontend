@@ -4,7 +4,10 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
-import { SandsEvent, SandsLine } from '@everise/core/api-types';
+import { SandsEvent, SandsLine, SandsRoom } from '@everise/core/api-types';
+
+// The backend's limits, as GET /api/waking-sands/room sends them.
+const limits = { maxPresent: 3, maxLineLength: 1000 };
 import { API_URL, LiveUpdates } from '@everise/core/http-client';
 import { Subject } from 'rxjs';
 import { WakingSandsComponent } from './waking-sands.component';
@@ -59,7 +62,9 @@ describe('WakingSandsComponent', () => {
     fixture = TestBed.createComponent(WakingSandsComponent);
     http = TestBed.inject(HttpTestingController);
     page = fixture.nativeElement as HTMLElement;
-    http.expectOne('/api/waking-sands/room').flush({ available, characters, present, lines });
+    http
+      .expectOne('/api/waking-sands/room')
+      .flush({ available, characters, present, lines, limits } satisfies SandsRoom);
     await fixture.whenStable();
   }
 
@@ -165,7 +170,8 @@ describe('WakingSandsComponent', () => {
       characters: [TATARU, BARNABY],
       present: ['tataru'],
       lines: [mine, line('2', 'tataru', 'Tataru', 'Oh! Hello!')],
-    });
+      limits,
+    } satisfies SandsRoom);
     await fixture.whenStable();
 
     expect(script()).toEqual(['Minfilia: Hello, Tataru!', 'Tataru: Oh! Hello!']);
@@ -181,7 +187,8 @@ describe('WakingSandsComponent', () => {
       characters: [TATARU, BARNABY],
       present: ['tataru'],
       lines: [line('1', 'note', '', 'Thancred invited Tataru in.')],
-    });
+      limits,
+    } satisfies SandsRoom);
     await fixture.whenStable();
 
     expect(script()).toEqual(['(Thancred invited Tataru in.)']);

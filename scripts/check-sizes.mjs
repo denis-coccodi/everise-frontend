@@ -16,7 +16,8 @@ const LIMITS = [
 const files = [];
 const walk = (dir) => {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    // generated/: code written by a tool (npm run api-types), not by hand.
+    if (entry.name === 'node_modules' || entry.name === 'generated' || entry.name.startsWith('.')) continue;
     const path = join(dir, entry.name);
     if (entry.isDirectory()) walk(path);
     else if (!/\.spec\.ts$|test-setup\.ts$/.test(entry.name)) files.push(path);

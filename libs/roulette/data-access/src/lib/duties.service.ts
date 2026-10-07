@@ -16,7 +16,7 @@ export class DutiesService {
       // The roulette works without jobs, only without dealer's choice.
       jobs: this.apiService
         .get<JobsResponse>('/jobs')
-        .pipe(catchError(() => of<JobsResponse>({ fetchedAt: null, jobs: [] }))),
+        .pipe(catchError(() => of<JobsResponse>({ dataVersion: null, fetchedAt: null, jobs: [] }))),
     }).pipe(
       map(({ duties, roulettes, jobs }) => ({
         fetchedAt: duties.fetchedAt,

@@ -2,7 +2,9 @@
   @if (store.present().length === 0) {
     <p class="hint">No characters are in. Members can still talk, or invite someone.</p>
   } @else if (store.full()) {
-    <p class="hint">The room is full: {{ maxPresent }} characters at most. Send someone out to invite another.</p>
+    <p class="hint">
+      The room is full: {{ store.limits()?.maxPresent }} characters at most. Send someone out to invite another.
+    </p>
   }
   <ul class="cast">
     @for (character of store.characters(); track character.id) {

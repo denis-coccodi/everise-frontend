@@ -1,19 +1,5 @@
-import { Attachment } from './attachment';
-import { Profile } from './profile';
+import { Schemas } from './schemas';
 
-export interface SingleCommentResponse {
-  comment: Comment;
-}
-
-export interface MultipleCommentsResponse {
-  comments: Comment[];
-}
-
-export interface Comment {
-  id: string;
-  body: string;
-  createdAt: string;
-  author: Profile;
-  // One image, GIF or video, or null.
-  media: Attachment | null;
-}
+export type Comment = Schemas['Comment'];
+export type SingleCommentResponse = Schemas['CommentResponse'];
+export type MultipleCommentsResponse = Schemas['CommentsResponse'];

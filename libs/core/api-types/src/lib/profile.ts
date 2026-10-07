@@ -1,13 +1,5 @@
-export interface Profile {
-  // What identifies the member in links and API paths. Never their username.
-  id: string;
-  username: string;
-  bio: string;
-  image: string;
-  following: boolean;
-  loading: boolean;
-}
+import { Schemas } from './schemas';
 
-export interface ProfileResponse {
-  profile: Profile;
-}
+// A member as others see them; `id` identifies them in links and API paths.
+export type Profile = Schemas['Profile'];
+export type ProfileResponse = Schemas['ProfileResponse'];

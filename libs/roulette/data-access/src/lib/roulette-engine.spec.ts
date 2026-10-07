@@ -45,6 +45,8 @@ function duty(name: string, level: number, flags: Partial<Duty> = {}): Duty {
     pvpType: '',
     activeFrontline: false,
     roulettes: [],
+    sortKey: 0,
+    image: null,
     ...flags,
   };
 }
@@ -55,10 +57,18 @@ function roulette(id: number, name: string, level: number, flags: Partial<DutyRo
     name,
     category: '',
     dutyType: 'Dungeons',
+    expansion: '',
     level,
+    syncedFromLevel: level,
+    itemLevel: 0,
+    itemLevelSync: 0,
     joinPartyInProgress: true,
+    timeLimitMinutes: 0,
     pvp: false,
     goldSaucer: false,
+    description: '',
+    sortKey: 0,
+    image: null,
     ...flags,
   };
 }
@@ -72,16 +82,17 @@ const customMatch = duty('Crystalline Conflict (Custom Match - The Palaistra)', 
 const lovm = duty('LoVM: Master Battle', 1);
 
 const groups: DutyGroup[] = [
-  { name: 'Dungeons', order: 0, duties: [duty('Sastasha', 15), duty('the Aurum Vale', 47)] },
-  { name: 'Raids — Ultimate', order: 1, duties: [duty('the Unending Coil of Bahamut (Ultimate)', 70)] },
+  { name: 'Dungeons', order: 0, icon: null, duties: [duty('Sastasha', 15), duty('the Aurum Vale', 47)] },
+  { name: 'Raids — Ultimate', order: 1, icon: null, duties: [duty('the Unending Coil of Bahamut (Ultimate)', 70)] },
   {
     name: 'Treasure Hunt',
     order: 2,
+    icon: null,
     // Not queued through a finder; older data marks Duty Finder settings anyway.
     duties: [duty('the Excitatron 6000', 90, { finder: '', unrestrictedParty: true, minimumIL: true })],
   },
-  { name: PVP_TYPE, order: 3, duties: [sealRock, hiddenGorge, customMatch] },
-  { name: GOLD_SAUCER_TYPE, order: 4, duties: [lovm] },
+  { name: PVP_TYPE, order: 3, icon: null, duties: [sealRock, hiddenGorge, customMatch] },
+  { name: GOLD_SAUCER_TYPE, order: 4, icon: null, duties: [lovm] },
 ];
 
 const roulettes = [

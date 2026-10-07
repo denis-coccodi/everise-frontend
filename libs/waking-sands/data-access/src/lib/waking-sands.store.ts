@@ -3,7 +3,7 @@ import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthStore } from '@everise/auth/data-access';
-import { SANDS_LIMITS, SandsCharacter, SandsEvent, SandsLine, SandsRoom } from '@everise/core/api-types';
+import { SandsCharacter, SandsEvent, SandsLine, SandsRoom } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { LiveUpdates } from '@everise/core/http-client';
 import { Observable, exhaustMap, mergeMap, pipe, switchMap, tap } from 'rxjs';
@@ -15,6 +15,8 @@ interface WakingSandsState {
   characters: SandsCharacter[];
   present: string[];
   lines: SandsLine[];
+  // How many characters at once, and how long a line; null until loaded.
+  limits: SandsRoom['limits'] | null;
   // The character writing an answer right now, or null.
   writing: string | null;
   // What the member is typing, and while it's being sent.
@@ -30,6 +32,7 @@ const initialState: WakingSandsState = {
   characters: [],
   present: [],
   lines: [],
+  limits: null,
   writing: null,
   draft: '',
   sending: false,
@@ -43,7 +46,10 @@ const initialState: WakingSandsState = {
 export const WakingSandsStore = signalStore(
   withState<WakingSandsState>(initialState),
   withComputed((store, auth = inject(AuthStore)) => ({
-    full: computed(() => store.present().length >= SANDS_LIMITS.maxPresent),
+    full: computed(() => {
+      const limits = store.limits();
+      return !!limits && store.present().length >= limits.maxPresent;
+    }),
     canSend: computed(() => auth.loggedIn() && !store.sending() && !!store.draft().trim()),
     writingName: computed(() => {
       const id = store.writing();
@@ -61,6 +67,7 @@ export const WakingSandsStore = signalStore(
         available: room.available,
         characters: room.characters,
         present: room.present,
+        limits: room.limits,
         loadState: 'ready',
       });
       room.lines.forEach(addLine);

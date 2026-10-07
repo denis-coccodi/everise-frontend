@@ -6,8 +6,10 @@ import {
   LoginUserRequest,
   NewUser,
   NewUserRequest,
-  User,
+  ProvidersResponse,
+  UserChanges,
   UserResponse,
+  UserUpdate,
 } from '@everise/core/api-types';
 import { SKIP_LOGIN_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
@@ -29,12 +31,12 @@ export class AuthService {
 
   // The ways to sign in besides email and password that the backend is set
   // up for, e.g. ["google", "facebook"].
-  providers(): Observable<{ providers: string[] }> {
-    return this.apiService.get<{ providers: string[] }>('/auth/providers');
+  providers(): Observable<ProvidersResponse> {
+    return this.apiService.get<ProvidersResponse>('/auth/providers');
   }
 
-  update(user: User): Observable<UserResponse> {
-    return this.apiService.put('/user', { user });
+  update(user: UserChanges): Observable<UserResponse> {
+    return this.apiService.put<UserResponse, UserUpdate>('/user', { user });
   }
 
   // A 401 here means a wrong email or password: the page shows the message

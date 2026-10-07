@@ -8,3 +8,4 @@ export * from './lib/admin';
 export * from './lib/roulette';
 export * from './lib/live';
 export * from './lib/waking-sands';
+export * from './lib/schemas';

@@ -1,18 +1,10 @@
-export interface NewUserRequest {
-  user: NewUser;
-}
+import { Schemas } from './schemas';
 
-export interface NewUser {
-  username: string;
-  email: string;
-  password: string;
-}
+export type NewUserRequest = Schemas['NewUser'];
+export type NewUser = NewUserRequest['user'];
 
-export interface LoginUserRequest {
-  user: LoginUser;
-}
+export type LoginUserRequest = Schemas['LoginUser'];
+export type LoginUser = LoginUserRequest['user'];
 
-export interface LoginUser {
-  email: string;
-  password: string;
-}
+// The sign-in providers the backend is set up for, e.g. ["google"].
+export type ProvidersResponse = Schemas['ProvidersResponse'];

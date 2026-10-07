@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CHARACTER_LIMITS, CharacterChanges } from '@everise/core/api-types';
+import { CharacterChanges } from '@everise/core/api-types';
 import { AdminCharactersStore } from '@everise/settings/data-access';
 import {
   AvatarComponent,
@@ -43,7 +43,6 @@ export class AdminCharactersComponent {
   protected readonly store = inject(AdminCharactersStore);
 
   protected readonly pictureHint = PICTURE_HINT;
-  protected readonly limits = CHARACTER_LIMITS;
   protected readonly form = new FormGroup({
     title: new FormControl('', { nonNullable: true }),
     persona: new FormControl('', { nonNullable: true }),

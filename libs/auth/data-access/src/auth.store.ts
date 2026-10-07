@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { LoginUser, NewUser, User } from '@everise/core/api-types';
+import { LoginUser, NewUser, User, UserChanges } from '@everise/core/api-types';
 import { setLoaded, setLoading, withCallState } from '@everise/core/data-access';
 import { FormErrorsStore, serverMessage } from '@everise/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
@@ -77,7 +77,7 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
-      updateUser: rxMethod<User>(
+      updateUser: rxMethod<UserChanges>(
         pipe(
           exhaustMap((user) =>
             authService.update(user).pipe(

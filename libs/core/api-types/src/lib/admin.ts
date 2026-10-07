@@ -1,79 +1,34 @@
+import { Schemas } from './schemas';
 import { Role } from './user';
 
 // The admin's tools (GET/PUT /api/admin/...).
 
 // A member as the admin's list shows them.
-export interface Member {
-  id: string;
-  username: string;
-  email: string;
-  image: string;
-  role: Role;
-}
+export type Member = Schemas['Member'];
 
 // The roles an admin can give; admin itself comes from the backend's settings.
 export type AssignableRole = Exclude<Role, 'admin'>;
 
 // Whether the staging site's access list (Cloudflare Access) was updated.
-export interface StagingAccessResult {
-  synced: boolean;
-  message: string;
-}
+export type StagingAccessResult = Schemas['StagingAccessSync'];
 
-// A page of members.
-export interface MembersResponse {
-  users: Member[];
-  // How many members match the search, in all.
-  usersCount: number;
-  // Whether role changes reach the staging site's access list.
-  stagingAccessConnected: boolean;
-}
-
-export interface RoleChangeResponse {
-  user: Member;
-  stagingAccess: StagingAccessResult;
-}
+export type MembersResponse = Schemas['MembersResponse'];
+export type RoleChangeResponse = Schemas['RoleChangeResponse'];
 
 // A member deleted for good, with how many of their own posts and comments
 // went with them; stagingAccess is there when they were a staging tester.
-export interface MemberDeletedResponse {
-  deleted: { username: string; articles: number; comments: number };
-  stagingAccess?: StagingAccessResult;
-}
+export type MemberDeletedResponse = Schemas['MemberDeletionResponse'];
 
-export interface StagingAccessResponse {
-  stagingAccess: StagingAccessResult;
-}
+export type StagingAccessResponse = Schemas['StagingAccessResponse'];
 
 // A Waking Sands character as admins edit it: the shipped personality
-// (defaultPersona) with the admin's changes. Only Tataru has a bio: she is
-// also the account that posts guests' roulette results.
-export interface CharacterSettings {
-  id: string;
-  name: string;
-  title: string;
-  persona: string;
-  defaultPersona: string;
-  image?: string;
-  bio?: string | null;
-  edited: { title: boolean; persona: boolean };
-}
+// (defaultPersona) with the admin's changes. Only Tataru has a bio.
+export type CharacterSettings = Schemas['AdminCharacter'];
 
-export interface CharactersResponse {
-  characters: CharacterSettings[];
-}
+// The characters, and the longest title and personality the forms allow.
+export type CharactersResponse = Schemas['AdminCharactersResponse'];
 
-export interface CharacterResponse {
-  character: CharacterSettings;
-}
+export type CharacterResponse = Schemas['AdminCharacterResponse'];
 
 // What an admin changes; an empty title or persona goes back to the default.
-export interface CharacterChanges {
-  title?: string;
-  persona?: string;
-  bio?: string;
-}
-
-// The backend's limits for a character's title and personality, until the
-// API sends them.
-export const CHARACTER_LIMITS = { title: 80, persona: 4000 } as const;
+export type CharacterChanges = Schemas['CharacterUpdate']['character'];
