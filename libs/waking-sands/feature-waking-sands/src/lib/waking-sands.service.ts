@@ -1,28 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { ApiService, SandsLine } from '@realworld/core/http-client';
-
-// Someone who can be brought into the Waking Sands.
-export interface Character {
-  id: string;
-  name: string;
-  title: string;
-  image?: string;
-}
-
-// The room as the backend shows it: the characters, who's in, the day's lines.
-export interface Room {
-  available: boolean;
-  characters: Character[];
-  present: string[];
-  lines: SandsLine[];
-}
+import { SandsLine, SandsRoom } from '@realworld/core/api-types';
+import { ApiService } from '@realworld/core/http-client';
 
 @Injectable({ providedIn: 'root' })
 export class WakingSandsService {
   private readonly api = inject(ApiService);
 
   room() {
-    return this.api.get<Room>('/waking-sands/room');
+    return this.api.get<SandsRoom>('/waking-sands/room');
   }
 
   // Brings a character in, or sends them out, for everyone.

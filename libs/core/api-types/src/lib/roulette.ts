@@ -49,13 +49,13 @@ export interface DutyRoulette {
   image?: number | null;
 }
 
-export type Role = 'Tank' | 'Healer' | 'Melee DPS' | 'Physical Ranged DPS' | 'Magical Ranged DPS';
+export type JobRole = 'Tank' | 'Healer' | 'Melee DPS' | 'Physical Ranged DPS' | 'Magical Ranged DPS';
 
 export interface Job {
   id: number;
   name: string;
   abbreviation: string;
-  role: Role;
+  role: JobRole;
   startingLevel: number;
   // Blue Mage and Beastmaster, which can't queue for regular duties.
   limited: boolean;

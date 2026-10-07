@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService, AuthStore } from '@realworld/auth/data-access';
-import { FAILURE_MESSAGE, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
+import { serverMessage } from '@realworld/core/forms';
 import { ButtonComponent } from '@realworld/ui/components';
 
 type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | { kind: 'failed'; message: string };
@@ -60,14 +60,7 @@ export class ConfirmEmailComponent implements OnInit {
         this.authStore.confirmed(user);
         this.state.set({ kind: 'confirmed', username: user.username });
       },
-      error: (response: HttpErrorResponse) => {
-        const message = response.error?.errors?.body?.[0];
-        this.state.set({
-          kind: 'failed',
-          message:
-            typeof message === 'string' ? message : response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE,
-        });
-      },
+      error: (error: unknown) => this.state.set({ kind: 'failed', message: serverMessage(error) }),
     });
   }
 

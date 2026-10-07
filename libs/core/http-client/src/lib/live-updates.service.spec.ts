@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { WebSocketSubjectConfig } from 'rxjs/webSocket';
 import { API_URL } from './api-url.token';
-import { LiveEvent, LiveUpdates, SandsEvent, WEB_SOCKET, liveUrl } from './live-updates.service';
+import { ArticleCreatedEvent, SandsEvent } from '@realworld/core/api-types';
+import { LiveUpdates, WEB_SOCKET, liveUrl } from './live-updates.service';
 
 // A stand-in for the socket: what the app sent, and a way to push messages
 // through the service's deserializer, as a real socket would.
@@ -25,7 +26,7 @@ class FakeSocket extends Subject<unknown> {
 const event = {
   type: 'article-created',
   article: { id: '4f8e2c1a-0000-4000-8000-000000000001', title: 'Duty Found: Sastasha', tagList: ['roulette'] },
-} as LiveEvent;
+} as ArticleCreatedEvent;
 
 describe('liveUrl', () => {
   it('turns the API address into its WebSocket address', () => {
@@ -73,7 +74,7 @@ describe('LiveUpdates', () => {
   });
 
   it('passes events on and skips anything else, such as the heartbeat reply', () => {
-    const received: LiveEvent[] = [];
+    const received: ArticleCreatedEvent[] = [];
     live.events$.subscribe((e) => received.push(e));
 
     sockets[0].receive('pong');
@@ -94,7 +95,7 @@ describe('LiveUpdates', () => {
   });
 
   it("passes the Waking Sands room's events to its own stream, over the same socket", () => {
-    const posts: LiveEvent[] = [];
+    const posts: ArticleCreatedEvent[] = [];
     const room: SandsEvent[] = [];
     live.events$.subscribe((e) => posts.push(e));
     live.sands$.subscribe((e) => room.push(e));

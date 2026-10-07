@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ArticleResponse } from '@realworld/core/api-types';
 import { API_URL, ApiService, gameImageUrl } from '@realworld/core/http-client';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { DutyGroupsResponse, JobsResponse, RoulettePostRequest, RoulettesResponse } from './duties.models';
+import { DutyGroupsResponse, JobsResponse, RoulettePostRequest, RoulettesResponse } from '@realworld/core/api-types';
 
 @Injectable({ providedIn: 'root' })
 export class DutiesService {

@@ -9,17 +9,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { serverMessage } from '@realworld/core/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
-import { LiveUpdates, SandsLine } from '@realworld/core/http-client';
+import { SANDS_LIMITS, SandsCharacter, SandsLine } from '@realworld/core/api-types';
+import { LiveUpdates } from '@realworld/core/http-client';
 import { ButtonComponent, FieldComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
 import { Observable } from 'rxjs';
-import { Character, WakingSandsService } from './waking-sands.service';
+import { WakingSandsService } from './waking-sands.service';
 
-const MAX_LENGTH = 1000;
-// The backend lets this many characters in at once.
-const MAX_PRESENT = 3;
 // For a line whose writer had no picture (as on the rest of the site).
 const DEFAULT_PICTURE = '/assets/images/avatar-profile.png';
 
@@ -41,7 +40,7 @@ export class WakingSandsComponent {
 
   protected readonly loadState = signal<'loading' | 'ready' | 'error'>('loading');
   protected readonly available = signal(false);
-  protected readonly characters = signal<Character[]>([]);
+  protected readonly characters = signal<SandsCharacter[]>([]);
   protected readonly present = signal<string[]>([]);
   protected readonly lines = signal<SandsLine[]>([]);
   // The character writing an answer right now, or null.
@@ -50,9 +49,9 @@ export class WakingSandsComponent {
   protected readonly sending = signal(false);
   protected readonly error = signal('');
 
-  protected readonly maxLength = MAX_LENGTH;
-  protected readonly maxPresent = MAX_PRESENT;
-  protected readonly full = computed(() => this.present().length >= MAX_PRESENT);
+  protected readonly maxLength = SANDS_LIMITS.maxLineLength;
+  protected readonly maxPresent = SANDS_LIMITS.maxPresent;
+  protected readonly full = computed(() => this.present().length >= SANDS_LIMITS.maxPresent);
   protected readonly defaultPicture = DEFAULT_PICTURE;
   protected readonly canSend = computed(() => this.authStore.loggedIn() && !this.sending() && !!this.draft().trim());
   protected readonly writingName = computed(() => {
@@ -104,11 +103,11 @@ export class WakingSandsComponent {
     return line.from === 'member' && !!line.memberId && line.memberId === this.authStore.user().id;
   }
 
-  protected invite(character: Character) {
+  protected invite(character: SandsCharacter) {
     this.run(this.service.invite(character.id));
   }
 
-  protected dismiss(character: Character) {
+  protected dismiss(character: SandsCharacter) {
     this.run(this.service.dismiss(character.id));
   }
 
@@ -135,7 +134,7 @@ export class WakingSandsComponent {
       },
       error: (error: unknown) => {
         this.sending.set(false);
-        this.error.set(messageOf(error));
+        this.error.set(serverMessage(error));
       },
     });
   }
@@ -144,7 +143,7 @@ export class WakingSandsComponent {
     this.error.set('');
     request.subscribe({
       next: ({ present }) => this.present.set(present),
-      error: (error: unknown) => this.error.set(messageOf(error)),
+      error: (error: unknown) => this.error.set(serverMessage(error)),
     });
   }
 
@@ -169,13 +168,4 @@ export class WakingSandsComponent {
       lines.some((l) => l.id === line.id) ? lines : [...lines, line].sort((a, b) => a.at.localeCompare(b.at)),
     );
   }
-}
-
-// The backend's own words (a daily limit, a refused line), or an apology.
-function messageOf(error: unknown) {
-  if (error instanceof HttpErrorResponse) {
-    const message = (error.error as { errors?: { body?: string[] } } | null)?.errors?.body?.[0];
-    if (message && error.status !== 0) return message;
-  }
-  return "That didn't go through. Try again in a moment.";
 }

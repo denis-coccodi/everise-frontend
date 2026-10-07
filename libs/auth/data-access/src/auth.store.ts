@@ -6,7 +6,7 @@ import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { LoginUser, NewUser, User } from '@realworld/core/api-types';
 import { setLoaded, setLoading, withCallState } from '@realworld/core/data-access';
-import { FAILURE_MESSAGE, FormErrorsStore, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
+import { FormErrorsStore, serverMessage } from '@realworld/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
 import { AuthState, authInitialState, initialUserValue } from './auth.model';
 import { AuthService } from './services/auth.service';
@@ -104,7 +104,7 @@ export const AuthStore = signalStore(
               tapResponse({
                 next: ({ user }) => patchState(store, { user, imageBusy: false }),
                 error: (response: HttpErrorResponse) =>
-                  patchState(store, { imageBusy: false, imageError: imageErrorMessage(response) }),
+                  patchState(store, { imageBusy: false, imageError: serverMessage(response) }),
               }),
             ),
           ),
@@ -118,7 +118,7 @@ export const AuthStore = signalStore(
               tapResponse({
                 next: ({ user }) => patchState(store, { user, imageBusy: false }),
                 error: (response: HttpErrorResponse) =>
-                  patchState(store, { imageBusy: false, imageError: imageErrorMessage(response) }),
+                  patchState(store, { imageBusy: false, imageError: serverMessage(response) }),
               }),
             ),
           ),
@@ -151,10 +151,3 @@ export const AuthStore = signalStore(
   ),
   withCallState({ collection: 'getUser' }),
 );
-
-// The server's explanation of a failed picture upload, or a general one.
-function imageErrorMessage(response: HttpErrorResponse): string {
-  const message = response.error?.errors?.body?.[0];
-  if (typeof message === 'string') return message;
-  return response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE;
-}

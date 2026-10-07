@@ -1,34 +1,8 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable, Subject, defer, filter, ignoreElements, interval, merge, retry, share, tap, timer } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
-import { Article } from '@realworld/core/api-types';
+import { ArticleCreatedEvent, SandsEvent } from '@realworld/core/api-types';
 import { API_URL } from './api-url.token';
-
-// What the backend pushes on GET /api/live: a new post, as the API shows it
-// to someone who isn't signed in (favorited and author.following false).
-export type LiveEvent = {
-  type: 'article-created';
-  article: Article;
-};
-
-// A line in the Waking Sands room, as the backend lists them.
-export interface SandsLine {
-  id: string;
-  at: string;
-  // "member", "note", or the id of the character who said it.
-  from: string;
-  name: string;
-  image?: string;
-  memberId?: string;
-  text: string;
-}
-
-// What the Waking Sands room pushes: a new line, who's in the room now, and
-// which character is writing (null: nobody).
-export type SandsEvent =
-  | { type: 'sands-line'; line: SandsLine }
-  | { type: 'sands-presence'; present: string[] }
-  | { type: 'sands-writing'; character: string | null };
 
 // Keep-alive: Cloudflare closes WebSockets silent for about 100 seconds, so
 // the client says 'ping' now and then; the backend answers 'pong' without
@@ -86,7 +60,7 @@ export class LiveUpdates {
   );
 
   // New posts.
-  readonly events$: Observable<LiveEvent> = this.messages$.pipe(filter(isLiveEvent));
+  readonly events$: Observable<ArticleCreatedEvent> = this.messages$.pipe(filter(isArticleCreatedEvent));
 
   // What happens in the Waking Sands room.
   readonly sands$: Observable<SandsEvent> = this.messages$.pipe(filter(isSandsEvent));
@@ -105,12 +79,12 @@ function parseEvent(data: unknown): unknown {
   }
 }
 
-function isLiveEvent(value: unknown): value is LiveEvent {
+function isArticleCreatedEvent(value: unknown): value is ArticleCreatedEvent {
   return (
     typeof value === 'object' &&
     value !== null &&
-    (value as LiveEvent).type === 'article-created' &&
-    typeof (value as LiveEvent).article?.id === 'string'
+    (value as ArticleCreatedEvent).type === 'article-created' &&
+    typeof (value as ArticleCreatedEvent).article?.id === 'string'
   );
 }
 

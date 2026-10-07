@@ -10,7 +10,6 @@ import {
   RoleChangeResponse,
   StagingAccessResponse,
 } from '@realworld/core/api-types';
-import { FAILURE_MESSAGE, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
 import { ApiService } from '@realworld/core/http-client';
 
 // The admin's tools on the backend (/api/admin; only for admins).
@@ -55,11 +54,4 @@ export class AdminService {
   uploadCharacterPicture(id: string, picture: Blob) {
     return this.api.putFile<CharacterResponse>(`/admin/characters/${encodeURIComponent(id)}/image`, picture);
   }
-}
-
-// The server's message for a failed request, or a plain one.
-export function adminErrorMessage(response: HttpErrorResponse): string {
-  const message = response.error?.errors?.body?.[0];
-  if (typeof message === 'string') return message;
-  return response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE;
 }
