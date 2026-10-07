@@ -1,4 +1,7 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../ui/components/src/theme/breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -33,7 +36,7 @@ h1 {
   align-items: start;
 }
 
-@media (min-width: 900px) {
+@include bp.up(lg) {
   .layout {
     grid-template-columns: 300px minmax(0, 1fr);
   }

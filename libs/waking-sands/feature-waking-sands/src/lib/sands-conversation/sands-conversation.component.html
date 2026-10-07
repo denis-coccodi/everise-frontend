@@ -5,7 +5,7 @@
         <p class="note">{{ line.text }}</p>
       } @else {
         <div class="line" [class.mine]="store.isMine(line)" [class.member]="line.from === 'member'">
-          <img class="avatar" [src]="line.image || defaultPicture" alt="" width="36" height="36" />
+          <cdt-avatar [src]="line.image" [size]="36" />
           <div class="bubble">
             <span class="speaker">{{ line.name }}</span>
             <p>{{ line.text }}</p>
@@ -17,12 +17,12 @@
     }
   </div>
 
-  <p class="status" aria-live="polite">
+  <cdt-message class="status">
     @if (store.writingName(); as name) {
       {{ name }} is writing…
     }
-  </p>
-  <p class="error" role="alert">{{ store.error() }}</p>
+  </cdt-message>
+  <cdt-message class="error" tone="error">{{ store.error() }}</cdt-message>
 
   @if (signedIn()) {
     <form class="compose" (submit)="send($event)">

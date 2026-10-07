@@ -7,6 +7,7 @@ import {
   DialogComponent,
   FieldComponent,
   InputComponent,
+  MessageComponent,
   TabComponent,
   TabsComponent,
 } from '@realworld/ui/components';
@@ -28,7 +29,15 @@ const MAX_SOURCE_MB = 30;
   selector: 'cdt-image-dialog',
   templateUrl: './image-dialog.component.html',
   styleUrl: './image-dialog.component.scss',
-  imports: [ButtonComponent, DialogComponent, FieldComponent, InputComponent, TabComponent, TabsComponent],
+  imports: [
+    ButtonComponent,
+    DialogComponent,
+    FieldComponent,
+    InputComponent,
+    TabComponent,
+    TabsComponent,
+    MessageComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageDialogComponent {

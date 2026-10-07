@@ -1,0 +1,27 @@
+@use 'sass:map';
+
+// The site's screen widths, the only ones: a layout changes at one of these,
+// never at a number of its own. A component uses them with
+//   @use '<path to>/libs/ui/components/src/theme/breakpoints' as bp;
+//   @include bp.up(md) { … }
+// (mixins only: this file outputs no CSS, so using it keeps styles local).
+//   sm  576px  large phones in landscape: two-column lists
+//   md  768px  tablets: the navbar's links show, the grid's columns sit side by side
+//   lg  992px  laptops: pages with a side panel lay it out beside the content
+//   xl 1200px  wide screens: the widest container
+$widths: (
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+// From this width up.
+@mixin up($name) {
+  @if not map.has-key($widths, $name) {
+    @error 'Unknown breakpoint "#{$name}": use sm, md, lg or xl.';
+  }
+  @media (min-width: map.get($widths, $name)) {
+    @content;
+  }
+}

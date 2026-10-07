@@ -38,15 +38,6 @@
   border-bottom: var(--border-width) solid var(--color-divider);
 }
 
-.avatar {
-  flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--color-avatar);
-}
-
 .who {
   display: flex;
   flex: 1 1 10rem;
@@ -88,19 +79,4 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.status {
-  min-height: 1.5em;
-  margin: 0.5rem 0 0;
-  color: var(--color-contrast-muted);
-}
-
-.status.warning,
-.error {
-  color: var(--color-danger);
-}
-
-.error {
-  margin: 0.25rem 0 0;
 }

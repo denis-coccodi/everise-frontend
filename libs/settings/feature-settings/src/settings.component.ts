@@ -14,7 +14,13 @@ import { AuthStore } from '@realworld/auth/data-access';
 import { User } from '@realworld/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
 import { SettingsStore } from '@realworld/settings/data-access';
-import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import {
+  AvatarComponent,
+  ButtonComponent,
+  CheckboxComponent,
+  FieldComponent,
+  InputComponent,
+} from '@realworld/ui/components';
 import { AdminMembersComponent } from './admin-members/admin-members.component';
 import { AdminCharactersComponent } from './admin-characters/admin-characters.component';
 import { PictureCropDialogComponent } from './picture-crop-dialog/picture-crop-dialog.component';
@@ -37,6 +43,7 @@ import { SignInMethodsComponent } from './sign-in-methods/sign-in-methods.compon
     InputErrorsComponent,
     PictureCropDialogComponent,
     SignInMethodsComponent,
+    AvatarComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

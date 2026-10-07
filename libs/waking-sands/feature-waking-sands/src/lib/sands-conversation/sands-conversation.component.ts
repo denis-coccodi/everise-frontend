@@ -2,9 +2,15 @@ import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inje
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
 import { SANDS_LIMITS } from '@realworld/core/api-types';
-import { ButtonComponent, FieldComponent, InputComponent, PanelComponent } from '@realworld/ui/components';
+import {
+  AvatarComponent,
+  ButtonComponent,
+  FieldComponent,
+  InputComponent,
+  MessageComponent,
+  PanelComponent,
+} from '@realworld/ui/components';
 import { WakingSandsStore } from '@realworld/waking-sands/data-access';
-import { DEFAULT_PICTURE } from '../default-picture';
 
 // The conversation: the day's lines (yours on the right, other members' and
 // the characters' on the left, notes in between), who's writing, and the
@@ -13,14 +19,21 @@ import { DEFAULT_PICTURE } from '../default-picture';
   selector: 'cdt-sands-conversation',
   templateUrl: './sands-conversation.component.html',
   styleUrl: './sands-conversation.component.scss',
-  imports: [RouterLink, ButtonComponent, FieldComponent, InputComponent, PanelComponent],
+  imports: [
+    RouterLink,
+    ButtonComponent,
+    FieldComponent,
+    InputComponent,
+    PanelComponent,
+    AvatarComponent,
+    MessageComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SandsConversationComponent {
   protected readonly store = inject(WakingSandsStore);
   protected readonly signedIn = inject(AuthStore).loggedIn;
   protected readonly maxLength = SANDS_LIMITS.maxLineLength;
-  protected readonly defaultPicture = DEFAULT_PICTURE;
 
   private readonly logBox = viewChild<ElementRef<HTMLElement>>('logBox');
 

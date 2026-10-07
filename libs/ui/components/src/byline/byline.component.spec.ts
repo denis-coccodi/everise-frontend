@@ -30,7 +30,7 @@ describe('BylineComponent', () => {
     const el = (selector: string) => (fixture.nativeElement as HTMLElement).querySelector(selector) as HTMLElement;
 
     expect(el('#linked [data-testid=article-author]').getAttribute('href')).toBe('/profile/Thancred');
-    expect(el('#linked .avatar').getAttribute('src')).toBe('/a.png');
+    expect(el('#linked .avatar img').getAttribute('src')).toBe('/a.png');
     // The name link is the one to use; the avatar's would repeat it.
     expect(el('#linked .avatar-link').getAttribute('tabindex')).toBe('-1');
     expect(el('#linked .avatar-link').getAttribute('aria-hidden')).toBe('true');
@@ -39,6 +39,6 @@ describe('BylineComponent', () => {
 
     expect(el('#plain a')).toBeNull();
     expect(el('#plain .author')).toBeNull();
-    expect(el('#plain .avatar').getAttribute('src')).toBe('/b.png');
+    expect(el('#plain .avatar img').getAttribute('src')).toBe('/b.png');
   });
 });

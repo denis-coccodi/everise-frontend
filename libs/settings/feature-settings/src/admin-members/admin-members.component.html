@@ -38,7 +38,7 @@
     <ul class="members">
       @for (member of members; track member.id) {
         <li class="member">
-          <img class="avatar" [src]="member.image" alt="" width="36" height="36" />
+          <cdt-avatar [src]="member.image" [size]="36" />
           <span class="who">
             <a class="name" [routerLink]="['/profile', member.id]">{{ member.username }}</a>
             <span class="email">{{ member.email }}</span>
@@ -94,7 +94,7 @@
     {{ store.saving() === 'sync' ? 'Syncing…' : 'Sync staging access' }}
   </button>
 
-  <p class="status" [class.warning]="store.warning()" role="status">{{ store.status() }}</p>
+  <cdt-message class="status" [tone]="store.warning() ? 'warning' : 'status'">{{ store.status() }}</cdt-message>
 
   @if (confirming(); as member) {
     <cdt-dialog heading="Delete a member" (dismissed)="closeConfirmation()">
@@ -116,7 +116,5 @@
       </div>
     </cdt-dialog>
   }
-  @if (store.error(); as error) {
-    <p class="error" role="alert">{{ error }}</p>
-  }
+  <cdt-message class="error" tone="error">{{ store.error() }}</cdt-message>
 </cdt-panel>

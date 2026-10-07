@@ -3,13 +3,6 @@
   display: block;
 }
 
-.avatar {
-  flex: none;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--color-avatar);
-}
-
 // The conversation: scrolls inside, newest at the bottom.
 .log {
   display: flex;
@@ -49,11 +42,6 @@
   align-self: flex-end;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-}
-
 .bubble {
   min-width: 0;
   padding: 0.5rem 0.75rem;
@@ -89,25 +77,9 @@
   overflow-wrap: anywhere;
 }
 
-.status,
-.error {
-  min-height: 1.4em;
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
-}
-
 .status {
   color: var(--color-contrast-muted);
   font-style: italic;
-}
-
-.error {
-  color: var(--color-danger-strong);
-}
-
-.error:empty {
-  min-height: 0;
-  margin: 0;
 }
 
 .compose {

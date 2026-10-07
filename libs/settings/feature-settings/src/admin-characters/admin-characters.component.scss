@@ -30,29 +30,8 @@
   margin-bottom: 1rem;
 }
 
-.avatar {
-  flex: none;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: var(--border-width-strong) solid var(--color-border);
-  background: var(--color-avatar);
-}
-
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-}
-
-.status {
-  min-height: 1.5em;
-  margin: 0.5rem 0 0;
-  color: var(--color-contrast-muted);
-}
-
-.error {
-  margin: 0.25rem 0 0;
-  color: var(--color-danger);
 }

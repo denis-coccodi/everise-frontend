@@ -14,7 +14,7 @@
     </cdt-field>
     <cdt-attachments-editor class="media-tools" [(items)]="attachments" [max]="1" />
     <div cdtCardFooter class="footer">
-      <img [src]="currentUser().image" class="avatar" alt="" />
+      <cdt-avatar [src]="currentUser().image" [size]="30" />
       <button cdtButton size="sm" type="submit">Post Comment</button>
     </div>
   </cdt-card>

@@ -11,8 +11,8 @@
       <ul class="members">
         @for (member of widget.members; track $index) {
           <li class="member">
-            <span class="avatar">
-              <img [src]="member.avatarUrl" alt="" width="24" height="24" loading="lazy" />
+            <span class="member-avatar">
+              <cdt-avatar [src]="member.avatarUrl" [size]="24" />
               <span class="status" [attr.data-status]="member.status" aria-hidden="true"></span>
             </span>
             <span class="name">{{ member.name }}</span>

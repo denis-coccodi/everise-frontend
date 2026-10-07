@@ -1,0 +1,36 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: inline-block;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-avatar);
+  vertical-align: middle;
+}
+
+img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+:host([data-frame='soft']) {
+  border: var(--border-width) solid var(--color-border-soft);
+}
+
+:host([data-frame='line']) {
+  border: var(--border-width) solid var(--color-border);
+}
+
+:host([data-frame='strong']) {
+  border: var(--border-width-strong) solid var(--color-border);
+}
+
+:host([data-frame='highlight']) {
+  border: var(--border-width-strong) solid var(--color-primary);
+  box-shadow: var(--glow-primary);
+}

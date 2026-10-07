@@ -1,5 +1,8 @@
 // The page's layout, the reels and the result line; the settings and pick
 // lists style themselves. Role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../ui/components/src/theme/breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -57,7 +60,7 @@ h1 {
   grid-area: picks;
 }
 
-@media (min-width: 992px) {
+@include bp.up(lg) {
   .layout {
     grid-template-columns: 300px minmax(0, 1fr);
     grid-template-areas:
@@ -74,7 +77,7 @@ h1 {
   align-items: center;
 }
 
-@media (min-width: 768px) {
+@include bp.up(md) {
   .reels {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

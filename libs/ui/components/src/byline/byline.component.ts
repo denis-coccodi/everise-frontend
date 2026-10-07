@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AvatarComponent } from '../avatar/avatar.component';
 
 // Who wrote something and when: an avatar, the author's name and the date.
 // <cdt-byline [image]="a.image" [name]="a.username" [date]="createdAt"
@@ -10,7 +11,7 @@ import { RouterLink } from '@angular/router';
 // when the name is shown.
 @Component({
   selector: 'cdt-byline',
-  imports: [DatePipe, RouterLink],
+  imports: [AvatarComponent, DatePipe, RouterLink],
   template: `
     @if (link(); as link) {
       <a
@@ -20,10 +21,10 @@ import { RouterLink } from '@angular/router';
         [attr.tabindex]="name() ? -1 : null"
         [attr.aria-hidden]="name() ? 'true' : null"
       >
-        <img class="avatar" [src]="image()" [alt]="name() ? '' : 'Profile'" />
+        <cdt-avatar class="avatar" [src]="image()" [size]="32" frame="soft" [alt]="name() ? '' : 'Profile'" />
       </a>
     } @else {
-      <img class="avatar" [src]="image()" alt="" />
+      <cdt-avatar class="avatar" [src]="image()" [size]="32" frame="soft" />
     }
     <span class="info">
       @if (name()) {
