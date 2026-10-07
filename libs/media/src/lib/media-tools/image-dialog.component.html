@@ -35,12 +35,13 @@
     @case ('link') {
       <cdt-field label="Image address" for="media-link" required>
         <input
+          #linkInput="cdtInput"
           id="media-link"
           type="url"
           cdtInput
           placeholder="https://…"
           [value]="link()"
-          (input)="setLink($any($event.target).value)"
+          (input)="setLink(linkInput.value)"
         />
       </cdt-field>
       @if (linkValid()) {
@@ -52,13 +53,14 @@
     @case ('gifs') {
       <cdt-field label="Search GIFs" for="gif-search">
         <input
+          #searchInput="cdtInput"
           id="gif-search"
           type="search"
           cdtInput
           autocomplete="off"
           placeholder="Moogle, Tonberry, victory…"
           [value]="query()"
-          (input)="search($any($event.target).value)"
+          (input)="search(searchInput.value)"
         />
       </cdt-field>
       <p class="visually-hidden" role="status">
@@ -85,12 +87,13 @@
   @if (mode() !== 'gifs') {
     <cdt-field label="Description (optional)" for="media-description">
       <input
+        #descriptionInput="cdtInput"
         id="media-description"
         type="text"
         cdtInput
         maxlength="200"
         [value]="description()"
-        (input)="description.set($any($event.target).value)"
+        (input)="description.set(descriptionInput.value)"
       />
     </cdt-field>
     <p class="hint">

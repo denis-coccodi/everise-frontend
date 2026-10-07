@@ -10,9 +10,9 @@ import { ErrorHandlerStore } from './error-handler.store';
 export const SKIP_LOGIN_REDIRECT = new HttpContextToken<boolean>(() => false);
 
 export const errorHandlingInterceptor = (
-  request: HttpRequest<any>,
+  request: HttpRequest<unknown>,
   next: HttpHandlerFn,
-): Observable<HttpEvent<any>> => {
+): Observable<HttpEvent<unknown>> => {
   const errorHandlerStore = inject(ErrorHandlerStore);
 
   return next(request).pipe(

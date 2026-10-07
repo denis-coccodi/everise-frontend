@@ -11,7 +11,7 @@ import {
   SingleCommentResponse,
 } from '@realworld/core/api-types';
 import { HttpParams } from '@angular/common/http';
-import { ArticlesListConfig } from '../models/articles-list.model';
+import { ArticlesListConfig, Filters } from '../models/articles-list.model';
 
 // A comment as written: text, and at most one attachment.
 export interface NewComment {
@@ -60,8 +60,11 @@ export class ArticlesService {
     return this.apiService.put<ArticleResponse, EditArticle>('/articles/' + articleId, article);
   }
 
-  // TODO: remove any
-  private toHttpParams(params: any) {
-    return Object.getOwnPropertyNames(params).reduce((p, key) => p.set(key, params[key]), new HttpParams());
+  // The filters that are set, as query parameters.
+  private toHttpParams(filters: Filters) {
+    return Object.entries(filters).reduce(
+      (params, [key, value]) => (value === undefined ? params : params.set(key, value)),
+      new HttpParams(),
+    );
   }
 }

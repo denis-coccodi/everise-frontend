@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, model } from '@angular/core';
   selector: 'cdt-checkbox',
   template: `
     <label class="check">
-      <input type="checkbox" [checked]="checked()" (change)="checked.set($any($event.target).checked)" />
+      <input #box type="checkbox" [checked]="checked()" (change)="checked.set(box.checked)" />
       <ng-content />
     </label>
   `,

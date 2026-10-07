@@ -29,6 +29,7 @@
       "@realworld/core/error-handler": ["./libs/core/error-handler/src/index.ts"],
       "@realworld/core/forms": ["./libs/core/forms/src/index.ts"],
       "@realworld/core/http-client": ["./libs/core/http-client/src/index.ts"],
+      "@realworld/core/testing": ["./libs/core/testing/src/index.ts"],
       "@realworld/home/feature-home": ["./libs/home/feature-home/src/index.ts"],
       "@realworld/profile/data-access": ["./libs/profile/data-access/src/index.ts"],
       "@realworld/profile/feature-profile": ["./libs/profile/feature-profile/src/index.ts"],

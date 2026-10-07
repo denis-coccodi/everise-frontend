@@ -1,13 +1,14 @@
 <cdt-dialog heading="Add a YouTube video" (dismissed)="dismissed.emit()">
   <cdt-field label="YouTube link" for="youtube-link" required>
     <input
+      #linkInput="cdtInput"
       id="youtube-link"
       type="url"
       cdtInput
       autocomplete="off"
       placeholder="https://www.youtube.com/watch?v=…"
       [value]="link()"
-      (input)="link.set($any($event.target).value)"
+      (input)="link.set(linkInput.value)"
     />
   </cdt-field>
   @if (thumbnail(); as thumbnail) {

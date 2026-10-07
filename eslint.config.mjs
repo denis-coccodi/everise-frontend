@@ -22,4 +22,20 @@ export default [
   },
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
+  {
+    // No `any` outside tests: type it, or use `unknown` and narrow it.
+    files: ['**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/test-setup.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+  {
+    // Nor `$any()` in templates: read a typed template reference instead
+    // (<input #name (input)="set(name.value)">).
+    files: ['**/*.html'],
+    rules: {
+      '@angular-eslint/template/no-any': 'error',
+    },
+  },
 ];

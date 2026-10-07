@@ -24,13 +24,14 @@
     <label class="comment">
       <span class="xiv-label">Add a comment for the feed (optional)</span>
       <textarea
+        #commentInput="cdtInput"
         cdtInput
         rows="2"
         [attr.maxlength]="maxComment"
         placeholder="Wish me luck…"
         [value]="comment()"
         [disabled]="posting()"
-        (input)="comment.set($any($event.target).value)"
+        (input)="comment.set(commentInput.value)"
       ></textarea>
       <span class="count" aria-live="polite">{{ comment().length }} / {{ maxComment }}</span>
     </label>

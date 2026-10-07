@@ -83,12 +83,13 @@
               <form class="compose" (submit)="send($event)">
                 <cdt-field label="Your message" for="sands-message">
                   <textarea
+                    #messageInput="cdtInput"
                     id="sands-message"
                     cdtInput
                     rows="2"
                     [attr.maxlength]="maxLength"
                     [value]="draft()"
-                    (input)="draft.set($any($event.target).value)"
+                    (input)="draft.set(messageInput.value)"
                     (keydown.enter)="onEnter($event)"
                     placeholder="Say something… (Shift+Enter for a new line)"
                   ></textarea>

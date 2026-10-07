@@ -58,6 +58,7 @@
             <label>
               Minimum
               <input
+                #minLevelInput="cdtInput"
                 cdtInput="sm"
                 type="number"
                 min="1"
@@ -65,12 +66,13 @@
                 inputmode="numeric"
                 placeholder="Any"
                 [value]="settings().minLevel ?? ''"
-                (change)="setLevel('minLevel', $any($event.target).value)"
+                (change)="setLevel('minLevel', minLevelInput.value)"
               />
             </label>
             <label>
               Maximum
               <input
+                #maxLevelInput="cdtInput"
                 cdtInput="sm"
                 type="number"
                 min="1"
@@ -78,7 +80,7 @@
                 inputmode="numeric"
                 placeholder="Any"
                 [value]="settings().maxLevel ?? ''"
-                (change)="setLevel('maxLevel', $any($event.target).value)"
+                (change)="setLevel('maxLevel', maxLevelInput.value)"
               />
             </label>
           </fieldset>
