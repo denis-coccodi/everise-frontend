@@ -14,10 +14,10 @@
   <div class="actions">
     @if (items().length > 1) {
       <button type="button" cdtButton="outline-secondary" size="sm" (click)="step(-1)">
-        <i class="ion-chevron-left" aria-hidden="true"></i> Previous
+        <cdt-icon name="chevron-left" /> Previous
       </button>
       <button type="button" cdtButton="outline-secondary" size="sm" (click)="step(1)">
-        Next <i class="ion-chevron-right" aria-hidden="true"></i>
+        Next <cdt-icon name="chevron-right" />
       </button>
     }
     <button type="button" cdtButton="secondary" size="sm" class="close" (click)="closed.emit()">Close</button>

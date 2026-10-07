@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import { IconComponent } from '@realworld/ui/components';
 
 // A GIF that plays straight away, as on Discord, with a pause button: moving
 // pictures that go on for more than a few seconds must be stoppable. For
@@ -19,12 +20,13 @@ import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, 
     />
     <canvas #still [hidden]="!paused()" role="img" [attr.aria-label]="alt() || null" (click)="opened.emit()"></canvas>
     <button type="button" class="toggle" [attr.aria-pressed]="paused()" (click)="toggle()">
-      <i [class]="paused() ? 'ion-play' : 'ion-pause'" aria-hidden="true"></i>
+      <cdt-icon [name]="paused() ? 'play' : 'pause'" />
       <span class="visually-hidden">{{ paused() ? 'Play GIF' : 'Pause GIF' }}</span>
     </button>
     <span class="badge" aria-hidden="true">GIF</span>
   `,
   styleUrl: './gif.component.scss',
+  imports: [IconComponent],
   host: { '[class.contain]': 'contain()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

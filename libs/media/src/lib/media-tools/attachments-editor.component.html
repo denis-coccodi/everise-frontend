@@ -12,17 +12,14 @@
         <span class="controls">
           @if (max() > 1) {
             <button type="button" class="control" [disabled]="first" (click)="move($index, -1)">
-              <i class="ion-chevron-left" aria-hidden="true"></i
-              ><span class="visually-hidden">Move {{ thumbnail.label }} earlier</span>
+              <cdt-icon name="chevron-left" /><span class="visually-hidden">Move {{ thumbnail.label }} earlier</span>
             </button>
             <button type="button" class="control" [disabled]="last" (click)="move($index, 1)">
-              <i class="ion-chevron-right" aria-hidden="true"></i
-              ><span class="visually-hidden">Move {{ thumbnail.label }} later</span>
+              <cdt-icon name="chevron-right" /><span class="visually-hidden">Move {{ thumbnail.label }} later</span>
             </button>
           }
           <button type="button" class="control remove" (click)="remove($index)">
-            <i class="ion-close" aria-hidden="true"></i
-            ><span class="visually-hidden">Remove {{ thumbnail.label }}</span>
+            <cdt-icon name="close" /><span class="visually-hidden">Remove {{ thumbnail.label }}</span>
           </button>
         </span>
       </li>
@@ -32,10 +29,10 @@
 
 <div class="tools" role="group" aria-label="Attach">
   <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="full()" (click)="open.set('image')">
-    <i class="ion-image" aria-hidden="true"></i> Image or GIF
+    <cdt-icon name="image" /> Image or GIF
   </button>
   <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="full()" (click)="open.set('youtube')">
-    <i class="ion-social-youtube" aria-hidden="true"></i> YouTube video
+    <cdt-icon name="video" /> YouTube video
   </button>
   @if (max() > 1) {
     <span class="count">{{ items().length }} of {{ max() }}</span>
