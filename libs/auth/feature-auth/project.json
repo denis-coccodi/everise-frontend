@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/auth/feature-auth/src",
   "prefix": "cdt",
+  "tags": ["type:feature"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",

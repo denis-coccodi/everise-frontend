@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/core/http-client/src",
   "prefix": "cdt",
+  "tags": ["type:util"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",

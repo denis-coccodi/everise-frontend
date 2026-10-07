@@ -4,6 +4,7 @@
   "projectType": "application",
   "sourceRoot": "apps/everise/src",
   "prefix": "cdt",
+  "tags": ["type:app"],
   "generators": {
     "@nx/angular:component": {
       "style": "scss"

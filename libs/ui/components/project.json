@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/ui/components/src",
   "prefix": "cdt",
+  "tags": ["type:ui"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",
