@@ -96,9 +96,25 @@ describe('NavbarComponent', () => {
     fixture.componentRef.setInput('isLoggedIn', true);
     await fixture.whenStable();
 
-    const flat = [...panel().querySelectorAll('.narrow-only')].map((item) => item.textContent?.trim());
-    expect(flat).toEqual(['Tataru', 'Your profile', 'Settings', 'Sign out']);
-    expect(panel().querySelector('.narrow-only a[href="/profile/u1"]')).not.toBeNull();
+    const heading = panel().querySelector('button.account-heading') as HTMLButtonElement;
+    const links = panel().querySelector('#account-links') as HTMLElement;
+    expect(heading.textContent?.trim()).toBe('Tataru');
+    expect(heading.getAttribute('aria-expanded')).toBe('false');
+    expect(links.hidden).toBe(true);
+
+    heading.click();
+    await fixture.whenStable();
+    expect(heading.getAttribute('aria-expanded')).toBe('true');
+    expect(links.hidden).toBe(false);
+    const items = [...links.querySelectorAll('.nav-link')].map((item) => item.textContent?.trim());
+    expect(items).toEqual(['Your profile', 'Settings', 'Sign out']);
+    expect(links.querySelector('a[href="/profile/u1"]')).not.toBeNull();
+
+    // Closing and reopening the panel folds them again.
+    toggle().click();
+    toggle().click();
+    await fixture.whenStable();
+    expect(heading.getAttribute('aria-expanded')).toBe('false');
 
     let signedOut = false;
     component.logout.subscribe(() => (signedOut = true));
