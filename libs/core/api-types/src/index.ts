@@ -5,3 +5,6 @@ export * from './lib/profile';
 export * from './lib/comment';
 export * from './lib/auth';
 export * from './lib/admin';
+export * from './lib/roulette';
+export * from './lib/live';
+export * from './lib/waking-sands';

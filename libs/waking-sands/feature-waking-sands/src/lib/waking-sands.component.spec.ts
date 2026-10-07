@@ -4,7 +4,8 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
-import { API_URL, LiveUpdates, SandsEvent, SandsLine } from '@realworld/core/http-client';
+import { SandsEvent, SandsLine } from '@realworld/core/api-types';
+import { API_URL, LiveUpdates } from '@realworld/core/http-client';
 import { Subject } from 'rxjs';
 import { WakingSandsComponent } from './waking-sands.component';
 

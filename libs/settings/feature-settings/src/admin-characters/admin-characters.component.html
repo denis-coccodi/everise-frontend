@@ -45,7 +45,7 @@
 
       <form [formGroup]="form" (ngSubmit)="save()">
         <cdt-field label="Title" for="character-title">
-          <input id="character-title" cdtInput formControlName="title" [attr.maxlength]="maxTitle" />
+          <input id="character-title" cdtInput formControlName="title" [attr.maxlength]="limits.title" />
         </cdt-field>
         <p class="hint field-hint">Under the name in the Waking Sands. Empty goes back to the original.</p>
 
@@ -61,7 +61,7 @@
             cdtInput
             rows="12"
             formControlName="persona"
-            [attr.maxlength]="maxPersona"
+            [attr.maxlength]="limits.persona"
             aria-describedby="character-persona-hint"
           ></textarea>
         </cdt-field>

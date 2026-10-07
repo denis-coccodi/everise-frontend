@@ -73,3 +73,7 @@ export interface CharacterChanges {
   persona?: string;
   bio?: string;
 }
+
+// The backend's limits for a character's title and personality, until the
+// API sends them.
+export const CHARACTER_LIMITS = { title: 80, persona: 4000 } as const;

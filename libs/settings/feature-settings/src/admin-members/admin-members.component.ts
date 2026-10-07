@@ -13,7 +13,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AssignableRole, Member, StagingAccessResult } from '@realworld/core/api-types';
-import { AdminService, adminErrorMessage } from '@realworld/settings/data-access';
+import { serverMessage } from '@realworld/core/forms';
+import { AdminService } from '@realworld/settings/data-access';
 import {
   ButtonComponent,
   DialogComponent,
@@ -169,7 +170,7 @@ export class AdminMembersComponent {
         this.count.set(usersCount);
         this.connected.set(stagingAccessConnected);
       },
-      error: (response: HttpErrorResponse) => this.error.set(adminErrorMessage(response)),
+      error: (response: HttpErrorResponse) => this.error.set(serverMessage(response)),
     });
   }
 
@@ -187,7 +188,7 @@ export class AdminMembersComponent {
 
   private failed(response: HttpErrorResponse) {
     this.saving.set(null);
-    this.error.set(adminErrorMessage(response));
+    this.error.set(serverMessage(response));
     // The list shows what the backend has; reload it after a refusal.
     this.load();
   }

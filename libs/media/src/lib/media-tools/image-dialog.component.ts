@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, output, signal } from '@angular/core';
+import { serverMessage } from '@realworld/core/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   ButtonComponent,
@@ -146,7 +147,7 @@ export class ImageDialogComponent {
         this.gifs.update((shown) => [...shown, ...gifs]);
         this.next.set(next);
       },
-      error: (response: HttpErrorResponse) => this.failed(response),
+      error: (error: unknown) => this.failed(error),
     });
   }
 
@@ -197,21 +198,14 @@ export class ImageDialogComponent {
           height: media.height,
         });
       },
-      error: (response: HttpErrorResponse) => this.failed(response),
+      error: (error: unknown) => this.failed(error),
     });
   }
 
-  private failed(response: HttpErrorResponse) {
+  private failed(error: unknown) {
     this.busy.set(false);
     this.searching.set(false);
-    const message = response.error?.errors?.body?.[0];
-    this.error.set(
-      typeof message === 'string'
-        ? message
-        : response.status === 0
-          ? "Can't reach the server. Check your connection and try again."
-          : 'Something went wrong. Please try again in a moment.',
-    );
+    this.error.set(serverMessage(error));
   }
 
   private revokePreview() {

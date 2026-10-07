@@ -13,8 +13,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@realworld/auth/data-access';
-import { FAILURE_MESSAGE, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
-import { DutyGroup, DutyRoulette, Job, RoulettePostRequest } from './duties.models';
+import { serverMessage } from '@realworld/core/forms';
+import { DutyGroup, DutyRoulette, Job, RoulettePostRequest } from '@realworld/core/api-types';
 import { DutiesService } from './duties.service';
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { ReelComponent, ReelItem } from './reel/reel.component';
@@ -389,7 +389,7 @@ export class RouletteComponent {
         },
         error: (response: HttpErrorResponse) => {
           this.posting.set(false);
-          this.postError.set(postErrorMessage(response));
+          this.postError.set(serverMessage(response));
         },
       });
   }
@@ -476,12 +476,4 @@ function saveSettings(settings: RouletteSettings) {
   } catch {
     // Not saved; the page works the same.
   }
-}
-
-// Why posting failed: the server's message (a limit, a rejected result), or a
-// general one.
-function postErrorMessage(response: HttpErrorResponse): string {
-  const message = response.error?.errors?.body?.[0];
-  if (typeof message === 'string') return message;
-  return response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE;
 }

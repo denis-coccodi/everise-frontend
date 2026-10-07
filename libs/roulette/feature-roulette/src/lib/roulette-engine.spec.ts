@@ -1,4 +1,4 @@
-import { Duty, DutyGroup, DutyRoulette, Job } from './duties.models';
+import { Duty, DutyGroup, DutyRoulette, Job } from '@realworld/core/api-types';
 import {
   Candidate,
   DEALERS_CHOICE,

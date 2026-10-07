@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { AuthService } from '@realworld/auth/data-access';
-import { FAILURE_MESSAGE, UNREACHABLE_MESSAGE } from '@realworld/core/forms';
+import { serverMessage } from '@realworld/core/forms';
 import { ButtonComponent, PanelComponent } from '@realworld/ui/components';
 
 // "Check your email": a confirmation link went to `email`, after signing up
@@ -41,12 +41,9 @@ export class CheckEmailComponent {
         this.sending.set(false);
         this.status.set(`Sent again to ${this.email()}.`);
       },
-      error: (response: HttpErrorResponse) => {
+      error: (error: unknown) => {
         this.sending.set(false);
-        const message = response.error?.errors?.body?.[0];
-        this.status.set(
-          typeof message === 'string' ? message : response.status === 0 ? UNREACHABLE_MESSAGE : FAILURE_MESSAGE,
-        );
+        this.status.set(serverMessage(error));
       },
     });
   }

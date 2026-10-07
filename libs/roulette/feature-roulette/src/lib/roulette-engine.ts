@@ -1,4 +1,4 @@
-import { Duty, DutyGroup, DutyRoulette, Job } from './duties.models';
+import { Duty, DutyGroup, DutyRoulette, Job } from '@realworld/core/api-types';
 
 // The rules of the three-reel roulette, kept free of Angular so they can be
 // tested on their own:

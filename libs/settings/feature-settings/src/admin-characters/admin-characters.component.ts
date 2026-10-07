@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CharacterChanges, CharacterResponse, CharacterSettings } from '@realworld/core/api-types';
-import { AdminService, adminErrorMessage } from '@realworld/settings/data-access';
+import { CHARACTER_LIMITS, CharacterChanges, CharacterResponse, CharacterSettings } from '@realworld/core/api-types';
+import { serverMessage } from '@realworld/core/forms';
+import { AdminService } from '@realworld/settings/data-access';
 import {
   ButtonComponent,
   FieldComponent,
@@ -14,10 +15,6 @@ import {
 import { Observable } from 'rxjs';
 import { PictureCropDialogComponent } from '../picture-crop-dialog/picture-crop-dialog.component';
 import { PICTURE_HINT, checkChosenFile } from '../profile-picture';
-
-// The backend's limits (admin-router.ts).
-const MAX_TITLE = 80;
-const MAX_PERSONA = 4000;
 
 // For admins: the Waking Sands characters, a tab each. Each has a picture
 // (the same crop window as anyone's), a title and a personality, the
@@ -44,8 +41,7 @@ export class AdminCharactersComponent {
   private readonly admin = inject(AdminService);
 
   protected readonly pictureHint = PICTURE_HINT;
-  protected readonly maxTitle = MAX_TITLE;
-  protected readonly maxPersona = MAX_PERSONA;
+  protected readonly limits = CHARACTER_LIMITS;
   protected readonly characters = signal<CharacterSettings[] | null>(null);
   protected readonly selectedId = signal<string | null>(null);
   protected readonly selected = computed(
@@ -70,7 +66,7 @@ export class AdminCharactersComponent {
         this.characters.set(characters);
         if (characters.length) this.select(characters[0].id);
       },
-      error: (response: HttpErrorResponse) => this.error.set(adminErrorMessage(response)),
+      error: (response: HttpErrorResponse) => this.error.set(serverMessage(response)),
     });
   }
 
@@ -147,7 +143,7 @@ export class AdminCharactersComponent {
       },
       error: (response: HttpErrorResponse) => {
         this.busy.set(false);
-        this.error.set(adminErrorMessage(response));
+        this.error.set(serverMessage(response));
       },
     });
   }
