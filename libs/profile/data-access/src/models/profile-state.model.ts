@@ -1,4 +1,4 @@
-import { Profile } from '@realworld/core/api-types';
+import { Profile } from '@everise/core/api-types';
 
 export type ProfileState = Profile;
 

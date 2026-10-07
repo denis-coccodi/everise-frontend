@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { ProfileStore } from '@realworld/profile/data-access';
-import { AvatarComponent, ButtonComponent, IconComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
+import { AuthStore } from '@everise/auth/data-access';
+import { ProfileStore } from '@everise/profile/data-access';
+import { AvatarComponent, ButtonComponent, IconComponent, TabComponent, TabsComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-profile',

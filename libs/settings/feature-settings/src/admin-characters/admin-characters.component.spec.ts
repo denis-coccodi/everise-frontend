@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { CharacterSettings } from '@realworld/core/api-types';
-import { API_URL } from '@realworld/core/http-client';
+import { CharacterSettings } from '@everise/core/api-types';
+import { API_URL } from '@everise/core/http-client';
 import { AdminCharactersComponent } from './admin-characters.component';
 
 const tataru: CharacterSettings = {

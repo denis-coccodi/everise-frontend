@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, output, signal } from '@angular/core';
-import { serverMessage } from '@realworld/core/forms';
+import { serverMessage } from '@everise/core/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   ButtonComponent,
@@ -10,11 +10,11 @@ import {
   MessageComponent,
   TabComponent,
   TabsComponent,
-} from '@realworld/ui/components';
+} from '@everise/ui/components';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
 import { Gif, MediaService } from '../media.service';
 import { GIF_TOO_LARGE, MAX_UPLOAD_BYTES, canvasRenderer, fitImage } from './image-fitter';
-import { NewAttachment } from '@realworld/core/api-types';
+import { NewAttachment } from '@everise/core/api-types';
 
 type Mode = 'upload' | 'link' | 'gifs';
 

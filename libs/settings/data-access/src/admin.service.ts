@@ -9,8 +9,8 @@ import {
   MembersResponse,
   RoleChangeResponse,
   StagingAccessResponse,
-} from '@realworld/core/api-types';
-import { ApiService } from '@realworld/core/http-client';
+} from '@everise/core/api-types';
+import { ApiService } from '@everise/core/http-client';
 
 // The admin's tools on the backend (/api/admin; only for admins).
 @Injectable({ providedIn: 'root' })

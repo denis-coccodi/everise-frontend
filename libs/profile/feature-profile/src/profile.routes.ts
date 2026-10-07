@@ -1,10 +1,10 @@
 import { inject } from '@angular/core';
 import { ResolveFn, Routes } from '@angular/router';
-import { ProfileService } from '@realworld/profile/data-access';
+import { ProfileService } from '@everise/profile/data-access';
 import { map } from 'rxjs';
-import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
-import { AuthGuard } from '@realworld/auth/data-access';
-import { profileArticlesResolver, profileFavoritesResolver, profileResolver } from '@realworld/profile/data-access';
+import { ArticleListComponent } from '@everise/articles/feature-articles-list/src';
+import { AuthGuard } from '@everise/auth/data-access';
+import { profileArticlesResolver, profileFavoritesResolver, profileResolver } from '@everise/profile/data-access';
 import { ProfileComponent } from './profile.component';
 
 // The page title names the member, read from their profile: the link only

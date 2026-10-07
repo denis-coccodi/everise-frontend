@@ -1,9 +1,9 @@
-import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
+import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { AuthStore } from '@everise/auth/data-access';
+import { ButtonComponent, FieldComponent, InputComponent } from '@everise/ui/components';
 import { CheckEmailComponent } from '../check-email/check-email.component';
 import { SocialSignInComponent } from '../social-sign-in/social-sign-in.component';
 

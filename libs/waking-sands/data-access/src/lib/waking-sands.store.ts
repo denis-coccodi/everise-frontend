@@ -2,10 +2,10 @@ import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { AuthStore } from '@realworld/auth/data-access';
-import { SANDS_LIMITS, SandsCharacter, SandsEvent, SandsLine, SandsRoom } from '@realworld/core/api-types';
-import { serverMessage } from '@realworld/core/forms';
-import { LiveUpdates } from '@realworld/core/http-client';
+import { AuthStore } from '@everise/auth/data-access';
+import { SANDS_LIMITS, SandsCharacter, SandsEvent, SandsLine, SandsRoom } from '@everise/core/api-types';
+import { serverMessage } from '@everise/core/forms';
+import { LiveUpdates } from '@everise/core/http-client';
 import { Observable, exhaustMap, mergeMap, pipe, switchMap, tap } from 'rxjs';
 import { WakingSandsService } from './waking-sands.service';
 

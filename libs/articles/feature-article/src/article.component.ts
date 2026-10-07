@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, input } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { ArticleStore, NewComment } from '@realworld/articles/data-access';
+import { ArticleStore, NewComment } from '@everise/articles/data-access';
 import { ArticleMetaComponent } from './article-meta/article-meta.component';
 import { ArticleCommentComponent } from './article-comment/article-comment.component';
 import { AddCommentComponent } from './add-comment/add-comment.component';
 import { RouterLink, Router } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { API_URL, gameImageUrl } from '@realworld/core/http-client';
-import { MediaGridComponent, RichTextComponent } from '@realworld/media';
-import { BannerComponent, DutyCardComponent } from '@realworld/ui/components';
+import { AuthStore } from '@everise/auth/data-access';
+import { API_URL, gameImageUrl } from '@everise/core/http-client';
+import { MediaGridComponent, RichTextComponent } from '@everise/media';
+import { BannerComponent, DutyCardComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-article',

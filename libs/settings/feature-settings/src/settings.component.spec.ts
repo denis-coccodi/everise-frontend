@@ -2,11 +2,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { AuthStore } from '@realworld/auth/data-access';
-import { User } from '@realworld/core/api-types';
-import { API_URL } from '@realworld/core/http-client';
+import { AuthStore } from '@everise/auth/data-access';
+import { User } from '@everise/core/api-types';
+import { API_URL } from '@everise/core/http-client';
 import { provideRouter } from '@angular/router';
-import { SettingsStore } from '@realworld/settings/data-access';
+import { SettingsStore } from '@everise/settings/data-access';
 import { SettingsComponent } from './settings.component';
 
 function fakeAuthStore(user: User) {

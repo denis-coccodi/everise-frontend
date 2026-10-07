@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { WakingSandsStore } from '@realworld/waking-sands/data-access';
+import { WakingSandsStore } from '@everise/waking-sands/data-access';
 import { SandsCastComponent } from './sands-cast/sands-cast.component';
 import { SandsConversationComponent } from './sands-conversation/sands-conversation.component';
 

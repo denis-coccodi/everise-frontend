@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { SANDS_LIMITS } from '@realworld/core/api-types';
+import { AuthStore } from '@everise/auth/data-access';
+import { SANDS_LIMITS } from '@everise/core/api-types';
 import {
   AvatarComponent,
   ButtonComponent,
@@ -9,8 +9,8 @@ import {
   InputComponent,
   MessageComponent,
   PanelComponent,
-} from '@realworld/ui/components';
-import { WakingSandsStore } from '@realworld/waking-sands/data-access';
+} from '@everise/ui/components';
+import { WakingSandsStore } from '@everise/waking-sands/data-access';
 
 // The conversation: the day's lines (yours on the right, other members' and
 // the characters' on the left, notes in between), who's writing, and the

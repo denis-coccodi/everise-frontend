@@ -2,8 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { NewAttachment } from '@realworld/core/api-types';
-import { API_URL } from '@realworld/core/http-client';
+import { NewAttachment } from '@everise/core/api-types';
+import { API_URL } from '@everise/core/http-client';
 import { AttachmentsEditorComponent } from './attachments-editor.component';
 
 @Component({

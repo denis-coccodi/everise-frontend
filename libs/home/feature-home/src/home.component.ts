@@ -1,20 +1,20 @@
 import { Component, ChangeDetectionStrategy, inject, effect, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
-import { LiveUpdates } from '@realworld/core/http-client';
+import { ArticlesListStore, ListType, articlesListInitialState } from '@everise/articles/data-access';
+import { LiveUpdates } from '@everise/core/http-client';
 import {
   BannerComponent,
   CommunityLinksComponent,
   IconComponent,
   TabComponent,
   TabsComponent,
-} from '@realworld/ui/components';
+} from '@everise/ui/components';
 import { DiscordWidgetComponent } from './discord-widget/discord-widget.component';
 import { TagsListComponent } from './tags-list/tags-list.component';
-import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
+import { ArticleListComponent } from '@everise/articles/feature-articles-list/src';
 import { HomeStore } from './home.store';
 
-import { AuthStore } from '@realworld/auth/data-access';
+import { AuthStore } from '@everise/auth/data-access';
 
 @Component({
   selector: 'cdt-home',

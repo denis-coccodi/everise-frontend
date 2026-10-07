@@ -1,7 +1,7 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 import { Observable, Subject, defer, filter, ignoreElements, interval, merge, retry, share, tap, timer } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
-import { ArticleCreatedEvent, SandsEvent } from '@realworld/core/api-types';
+import { ArticleCreatedEvent, SandsEvent } from '@everise/core/api-types';
 import { API_URL } from './api-url.token';
 
 // Keep-alive: Cloudflare closes WebSockets silent for about 100 seconds, so

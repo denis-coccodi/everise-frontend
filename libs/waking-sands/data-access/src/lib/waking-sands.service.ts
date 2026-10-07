@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { SandsLine, SandsRoom } from '@realworld/core/api-types';
-import { ApiService } from '@realworld/core/http-client';
+import { SandsLine, SandsRoom } from '@everise/core/api-types';
+import { ApiService } from '@everise/core/http-client';
 
 @Injectable({ providedIn: 'root' })
 export class WakingSandsService {

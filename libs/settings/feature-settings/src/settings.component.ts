@@ -10,17 +10,17 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthStore } from '@realworld/auth/data-access';
-import { User } from '@realworld/core/api-types';
-import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
-import { SettingsStore } from '@realworld/settings/data-access';
+import { AuthStore } from '@everise/auth/data-access';
+import { User } from '@everise/core/api-types';
+import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
+import { SettingsStore } from '@everise/settings/data-access';
 import {
   AvatarComponent,
   ButtonComponent,
   CheckboxComponent,
   FieldComponent,
   InputComponent,
-} from '@realworld/ui/components';
+} from '@everise/ui/components';
 import { AdminMembersComponent } from './admin-members/admin-members.component';
 import { AdminCharactersComponent } from './admin-characters/admin-characters.component';
 import { PictureCropDialogComponent } from './picture-crop-dialog/picture-crop-dialog.component';

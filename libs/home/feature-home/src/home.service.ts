@@ -1,4 +1,4 @@
-import { ApiService } from '@realworld/core/http-client';
+import { ApiService } from '@everise/core/http-client';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 

@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { User } from '@realworld/core/api-types';
-import { AvatarComponent, IconComponent, MenuComponent, MenuItemComponent } from '@realworld/ui/components';
+import { User } from '@everise/core/api-types';
+import { AvatarComponent, IconComponent, MenuComponent, MenuItemComponent } from '@everise/ui/components';
 import { filter } from 'rxjs';
 
 // The site's top bar. On a phone (under 768 px) the links fold into a panel

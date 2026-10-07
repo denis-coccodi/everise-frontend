@@ -1,4 +1,4 @@
-import { User } from '@realworld/core/api-types';
+import { User } from '@everise/core/api-types';
 
 export type AuthState = {
   loggedIn: boolean;

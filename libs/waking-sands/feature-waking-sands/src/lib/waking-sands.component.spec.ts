@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { SandsEvent, SandsLine } from '@realworld/core/api-types';
-import { API_URL, LiveUpdates } from '@realworld/core/http-client';
+import { AuthStore } from '@everise/auth/data-access';
+import { SandsEvent, SandsLine } from '@everise/core/api-types';
+import { API_URL, LiveUpdates } from '@everise/core/http-client';
 import { Subject } from 'rxjs';
 import { WakingSandsComponent } from './waking-sands.component';
 

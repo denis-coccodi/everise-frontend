@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Article } from '@realworld/core/api-types';
-import { API_URL } from '@realworld/core/http-client';
+import { Article } from '@everise/core/api-types';
+import { API_URL } from '@everise/core/http-client';
 import { ArticlesListStore } from './articles-list.store';
 import { ArticlesListConfig, articlesListInitialState } from './models/articles-list.model';
 

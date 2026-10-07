@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
 import { of } from 'rxjs';
-import { ArticlesListStore, articlesListInitialState } from '@realworld/articles/data-access';
+import { ArticlesListStore, articlesListInitialState } from '@everise/articles/data-access';
 
 export const profileFavoritesResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
   const id = route?.parent?.params['id'];

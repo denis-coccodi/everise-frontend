@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
-import { Attachment } from '@realworld/core/api-types';
-import { ButtonComponent, DialogComponent, IconComponent } from '@realworld/ui/components';
+import { Attachment } from '@everise/core/api-types';
+import { ButtonComponent, DialogComponent, IconComponent } from '@everise/ui/components';
 import { GifComponent } from './gif.component';
 
 // The post's images and GIFs, one at a time and as large as the screen

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
-import { Attachment } from '@realworld/core/api-types';
+import { Attachment } from '@everise/core/api-types';
 import { YouTubeVideo } from '../youtube';
 import { YouTubeEmbedComponent } from '../youtube-embed/youtube-embed.component';
 import { GifComponent } from './gif.component';

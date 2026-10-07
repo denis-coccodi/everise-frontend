@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { API_URL } from '@realworld/core/http-client';
-import { RouletteStore } from '@realworld/roulette/data-access';
+import { API_URL } from '@everise/core/http-client';
+import { RouletteStore } from '@everise/roulette/data-access';
 import { RouletteComponent } from './roulette.component';
 
 describe('RouletteComponent', () => {

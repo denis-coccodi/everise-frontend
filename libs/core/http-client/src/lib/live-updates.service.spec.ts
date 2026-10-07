@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { WebSocketSubjectConfig } from 'rxjs/webSocket';
 import { API_URL } from './api-url.token';
-import { ArticleCreatedEvent, SandsEvent } from '@realworld/core/api-types';
+import { ArticleCreatedEvent, SandsEvent } from '@everise/core/api-types';
 import { LiveUpdates, WEB_SOCKET, liveUrl } from './live-updates.service';
 
 // A stand-in for the socket: what the app sent, and a way to push messages

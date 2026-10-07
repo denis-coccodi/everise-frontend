@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
-import { AuthService } from '@realworld/auth/data-access';
-import { serverMessage } from '@realworld/core/forms';
-import { ButtonComponent, MessageComponent, PanelComponent } from '@realworld/ui/components';
+import { AuthService } from '@everise/auth/data-access';
+import { serverMessage } from '@everise/core/forms';
+import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/components';
 
 // "Check your email": a confirmation link went to `email`, after signing up
 // or signing in before opening it. It can be sent again; the backend allows

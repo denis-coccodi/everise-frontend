@@ -1,15 +1,15 @@
 import { Component, ChangeDetectionStrategy, output, input, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { Article } from '@realworld/core/api-types';
-import { API_URL, gameImageUrl } from '@realworld/core/http-client';
+import { Article } from '@everise/core/api-types';
+import { API_URL, gameImageUrl } from '@everise/core/http-client';
 import {
   ButtonComponent,
   BylineComponent,
   DutyCardComponent,
   IconComponent,
   TagComponent,
-} from '@realworld/ui/components';
-import { MediaGridComponent } from '@realworld/media';
+} from '@everise/ui/components';
+import { MediaGridComponent } from '@everise/media';
 @Component({
   selector: 'cdt-article-list-item',
   templateUrl: './article-list-item.component.html',

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteStore } from '@realworld/roulette/data-access';
-import { ButtonComponent, CheckboxComponent, PanelComponent } from '@realworld/ui/components';
+import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteStore } from '@everise/roulette/data-access';
+import { ButtonComponent, CheckboxComponent, PanelComponent } from '@everise/ui/components';
 
 // The explanation above each picked type's list.
 const LEGENDS: Record<string, string> = {

@@ -2,8 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Member } from '@realworld/core/api-types';
-import { API_URL } from '@realworld/core/http-client';
+import { Member } from '@everise/core/api-types';
+import { API_URL } from '@everise/core/http-client';
 import { AdminMembersComponent } from './admin-members.component';
 
 const members: Member[] = [
