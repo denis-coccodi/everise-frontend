@@ -1,0 +1,136 @@
+// The page's layout, the reels and the result line; the settings and pick
+// lists style themselves. Role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.roulette-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.hero-crystal {
+  width: 22px;
+  fill: var(--color-crystal);
+  filter: drop-shadow(var(--glow-crystal));
+  animation: float 3s ease-in-out infinite;
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+.hero p,
+.notice {
+  color: var(--color-contrast-muted);
+  text-align: center;
+}
+
+// Phones: the reels first, then the Duty Finder settings, then the pick
+// lists. Wide screens: duty types on the left; reels with the pick lists
+// under them on the right. The page's order (settings, reels, lists) stays
+// the keyboard's and screen readers' order: set up, then spin.
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'stage' 'settings' 'picks';
+  align-items: start;
+}
+
+.settings {
+  grid-area: settings;
+}
+
+.stage {
+  grid-area: stage;
+}
+
+.picks {
+  grid-area: picks;
+}
+
+@include bp.up(lg) {
+  .layout {
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-areas:
+      'settings stage'
+      'settings picks';
+    grid-template-rows: auto 1fr;
+  }
+}
+
+.reels {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+@include bp.up(md) {
+  .reels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.step {
+  position: relative;
+  padding-top: 1.25rem;
+}
+
+.step-number {
+  position: absolute;
+  top: -0.4rem;
+  left: 0;
+  z-index: 1;
+  font-family: var(--font-display);
+  color: var(--color-primary);
+}
+
+.commence {
+  display: block;
+  margin: 1.75rem auto 0.5rem;
+}
+
+.status,
+.last {
+  min-height: 1.5em;
+  margin: 0;
+  text-align: center;
+  color: var(--color-contrast-muted);
+}
+
+.motion {
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
+
+.hero-crystal.paused {
+  animation: none;
+}
+
+.last strong {
+  color: var(--color-primary-strong);
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-crystal {
+    animation: none;
+  }
+}

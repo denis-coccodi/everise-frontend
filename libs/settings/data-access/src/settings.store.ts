@@ -1,6 +1,6 @@
 import { DOCUMENT, effect, inject } from '@angular/core';
 import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals';
-import { SettingsState, settingsInitialState } from './models/settings.model';
+import { SettingsState, settingsInitialState } from './settings.model';
 
 // The theme is dark by default; Dark Mode off switches to the light theme
 // (body.light, see the theme's tokens). A signed-in user's choice is saved

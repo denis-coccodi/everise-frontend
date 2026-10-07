@@ -1,7 +1,7 @@
 import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ErrorHandlerState, errorHandlerInitialState } from './models/error-handler.state';
+import { ErrorHandlerState, errorHandlerInitialState } from './error-handler.state';
 import { HttpErrorResponse } from '@angular/common/http';
 
 export const ErrorHandlerStore = signalStore(

@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Article } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
 import { ArticlesListStore } from './articles-list.store';
-import { ArticlesListConfig, articlesListInitialState } from './models/articles-list.model';
+import { ArticlesListConfig, articlesListInitialState } from './articles-list.model';
 
 const post = (id: string, tagList: string[] = []) => ({ id, title: id, tagList }) as unknown as Article;
 

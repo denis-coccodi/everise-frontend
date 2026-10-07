@@ -1,1 +1,1 @@
-export * from './lib/roulette.component';
+export * from './lib/roulette/roulette.component';

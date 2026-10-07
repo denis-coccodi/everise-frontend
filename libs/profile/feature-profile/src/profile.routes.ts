@@ -2,10 +2,10 @@ import { inject } from '@angular/core';
 import { ResolveFn, Routes } from '@angular/router';
 import { ProfileService } from '@everise/profile/data-access';
 import { map } from 'rxjs';
-import { ArticleListComponent } from '@everise/articles/feature-articles-list/src';
+import { ArticleListComponent } from '@everise/articles/articles-list';
 import { AuthGuard } from '@everise/auth/data-access';
 import { profileArticlesResolver, profileFavoritesResolver, profileResolver } from '@everise/profile/data-access';
-import { ProfileComponent } from './profile.component';
+import { ProfileComponent } from './profile/profile.component';
 
 // The page title names the member, read from their profile: the link only
 // has their id.

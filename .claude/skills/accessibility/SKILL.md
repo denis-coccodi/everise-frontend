@@ -28,7 +28,7 @@ Every frontend change keeps the site **WCAG 2.2 level AA** compliant, in **both 
 
 - Every form field has a label: `<cdt-field label="…" for="id">` (`hideLabel` only when the context already says it). Placeholders are hints, not labels. Required fields use `required`; sign-in and profile fields have `autocomplete`.
 - Invalid fields get `aria-invalid` (`cdtInput` does it inside a form), and errors are announced (`<cdt-input-errors>`, `<cdt-list-errors>`).
-- Icons (`<cdt-icon>`, hidden from screen readers on its own) and decorative images (`alt=""`) say nothing; an icon-only button has an `aria-label` that also says its value ("Favorite, 7 favorites"). Toggle buttons use `aria-pressed`; the current tab, page or link uses `aria-current`.
+- Icons (`<cdt-icon>`, hidden from screen readers on its own) and decorative images (`alt=""`) say nothing; an icon-only button has an `aria-label` that also says its value ("Favorite, 7 favorites"). Toggle buttons use `aria-pressed`; an on/off setting is a `<cdt-switch>` (a button with `role="switch"` and `aria-checked`, named by its label); the current tab, page or link uses `aria-current`.
 - Images that carry meaning have an `alt` saying what they show; an avatar next to the person's name is decorative.
 - Don't repeat the same link twice in a row (the byline's avatar link is hidden because the name links to the same place).
 - Changes that happen without the person moving (a status, a result, a new post) go to a live region: `aria-live="polite"`, or `role="alert"` for errors. The region exists before the message appears.
@@ -48,7 +48,7 @@ Every frontend change keeps the site **WCAG 2.2 level AA** compliant, in **both 
 
 ## Building blocks first
 
-The UI library already does most of this; use it rather than rebuilding: `cdtButton`, `cdtInput`, `<cdt-field>`, `<cdt-checkbox>`, `<cdt-dialog>`, `<cdt-menu>`, `cdtTabs`/`cdtTab` (links for pages, buttons for views), `cdtTag` (a button to pick), `<cdt-pager>`, `<cdt-byline>`, `.visually-hidden`. A new kind of control goes into the UI library with its keyboard support and a spec that checks its roles, names and keys.
+The UI library already does most of this; use it rather than rebuilding: `cdtButton`, `cdtInput`, `<cdt-field>`, `<cdt-checkbox>`, `<cdt-switch>`, `<cdt-dialog>`, `<cdt-menu>`, `cdtTabs`/`cdtTab` (links for pages, buttons for views), `cdtTag` (a button to pick), `<cdt-pager>`, `<cdt-byline>`, `.visually-hidden`. A new kind of control goes into the UI library with its keyboard support and a spec that checks its roles, names and keys.
 
 ## Checking a change
 

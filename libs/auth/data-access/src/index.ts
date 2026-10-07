@@ -1,4 +1,4 @@
-export * from './services/auth-guard';
+export * from './auth-guard';
 
 export { AuthStore } from './auth.store';
-export { AuthService } from './services/auth.service';
+export { AuthService } from './auth.service';

@@ -9,7 +9,7 @@ import { setLoaded, setLoading, withCallState } from '@everise/core/data-access'
 import { FormErrorsStore, serverMessage } from '@everise/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
 import { AuthState, authInitialState, initialUserValue } from './auth.model';
-import { AuthService } from './services/auth.service';
+import { AuthService } from './auth.service';
 
 export const AuthStore = signalStore(
   { providedIn: 'root' },

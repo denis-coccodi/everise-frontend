@@ -1,0 +1,85 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+.picture {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.picture-controls h2 {
+  margin: 0 0 0.5rem;
+}
+
+// The native file input stays in the page for forms and screen readers, but
+// is opened by the "Choose a picture" button.
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.picture-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+.picture-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-danger);
+}
+
+// Appearance: a group in the form, labelled like the fields above it.
+.appearance {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.appearance .hint {
+  margin-top: 0.25rem;
+}
+
+// The switch row's padding sits outside the column, so its label lines up
+// with the legend and the hint.
+.appearance cdt-switch {
+  margin-inline: -0.6rem;
+}
+
+.role-note {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  color: var(--color-contrast-muted);
+}
+
+// The admin's windows, under the form.
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+// A new email address waiting for its link.
+.pending-email {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast-soft);
+}

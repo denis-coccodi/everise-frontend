@@ -1,1 +1,1 @@
-export * from './lib/waking-sands.component';
+export * from './lib/waking-sands/waking-sands.component';

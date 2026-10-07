@@ -28,7 +28,7 @@ Changes reach `main` through pull requests (see the `feature-branch` skill). Mer
 
 `.github/workflows/ci-cd.yaml` (**CI/CD**: push to `main`, PRs, and `workflow_dispatch` on any branch):
 
-- **test**: `npm ci`, `nx run-many -t lint test`, then the `production` and `staging` builds. This is the required check on `main` and, through the ruleset, on every branch.
+- **test**: `npm ci`, the size and structure checks (`scripts/check-sizes.mjs`, `scripts/check-structure.mjs`), `nx run-many -t lint test`, then the `production` and `staging` builds. This is the required check on `main` and, through the ruleset, on every branch.
 - **deploy-staging** (after test, on push to `main` or a manual run): builds with `--configuration=staging`, deploys staging with message `<branch>@<sha>`, runs `scripts/smoke.sh create` against it, writes a summary (on `main`, with a link to the production workflow). Job-level `concurrency: deploy-staging` serializes deploys.
 - Deploy another branch to staging: `gh workflow run ci-cd.yaml --ref <branch>`. There is one staging Worker, so this replaces what is there until the next merge to `main`. Tell the user which branch staging is now running.
 
@@ -39,7 +39,7 @@ Changes reach `main` through pull requests (see the `feature-branch` skill). Mer
 
 Production deploys are the user's decision: they start it from Actions → Deploy production → **Run workflow**. Only start it yourself (`gh workflow run deploy-production.yaml --ref main`) when the user explicitly asks for a production deploy, and only after the commit's CI/CD run is green.
 
-Before pushing, run `npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` locally; it must exit 0.
+Before pushing, run `node scripts/check-sizes.mjs && node scripts/check-structure.mjs && npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` locally; it must exit 0.
 
 After merging, wait for the run on `main` and report each job:
 

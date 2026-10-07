@@ -1,0 +1,150 @@
+<div class="settings-page">
+  <div class="container page">
+    <div class="row">
+      <div class="col-md-6 offset-md-3 col-xs-12">
+        <h1 class="text-xs-center">Your Settings</h1>
+        @if (authStore.user().role === 'staging-tester') {
+          <p class="role-note">
+            You're a staging tester: you can open
+            <a href="https://staging.everise.dev" target="_blank" rel="noopener noreferrer"
+              >the staging site<span class="visually-hidden"> (opens in a new tab)</span></a
+            >
+            to try changes before they go live, signing in with this account's email.
+          </p>
+        }
+
+        <!-- The profile picture: chosen in the browser's file window and uploaded right away. -->
+        <section class="picture" aria-labelledby="picture-heading">
+          <cdt-avatar [src]="authStore.user().image" alt="Your profile picture" [size]="96" frame="strong" />
+          <div class="picture-controls">
+            <h2 id="picture-heading" class="xiv-label">Profile picture</h2>
+            <input
+              #pictureInput
+              type="file"
+              class="file-input"
+              tabindex="-1"
+              aria-label="Profile picture file"
+              accept="image/*"
+              (change)="onPictureChosen(pictureInput)"
+            />
+            <div class="picture-buttons">
+              <button
+                #chooseButton
+                type="button"
+                cdtButton="outline-primary"
+                size="sm"
+                [disabled]="authStore.imageBusy()"
+                (click)="pictureInput.click()"
+              >
+                {{ authStore.imageBusy() ? 'Saving…' : 'Choose a picture' }}
+              </button>
+              @if (hasOwnPicture()) {
+                <button
+                  type="button"
+                  cdtButton="outline-secondary"
+                  size="sm"
+                  [disabled]="authStore.imageBusy()"
+                  (click)="removePicture()"
+                >
+                  Remove
+                </button>
+              }
+            </div>
+            <p class="hint">{{ pictureHint }}</p>
+            @if (authStore.imageError(); as error) {
+              <p class="picture-error" role="alert">{{ error }}</p>
+            }
+          </div>
+        </section>
+
+        <cdt-sign-in-methods />
+
+        @if (cropping(); as file) {
+          <cdt-picture-crop-dialog [file]="file" (chosen)="onCropped($event)" (cancelled)="closeCropDialog()" />
+        }
+
+        <cdt-list-errors />
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <cdt-field label="Username" for="username" required>
+            <input
+              formControlName="username"
+              type="text"
+              id="username"
+              autocomplete="username"
+              placeholder="Your Name"
+              cdtInput="lg"
+            />
+            <cdt-input-errors [control]="form.controls.username" />
+          </cdt-field>
+          <cdt-field label="Bio" for="bio">
+            <textarea
+              cdtInput="lg"
+              rows="5"
+              id="bio"
+              formControlName="bio"
+              placeholder="Short bio about you"
+            ></textarea>
+          </cdt-field>
+          <cdt-field label="Email" for="email" required>
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              autocomplete="email"
+              placeholder="Email"
+              cdtInput="lg"
+            />
+            <cdt-input-errors [control]="form.controls.email" />
+            @if (authStore.user().pendingEmail; as pending) {
+              <p class="pending-email" role="status">
+                We sent a link to <strong>{{ pending }}</strong
+                >. Your email changes to it once you open the link; until then, sign in with this one.
+              </p>
+            }
+          </cdt-field>
+          <cdt-field label="New password" for="password">
+            <input
+              formControlName="password"
+              type="password"
+              id="password"
+              placeholder="New password (leave empty to keep yours)"
+              autocomplete="new-password"
+              cdtInput="lg"
+            />
+            <cdt-input-errors [control]="form.controls.password" />
+          </cdt-field>
+          <!-- Saved with the rest; previewed as soon as it changes. -->
+          <fieldset class="appearance">
+            <legend class="legend">Appearance</legend>
+            <cdt-switch
+              [checked]="form.controls.darkMode.value"
+              (checkedChange)="previewDarkMode($event)"
+              onIcon="moon"
+              offIcon="sun"
+            >
+              Dark mode
+            </cdt-switch>
+            <p class="hint">On: night-blue windows and crystal light. Off: Final Fantasy white.</p>
+          </fieldset>
+          <button
+            data-testid="edit-button-container"
+            cdtButton
+            size="lg"
+            [disabled]="form.invalid || form.pending"
+            type="submit"
+          >
+            Update Settings
+          </button>
+        </form>
+
+        <!-- Admins only (the backend checks too): the Waking Sands characters (Tataru among them) and the members' roles. -->
+        @if (authStore.user().role === 'admin') {
+          <div class="admin">
+            <cdt-admin-characters />
+            <cdt-admin-members />
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

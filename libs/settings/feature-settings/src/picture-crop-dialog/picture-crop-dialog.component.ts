@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { ButtonComponent, DialogComponent, ImageCropperComponent, SquareCrop } from '@everise/ui/components';
-import { canvasRenderer, encodePicture } from '../picture-encoder';
+import { canvasRenderer, encodePicture } from '../profile-picture/picture-encoder';
 
 // The window shown after a picture is chosen: the person picks the square to
 // use, and "Use this picture" hands over the result, cropped, resized and
