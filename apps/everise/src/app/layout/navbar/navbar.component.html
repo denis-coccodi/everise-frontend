@@ -4,7 +4,9 @@
       ><img class="crest" src="assets/images/everise-crest.png" alt="" width="32" height="32" />everise</a
     >
 
-    <!-- On a phone the links fold into this button's panel. -->
+    <!-- On a phone the links fold into this button's panel. The pages have an
+         icon each; the account's links (sign in, sign up, profile, settings)
+         are words only. -->
     <button
       #toggle
       type="button"
@@ -20,17 +22,19 @@
     <div id="site-menu" class="menu" [class.open]="open()">
       <ul class="nav navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <cdt-icon name="shuffle" />&nbsp;Roulette
+          <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <cdt-icon name="home" />Home
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/waking-sands" routerLinkActive="active" ariaCurrentWhenActive="page"
-            >The Waking Sands</a
-          >
+          <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <cdt-icon name="shuffle" />Roulette
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/waking-sands" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <cdt-icon name="chat" />The Waking Sands
+          </a>
         </li>
         @if (!isLoggedIn()) {
           <li class="nav-item">
@@ -44,7 +48,7 @@
         } @else {
           <li class="nav-item">
             <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
-              <cdt-icon name="compose" />&nbsp;New Post
+              <cdt-icon name="compose" />New Post
             </a>
           </li>
           <!-- The account menu: the user's own pages and signing out. -->

@@ -9,11 +9,11 @@
 
   <span [hidden]="!canModify()">
     <a cdtButton="outline-secondary" size="sm" [routerLink]="['/editor', article().id]">
-      <i class="ion-edit" aria-hidden="true"></i> Edit Article
+      <cdt-icon name="edit" /> Edit Article
     </a>
 
     <button cdtButton="outline-danger" size="sm" (click)="deleteArticle()">
-      <i class="ion-trash-a" aria-hidden="true"></i> Delete Article
+      <cdt-icon name="trash" /> Delete Article
     </button>
   </span>
 
@@ -24,13 +24,13 @@
       class="action-btn"
       (click)="toggleFollow()"
     >
-      <i class="ion-plus-round" aria-hidden="true"></i>
+      <cdt-icon name="plus" />
       &nbsp; {{ article().author.following ? 'Unfollow' : 'Follow' }}
       {{ article().author.username }}
     </button>
     &nbsp;&nbsp;
     <button [cdtButton]="article().favorited ? 'primary' : 'outline-primary'" size="sm" (click)="toggleFavorite()">
-      <i class="ion-heart" aria-hidden="true"></i>
+      <cdt-icon name="heart" />
       &nbsp; {{ article().favorited ? 'Unfavorite' : 'Favorite' }} Post
       <span class="counter">({{ article().favoritesCount }})</span>
     </button>

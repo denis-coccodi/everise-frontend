@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { IconComponent, IconName } from './icon.component';
+import { ICON_NAMES, IconComponent, IconName } from './icon.component';
 
 @Component({
   imports: [IconComponent],
@@ -28,12 +28,12 @@ describe('IconComponent', () => {
     expect(icon.querySelector('path')?.getAttribute('d')).not.toBe(menu);
   });
 
-  it.each<IconName>(['menu', 'close', 'shuffle', 'compose'])('has a drawing for "%s"', async (name) => {
+  it.each<IconName>([...ICON_NAMES])('has a drawing for "%s"', async (name) => {
     await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.name.set(name);
     await fixture.whenStable();
 
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('cdt-icon path').length).toBeGreaterThan(0);
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('cdt-icon svg > *').length).toBeGreaterThan(0);
   });
 });

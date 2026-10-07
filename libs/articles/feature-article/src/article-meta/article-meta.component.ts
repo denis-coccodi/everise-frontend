@@ -1,12 +1,12 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Article } from '@realworld/core/api-types';
-import { BylineComponent, ButtonComponent } from '@realworld/ui/components';
+import { ButtonComponent, BylineComponent, IconComponent } from '@realworld/ui/components';
 @Component({
   selector: 'cdt-article-meta',
   templateUrl: './article-meta.component.html',
   styleUrl: './article-meta.component.scss',
-  imports: [BylineComponent, ButtonComponent, RouterModule],
+  imports: [BylineComponent, ButtonComponent, RouterModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleMetaComponent {

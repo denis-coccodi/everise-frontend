@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
 import { NewAttachment } from '@realworld/core/api-types';
-import { ButtonComponent } from '@realworld/ui/components';
+import { ButtonComponent, IconComponent } from '@realworld/ui/components';
 import { youTubeVideo } from '../youtube';
 import { ImageDialogComponent } from './image-dialog.component';
 import { YouTubeDialogComponent } from './youtube-dialog.component';
@@ -12,7 +12,7 @@ import { YouTubeDialogComponent } from './youtube-dialog.component';
   selector: 'cdt-attachments-editor',
   templateUrl: './attachments-editor.component.html',
   styleUrl: './attachments-editor.component.scss',
-  imports: [ButtonComponent, ImageDialogComponent, YouTubeDialogComponent],
+  imports: [ButtonComponent, ImageDialogComponent, YouTubeDialogComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AttachmentsEditorComponent {
