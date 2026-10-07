@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/roulette/feature-roulette/src",
   "prefix": "cdt",
+  "tags": ["type:feature"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",

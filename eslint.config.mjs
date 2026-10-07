@@ -10,11 +10,39 @@ export default [
         {
           enforceBuildableLibDependency: true,
           allow: [],
+          // Each project's type (its project.json tag) says what it may use:
+          // a page (feature) never imports another page, data never imports
+          // components, and the shared building blocks import neither.
+          // Every project's test setup uses type:testing.
           depConstraints: [
             {
-              sourceTag: '*',
-              onlyDependOnLibsWithTags: ['*'],
+              sourceTag: 'type:app',
+              onlyDependOnLibsWithTags: [
+                'type:feature',
+                'type:widget',
+                'type:data-access',
+                'type:ui',
+                'type:util',
+                'type:testing',
+              ],
             },
+            { sourceTag: 'type:e2e', onlyDependOnLibsWithTags: ['type:app'] },
+            {
+              sourceTag: 'type:feature',
+              onlyDependOnLibsWithTags: ['type:widget', 'type:data-access', 'type:ui', 'type:util', 'type:testing'],
+            },
+            {
+              // A widget may build on another (the articles list shows post media).
+              sourceTag: 'type:widget',
+              onlyDependOnLibsWithTags: ['type:widget', 'type:data-access', 'type:ui', 'type:util', 'type:testing'],
+            },
+            {
+              sourceTag: 'type:data-access',
+              onlyDependOnLibsWithTags: ['type:data-access', 'type:util', 'type:testing'],
+            },
+            { sourceTag: 'type:ui', onlyDependOnLibsWithTags: ['type:ui', 'type:util', 'type:testing'] },
+            { sourceTag: 'type:util', onlyDependOnLibsWithTags: ['type:util', 'type:testing'] },
+            { sourceTag: 'type:testing', onlyDependOnLibsWithTags: [] },
           ],
         },
       ],
