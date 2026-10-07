@@ -26,7 +26,7 @@ import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/c
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { wait } from './motion';
 import { ReelComponent, ReelItem } from './reel/reel.component';
-import { Day, bannerOf, dutyItem, jobItem, modeItem, toResult, typeItem } from './reel-items';
+import { Day, bannerOf, dutyItem, jobItem, modeItem, toResult, toSpunCandidate, typeItem } from './reel-items';
 import { RoulettePicksComponent } from './roulette-picks/roulette-picks.component';
 import { RouletteSettingsComponent } from './roulette-settings/roulette-settings.component';
 
@@ -197,10 +197,4 @@ export class RouletteComponent {
   private dutyItem(candidate: Candidate, type: string): ReelItem {
     return dutyItem(candidate, this.day(), this.store.typeIcons().get(type));
   }
-}
-
-function toSpunCandidate(candidate: Candidate): RoulettePostRequest['result']['candidate'] {
-  return candidate.kind === 'duty'
-    ? { kind: 'duty', id: candidate.duty.id }
-    : { kind: 'roulette', id: candidate.roulette.id };
 }

@@ -1,7 +1,7 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, output, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NewAttachment } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   ButtonComponent,
   DialogComponent,
@@ -11,20 +11,18 @@ import {
   TabComponent,
   TabsComponent,
 } from '@everise/ui/components';
-import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
 import { Gif, MediaService } from '../media.service';
+import { GifPickerComponent } from './gif-picker.component';
 import { GIF_TOO_LARGE, MAX_UPLOAD_BYTES, canvasRenderer, fitImage } from './image-fitter';
-import { NewAttachment } from '@everise/core/api-types';
 
 type Mode = 'upload' | 'link' | 'gifs';
 
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
-const SEARCH_DELAY_MS = 400;
 // Bigger files aren't worth decoding in the browser to shrink.
 const MAX_SOURCE_MB = 30;
 
-// "Add an image or GIF": upload one, link to one, or pick a GIF from GIPHY.
-// Emits the attachment.
+// "Add an image or GIF": upload one, link to one, or pick a GIF from GIPHY
+// (cdt-gif-picker). Emits the attachment.
 @Component({
   selector: 'cdt-image-dialog',
   templateUrl: './image-dialog.component.html',
@@ -33,10 +31,11 @@ const MAX_SOURCE_MB = 30;
     ButtonComponent,
     DialogComponent,
     FieldComponent,
+    GifPickerComponent,
     InputComponent,
+    MessageComponent,
     TabComponent,
     TabsComponent,
-    MessageComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -62,51 +61,18 @@ export class ImageDialogComponent {
   private readonly linkedSize = signal<{ width: number; height: number } | null>(null);
   protected readonly linkValid = computed(() => /^https:\/\/\S+$/i.test(this.link().trim()));
 
-  // GIFs.
-  protected readonly query = signal('');
-  protected readonly gifs = signal<Gif[]>([]);
-  protected readonly next = signal<number | null>(null);
-  protected readonly searching = signal(false);
-  private readonly searches = new Subject<string>();
-
   protected readonly canAdd = computed(() => {
     if (this.busy()) return false;
     return this.mode() === 'upload' ? !!this.file() : this.mode() === 'link' && this.linkValid();
   });
 
   constructor() {
-    this.searches
-      .pipe(
-        debounceTime(SEARCH_DELAY_MS),
-        distinctUntilChanged(),
-        tap(() => this.searching.set(true)),
-        // A failed search shows its message and leaves the next one working.
-        switchMap((query) =>
-          this.media.searchGifs(query).pipe(
-            catchError((response: HttpErrorResponse) => {
-              this.failed(response);
-              return EMPTY;
-            }),
-          ),
-        ),
-        takeUntilDestroyed(),
-      )
-      .subscribe(({ gifs, next }) => {
-        this.searching.set(false);
-        this.error.set(null);
-        this.gifs.set(gifs);
-        this.next.set(next);
-      });
     inject(DestroyRef).onDestroy(() => this.revokePreview());
   }
 
   protected setMode(mode: Mode) {
     this.mode.set(mode);
     this.error.set(null);
-    if (mode === 'gifs' && this.gifs().length === 0) {
-      // Trending GIFs to start with.
-      this.searches.next(this.query().trim());
-    }
   }
 
   protected chooseFile(input: HTMLInputElement) {
@@ -141,25 +107,6 @@ export class ImageDialogComponent {
     this.linkedSize.set(null);
   }
 
-  protected search(query: string) {
-    this.query.set(query);
-    this.searches.next(query.trim());
-  }
-
-  protected moreGifs() {
-    const offset = this.next();
-    if (offset === null) return;
-    this.searching.set(true);
-    this.media.searchGifs(this.query().trim(), offset).subscribe({
-      next: ({ gifs, next }) => {
-        this.searching.set(false);
-        this.gifs.update((shown) => [...shown, ...gifs]);
-        this.next.set(next);
-      },
-      error: (error: unknown) => this.failed(error),
-    });
-  }
-
   protected pickGif(gif: Gif) {
     this.chosen.emit({
       kind: 'gif',
@@ -192,7 +139,7 @@ export class ImageDialogComponent {
       upload = await fitImage(file, () => canvasRenderer(file));
     } catch (err) {
       this.busy.set(false);
-      this.error.set((err as Error).message);
+      this.error.set(err instanceof Error ? err.message : String(err));
       return;
     }
     this.busy.set('uploading');
@@ -207,14 +154,11 @@ export class ImageDialogComponent {
           height: media.height,
         });
       },
-      error: (error: unknown) => this.failed(error),
+      error: (error: unknown) => {
+        this.busy.set(false);
+        this.error.set(serverMessage(error));
+      },
     });
-  }
-
-  private failed(error: unknown) {
-    this.busy.set(false);
-    this.searching.set(false);
-    this.error.set(serverMessage(error));
   }
 
   private revokePreview() {

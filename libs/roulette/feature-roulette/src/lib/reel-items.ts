@@ -1,4 +1,4 @@
-import { Job } from '@everise/core/api-types';
+import { Job, RoulettePostRequest } from '@everise/core/api-types';
 import {
   Candidate,
   RunMode,
@@ -89,4 +89,11 @@ function describe(type: string, candidate: Candidate, day: Day) {
     };
   }
   return { type, name: candidate.duty.name, detail, dutyUnknown: false };
+}
+
+// What the reels landed on, as the backend reads it (ids only).
+export function toSpunCandidate(candidate: Candidate): RoulettePostRequest['result']['candidate'] {
+  return candidate.kind === 'duty'
+    ? { kind: 'duty', id: candidate.duty.id }
+    : { kind: 'roulette', id: candidate.roulette.id };
 }
