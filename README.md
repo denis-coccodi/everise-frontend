@@ -27,7 +27,7 @@
 - **Live feed.** New posts appear at the top of the global feed (or a tag's list) the moment they're posted, pushed by the backend over a WebSocket (`/api/live`), with a brief highlight and an announcement for screen readers.
 - **Duty Roulette** (`/roulette`). Three reels pick the duty type, the duty and how you run it (Min IL, Unsynced, Awktrail, everyone on one job…), from the real game data. **Commence** posts the result to the feeds as a duty card: with your comment when you're signed in, or by **Tataru** for guests.
 - **The Waking Sands** (`/waking-sands`). A chat with FINAL FANTASY XIV characters, voiced by an AI on the backend (Workers AI): **Tataru**, **Urianger** and **Y'shtola**, and the free company's own **Barnaby Bollocksworth**, a foul-mouthed braggart whose tales of slaying primals don't add up, and **Bernadette "Bernie" Starling**, a cheerful Astrologian (the healer job) who reads anyone's fortune with her star globe and an arcanum from her deck, by the Twelve (each zodiac sign is the god of the month it starts in: Pisces is Menphina's). One room every member shares, live: members bring characters in or send them out for everyone and talk; after each member's line the characters answer as they see fit (at least one, each up to twice, answering each other too). Lines, who's in and who's writing arrive over the live updates' WebSocket (`LiveUpdates.sands$`), and the page reloads the room whenever the socket (re)connects, so nothing is missed. The room keeps the last day; guests can watch. The backend keeps each member and the site within a daily budget.
-- **Party Finder** (`/party-finder`, open to everyone). The Party Finder listings up in the game on **Light** (from **Odin** to start) or **Chaos**, as [xivpf.com](https://xivpf.com/listings) collects them from players' Remote Party Finder plugin: duty, conditions (practice, loot, item level, beginners welcome, world-only), the party's jobs and the roles still open, time left. Filter by world (what you can join from it: the whole data centre plus that world's own Hunt and FATE parties), category, an open slot for your role and words to find; listings without a duty are hidden unless switched on. The page asks again every 30 seconds while it's in view (the backend reads xivpf at most once a minute) and remembers the data centre and world picked.
+- **Party Finder** (`/party-finder`, open to everyone). The Party Finder listings up in the game on **Light** (from **Odin** to start) or **Chaos**, as [xivpf.com](https://xivpf.com/listings) collects them from players' Remote Party Finder plugin: tiles laid out like the game's: the duty (treasure maps, deep dungeons and roulettes named right, where xivpf's API mixes them up), the sprout when beginners are welcome, the conditions in brackets, the description, where the party is, item level and players still needed, and the slots as the game's job and role icons, an open slot's accepted jobs in a tooltip; time left. Filter by world (what you can join from it: the whole data centre plus that world's own Hunt and FATE parties), category, an open slot for your role and words to find; listings without a duty are hidden unless switched on. The page asks again every 30 seconds while it's in view (the backend reads xivpf at most once a minute) and remembers the data centre and world picked.
 - **Profiles and settings.** Profile pictures picked in the browser, cropped to a square and shrunk to the backend's limits before uploading; bio, email, password; an account menu in the header.
 - **Roles.** Everyone registers as a user. Admins (set on the backend) get two more windows in Settings: **Waking Sands characters**, a tab per character with its picture, title and personality (the description the AI plays it from, which can go back to the original), plus the bio of **Tataru**, the account that posts guests' roulette results (nobody can sign in as her), and **Members and roles**, where a member can be made a **staging tester**, which lets them open the staging site (the backend updates its Cloudflare Access list).
 - **Final Fantasy XIV look.** Crystal motifs, deep-blue windows, Cinzel headings, in a dark mode (default) and a "Final Fantasy white" light mode. Members' choice is saved with their settings, so it follows them to every browser.
@@ -118,24 +118,25 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 
 **The UI library provides the dumb, themed building blocks** every page uses. Each sits in its own folder with its `.ts`, `.scss` and `.spec.ts`:
 
-| Building block        | For                                                                       |
-| --------------------- | ------------------------------------------------------------------------- |
-| `cdtButton`           | buttons and button links                                                  |
-| `cdtInput`            | text fields and text areas (marks invalid fields with `aria-invalid`)     |
-| `<cdt-field>`         | a form field with its visible label and its errors                        |
-| `<cdt-checkbox>`      | a checkbox with its label                                                 |
-| `<cdt-switch>`        | an on/off switch for a setting that applies at once (dark mode)           |
-| `<cdt-panel>`         | a window                                                                  |
-| `<cdt-card>`          | a card with an optional footer                                            |
-| `<cdt-banner>`        | a page's title strip                                                      |
-| `<cdt-dialog>`        | a modal window that keeps the keyboard focus inside and gives it back     |
-| `<cdt-duty-card>`     | a roulette result, like the "Duty Found" window                           |
-| `<cdt-image-cropper>` | choosing a square area of a picture                                       |
-| `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries |
-| `<cdt-byline>`        | an avatar, author name and date                                           |
-| `cdtTabs` / `cdtTab`  | tab bars: links for pages, buttons for views                              |
-| `cdtTag`              | tag pills                                                                 |
-| `<cdt-pager>`         | pagination                                                                |
+| Building block        | For                                                                        |
+| --------------------- | -------------------------------------------------------------------------- |
+| `cdtButton`           | buttons and button links                                                   |
+| `cdtInput`            | text fields and text areas (marks invalid fields with `aria-invalid`)      |
+| `<cdt-field>`         | a form field with its visible label and its errors                         |
+| `<cdt-checkbox>`      | a checkbox with its label                                                  |
+| `<cdt-switch>`        | an on/off switch for a setting that applies at once (dark mode)            |
+| `<cdt-tooltip>`       | a note on hover or keyboard focus (Escape hides it), read as a description |
+| `<cdt-panel>`         | a window                                                                   |
+| `<cdt-card>`          | a card with an optional footer                                             |
+| `<cdt-banner>`        | a page's title strip                                                       |
+| `<cdt-dialog>`        | a modal window that keeps the keyboard focus inside and gives it back      |
+| `<cdt-duty-card>`     | a roulette result, like the "Duty Found" window                            |
+| `<cdt-image-cropper>` | choosing a square area of a picture                                        |
+| `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries  |
+| `<cdt-byline>`        | an avatar, author name and date                                            |
+| `cdtTabs` / `cdtTab`  | tab bars: links for pages, buttons for views                               |
+| `cdtTag`              | tag pills                                                                  |
+| `<cdt-pager>`         | pagination                                                                 |
 
 The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTab`, `cdtTag`, `cdtMenuItem`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 

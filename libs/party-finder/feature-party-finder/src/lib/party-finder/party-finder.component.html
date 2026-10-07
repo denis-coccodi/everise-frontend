@@ -38,10 +38,10 @@
       <h2 class="visually-hidden">Listings</h2>
       @if (store.listings().length === 0) {
         <p class="notice">No listings match. Try another category, role or world, or clear the search.</p>
-      } @else {
+      } @else if (store.icons(); as icons) {
         <ul class="listings">
           @for (listing of store.listings(); track listing.id) {
-            <li><cdt-pf-listing [listing]="listing" [now]="store.now()" /></li>
+            <li><cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons" /></li>
           }
         </ul>
       }

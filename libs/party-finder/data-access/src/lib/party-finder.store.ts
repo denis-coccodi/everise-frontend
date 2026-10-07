@@ -60,6 +60,8 @@ export const PartyFinderStore = signalStore(
     const live = computed(() => (store.board()?.listings ?? []).filter((l) => Date.parse(l.expiresAt) > store.now()));
     return {
       worlds: computed(() => store.board()?.worlds ?? []),
+      // The game's role icons and the beginners' sprout, once loaded.
+      icons: computed(() => store.board()?.icons ?? null),
       categories: computed(() => categoriesIn(live())),
       listings: computed(() => live().filter((listing) => matchesFilters(listing, store.filters()))),
       total: computed(() => live().length),

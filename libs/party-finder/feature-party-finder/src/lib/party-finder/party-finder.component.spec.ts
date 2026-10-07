@@ -28,8 +28,16 @@ function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFi
     loot: 'normal',
     parties: 1,
     slots: [
-      { job: 'PLD', roles: [] },
-      { job: null, roles: ['healer', 'dps'] },
+      { job: 'PLD', icon: 62119, roles: [], accepts: [] },
+      {
+        job: null,
+        icon: null,
+        roles: ['healer', 'dps'],
+        accepts: [
+          { role: 'healer', jobs: ['WHM', 'SGE'] },
+          { role: 'dps', jobs: ['BLM'] },
+        ],
+      },
     ],
     updatedAt: new Date(Date.now() - 120000).toISOString(),
     expiresAt: new Date(Date.now() + 52.5 * 60000).toISOString(),
@@ -42,6 +50,7 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
     dataCentre: 'Light',
     worlds: LIGHT_WORLDS,
     fetchedAt: new Date().toISOString(),
+    icons: { tank: 62581, healer: 62582, dps: 62583, beginner: 61523 },
     listings: [
       listing('66-1'),
       listing('67-2', { category: 'TheHunt', duty: null, worldOnly: true, world: SHIVA }),
@@ -87,11 +96,23 @@ describe('PartyFinderComponent', () => {
     expect(page.querySelector('.summary')?.textContent).toContain('1 of 3 listings on Light');
     const card = page.querySelector('cdt-pf-listing') as HTMLElement;
     expect(card.textContent).toContain('52 min left');
-    expect(card.textContent).toContain('Beginners welcome');
-    expect([...card.querySelectorAll('.slot')].map((s) => s.textContent?.trim())).toEqual([
-      'PLD',
-      'Open: Healer or DPS',
+    // The sprout before the title, the conditions in brackets, where the party is.
+    expect(card.querySelector('h3 img')?.getAttribute('alt')).toBe('Beginners welcome:');
+    expect(card.querySelector('h3 img')?.getAttribute('src')).toBe('/images/61523');
+    expect(card.querySelector('.conditions')?.textContent?.replace(/\s+/g, '')).toBe('[Practice][OnePlayerperJob]');
+    expect(card.querySelector('.facts')?.textContent?.replace(/\s+/g, ' ')).toContain('Location Odin');
+    expect(card.querySelector('.facts')?.textContent).toContain('1 player remaining');
+    // A filled slot is its job's icon; an open one its roles, and its jobs in a tooltip.
+    const filled = card.querySelector('.slot.filled img') as HTMLImageElement;
+    expect(filled.getAttribute('src')).toBe('/images/62119');
+    expect(filled.alt).toBe('PLD');
+    const open = card.querySelector('.slot.open') as HTMLElement;
+    expect(open.textContent?.trim()).toContain('Open: Healer or DPS');
+    expect([...open.querySelectorAll('img.role')].map((i) => i.getAttribute('src'))).toEqual([
+      '/images/62582',
+      '/images/62583',
     ]);
+    expect(open.querySelector('[role=tooltip]')?.textContent).toBe('Healer: WHM, SGE · DPS: BLM');
   });
 
   it('shows listings without a duty with the switch, and every world with "All worlds"', async () => {
