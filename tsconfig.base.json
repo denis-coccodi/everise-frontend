@@ -29,6 +29,8 @@
       "@everise/core/http-client": ["./libs/core/http-client/src/index.ts"],
       "@everise/core/testing": ["./libs/core/testing/src/index.ts"],
       "@everise/home/feature-home": ["./libs/home/feature-home/src/index.ts"],
+      "@everise/party-finder/data-access": ["./libs/party-finder/data-access/src/index.ts"],
+      "@everise/party-finder/feature-party-finder": ["./libs/party-finder/feature-party-finder/src/index.ts"],
       "@everise/profile/data-access": ["./libs/profile/data-access/src/index.ts"],
       "@everise/profile/feature-profile": ["./libs/profile/feature-profile/src/index.ts"],
       "@everise/roulette/data-access": ["./libs/roulette/data-access/src/index.ts"],

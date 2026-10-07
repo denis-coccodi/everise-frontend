@@ -1,0 +1,53 @@
+<cdt-card>
+  <div class="head">
+    <h3 class="title">{{ title() }}</h3>
+    <span class="left">{{ timeLeft() }}</span>
+  </div>
+
+  <ul class="tags" aria-label="Conditions">
+    <li cdtTag="outline">{{ category() }}</li>
+    @if (objective()) {
+      <li cdtTag="outline">{{ objective() }}</li>
+    }
+    @if (listing().beginnersWelcome) {
+      <li cdtTag>Beginners welcome</li>
+    }
+    @if (listing().dutyComplete) {
+      <li cdtTag="outline">Duty complete</li>
+    }
+    @if (listing().minItemLevel > 0) {
+      <li cdtTag="outline">Item level {{ listing().minItemLevel }}+</li>
+    }
+    @if (loot()) {
+      <li cdtTag="outline">{{ loot() }}</li>
+    }
+    @if (listing().onePlayerPerJob) {
+      <li cdtTag="outline">One per job</li>
+    }
+    @if (listing().worldOnly) {
+      <li cdtTag>{{ listing().world.name }} only</li>
+    }
+  </ul>
+
+  @if (listing().description) {
+    <p class="description">{{ listing().description }}</p>
+  }
+
+  <div class="party">
+    <span class="count">{{ filled() }}/{{ listing().slots.length }}</span>
+    <ul class="slots" [attr.aria-label]="'Party: ' + filled() + ' of ' + listing().slots.length + ' slots filled'">
+      @for (slot of listing().slots; track $index) {
+        @if (slot.job) {
+          <li class="slot filled">{{ slot.job }}</li>
+        } @else {
+          <li class="slot open"><span class="visually-hidden">Open: </span>{{ openTo(slot.roles) }}</li>
+        }
+      }
+    </ul>
+  </div>
+
+  <div cdtCardFooter class="footer">
+    <span class="recruiter">{{ listing().recruiter }} · {{ listing().homeWorld.name }}</span>
+    <span class="seen">seen {{ seen() }}</span>
+  </div>
+</cdt-card>

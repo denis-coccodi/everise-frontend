@@ -1,0 +1,62 @@
+<cdt-panel heading="Find a party">
+  <div class="fields">
+    <cdt-field label="Data centre" for="pf-data-centre">
+      <select #dataCentre id="pf-data-centre" cdtInput (change)="setDataCentre(dataCentre.value)">
+        @for (name of dataCentres; track name) {
+          <option [value]="name" [selected]="name === store.dataCentre()">{{ name }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field label="Your world" for="pf-world">
+      <select #world id="pf-world" cdtInput aria-describedby="pf-world-hint" (change)="setWorld(world.value)">
+        <option value="" [selected]="store.filters().world === null">All worlds</option>
+        @for (option of store.worlds(); track option.id) {
+          <option [value]="option.id" [selected]="option.id === store.filters().world">{{ option.name }}</option>
+        }
+      </select>
+      <p id="pf-world-hint" class="hint">
+        What you can join from there: the whole data centre, plus that world's own Hunt and FATE parties.
+      </p>
+    </cdt-field>
+
+    <cdt-field label="Category" for="pf-category">
+      <select #category id="pf-category" cdtInput (change)="store.setFilters({ category: category.value })">
+        <option value="" [selected]="!store.filters().category">All categories</option>
+        @for (option of store.categories(); track option) {
+          <option [value]="option" [selected]="option === store.filters().category">{{ categoryName(option) }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field label="Open slot for" for="pf-role">
+      <select #role id="pf-role" cdtInput (change)="setRole(role.value)">
+        <option value="" [selected]="!store.filters().role">Any role</option>
+        @for (option of roles; track option.value) {
+          <option [value]="option.value" [selected]="option.value === store.filters().role">{{ option.name }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field class="search" label="Search" for="pf-search">
+      <input
+        #search
+        id="pf-search"
+        type="search"
+        cdtInput
+        placeholder="Duty, description or recruiter"
+        [value]="store.filters().search"
+        (input)="store.setFilters({ search: search.value })"
+      />
+    </cdt-field>
+  </div>
+
+  <div class="switches">
+    <cdt-switch [checked]="store.filters().showNoDuty" (checkedChange)="store.setFilters({ showNoDuty: $event })">
+      Show listings without a duty
+    </cdt-switch>
+    <cdt-switch [checked]="store.filters().beginnersOnly" (checkedChange)="store.setFilters({ beginnersOnly: $event })">
+      Beginners welcome only
+    </cdt-switch>
+  </div>
+</cdt-panel>

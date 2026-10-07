@@ -1,0 +1,48 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+// Phones: one field a row. Wider: two, then three, the search across.
+.fields {
+  display: grid;
+  gap: 0 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@include bp.up(sm) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@include bp.up(lg) {
+  .fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.search {
+  grid-column: 1 / -1;
+}
+
+.hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-contrast-muted);
+}
+
+.switches {
+  display: grid;
+  gap: 0.25rem 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@include bp.up(md) {
+  .switches {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

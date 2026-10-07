@@ -1,0 +1,17 @@
+{
+  "name": "party-finder-feature-party-finder",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/party-finder/feature-party-finder/src",
+  "prefix": "cdt",
+  "tags": ["type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/party-finder/feature-party-finder"
+      }
+    }
+  }
+}
