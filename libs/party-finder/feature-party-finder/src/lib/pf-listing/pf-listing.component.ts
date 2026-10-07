@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
 import { API_URL, gameImageUrl } from '@everise/core/http-client';
 import { categoryName, listingTitle } from '@everise/party-finder/data-access';
@@ -27,7 +27,8 @@ export class PfListingComponent {
   readonly icons = input.required<PartyFinderBoard['icons']>();
 
   private readonly apiUrl = inject(API_URL);
-  protected readonly sproutMissing = signal(false);
+  // The sprout didn't load: words instead, tried again on the next refresh.
+  protected readonly sproutMissing = linkedSignal({ source: this.listing, computation: () => false });
 
   protected readonly title = computed(() => listingTitle(this.listing()));
   protected readonly category = computed(() => categoryName(this.listing().category));

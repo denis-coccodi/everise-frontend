@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { PartyFinderBoard, PartyFinderListing, PartyRole } from '@everise/core/api-types';
 import { API_URL, gameImageUrl } from '@everise/core/http-client';
 import { TooltipComponent } from '@everise/ui/components';
@@ -25,8 +34,12 @@ export class PfPartyComponent {
 
   private readonly apiUrl = inject(API_URL);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  // Icons that didn't load: their slots show words instead.
-  protected readonly missing = signal<ReadonlySet<number>>(new Set());
+  // Icons that didn't load: their slots show words instead, until the
+  // listings are refreshed (every 30 seconds), when they're tried again.
+  protected readonly missing = linkedSignal<Slot[], ReadonlySet<number>>({
+    source: this.slots,
+    computation: () => new Set(),
+  });
   // The open slot that's the tab stop, among the open ones.
   protected readonly active = signal(0);
 
