@@ -20,6 +20,7 @@ export * from './menu/menu.component';
 export * from './message/message.component';
 export * from './pager/pager.component';
 export * from './panel/panel.component';
+export * from './switch/switch.component';
 export * from './tab/tab.component';
 export * from './tabs/tabs.component';
 export * from './tag/tag.component';

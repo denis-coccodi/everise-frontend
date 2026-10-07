@@ -69,9 +69,10 @@ The Duty Roulette needs game data: run the backend's duty refresh once (its READ
 | `npx nx graph`                                                          | The live project graph                                                               |
 | `npm run api-types`                                                     | Regenerate the API types from the backend's `openapi.json` ([API types](#api-types)) |
 | `node scripts/check-sizes.mjs`                                          | Check every file is within its size limit ([Code conventions](#code-conventions))    |
+| `node scripts/check-structure.mjs`                                      | Check every file is in the right folder ([Code conventions](#code-conventions))      |
 | `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` | Regenerate a diagram ([below](#architecture))                                        |
 
-Before pushing, `node scripts/check-sizes.mjs && npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must pass: it's the same as the required `test` check. Every change goes through a `feature/<name>` branch and a pull request to `main`.
+Before pushing, `node scripts/check-sizes.mjs && node scripts/check-structure.mjs && npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must pass: it's the same as the required `test` check. Every change goes through a `feature/<name>` branch and a pull request to `main`.
 
 ## Architecture
 
@@ -121,6 +122,7 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 | `cdtInput`            | text fields and text areas (marks invalid fields with `aria-invalid`)     |
 | `<cdt-field>`         | a form field with its visible label and its errors                        |
 | `<cdt-checkbox>`      | a checkbox with its label                                                 |
+| `<cdt-switch>`        | an on/off switch for a setting that applies at once (dark mode)           |
 | `<cdt-panel>`         | a window                                                                  |
 | `<cdt-card>`          | a card with an optional footer                                            |
 | `<cdt-banner>`        | a page's title strip                                                      |
@@ -142,7 +144,8 @@ Feature libraries reuse the building blocks and don't define colours, fonts, sha
 The rules the code follows are written down for people and AI assistants alike, as skills in [`.claude/skills`](.claude/skills): [`frontend-best-practices`](.claude/skills/frontend-best-practices/SKILL.md) (code and structure), [`theme`](.claude/skills/theme/SKILL.md) (looks) and [`accessibility`](.claude/skills/accessibility/SKILL.md) (WCAG). In short:
 
 - **Libraries by type, enforced by lint.** Every project is tagged (app, feature, widget, data-access, ui, util, testing) and `@nx/enforce-module-boundaries` fails an import that breaks the layering. A page never imports another page; what two pages share becomes a widget, a data-access library or a UI building block.
-- **State in NgRx signal stores**, components with signals and `OnPush`, typed templates.
+- **One component per folder, named after it** (`settings/settings.component.ts`), pages included; directives and pipes likewise. Stores and API services live only in data-access libraries, never next to a component, and folders are named after what they hold, not by kind of file (no `components/`, `services/`, `models/`). Libraries are imported by their `@everise/…` entry point only, never by a path into their `src/`. `scripts/check-structure.mjs` (part of the `test` check) enforces it.
+- **State in NgRx signal stores**, components with signals and `OnPush`, typed templates. NgRx's own lint rules (`signals`, `operators`) are on.
 - **No `any`** outside specs, and no `$any()` in templates (both fail lint). API shapes come only from the generated types ([API types](#api-types)).
 - **Errors** are shown with the backend's own message (`serverMessage()`), in the shared message component.
 - **Size limits** (`scripts/check-sizes.mjs`, first step of the `test` check): component classes 200 lines, templates 150, styles 250, stores and services 250, other TypeScript 350. A file that grows past them is split, never exempted; generated code is skipped.

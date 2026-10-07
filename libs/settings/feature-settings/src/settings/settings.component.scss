@@ -57,6 +57,12 @@
   margin-top: 0.25rem;
 }
 
+// The switch row's padding sits outside the column, so its label lines up
+// with the legend and the hint.
+.appearance cdt-switch {
+  margin-inline: -0.6rem;
+}
+
 .role-note {
   margin: 0 0 1.5rem;
   text-align: center;

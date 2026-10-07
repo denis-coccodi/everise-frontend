@@ -116,9 +116,14 @@
           <!-- Saved with the rest; previewed as soon as it changes. -->
           <fieldset class="appearance">
             <legend class="legend">Appearance</legend>
-            <cdt-checkbox [checked]="form.controls.darkMode.value" (checkedChange)="previewDarkMode($event)">
+            <cdt-switch
+              [checked]="form.controls.darkMode.value"
+              (checkedChange)="previewDarkMode($event)"
+              onIcon="moon"
+              offIcon="sun"
+            >
               Dark mode
-            </cdt-checkbox>
+            </cdt-switch>
             <p class="hint">On: night-blue windows and crystal light. Off: Final Fantasy white.</p>
           </fieldset>
           <button

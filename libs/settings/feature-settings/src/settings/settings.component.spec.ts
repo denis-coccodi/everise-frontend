@@ -51,24 +51,24 @@ describe('SettingsComponent dark mode', () => {
     const fixture = TestBed.createComponent(SettingsComponent);
     await fixture.whenStable();
     const page = fixture.nativeElement as HTMLElement;
-    const checkbox = page.querySelector('.appearance input[type=checkbox]') as HTMLInputElement;
-    return { fixture, page, checkbox, authStore, settings: TestBed.inject(SettingsStore) };
+    const darkMode = page.querySelector('.appearance [role=switch]') as HTMLButtonElement;
+    return { fixture, page, darkMode, authStore, settings: TestBed.inject(SettingsStore) };
   }
 
   afterEach(() => localStorage.clear());
 
   it('is a labelled part of the form, showing the saved mode', async () => {
-    const { page, checkbox } = await render();
+    const { page, darkMode } = await render();
 
     expect(page.querySelector('form .appearance legend')?.textContent?.trim()).toBe('Appearance');
-    expect(checkbox.closest('label')?.textContent?.trim()).toBe('Dark mode');
-    expect(checkbox.checked).toBe(false);
+    expect(darkMode.textContent?.trim()).toBe('Dark mode');
+    expect(darkMode.getAttribute('aria-checked')).toBe('false');
   });
 
   it('previews a change at once and saves it with the other settings', async () => {
-    const { fixture, page, checkbox, authStore, settings } = await render();
+    const { fixture, page, darkMode, authStore, settings } = await render();
 
-    checkbox.click();
+    darkMode.click();
     await fixture.whenStable();
     expect(settings.darkMode()).toBe(true);
 
@@ -79,9 +79,9 @@ describe('SettingsComponent dark mode', () => {
   });
 
   it('puts the saved mode back when left without saving', async () => {
-    const { fixture, checkbox, settings } = await render();
+    const { fixture, darkMode, settings } = await render();
 
-    checkbox.click();
+    darkMode.click();
     await fixture.whenStable();
     expect(settings.darkMode()).toBe(true);
 

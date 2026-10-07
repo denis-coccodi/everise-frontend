@@ -1,0 +1,84 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+}
+
+// The whole row is the control: label on the left, the switch on the right.
+button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-contrast);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--color-hover);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.track {
+  position: relative;
+  flex: none;
+  width: 3.25rem;
+  height: 1.75rem;
+  border: var(--border-width) solid var(--color-border-field);
+  border-radius: var(--radius-pill);
+  background: var(--color-field);
+  box-shadow: var(--shadow-inset);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  left: 0.15rem;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: var(--color-contrast-soft);
+  color: var(--color-field);
+  font-size: 0.85rem;
+  transform: translateY(-50%);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+// On: the track fills with the primary colour and glows; the knob slides over.
+[aria-checked='true'] .track {
+  border-color: var(--color-primary-strong);
+  background: var(--color-primary);
+  box-shadow: var(--glow-primary);
+}
+
+[aria-checked='true'] .knob {
+  background: var(--color-on-primary);
+  color: var(--color-primary);
+  transform: translate(1.5rem, -50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .knob {
+    transition: none;
+  }
+}

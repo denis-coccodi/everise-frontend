@@ -16,9 +16,9 @@ import { SettingsStore } from '@everise/settings/data-access';
 import {
   AvatarComponent,
   ButtonComponent,
-  CheckboxComponent,
   FieldComponent,
   InputComponent,
+  SwitchComponent,
 } from '@everise/ui/components';
 import { AdminMembersComponent } from '../admin-members/admin-members.component';
 import { AdminCharactersComponent } from '../admin-characters/admin-characters.component';
@@ -35,7 +35,7 @@ import { SignInMethodsComponent } from '../sign-in-methods/sign-in-methods.compo
     AdminCharactersComponent,
     FieldComponent,
     ButtonComponent,
-    CheckboxComponent,
+    SwitchComponent,
     InputComponent,
     ListErrorsComponent,
     ReactiveFormsModule,

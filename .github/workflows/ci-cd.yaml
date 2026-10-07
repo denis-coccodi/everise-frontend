@@ -25,6 +25,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/check-sizes.mjs
+      - run: node scripts/check-structure.mjs
       - run: npx nx run-many -t lint test
       - run: npx nx run everise:build --configuration=production
       - run: npx nx run everise:build --configuration=staging
