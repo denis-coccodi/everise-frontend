@@ -12,13 +12,18 @@ export type AuthState = {
   awaitingConfirmation: string | null;
 };
 
+// Signed out: no one, with the settings' defaults.
 export const initialUserValue: User = {
   id: '',
   email: '',
   username: '',
-  password: '',
-  bio: '',
+  token: '',
+  bio: null,
   image: '',
+  darkMode: true,
+  role: 'user',
+  signInMethods: [],
+  pendingEmail: null,
 };
 
 export const authInitialState: AuthState = {

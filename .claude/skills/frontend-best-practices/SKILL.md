@@ -23,7 +23,7 @@ Every project has a type tag in its `project.json`; `@nx/enforce-module-boundari
 
 - **A new feature** gets `libs/<area>/feature-<area>` for its components and, as soon as it holds state or calls the API, `libs/<area>/data-access` for the service and store. Copy an existing pair's `project.json`, `tsconfig*.json`, `eslint.config.mjs` and `vite.config.mts`, add the tag, the `@everise/<area>/...` path in `tsconfig.base.json`, a README, and `src/test-setup.ts` (`import '@everise/core/testing';`).
 - **A page never imports another page.** What two pages share becomes a widget, a data-access library or a UI building block.
-- **API shapes live in `@everise/core/api-types`**: request and response types, live events, and constants that mirror the backend's limits (`SANDS_LIMITS`, `CHARACTER_LIMITS`) until the API sends them. Never define an API type in a feature or in `core/http-client`.
+- **API shapes live in `@everise/core/api-types`**, and they are generated: `npm run api-types` writes `generated/openapi.ts` from the backend's `openapi.json`, and the library's files name its schemas (`export type Article = Schemas['Article']`). Never write an API shape by hand, in a feature or in `core/http-client`, and never cast a request body (`as User`): use the request type (`UserChanges`, `CreateArticle`). Limits come from the API's answers (`SandsRoom['limits']`), never from copied numbers. Only what the document can't describe (live events) is written by hand there. After a backend API change, regenerate and commit; CI's `api-types` job fails while they differ.
 
 ## Components
 

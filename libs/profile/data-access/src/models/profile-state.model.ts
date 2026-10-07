@@ -5,8 +5,7 @@ export type ProfileState = Profile;
 export const profileInitialState: ProfileState = {
   id: '',
   username: '',
-  bio: '',
+  bio: null,
   image: '',
   following: false,
-  loading: false,
 };

@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
-import { SANDS_LIMITS } from '@everise/core/api-types';
 import {
   AvatarComponent,
   ButtonComponent,
@@ -33,7 +32,6 @@ import { WakingSandsStore } from '@everise/waking-sands/data-access';
 export class SandsConversationComponent {
   protected readonly store = inject(WakingSandsStore);
   protected readonly signedIn = inject(AuthStore).loggedIn;
-  protected readonly maxLength = SANDS_LIMITS.maxLineLength;
 
   private readonly logBox = viewChild<ElementRef<HTMLElement>>('logBox');
 

@@ -1,34 +1,23 @@
+import { Schemas } from './schemas';
+
+// The signed-in user (GET /api/user), with their token and settings.
+export type User = Schemas['User'];
+
 // What a person may do: everyone registers as a user; an admin can make a
 // user a staging tester, who may open the staging site.
-export type Role = 'admin' | 'staging-tester' | 'user';
+export type Role = User['role'];
 
-export interface User {
-  // The member's id, as in links to their profile.
-  id: string;
-  email: string;
-  password?: string;
-  username: string;
-  token?: string;
-  bio: string;
-  image: string;
-  // The site's colour mode, saved with the other settings (true: dark).
-  darkMode?: boolean;
-  role?: Role;
-  // How the account can be signed in to: its password, and the provider
-  // accounts (Google, Facebook, Microsoft, Discord) tied to it.
-  signInMethods?: SignInMethod[];
-  // A new address from the settings, used once the link sent to it is
-  // opened.
-  pendingEmail?: string | null;
-}
+// How the account can be signed in to: its password, and the provider
+// accounts (Google, Facebook, Microsoft, Discord) tied to it.
+export type SignInMethod = User['signInMethods'][number];
 
-export type SignInMethod = 'password' | 'google' | 'facebook' | 'microsoft' | 'discord';
+export type UserResponse = Schemas['UserResponse'];
 
-export interface UserResponse {
-  user: User;
-}
+// The settings: only the fields being changed.
+export type UserUpdate = Schemas['UserUpdate'];
 
 // A sign-up whose email has to be confirmed first: a link went to `email`.
-export interface ConfirmationResponse {
-  confirmation: { email: string };
-}
+export type ConfirmationResponse = Schemas['ConfirmationResponse'];
+
+// What the settings change (PUT /api/user's `user`).
+export type UserChanges = UserUpdate['user'];

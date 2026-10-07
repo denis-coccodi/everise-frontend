@@ -24,11 +24,16 @@ function fakeAuthStore(user: User) {
 
 describe('SettingsComponent dark mode', () => {
   const user: User = {
+    id: 'u1',
     email: 'urianger@example.com',
     username: 'Urianger',
-    bio: null as unknown as string,
+    token: 'token',
+    bio: null,
     image: '/a.png',
     darkMode: false,
+    role: 'user',
+    signInMethods: ['password'],
+    pendingEmail: null,
   };
 
   async function render(as: User = user) {

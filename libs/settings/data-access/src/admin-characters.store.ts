@@ -2,7 +2,7 @@ import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { CharacterChanges, CharacterResponse, CharacterSettings } from '@everise/core/api-types';
+import { CharacterChanges, CharacterResponse, CharacterSettings, CharactersResponse } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { Observable, exhaustMap, pipe, switchMap, tap } from 'rxjs';
 import { AdminService } from './admin.service';
@@ -10,6 +10,8 @@ import { AdminService } from './admin.service';
 interface AdminCharactersState {
   // Null until they arrive.
   characters: CharacterSettings[] | null;
+  // The longest title and personality the backend takes; null until loaded.
+  limits: CharactersResponse['limits'] | null;
   selectedId: string | null;
   busy: boolean;
   status: string;
@@ -20,7 +22,14 @@ interface AdminCharactersState {
 // title, personality (which can go back to the original), picture, and
 // Tataru's bio. Provided by the admin's characters window.
 export const AdminCharactersStore = signalStore(
-  withState<AdminCharactersState>({ characters: null, selectedId: null, busy: false, status: '', error: null }),
+  withState<AdminCharactersState>({
+    characters: null,
+    limits: null,
+    selectedId: null,
+    busy: false,
+    status: '',
+    error: null,
+  }),
   withComputed((store) => ({
     selected: computed(() => store.characters()?.find((c) => c.id === store.selectedId()) ?? null),
   })),
@@ -53,8 +62,12 @@ export const AdminCharactersStore = signalStore(
           switchMap(() =>
             admin.characters().pipe(
               tapResponse({
-                next: ({ characters }) =>
-                  patchState(store, { characters, selectedId: store.selectedId() ?? characters[0]?.id ?? null }),
+                next: ({ characters, limits }) =>
+                  patchState(store, {
+                    characters,
+                    limits,
+                    selectedId: store.selectedId() ?? characters[0]?.id ?? null,
+                  }),
                 error: (error: unknown) => patchState(store, { error: serverMessage(error) }),
               }),
             ),

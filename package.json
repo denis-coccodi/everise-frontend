@@ -12,7 +12,8 @@
     "e2e": "npx nx run everise-e2e:e2e",
     "test": "npx nx affected -t test",
     "deploy:staging": "npx nx run everise:build --configuration=staging && npx wrangler deploy --env staging",
-    "deploy": "npx nx run everise:build --configuration=production && npx wrangler deploy"
+    "deploy": "npx nx run everise:build --configuration=production && npx wrangler deploy",
+    "api-types": "npx -y openapi-typescript@7.13.0 https://raw.githubusercontent.com/denis-coccodi/everise-backend/main/openapi.json -o libs/core/api-types/src/lib/generated/openapi.ts && prettier --write libs/core/api-types/src/lib/generated/openapi.ts"
   },
   "private": true,
   "dependencies": {

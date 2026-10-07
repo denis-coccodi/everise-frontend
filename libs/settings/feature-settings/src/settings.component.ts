@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthStore } from '@everise/auth/data-access';
-import { User } from '@everise/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { SettingsStore } from '@everise/settings/data-access';
 import {
@@ -78,7 +77,7 @@ export class SettingsComponent implements OnDestroy {
     const userLoaded = this.authStore.getUserLoaded();
     if (userLoaded) {
       const user = this.authStore.user();
-      this.form.patchValue({ ...user, password: '', darkMode: user.darkMode ?? this.settingsStore.darkMode() });
+      this.form.patchValue({ ...user, bio: user.bio ?? '', password: '', darkMode: user.darkMode });
     }
   });
 
@@ -99,8 +98,7 @@ export class SettingsComponent implements OnDestroy {
 
   onSubmit() {
     const { password, bio, ...fields } = this.form.getRawValue();
-    // The backend sends no bio as null, and only takes text back.
-    this.authStore.updateUser({ ...fields, bio: bio ?? '', ...(password ? { password } : {}) } as User);
+    this.authStore.updateUser({ ...fields, bio, ...(password ? { password } : {}) });
   }
 
   // A file chosen in the browser's file window: checked, then cropped in the

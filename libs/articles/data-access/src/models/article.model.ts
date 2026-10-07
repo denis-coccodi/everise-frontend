@@ -20,10 +20,9 @@ export const articleInitialState: ArticleState = {
     author: {
       id: '',
       username: '',
-      bio: '',
+      bio: null,
       image: '',
       following: false,
-      loading: false,
     },
   },
   comments: [],

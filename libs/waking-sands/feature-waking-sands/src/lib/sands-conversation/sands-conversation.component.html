@@ -32,7 +32,7 @@
           id="sands-message"
           cdtInput
           rows="2"
-          [attr.maxlength]="maxLength"
+          [attr.maxlength]="store.limits()?.maxLineLength"
           [value]="store.draft()"
           (input)="store.setDraft(messageInput.value)"
           (keydown.enter)="onEnter($event)"
