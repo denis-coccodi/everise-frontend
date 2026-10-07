@@ -51,36 +51,7 @@
       }
     }
     @case ('gifs') {
-      <cdt-field label="Search GIFs" for="gif-search">
-        <input
-          #searchInput="cdtInput"
-          id="gif-search"
-          type="search"
-          cdtInput
-          autocomplete="off"
-          placeholder="Moogle, Tonberry, victory…"
-          [value]="query()"
-          (input)="search(searchInput.value)"
-        />
-      </cdt-field>
-      <p class="visually-hidden" role="status">
-        {{ searching() ? 'Searching…' : gifs().length + ' GIFs' }}
-      </p>
-      <ul class="gifs">
-        @for (gif of gifs(); track gif.id) {
-          <li>
-            <button type="button" class="gif" (click)="pickGif(gif)">
-              <img [src]="gif.previewUrl" [alt]="gif.title" loading="lazy" />
-            </button>
-          </li>
-        }
-      </ul>
-      @if (next() !== null) {
-        <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="searching()" (click)="moreGifs()">
-          More GIFs
-        </button>
-      }
-      <p class="attribution">Powered by GIPHY</p>
+      <cdt-gif-picker (picked)="pickGif($event)" />
     }
   }
 
