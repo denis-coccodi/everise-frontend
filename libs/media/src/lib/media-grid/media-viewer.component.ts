@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
 import { Attachment } from '@realworld/core/api-types';
-import { ButtonComponent, DialogComponent } from '@realworld/ui/components';
+import { ButtonComponent, DialogComponent, IconComponent } from '@realworld/ui/components';
 import { GifComponent } from './gif.component';
 
 // The post's images and GIFs, one at a time and as large as the screen
@@ -9,7 +9,7 @@ import { GifComponent } from './gif.component';
   selector: 'cdt-media-viewer',
   templateUrl: './media-viewer.component.html',
   styleUrl: './media-viewer.component.scss',
-  imports: [ButtonComponent, DialogComponent, GifComponent],
+  imports: [ButtonComponent, DialogComponent, GifComponent, IconComponent],
   host: { '(keydown.arrowleft)': 'step(-1)', '(keydown.arrowright)': 'step(1)' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

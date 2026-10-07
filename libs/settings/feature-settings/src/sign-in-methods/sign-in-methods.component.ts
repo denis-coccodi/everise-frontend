@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService, AuthStore } from '@realworld/auth/data-access';
+import { IconComponent } from '@realworld/ui/components';
 import { catchError, map, of } from 'rxjs';
 
 const PROVIDERS = [
@@ -17,6 +18,7 @@ const PROVIDERS = [
   selector: 'cdt-sign-in-methods',
   templateUrl: './sign-in-methods.component.html',
   styleUrl: './sign-in-methods.component.scss',
+  imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignInMethodsComponent {

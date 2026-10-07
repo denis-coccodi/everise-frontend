@@ -53,6 +53,11 @@
   transition: color 0.15s ease;
 }
 
+// A page's icon, a small gap before its name.
+.nav-link cdt-icon {
+  margin-right: 0.35em;
+}
+
 .nav-link:focus,
 .nav-link:hover {
   color: var(--color-contrast);

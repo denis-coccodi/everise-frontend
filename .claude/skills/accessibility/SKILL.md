@@ -28,7 +28,7 @@ Every frontend change keeps the site **WCAG 2.2 level AA** compliant, in **both 
 
 - Every form field has a label: `<cdt-field label="…" for="id">` (`hideLabel` only when the context already says it). Placeholders are hints, not labels. Required fields use `required`; sign-in and profile fields have `autocomplete`.
 - Invalid fields get `aria-invalid` (`cdtInput` does it inside a form), and errors are announced (`<cdt-input-errors>`, `<cdt-list-errors>`).
-- Icon fonts and decorative images are `aria-hidden="true"` / `alt=""`; an icon-only button has an `aria-label` that also says its value ("Favorite, 7 favorites"). Toggle buttons use `aria-pressed`; the current tab, page or link uses `aria-current`.
+- Icons (`<cdt-icon>`, hidden from screen readers on its own) and decorative images (`alt=""`) say nothing; an icon-only button has an `aria-label` that also says its value ("Favorite, 7 favorites"). Toggle buttons use `aria-pressed`; the current tab, page or link uses `aria-current`.
 - Images that carry meaning have an `alt` saying what they show; an avatar next to the person's name is decorative.
 - Don't repeat the same link twice in a row (the byline's avatar link is hidden because the name links to the same place).
 - Changes that happen without the person moving (a status, a result, a new post) go to a live region: `aria-live="polite"`, or `role="alert"` for errors. The region exists before the message appears.

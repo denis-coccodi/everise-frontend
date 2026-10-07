@@ -2,7 +2,13 @@ import { Component, ChangeDetectionStrategy, inject, effect, signal, untracked }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ArticlesListStore, ListType, articlesListInitialState } from '@realworld/articles/data-access';
 import { LiveUpdates } from '@realworld/core/http-client';
-import { BannerComponent, CommunityLinksComponent, TabComponent, TabsComponent } from '@realworld/ui/components';
+import {
+  BannerComponent,
+  CommunityLinksComponent,
+  IconComponent,
+  TabComponent,
+  TabsComponent,
+} from '@realworld/ui/components';
 import { DiscordWidgetComponent } from './discord-widget/discord-widget.component';
 import { TagsListComponent } from './tags-list/tags-list.component';
 import { ArticleListComponent } from '@realworld/articles/feature-articles-list/src';
@@ -22,6 +28,7 @@ import { AuthStore } from '@realworld/auth/data-access';
     TabComponent,
     TagsListComponent,
     ArticleListComponent,
+    IconComponent,
   ],
   providers: [HomeStore],
   changeDetection: ChangeDetectionStrategy.OnPush,

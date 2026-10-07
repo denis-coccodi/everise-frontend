@@ -18,3 +18,10 @@ svg {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+// Solid shapes, filled with the text colour.
+:host([data-icon='heart']) svg,
+:host([data-icon='play']) svg,
+:host([data-icon='pause']) svg {
+  fill: currentColor;
+}
