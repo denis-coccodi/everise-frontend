@@ -23,8 +23,8 @@ function listing(changes: Partial<PartyFinderListing> = {}): PartyFinderListing 
     loot: 'normal',
     parties: 1,
     slots: [
-      { job: 'PLD', roles: [] },
-      { job: null, roles: ['healer'] },
+      { job: 'PLD', icon: 62119, roles: [], accepts: [] },
+      { job: null, icon: null, roles: ['healer'], accepts: [{ role: 'healer', jobs: ['WHM'] }] },
     ],
     updatedAt: '2026-10-07T18:00:00.000Z',
     expiresAt: '2026-10-07T19:00:00.000Z',

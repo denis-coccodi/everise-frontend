@@ -1,53 +1,70 @@
 <cdt-card>
   <div class="head">
-    <h3 class="title">{{ title() }}</h3>
+    <div class="names">
+      <!-- Without a duty, the title is the category already. -->
+      @if (listing().duty) {
+        <span class="category">{{ category() }}</span>
+      }
+      <h3 class="title">
+        @if (listing().beginnersWelcome) {
+          @if (!sproutMissing()) {
+            <img
+              class="sprout"
+              [src]="sprout()"
+              alt="Beginners welcome:"
+              title="Beginners welcome"
+              width="22"
+              height="22"
+              (error)="sproutMissing.set(true)"
+            />
+          } @else {
+            <span class="sprout-words">Beginners welcome:</span>
+          }
+        }
+        {{ title() }}
+      </h3>
+      <p class="recruiter">
+        {{ listing().recruiter }} <span class="home">· {{ listing().homeWorld.name }}</span>
+      </p>
+    </div>
     <span class="left">{{ timeLeft() }}</span>
   </div>
 
-  <ul class="tags" aria-label="Conditions">
-    <li cdtTag="outline">{{ category() }}</li>
-    @if (objective()) {
-      <li cdtTag="outline">{{ objective() }}</li>
-    }
-    @if (listing().beginnersWelcome) {
-      <li cdtTag>Beginners welcome</li>
-    }
-    @if (listing().dutyComplete) {
-      <li cdtTag="outline">Duty complete</li>
-    }
-    @if (listing().minItemLevel > 0) {
-      <li cdtTag="outline">Item level {{ listing().minItemLevel }}+</li>
-    }
-    @if (loot()) {
-      <li cdtTag="outline">{{ loot() }}</li>
-    }
-    @if (listing().onePlayerPerJob) {
-      <li cdtTag="outline">One per job</li>
-    }
-    @if (listing().worldOnly) {
-      <li cdtTag>{{ listing().world.name }} only</li>
-    }
-  </ul>
+  @if (conditions().length) {
+    <p class="conditions">
+      @for (condition of conditions(); track condition) {
+        <span>[{{ condition }}]</span>
+      }
+    </p>
+  }
 
   @if (listing().description) {
     <p class="description">{{ listing().description }}</p>
   }
 
-  <div class="party">
-    <span class="count">{{ filled() }}/{{ listing().slots.length }}</span>
-    <ul class="slots" [attr.aria-label]="'Party: ' + filled() + ' of ' + listing().slots.length + ' slots filled'">
-      @for (slot of listing().slots; track $index) {
-        @if (slot.job) {
-          <li class="slot filled">{{ slot.job }}</li>
-        } @else {
-          <li class="slot open"><span class="visually-hidden">Open: </span>{{ openTo(slot.roles) }}</li>
+  <dl class="facts">
+    <div>
+      <dt>Location</dt>
+      <dd>
+        {{ listing().world.name }}
+        @if (listing().worldOnly) {
+          <span class="only">(only from there)</span>
         }
-      }
-    </ul>
-  </div>
+      </dd>
+    </div>
+    @if (listing().minItemLevel > 0) {
+      <div>
+        <dt>Item Level</dt>
+        <dd>{{ listing().minItemLevel }}</dd>
+      </div>
+    }
+    <div>
+      <dt>Status</dt>
+      <dd>{{ remaining() }} {{ remaining() === 1 ? 'player' : 'players' }} remaining</dd>
+    </div>
+  </dl>
 
-  <div cdtCardFooter class="footer">
-    <span class="recruiter">{{ listing().recruiter }} · {{ listing().homeWorld.name }}</span>
-    <span class="seen">seen {{ seen() }}</span>
-  </div>
+  <cdt-pf-party [slots]="listing().slots" [icons]="icons()" />
+
+  <p class="seen">seen {{ seen() }}</p>
 </cdt-card>

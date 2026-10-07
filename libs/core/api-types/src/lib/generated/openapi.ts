@@ -3055,6 +3055,12 @@ export interface components {
       }[];
       /** Format: date-time */
       fetchedAt: string;
+      icons: {
+        tank: number;
+        healer: number;
+        dps: number;
+        beginner: number;
+      };
       listings: {
         id: string;
         recruiter: string;
@@ -3081,7 +3087,13 @@ export interface components {
         parties: number;
         slots: {
           job: string | null;
+          icon: number | null;
           roles: ('tank' | 'healer' | 'dps')[];
+          accepts: {
+            /** @enum {string} */
+            role: 'tank' | 'healer' | 'dps';
+            jobs: string[];
+          }[];
         }[];
         /** Format: date-time */
         updatedAt: string;

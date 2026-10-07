@@ -48,7 +48,7 @@ Every frontend change keeps the site **WCAG 2.2 level AA** compliant, in **both 
 
 ## Building blocks first
 
-The UI library already does most of this; use it rather than rebuilding: `cdtButton`, `cdtInput`, `<cdt-field>`, `<cdt-checkbox>`, `<cdt-switch>`, `<cdt-dialog>`, `<cdt-menu>`, `cdtTabs`/`cdtTab` (links for pages, buttons for views), `cdtTag` (a button to pick), `<cdt-pager>`, `<cdt-byline>`, `.visually-hidden`. A new kind of control goes into the UI library with its keyboard support and a spec that checks its roles, names and keys.
+The UI library already does most of this; use it rather than rebuilding: `cdtButton`, `cdtInput`, `<cdt-field>`, `<cdt-checkbox>`, `<cdt-switch>`, `<cdt-tooltip>` (hover and focus, Escape hides it, read as a description), `<cdt-dialog>`, `<cdt-menu>`, `cdtTabs`/`cdtTab` (links for pages, buttons for views), `cdtTag` (a button to pick), `<cdt-pager>`, `<cdt-byline>`, `.visually-hidden`. A new kind of control goes into the UI library with its keyboard support and a spec that checks its roles, names and keys.
 
 ## Checking a change
 

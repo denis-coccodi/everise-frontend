@@ -1,0 +1,38 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+.trigger {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+}
+
+// Above the content, centred, in a small window of its own. Not drawn until
+// open (so a closed one never widens the page), but still read by screen
+// readers through aria-describedby.
+.tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  left: 50%;
+  z-index: 10;
+  width: max-content;
+  max-width: min(16rem, 80vw);
+  padding: 0.35rem 0.6rem;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-strong);
+  box-shadow: var(--shadow-raised);
+  color: var(--color-contrast);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  transform: translateX(-50%);
+}
+
+.tip.open {
+  display: block;
+}
