@@ -13,7 +13,7 @@
       class="menu-toggle"
       aria-controls="site-menu"
       [attr.aria-expanded]="open()"
-      (click)="open.set(!open())"
+      (click)="toggleMenu()"
     >
       <cdt-icon class="menu-icon" [name]="open() ? 'close' : 'menu'" />
       Menu
@@ -63,27 +63,39 @@
               <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
             </cdt-menu>
           </li>
-          <!-- In the phone panel the same, laid out flat under the user's name. -->
-          <li class="nav-item narrow-only account-heading">
-            <cdt-avatar [src]="user().image" [size]="28" />
-            <span class="name">{{ user().username }}</span>
-          </li>
+          <!-- In the phone panel the same links, folded under the user's name
+               (a disclosure that starts closed each time the panel opens). -->
           <li class="nav-item narrow-only">
-            <a
-              class="nav-link"
-              [routerLink]="['/profile', user().id]"
-              routerLinkActive="active"
-              ariaCurrentWhenActive="page"
-              >Your profile</a
+            <button
+              type="button"
+              class="account-heading"
+              aria-controls="account-links"
+              [attr.aria-expanded]="accountOpen()"
+              (click)="accountOpen.set(!accountOpen())"
             >
-          </li>
-          <li class="nav-item narrow-only">
-            <a class="nav-link" routerLink="/settings" routerLinkActive="active" ariaCurrentWhenActive="page"
-              >Settings</a
-            >
-          </li>
-          <li class="nav-item narrow-only">
-            <button type="button" class="nav-link sign-out" (click)="logout.emit()">Sign out</button>
+              <cdt-avatar [src]="user().image" [size]="28" />
+              <span class="name">{{ user().username }}</span>
+              <cdt-icon class="chevron" name="chevron-right" />
+            </button>
+            <ul id="account-links" class="account-links" [hidden]="!accountOpen()">
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  [routerLink]="['/profile', user().id]"
+                  routerLinkActive="active"
+                  ariaCurrentWhenActive="page"
+                  >Your profile</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/settings" routerLinkActive="active" ariaCurrentWhenActive="page"
+                  >Settings</a
+                >
+              </li>
+              <li class="nav-item">
+                <button type="button" class="nav-link sign-out" (click)="logout.emit()">Sign out</button>
+              </li>
+            </ul>
           </li>
         }
       </ul>

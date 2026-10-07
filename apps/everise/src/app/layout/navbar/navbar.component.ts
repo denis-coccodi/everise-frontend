@@ -35,6 +35,8 @@ export class NavbarComponent {
   readonly logout = output<void>();
 
   protected readonly open = signal(false);
+  // The phone panel's account links, folded until the user's name is pressed.
+  protected readonly accountOpen = signal(false);
   private readonly toggle = viewChild.required<ElementRef<HTMLButtonElement>>('toggle');
   private readonly host = inject(ElementRef).nativeElement as HTMLElement;
 
@@ -45,6 +47,12 @@ export class NavbarComponent {
         takeUntilDestroyed(),
       )
       .subscribe(() => this.open.set(false));
+  }
+
+  // Every time the panel opens, the account links start folded.
+  protected toggleMenu() {
+    if (!this.open()) this.accountOpen.set(false);
+    this.open.set(!this.open());
   }
 
   protected closeOutside(event: Event) {

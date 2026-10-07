@@ -143,19 +143,56 @@
   cursor: pointer;
 }
 
-// The user's name above their own links.
+// The user's name: pressing it unfolds their own links below.
 .account-heading {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 1rem 0.25rem 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  border: none;
+  background: none;
   color: var(--color-contrast);
+  font: inherit;
+  font-size: 1.1rem;
   font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-heading:hover .name {
+  text-decoration: underline;
 }
 
 .account-heading .name {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.chevron {
+  transition: transform 0.15s ease;
+}
+
+.account-heading[aria-expanded='true'] .chevron {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+.account-links {
+  margin: 0;
+  padding: 0 0 0 2.35rem;
+  list-style: none;
+}
+
+.account-links .nav-item {
+  border-top: var(--border-width) solid var(--color-border-faint);
 }
 
 .wide-only {
