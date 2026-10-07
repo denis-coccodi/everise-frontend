@@ -104,7 +104,7 @@ describe('AdminMembersComponent', () => {
   });
 
   it('pages through many members', async () => {
-    const many = Array.from({ length: 20 }, (_, i) => ({ ...members[1], username: `Member${i}` }));
+    const many = Array.from({ length: 20 }, (_, i) => ({ ...members[1], id: `id-${i}`, username: `Member${i}` }));
     const { fixture, http, page } = await render({ users: many, usersCount: 45, stagingAccessConnected: true });
 
     const pager = page.querySelector('cdt-pager nav') as HTMLElement;

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { API_URL } from '@realworld/core/http-client';
+import { RouletteStore } from '@realworld/roulette/data-access';
 import { RouletteComponent } from './roulette.component';
 
 describe('RouletteComponent', () => {
@@ -24,6 +25,11 @@ describe('RouletteComponent', () => {
     http = TestBed.inject(HttpTestingController);
     await fixture.whenStable();
   });
+
+  // The page's own store (it provides one).
+  function store() {
+    return fixture.debugElement.injector.get(RouletteStore);
+  }
 
   function text() {
     return (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -86,7 +92,7 @@ describe('RouletteComponent', () => {
     http.expectOne('/api/roulettes').flush({ fetchedAt: null, roulettes: [] });
     http.expectOne('/api/jobs').flush({ fetchedAt: null, jobs: [] });
     await fixture.whenStable();
-    expect(fixture.componentInstance.frontlineMap()).toBe('Seal Rock (Seize)');
+    expect(store().frontlineMap()).toBe('Seal Rock (Seize)');
 
     await new Promise((resolve) => setTimeout(resolve, 20));
     http.expectOne('/api/duties').flush({
@@ -96,9 +102,9 @@ describe('RouletteComponent', () => {
     });
     await fixture.whenStable();
 
-    expect(fixture.componentInstance.frontlineMap()).toBe('the Borderland Ruins (Secure)');
+    expect(store().frontlineMap()).toBe('the Borderland Ruins (Secure)');
     // In the reader's time zone, so only its shape is known.
-    expect(fixture.componentInstance.frontlineChangesAt()).toMatch(/\d/);
+    expect(store().frontlineChangesAt()).toMatch(/\d/);
     // Nothing more until the next day.
     await new Promise((resolve) => setTimeout(resolve, 20));
     http.expectNone('/api/duties');

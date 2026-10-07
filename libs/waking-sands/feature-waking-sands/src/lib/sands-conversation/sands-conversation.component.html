@@ -1,0 +1,53 @@
+<cdt-panel heading="Conversation">
+  <div #logBox class="log" role="log" aria-label="Conversation" tabindex="0">
+    @for (line of store.lines(); track line.id) {
+      @if (line.from === 'note') {
+        <p class="note">{{ line.text }}</p>
+      } @else {
+        <div class="line" [class.mine]="store.isMine(line)" [class.member]="line.from === 'member'">
+          <img class="avatar" [src]="line.image || defaultPicture" alt="" width="36" height="36" />
+          <div class="bubble">
+            <span class="speaker">{{ line.name }}</span>
+            <p>{{ line.text }}</p>
+          </div>
+        </div>
+      }
+    } @empty {
+      <p class="note">The room is quiet.</p>
+    }
+  </div>
+
+  <p class="status" aria-live="polite">
+    @if (store.writingName(); as name) {
+      {{ name }} is writing…
+    }
+  </p>
+  <p class="error" role="alert">{{ store.error() }}</p>
+
+  @if (signedIn()) {
+    <form class="compose" (submit)="send($event)">
+      <cdt-field label="Your message" for="sands-message">
+        <textarea
+          #messageInput="cdtInput"
+          id="sands-message"
+          cdtInput
+          rows="2"
+          [attr.maxlength]="maxLength"
+          [value]="store.draft()"
+          (input)="store.setDraft(messageInput.value)"
+          (keydown.enter)="onEnter($event)"
+          placeholder="Say something… (Shift+Enter for a new line)"
+        ></textarea>
+      </cdt-field>
+      <div class="actions">
+        <button type="submit" cdtButton [disabled]="!store.canSend()">
+          {{ store.sending() ? 'Sending…' : 'Send' }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <p class="sign-in">
+      <a routerLink="/login">Sign in</a> or <a routerLink="/register">sign up</a> to join the conversation.
+    </p>
+  }
+</cdt-panel>

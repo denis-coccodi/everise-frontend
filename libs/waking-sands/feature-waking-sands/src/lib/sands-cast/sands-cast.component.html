@@ -1,0 +1,34 @@
+<cdt-panel heading="Who's here">
+  @if (store.present().length === 0) {
+    <p class="hint">No characters are in. Members can still talk, or invite someone.</p>
+  } @else if (store.full()) {
+    <p class="hint">The room is full: {{ maxPresent }} characters at most. Send someone out to invite another.</p>
+  }
+  <ul class="cast">
+    @for (character of store.characters(); track character.id) {
+      <li class="person" [class.present]="store.isPresent(character.id)">
+        <img class="portrait" [src]="character.image || defaultPicture" alt="" width="48" height="48" />
+        <span class="who">
+          <span class="name">{{ character.name }}</span>
+          <span class="title">{{ character.title }}</span>
+          <span class="visually-hidden">{{ store.isPresent(character.id) ? '(in the room)' : '' }}</span>
+        </span>
+        @if (signedIn()) {
+          @if (store.isPresent(character.id)) {
+            <button type="button" cdtButton="outline-secondary" size="sm" (click)="store.dismiss(character.id)">
+              Send out<span class="visually-hidden"> {{ character.name }}</span>
+            </button>
+          } @else if (!store.full()) {
+            <button type="button" cdtButton size="sm" (click)="store.invite(character.id)">
+              Invite<span class="visually-hidden"> {{ character.name }}</span>
+            </button>
+          }
+        }
+      </li>
+    }
+  </ul>
+  <p class="fan-note">
+    Everyone on this page shares the room. FINAL FANTASY XIV's characters and the free company's own are voiced by an AI
+    as fan work: they can get things wrong, and some of them swear.
+  </p>
+</cdt-panel>

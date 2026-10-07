@@ -1,0 +1,72 @@
+<cdt-panel heading="Duty Finder Settings">
+  <fieldset [disabled]="disabled()">
+    <legend class="xiv-label">Duty types</legend>
+    <div class="quick">
+      <button type="button" cdtButton="chip" (click)="store.setAllTypes(true)">All</button>
+      <button type="button" cdtButton="chip" (click)="store.setAllTypes(false)">None</button>
+    </div>
+    <ul class="checks">
+      @for (type of store.types(); track type.name) {
+        <li>
+          <cdt-checkbox
+            [class.none-in-range]="type.count === 0"
+            [checked]="store.isTypeOn(type.name)"
+            (checkedChange)="store.toggleType(type.name, $event)"
+          >
+            <span class="type-name">
+              @if (type.icon) {
+                <img class="type-icon" [src]="type.icon" alt="" (error)="hideImage($event)" />
+              }
+              {{ type.name }}</span
+            >
+            <span
+              class="count"
+              [attr.title]="
+                type.count === 0 ? 'No duties within the level limits' : type.count + ' within the level limits'
+              "
+              >{{ type.count }}</span
+            >
+          </cdt-checkbox>
+        </li>
+      }
+    </ul>
+  </fieldset>
+
+  <fieldset class="levels" [disabled]="disabled()">
+    <legend class="xiv-label">Duty level</legend>
+    <label>
+      Minimum
+      <input
+        #minLevelInput="cdtInput"
+        cdtInput="sm"
+        type="number"
+        min="1"
+        max="100"
+        inputmode="numeric"
+        placeholder="Any"
+        [value]="store.settings().minLevel ?? ''"
+        (change)="store.setLevel('minLevel', minLevelInput.value)"
+      />
+    </label>
+    <label>
+      Maximum
+      <input
+        #maxLevelInput="cdtInput"
+        cdtInput="sm"
+        type="number"
+        min="1"
+        max="100"
+        inputmode="numeric"
+        placeholder="Any"
+        [value]="store.settings().maxLevel ?? ''"
+        (change)="store.setLevel('maxLevel', maxLevelInput.value)"
+      />
+    </label>
+  </fieldset>
+
+  @if (store.levelError()) {
+    <p class="warning">{{ store.levelError() }}</p>
+  } @else if (store.options().length === 0) {
+    <p class="warning">No duty matches these settings.</p>
+  }
+</cdt-panel>
