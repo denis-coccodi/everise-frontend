@@ -1,20 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { DiscordWidgetResponse } from '@everise/core/api-types';
 import { ApiService } from '@everise/core/http-client';
 import { AvatarComponent, ButtonComponent, EVERISE_DISCORD } from '@everise/ui/components';
 import { catchError, map, of } from 'rxjs';
 
-// The Discord server's public widget, from GET /api/discord/widget.
-export interface DiscordWidget {
-  name: string;
-  presenceCount: number;
-  members: { name: string; avatarUrl: string; status: string }[];
-}
-
 const STATUS_NAMES: Record<string, string> = { online: 'online', idle: 'away', dnd: 'do not disturb' };
 
-// On the home page: who's on the EVERISE Discord server right now, and a
-// way in. Shown only when the server's widget is turned on.
+// On the home page, for signed-in members only (the API answers guests with
+// 401): who's on the EVERISE Discord server right now, and a way in. Shown
+// only when the server's widget is turned on.
 @Component({
   selector: 'cdt-discord-widget',
   templateUrl: './discord-widget.component.html',
@@ -27,7 +22,7 @@ export class DiscordWidgetComponent {
 
   protected readonly widget = toSignal(
     inject(ApiService)
-      .get<{ widget: DiscordWidget | null }>('/discord/widget')
+      .get<DiscordWidgetResponse>('/discord/widget')
       .pipe(
         map(({ widget }) => widget),
         catchError(() => of(null)),
