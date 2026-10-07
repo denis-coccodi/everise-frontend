@@ -34,8 +34,8 @@ export default [
     files: [
       'src/button/button.component.ts',
       'src/input/input.component.ts',
-      'src/menu/menu-item.component.ts',
-      'src/tabs/tab.component.ts',
+      'src/menu-item/menu-item.component.ts',
+      'src/tab/tab.component.ts',
       'src/tabs/tabs.component.ts',
       'src/tag/tag.component.ts',
     ],

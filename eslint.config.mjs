@@ -1,4 +1,5 @@
 import nx from '@nx/eslint-plugin';
+import ngrx from '@ngrx/eslint-plugin';
 
 export default [
   ...nx.configs['flat/base'],
@@ -50,6 +51,11 @@ export default [
   },
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
+  // NgRx's own rules for signal stores (protected state, typed features,
+  // type<T>() calls) and its operators. Its typed rules (signalsTypeChecked)
+  // would need type-aware linting, which this repo doesn't run.
+  ...ngrx.configs.signals.map((config) => ({ ...config, files: ['**/*.ts'] })),
+  ...ngrx.configs.operators.map((config) => ({ ...config, files: ['**/*.ts'] })),
   {
     // No `any` outside tests: type it, or use `unknown` and narrow it.
     files: ['**/*.ts'],

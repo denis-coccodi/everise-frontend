@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MenuComponent } from './menu.component';
-import { MenuItemComponent } from './menu-item.component';
+import { MenuItemComponent } from '../menu-item/menu-item.component';
 
 @Component({
   imports: [MenuComponent, MenuItemComponent],

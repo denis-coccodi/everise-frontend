@@ -12,3 +12,6 @@ export type CreateArticle = Schemas['NewArticle'];
 export type EditArticle = Schemas['ArticleUpdate'];
 
 export type ArticleResponse = Schemas['ArticleResponse'];
+
+// The popular tags, for the home page's tag list.
+export type TagsResponse = Schemas['TagsResponse'];

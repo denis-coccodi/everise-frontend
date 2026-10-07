@@ -1,0 +1,43 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.sands-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+.hero p,
+.notice {
+  color: var(--color-contrast-muted);
+  text-align: center;
+}
+
+// Phones: who's here above the conversation. Wide screens: side by side.
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@include bp.up(lg) {
+  .layout {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+}

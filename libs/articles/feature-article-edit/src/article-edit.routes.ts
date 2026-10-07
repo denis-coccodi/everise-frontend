@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from '@everise/auth/data-access';
-import { ArticleEditComponent } from './article-edit.component';
-import { articleEditResolver } from './resolvers/article-edit-resolver';
+import { ArticleEditComponent } from './article-edit/article-edit.component';
+import { articleEditResolver } from './article-edit.resolver';
 
 export const ARTICLE_EDIT_ROUTES: Routes = [
   {

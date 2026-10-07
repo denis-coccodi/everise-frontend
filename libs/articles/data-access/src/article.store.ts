@@ -8,9 +8,9 @@ import { CreateArticle, EditArticle } from '@everise/core/api-types';
 import { setLoaded, setLoading, withCallState } from '@everise/core/data-access';
 import { FormErrorsStore } from '@everise/core/forms';
 import { concatMap, pipe, switchMap, tap } from 'rxjs';
-import { ArticleState, articleInitialState } from './models/article.model';
-import { ActionsService } from './services/actions.service';
-import { ArticlesService, NewComment } from './services/articles.service';
+import { ArticleState, articleInitialState } from './article.model';
+import { ActionsService } from './actions.service';
+import { ArticlesService, NewComment } from './articles.service';
 
 export const ArticleStore = signalStore(
   { providedIn: 'root' },

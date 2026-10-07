@@ -5,8 +5,8 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { ActionsService } from '@everise/articles/data-access';
 import { setLoaded, withCallState } from '@everise/core/data-access';
 import { pipe, switchMap, tap } from 'rxjs';
-import { ProfileState, profileInitialState } from './models/profile-state.model';
-import { ProfileService } from './services/profile.service';
+import { ProfileState, profileInitialState } from './profile-state.model';
+import { ProfileService } from './profile.service';
 
 export const ProfileStore = signalStore(
   { providedIn: 'root' },

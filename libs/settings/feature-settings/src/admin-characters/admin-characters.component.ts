@@ -13,7 +13,7 @@ import {
   TabsComponent,
 } from '@everise/ui/components';
 import { PictureCropDialogComponent } from '../picture-crop-dialog/picture-crop-dialog.component';
-import { PICTURE_HINT, checkChosenFile } from '../profile-picture';
+import { PICTURE_HINT, checkChosenFile } from '../profile-picture/profile-picture';
 
 // For admins: the Waking Sands characters, a tab each (AdminCharactersStore).
 // Each has a picture (the same crop window as anyone's), a title and a

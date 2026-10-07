@@ -11,9 +11,9 @@ import {
   ArticlesListState,
   articlesListInitialState,
   belongsAtTop,
-} from './models/articles-list.model';
-import { ActionsService } from './services/actions.service';
-import { ArticlesService } from './services/articles.service';
+} from './articles-list.model';
+import { ActionsService } from './actions.service';
+import { ArticlesService } from './articles.service';
 
 export const ArticlesListStore = signalStore(
   { providedIn: 'root' },

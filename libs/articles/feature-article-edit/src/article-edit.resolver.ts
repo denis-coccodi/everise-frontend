@@ -1,0 +1,15 @@
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
+import { ArticleStore } from '@everise/articles/data-access';
+import { of } from 'rxjs';
+
+export const articleEditResolver: ResolveFn<boolean> = (route: ActivatedRouteSnapshot) => {
+  const articleId = route.params['articleId'];
+  const articleStore = inject(ArticleStore);
+
+  if (articleId) {
+    articleStore.getArticle(articleId);
+  }
+
+  return of(true);
+};
