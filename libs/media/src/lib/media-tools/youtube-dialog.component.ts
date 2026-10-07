@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, afterNextRender, computed, output, signal } from '@angular/core';
-import { ButtonComponent, DialogComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
-import { NewAttachment } from '@realworld/core/api-types';
+import { ButtonComponent, DialogComponent, FieldComponent, InputComponent } from '@everise/ui/components';
+import { NewAttachment } from '@everise/core/api-types';
 import { youTubeLink, youTubeVideo } from '../youtube';
 
 // "Add a YouTube video": a link YouTube shares, checked and previewed.

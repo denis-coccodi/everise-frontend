@@ -1,12 +1,12 @@
-import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
+import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ArticleStore } from '@realworld/articles/data-access';
-import { AttachmentsEditorComponent } from '@realworld/media';
-import { Attachment, MAX_POST_ATTACHMENTS, NewAttachment } from '@realworld/core/api-types';
-import { ButtonComponent, FieldComponent, InputComponent } from '@realworld/ui/components';
+import { ArticleStore } from '@everise/articles/data-access';
+import { AttachmentsEditorComponent } from '@everise/media';
+import { Attachment, MAX_POST_ATTACHMENTS, NewAttachment } from '@everise/core/api-types';
+import { ButtonComponent, FieldComponent, InputComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-article-edit',

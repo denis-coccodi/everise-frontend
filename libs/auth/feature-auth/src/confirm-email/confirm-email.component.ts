@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AuthService, AuthStore } from '@realworld/auth/data-access';
-import { serverMessage } from '@realworld/core/forms';
-import { ButtonComponent } from '@realworld/ui/components';
+import { AuthService, AuthStore } from '@everise/auth/data-access';
+import { serverMessage } from '@everise/core/forms';
+import { ButtonComponent } from '@everise/ui/components';
 
 type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | { kind: 'failed'; message: string };
 

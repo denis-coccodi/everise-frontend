@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { API_URL } from '@realworld/core/http-client';
+import { API_URL } from '@everise/core/http-client';
 import { CheckEmailComponent } from './check-email.component';
 
 describe('CheckEmailComponent', () => {

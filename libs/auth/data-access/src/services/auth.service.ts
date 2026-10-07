@@ -8,9 +8,9 @@ import {
   NewUserRequest,
   User,
   UserResponse,
-} from '@realworld/core/api-types';
-import { SKIP_LOGIN_REDIRECT } from '@realworld/core/error-handler';
-import { ApiService } from '@realworld/core/http-client';
+} from '@everise/core/api-types';
+import { SKIP_LOGIN_REDIRECT } from '@everise/core/error-handler';
+import { ApiService } from '@everise/core/http-client';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })

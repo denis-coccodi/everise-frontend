@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { AuthService } from '@realworld/auth/data-access';
-import { FormErrorsStore } from '@realworld/core/forms';
-import { API_URL } from '@realworld/core/http-client';
-import { ButtonComponent } from '@realworld/ui/components';
+import { AuthService } from '@everise/auth/data-access';
+import { FormErrorsStore } from '@everise/core/forms';
+import { API_URL } from '@everise/core/http-client';
+import { ButtonComponent } from '@everise/ui/components';
 import { catchError, map, of } from 'rxjs';
 
 const PROVIDERS: Record<string, { name: string; icon: string }> = {

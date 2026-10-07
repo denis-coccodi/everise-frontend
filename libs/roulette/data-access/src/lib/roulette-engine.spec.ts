@@ -1,4 +1,4 @@
-import { Duty, DutyGroup, DutyRoulette, Job } from '@realworld/core/api-types';
+import { Duty, DutyGroup, DutyRoulette, Job } from '@everise/core/api-types';
 import {
   Candidate,
   DEALERS_CHOICE,

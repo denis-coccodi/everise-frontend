@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiService } from '@realworld/core/http-client';
+import { ApiService } from '@everise/core/http-client';
 import {
   Article,
   ArticleResponse,
@@ -9,7 +9,7 @@ import {
   MultipleCommentsResponse,
   NewAttachment,
   SingleCommentResponse,
-} from '@realworld/core/api-types';
+} from '@everise/core/api-types';
 import { HttpParams } from '@angular/common/http';
 import { ArticlesListConfig, Filters } from '../models/articles-list.model';
 

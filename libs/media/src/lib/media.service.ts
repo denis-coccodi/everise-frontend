@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { API_URL } from '@realworld/core/http-client';
+import { API_URL } from '@everise/core/http-client';
 import { Observable, catchError, map, of, shareReplay } from 'rxjs';
 
 // An uploaded image or GIF, where it's served.

@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommunityLinksComponent } from '@realworld/ui/components';
+import { CommunityLinksComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-footer',

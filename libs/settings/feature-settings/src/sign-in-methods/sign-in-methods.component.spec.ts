@@ -1,9 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { AuthStore } from '@realworld/auth/data-access';
-import { SignInMethod } from '@realworld/core/api-types';
-import { API_URL } from '@realworld/core/http-client';
+import { AuthStore } from '@everise/auth/data-access';
+import { SignInMethod } from '@everise/core/api-types';
+import { API_URL } from '@everise/core/http-client';
 import { patchState } from '@ngrx/signals';
 import { unprotected } from '@ngrx/signals/testing';
 import { SignInMethodsComponent } from './sign-in-methods.component';

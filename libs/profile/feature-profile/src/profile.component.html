@@ -13,21 +13,14 @@
               <button
                 [cdtButton]="$following() ? 'secondary' : 'outline-secondary'"
                 size="sm"
-                class="action-btn"
                 (click)="toggleFollowing()"
               >
                 <cdt-icon name="plus" />
-                &nbsp; {{ $following() ? 'Unfollow' : 'Follow' }}
+                {{ $following() ? 'Unfollow' : 'Follow' }}
                 {{ $username() }}
               </button>
             }
-            <a
-              [routerLink]="['/settings']"
-              [hidden]="$isUser() === false"
-              cdtButton="outline-secondary"
-              size="sm"
-              class="action-btn"
-            >
+            <a [routerLink]="['/settings']" [hidden]="$isUser() === false" cdtButton="outline-secondary" size="sm">
               <cdt-icon name="settings" /> Edit Profile Settings
             </a>
           </div>

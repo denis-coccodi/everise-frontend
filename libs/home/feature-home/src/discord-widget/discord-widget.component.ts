@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ApiService } from '@realworld/core/http-client';
-import { AvatarComponent, ButtonComponent, EVERISE_DISCORD } from '@realworld/ui/components';
+import { ApiService } from '@everise/core/http-client';
+import { AvatarComponent, ButtonComponent, EVERISE_DISCORD } from '@everise/ui/components';
 import { catchError, map, of } from 'rxjs';
 
 // The Discord server's public widget, from GET /api/discord/widget.

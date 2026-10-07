@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { Article } from '@realworld/core/api-types';
-import { ButtonComponent, BylineComponent, IconComponent } from '@realworld/ui/components';
+import { Article } from '@everise/core/api-types';
+import { ButtonComponent, BylineComponent, IconComponent } from '@everise/ui/components';
 @Component({
   selector: 'cdt-article-meta',
   templateUrl: './article-meta.component.html',

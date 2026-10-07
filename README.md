@@ -96,7 +96,7 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 - **dark (default):** near-black navy backdrop with crystal-teal highlights;
 - **light:** Final Fantasy white, with royal-blue highlights. Turn Settings → Appearance → Dark mode off and save to switch to it. The choice is saved with the account (`darkMode` on the backend's user) and copied to this browser, so pages start in the right mode; guests' choice stays in the browser.
 
-**Only the theme is global.** The UI library ([`libs/ui/components`](libs/ui/components), imported as `@realworld/ui/components`) defines it in [`src/theme`](libs/ui/components/src/theme), and [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss) only loads it:
+**Only the theme is global.** The UI library ([`libs/ui/components`](libs/ui/components), imported as `@everise/ui/components`) defines it in [`src/theme`](libs/ui/components/src/theme), and [`apps/everise/src/styles.scss`](apps/everise/src/styles.scss) only loads it:
 
 - **tokens:** the palette (used only inside the theme) and the role tokens everything uses, such as `--color-base`, `--color-surface`, `--color-contrast`, `--color-heading`, `--color-primary`, `--color-crystal`, `--color-focus`, `--font-display`, `--radius-*`, `--shadow-*` and `--gradient-*`. The light mode re-points them;
 - **the reset and element typography;**

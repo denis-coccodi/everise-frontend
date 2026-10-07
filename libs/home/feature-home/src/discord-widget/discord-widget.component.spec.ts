@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { API_URL } from '@realworld/core/http-client';
-import { EVERISE_DISCORD } from '@realworld/ui/components';
+import { API_URL } from '@everise/core/http-client';
+import { EVERISE_DISCORD } from '@everise/ui/components';
 import { DiscordWidgetComponent } from './discord-widget.component';
 
 describe('DiscordWidgetComponent', () => {

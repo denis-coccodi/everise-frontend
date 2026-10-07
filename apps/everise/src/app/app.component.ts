@@ -9,8 +9,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { SettingsStore } from '@realworld/settings/data-access';
+import { AuthStore } from '@everise/auth/data-access';
+import { SettingsStore } from '@everise/settings/data-access';
 import { filter } from 'rxjs';
 import { FooterComponent } from './layout/footer/footer.component';
 import { NavbarComponent } from './layout/navbar/navbar.component';

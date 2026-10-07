@@ -2,8 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { API_URL } from '@realworld/core/http-client';
+import { AuthStore } from '@everise/auth/data-access';
+import { API_URL } from '@everise/core/http-client';
 import { ConfirmEmailComponent } from './confirm-email.component';
 
 describe('ConfirmEmailComponent', () => {

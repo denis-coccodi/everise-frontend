@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from '@realworld/auth/data-access';
+import { AuthGuard } from '@everise/auth/data-access';
 import { ArticleEditComponent } from './article-edit.component';
 import { articleEditResolver } from './resolvers/article-edit-resolver';
 

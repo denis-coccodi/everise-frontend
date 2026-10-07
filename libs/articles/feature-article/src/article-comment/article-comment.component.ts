@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
-import { Article, User } from '@realworld/core/api-types';
-import { Comment } from '@realworld/articles/data-access';
-import { MediaGridComponent, RichTextComponent } from '@realworld/media';
-import { BylineComponent, CardComponent, IconComponent } from '@realworld/ui/components';
+import { Article, User } from '@everise/core/api-types';
+import { Comment } from '@everise/articles/data-access';
+import { MediaGridComponent, RichTextComponent } from '@everise/media';
+import { BylineComponent, CardComponent, IconComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-article-comment',

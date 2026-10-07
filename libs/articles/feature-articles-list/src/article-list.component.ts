@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ArticleListItemComponent } from './article-list-item/article-list-item.component';
-import { PagerComponent } from '@realworld/ui/components';
-import { ArticlesListStore } from '@realworld/articles/data-access';
+import { PagerComponent } from '@everise/ui/components';
+import { ArticlesListStore } from '@everise/articles/data-access';
 
 @Component({
   selector: 'cdt-article-list',

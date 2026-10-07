@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CHARACTER_LIMITS, CharacterChanges } from '@realworld/core/api-types';
-import { AdminCharactersStore } from '@realworld/settings/data-access';
+import { CHARACTER_LIMITS, CharacterChanges } from '@everise/core/api-types';
+import { AdminCharactersStore } from '@everise/settings/data-access';
 import {
   AvatarComponent,
   ButtonComponent,
@@ -11,7 +11,7 @@ import {
   PanelComponent,
   TabComponent,
   TabsComponent,
-} from '@realworld/ui/components';
+} from '@everise/ui/components';
 import { PictureCropDialogComponent } from '../picture-crop-dialog/picture-crop-dialog.component';
 import { PICTURE_HINT, checkChosenFile } from '../profile-picture';
 

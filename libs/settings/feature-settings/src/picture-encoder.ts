@@ -1,4 +1,4 @@
-import { SquareCrop } from '@realworld/ui/components';
+import { SquareCrop } from '@everise/ui/components';
 import { MAX_PICTURE_BYTES, MAX_PICTURE_SIDE } from './profile-picture';
 
 // Draws the chosen square at side × side pixels and encodes it.

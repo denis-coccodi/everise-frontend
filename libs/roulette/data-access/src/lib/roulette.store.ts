@@ -2,8 +2,8 @@ import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { DutyGroup, DutyRoulette, Job, RoulettePostRequest } from '@realworld/core/api-types';
-import { serverMessage } from '@realworld/core/forms';
+import { DutyGroup, DutyRoulette, Job, RoulettePostRequest } from '@everise/core/api-types';
+import { serverMessage } from '@everise/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
 import { DutiesService } from './duties.service';
 import {

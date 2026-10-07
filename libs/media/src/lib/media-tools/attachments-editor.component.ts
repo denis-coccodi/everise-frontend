@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
-import { NewAttachment } from '@realworld/core/api-types';
-import { ButtonComponent, IconComponent } from '@realworld/ui/components';
+import { NewAttachment } from '@everise/core/api-types';
+import { ButtonComponent, IconComponent } from '@everise/ui/components';
 import { youTubeVideo } from '../youtube';
 import { ImageDialogComponent } from './image-dialog.component';
 import { YouTubeDialogComponent } from './youtube-dialog.component';

@@ -1,17 +1,17 @@
-import { Article, User } from '@realworld/core/api-types';
-import { InputErrorsComponent, ListErrorsComponent } from '@realworld/core/forms';
+import { Article, User } from '@everise/core/api-types';
+import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { AttachmentsEditorComponent } from '@realworld/media';
-import { NewComment } from '@realworld/articles/data-access';
-import { NewAttachment } from '@realworld/core/api-types';
+import { AttachmentsEditorComponent } from '@everise/media';
+import { NewComment } from '@everise/articles/data-access';
+import { NewAttachment } from '@everise/core/api-types';
 import {
   AvatarComponent,
   ButtonComponent,
   CardComponent,
   FieldComponent,
   InputComponent,
-} from '@realworld/ui/components';
+} from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-add-comment',

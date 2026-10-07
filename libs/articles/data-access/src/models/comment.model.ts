@@ -1,5 +1,5 @@
-import { Attachment } from '@realworld/core/api-types';
-import { Profile } from '@realworld/core/api-types';
+import { Attachment } from '@everise/core/api-types';
+import { Profile } from '@everise/core/api-types';
 
 export interface SingleCommentResponse {
   comment: Comment;

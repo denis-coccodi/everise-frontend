@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Attachment } from '@realworld/core/api-types';
+import { Attachment } from '@everise/core/api-types';
 import { MediaGridComponent } from './media-grid.component';
 
 describe('MediaGridComponent', () => {

@@ -1,7 +1,7 @@
-import { ProfileResponse, ArticleResponse } from '@realworld/core/api-types';
+import { ProfileResponse, ArticleResponse } from '@everise/core/api-types';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiService } from '@realworld/core/http-client';
+import { ApiService } from '@everise/core/http-client';
 
 @Injectable({ providedIn: 'root' })
 export class ActionsService {

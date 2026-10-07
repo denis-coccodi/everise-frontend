@@ -21,17 +21,15 @@
     <button
       [cdtButton]="article().author.following ? 'secondary' : 'outline-secondary'"
       size="sm"
-      class="action-btn"
       (click)="toggleFollow()"
     >
       <cdt-icon name="plus" />
-      &nbsp; {{ article().author.following ? 'Unfollow' : 'Follow' }}
+      {{ article().author.following ? 'Unfollow' : 'Follow' }}
       {{ article().author.username }}
     </button>
-    &nbsp;&nbsp;
     <button [cdtButton]="article().favorited ? 'primary' : 'outline-primary'" size="sm" (click)="toggleFavorite()">
       <cdt-icon name="heart" />
-      &nbsp; {{ article().favorited ? 'Unfavorite' : 'Favorite' }} Post
+      {{ article().favorited ? 'Unfavorite' : 'Favorite' }} Post
       <span class="counter">({{ article().favoritesCount }})</span>
     </button>
   </span>

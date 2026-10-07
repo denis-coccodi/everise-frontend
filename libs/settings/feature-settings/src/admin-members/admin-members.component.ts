@@ -11,8 +11,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Member } from '@realworld/core/api-types';
-import { AdminMembersStore, isAssignableRole } from '@realworld/settings/data-access';
+import { Member } from '@everise/core/api-types';
+import { AdminMembersStore, isAssignableRole } from '@everise/settings/data-access';
 import {
   AvatarComponent,
   ButtonComponent,
@@ -22,7 +22,7 @@ import {
   MessageComponent,
   PagerComponent,
   PanelComponent,
-} from '@realworld/ui/components';
+} from '@everise/ui/components';
 
 // For admins: the members and their roles, a page at a time, found by part
 // of their username or email (AdminMembersStore). Making someone a staging

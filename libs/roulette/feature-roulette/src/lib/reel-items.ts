@@ -1,4 +1,4 @@
-import { Job } from '@realworld/core/api-types';
+import { Job } from '@everise/core/api-types';
 import {
   Candidate,
   RunMode,
@@ -8,7 +8,7 @@ import {
   candidateName,
   runModeDetail,
   wikiUrl,
-} from '@realworld/roulette/data-access';
+} from '@everise/roulette/data-access';
 import { RouletteResult } from './duty-found/duty-found.component';
 import { ReelItem } from './reel/reel.component';
 

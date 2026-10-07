@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, output, input } from '@angular/core';
-import { TagComponent } from '@realworld/ui/components';
+import { TagComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-tags-list',

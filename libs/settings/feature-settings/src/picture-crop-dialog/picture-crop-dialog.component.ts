@@ -11,7 +11,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { ButtonComponent, DialogComponent, ImageCropperComponent, SquareCrop } from '@realworld/ui/components';
+import { ButtonComponent, DialogComponent, ImageCropperComponent, SquareCrop } from '@everise/ui/components';
 import { canvasRenderer, encodePicture } from '../picture-encoder';
 
 // The window shown after a picture is chosen: the person picks the square to

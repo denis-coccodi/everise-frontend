@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild } from '@angular/core';
-import { IconComponent } from '@realworld/ui/components';
+import { IconComponent } from '@everise/ui/components';
 
 // A GIF that plays straight away, as on Discord, with a pause button: moving
 // pictures that go on for more than a few seconds must be stoppable. For

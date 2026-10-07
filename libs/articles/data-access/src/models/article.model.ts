@@ -1,4 +1,4 @@
-import { Article, Comment } from '@realworld/core/api-types';
+import { Article, Comment } from '@everise/core/api-types';
 
 export interface ArticleState {
   data: Article;

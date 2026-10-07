@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { AuthStore } from '@realworld/auth/data-access';
-import { SANDS_LIMITS } from '@realworld/core/api-types';
-import { AvatarComponent, ButtonComponent, PanelComponent } from '@realworld/ui/components';
-import { WakingSandsStore } from '@realworld/waking-sands/data-access';
+import { AuthStore } from '@everise/auth/data-access';
+import { SANDS_LIMITS } from '@everise/core/api-types';
+import { AvatarComponent, ButtonComponent, PanelComponent } from '@everise/ui/components';
+import { WakingSandsStore } from '@everise/waking-sands/data-access';
 
 // "Who's here": every character, with Invite or Send out for signed-in
 // members (none while the room is full), and the fan-work note.

@@ -11,8 +11,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AuthStore } from '@realworld/auth/data-access';
-import { Job, RoulettePostRequest } from '@realworld/core/api-types';
+import { AuthStore } from '@everise/auth/data-access';
+import { Job, RoulettePostRequest } from '@everise/core/api-types';
 import {
   Candidate,
   DEALERS_CHOICE,
@@ -21,8 +21,8 @@ import {
   pickIndex,
   runModes,
   spreadSample,
-} from '@realworld/roulette/data-access';
-import { ButtonComponent, MessageComponent, PanelComponent } from '@realworld/ui/components';
+} from '@everise/roulette/data-access';
+import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/components';
 import { DutyFoundComponent, RouletteResult } from './duty-found/duty-found.component';
 import { wait } from './motion';
 import { ReelComponent, ReelItem } from './reel/reel.component';

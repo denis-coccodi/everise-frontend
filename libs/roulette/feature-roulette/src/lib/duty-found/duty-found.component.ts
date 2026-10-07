@@ -8,7 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { ButtonComponent, DialogComponent, DutyCardComponent, InputComponent } from '@realworld/ui/components';
+import { ButtonComponent, DialogComponent, DutyCardComponent, InputComponent } from '@everise/ui/components';
 
 // The longest comment the backend accepts.
 const MAX_COMMENT = 280;

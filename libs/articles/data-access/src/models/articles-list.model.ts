@@ -1,4 +1,4 @@
-import { Article } from '@realworld/core/api-types';
+import { Article } from '@everise/core/api-types';
 
 export interface ArticlesListState {
   listConfig: ArticlesListConfig;
