@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/settings/data-access/src",
   "prefix": "cdt",
+  "tags": ["type:data-access"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",

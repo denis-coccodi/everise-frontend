@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/core/error-handler/src",
   "prefix": "cdt",
+  "tags": ["type:util"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",

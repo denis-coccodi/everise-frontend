@@ -1,8 +1,8 @@
 {
   "name": "everise-e2e",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/everise-e2e/src",
   "projectType": "application",
+  "sourceRoot": "apps/everise-e2e/src",
   "tags": [],
   "implicitDependencies": ["everise"],
   "targets": {

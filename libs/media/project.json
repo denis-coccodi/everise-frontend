@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/media/src",
   "prefix": "cdt",
+  "tags": ["type:widget"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",

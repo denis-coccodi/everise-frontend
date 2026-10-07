@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/home/feature-home/src",
   "prefix": "cdt",
+  "tags": ["type:feature"],
   "targets": {
     "test": {
       "executor": "@nx/vitest:test",
