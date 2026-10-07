@@ -1,0 +1,57 @@
+<div class="pf-page">
+  <header class="hero">
+    <h1 class="xiv-title">Party Finder</h1>
+    <p>The listings up in the game right now, on Light or Chaos, refreshed while you watch.</p>
+  </header>
+
+  <cdt-pf-filters />
+
+  <div class="status">
+    <p class="summary">
+      @if (store.loadState() === 'ready') {
+        {{ store.listings().length }} of {{ store.total() }} listings on {{ store.dataCentre() }} · checked
+        {{ checked() }}
+      }
+    </p>
+    <button
+      type="button"
+      cdtButton="outline-primary"
+      size="sm"
+      [disabled]="store.loading()"
+      [attr.aria-busy]="store.loading()"
+      (click)="store.load()"
+    >
+      <cdt-icon name="refresh" />{{ store.loading() ? 'Refreshing…' : 'Refresh' }}
+    </button>
+  </div>
+
+  <cdt-message tone="error">{{ store.error() }}</cdt-message>
+
+  @switch (store.loadState()) {
+    @case ('loading') {
+      <p class="notice">Checking the Party Finder…</p>
+    }
+    @case ('error') {
+      <p class="notice">The listings couldn't be loaded. Try again in a minute.</p>
+    }
+    @default {
+      <h2 class="visually-hidden">Listings</h2>
+      @if (store.listings().length === 0) {
+        <p class="notice">No listings match. Try another category, role or world, or clear the search.</p>
+      } @else {
+        <ul class="listings">
+          @for (listing of store.listings(); track listing.id) {
+            <li><cdt-pf-listing [listing]="listing" [now]="store.now()" /></li>
+          }
+        </ul>
+      }
+    }
+  }
+
+  <p class="source">
+    Listings from
+    <a href="https://xivpf.com/listings" target="_blank" rel="noopener noreferrer"
+      >xivpf.com<span class="visually-hidden"> (opens in a new tab)</span></a
+    >, collected from players' Remote Party Finder plugin: a quiet hour may show fewer than the game.
+  </p>
+</div>

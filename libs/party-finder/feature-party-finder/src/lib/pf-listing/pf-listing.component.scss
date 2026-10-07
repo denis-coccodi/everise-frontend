@@ -1,0 +1,86 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+:host {
+  display: block;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-heading);
+}
+
+.left {
+  flex: none;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+.tags,
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.description {
+  margin: 0.6rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-contrast-soft);
+}
+
+.party {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.party .slots {
+  margin: 0;
+}
+
+.count {
+  flex: none;
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+// Filled: the job, solid. Open: the roles it takes, dashed.
+.slot {
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.slot.filled {
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-surface-strong);
+  color: var(--color-contrast);
+}
+
+.slot.open {
+  border: var(--border-width) dashed var(--color-primary);
+  color: var(--color-primary-strong);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}

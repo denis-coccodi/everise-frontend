@@ -76,6 +76,12 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/waking-sands/feature-waking-sands').then((m) => m.WakingSandsComponent),
         },
         {
+          path: 'party-finder',
+          title: 'Party Finder',
+          // Open to everyone: the listings are public in the game and on xivpf.
+          loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
+        },
+        {
           path: 'settings',
           title: 'Settings',
           loadComponent: () =>

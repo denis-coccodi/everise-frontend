@@ -4,6 +4,7 @@ export * from './lib/user';
 export * from './lib/profile';
 export * from './lib/comment';
 export * from './lib/discord';
+export * from './lib/party-finder';
 export * from './lib/auth';
 export * from './lib/admin';
 export * from './lib/roulette';

@@ -1594,6 +1594,53 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/party-finder': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** A data centre's Party Finder listings */
+    get: {
+      parameters: {
+        query?: {
+          dataCentre?: 'Light' | 'Chaos';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The listings. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PartyFinderResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile-images/{id}': {
     parameters: {
       query?: never;
@@ -2998,6 +3045,49 @@ export interface components {
       pending: number;
       failed: number[];
       downloaded: number;
+    };
+    PartyFinderResponse: {
+      /** @enum {string} */
+      dataCentre: 'Light' | 'Chaos';
+      worlds: {
+        id: number;
+        name: string;
+      }[];
+      /** Format: date-time */
+      fetchedAt: string;
+      listings: {
+        id: string;
+        recruiter: string;
+        description: string;
+        world: {
+          id: number;
+          name: string;
+        };
+        homeWorld: {
+          id: number;
+          name: string;
+        };
+        category: string;
+        duty: string | null;
+        highEnd: boolean;
+        worldOnly: boolean;
+        onePlayerPerJob: boolean;
+        beginnersWelcome: boolean;
+        minItemLevel: number;
+        objective: ('completion' | 'practice' | 'loot') | null;
+        dutyComplete: boolean;
+        /** @enum {string} */
+        loot: 'normal' | 'greed-only' | 'lootmaster';
+        parties: number;
+        slots: {
+          job: string | null;
+          roles: ('tank' | 'healer' | 'dps')[];
+        }[];
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      }[];
     };
     ProvidersResponse: {
       providers: ('google' | 'facebook' | 'microsoft' | 'discord')[];
