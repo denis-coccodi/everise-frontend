@@ -1,5 +1,2 @@
-import '@angular/compiler';
-import '@analogjs/vitest-angular/setup-snapshots';
-import { setupTestBed } from '@analogjs/vitest-angular/setup-testbed';
-
-setupTestBed();
+// Angular's strict test environment, shared by every project.
+import '@realworld/core/testing';

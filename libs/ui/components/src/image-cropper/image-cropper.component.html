@@ -32,12 +32,13 @@
   <label class="size">
     <span class="xiv-label">Size</span>
     <input
+      #sizeSlider
       type="range"
       [min]="range.min"
       [max]="range.max"
       step="1"
       [value]="crop()?.size"
-      (input)="resize($any($event.target).valueAsNumber)"
+      (input)="resize(sizeSlider.valueAsNumber)"
     />
   </label>
 }

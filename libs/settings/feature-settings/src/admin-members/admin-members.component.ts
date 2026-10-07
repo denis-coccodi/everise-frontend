@@ -29,6 +29,10 @@ const ROLE_NAMES: Record<AssignableRole, string> = {
   'staging-tester': 'a staging tester',
 };
 
+function isAssignableRole(value: string): value is AssignableRole {
+  return value in ROLE_NAMES;
+}
+
 // Members on one page of the list.
 export const MEMBERS_PER_PAGE = 20;
 // How long typing pauses before the search runs.
@@ -102,8 +106,9 @@ export class AdminMembersComponent {
     this.load();
   }
 
-  protected changeRole(member: Member, role: AssignableRole) {
-    if (role === member.role) return;
+  // The role chosen in the member's list (a select's value).
+  protected changeRole(member: Member, role: string) {
+    if (!isAssignableRole(role) || role === member.role) return;
     this.start(member.username);
     this.admin.setRole(member.id, role).subscribe({
       next: ({ user, stagingAccess }) => {

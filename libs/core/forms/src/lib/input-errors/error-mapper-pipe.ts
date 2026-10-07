@@ -7,7 +7,7 @@ import { VALIDATION_ERROR_MESSAGES } from './error-messages';
 export class ErrorMapperPipe implements PipeTransform {
   private errorMessages = inject(VALIDATION_ERROR_MESSAGES);
 
-  transform(key: string, errValue: any): string {
+  transform(key: string, errValue: unknown): string {
     if (!this.errorMessages[key]) {
       return '';
     }

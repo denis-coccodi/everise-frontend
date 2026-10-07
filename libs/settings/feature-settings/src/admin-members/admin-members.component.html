@@ -14,12 +14,12 @@
 
   <cdt-field label="Search by username or email" for="member-search">
     <input
-      #searchField
+      #searchField="cdtInput"
       id="member-search"
       type="search"
       cdtInput="sm"
       autocomplete="off"
-      (input)="onSearch($any($event.target).value)"
+      (input)="onSearch(searchField.value)"
     />
   </cdt-field>
 
@@ -48,11 +48,12 @@
           } @else {
             <label class="visually-hidden" [for]="'role-' + $index">Role of {{ member.username }}</label>
             <select
+              #roleSelect="cdtInput"
               cdtInput="sm"
               class="role"
               [id]="'role-' + $index"
               [disabled]="saving() !== null"
-              (change)="changeRole(member, $any($event.target).value)"
+              (change)="changeRole(member, roleSelect.value)"
             >
               <option value="user" [selected]="member.role === 'user'">User</option>
               <option value="staging-tester" [selected]="member.role === 'staging-tester'">Staging tester</option>
