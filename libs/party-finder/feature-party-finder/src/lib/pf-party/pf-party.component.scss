@@ -48,11 +48,12 @@
   background: var(--color-surface-strong);
 }
 
-// Open: dimmer than a filled slot, with a dashed outline, the roles it takes
-// inside (two or three share the square).
+// Open: the roles it takes (two or three share the square), inside a dashed
+// edge drawn within the square, so open and filled slots are the same size.
 .open {
-  outline: var(--border-width) dashed var(--color-border-field);
-  outline-offset: 1px;
+  box-sizing: border-box;
+  padding: 1px;
+  border: var(--border-width) dashed var(--color-border-field);
 }
 
 .open img.role {
