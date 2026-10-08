@@ -17,7 +17,7 @@
 
 import { Article, articlePage } from './seo/article-page';
 import { SitemapData, robotsTxt, sitemapXml } from './seo/crawling';
-import { PageMeta, headTags } from './seo/page-meta';
+import { PageMeta, headTags, rootContent } from './seo/page-meta';
 import { Board, dataCentreIn, partyFinderPage } from './seo/party-finder-page';
 import { staticPage } from './seo/static-pages';
 
@@ -119,7 +119,7 @@ async function withMeta(request: Request, env: Env, meta: PageMeta): Promise<Res
     })
     .on('head', { element: (head) => head.append(headTags(meta, env.SITE_URL), { html: true }) });
   const body = meta.body;
-  if (body) rewriter.on('cdt-root', { element: (root) => root.setInnerContent(body, { html: true }) });
+  if (body) rewriter.on('cdt-root', { element: (root) => root.setInnerContent(rootContent(body), { html: true }) });
   return rewriter.transform(page);
 }
 

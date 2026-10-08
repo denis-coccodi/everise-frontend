@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { articlePage } from './article-page';
 import { robotsTxt, sitemapXml } from './crawling';
-import { headTags } from './page-meta';
+import { headTags, rootContent } from './page-meta';
 import { Board, dataCentreIn, partyFinderPage } from './party-finder-page';
 import { staticPage } from './static-pages';
 
@@ -47,6 +47,10 @@ describe('headTags', () => {
     expect(tags).toContain('\\u003c/script>');
     expect(tags).not.toContain('</script><b>');
     expect(tags).not.toContain('noindex');
+  });
+
+  it("hides the page's words until the app replaces them, so nothing flashes", () => {
+    expect(rootContent('<h1>Light Party Finder</h1>')).toBe('<div hidden><h1>Light Party Finder</h1></div>');
   });
 
   it('keeps sign-in pages out of search results', () => {
