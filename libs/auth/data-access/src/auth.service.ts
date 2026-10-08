@@ -2,11 +2,10 @@ import { HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
   ConfirmationResponse,
-  LoginUser,
   LoginUserRequest,
-  NewUser,
   NewUserRequest,
   ProvidersResponse,
+  ResendConfirmationRequest,
   UserChanges,
   UserResponse,
   UserUpdate,
@@ -40,11 +39,12 @@ export class AuthService {
   }
 
   // A 401 here means a wrong email or password: the page shows the message
-  // instead of the usual redirect to the sign-in page.
-  login(credentials: LoginUser): Observable<UserResponse> {
+  // instead of the usual redirect to the sign-in page. The request carries
+  // the bot check's token (Turnstile) when the site has one.
+  login(request: LoginUserRequest): Observable<UserResponse> {
     return this.apiService.post<UserResponse, LoginUserRequest>(
       '/users/login',
-      { user: credentials },
+      request,
       new HttpContext().set(SKIP_LOGIN_REDIRECT, true),
     );
   }
@@ -65,10 +65,8 @@ export class AuthService {
 
   // Signs in, or (when the backend confirms emails) sends a link to the
   // email instead.
-  register(credentials: NewUser): Observable<UserResponse | ConfirmationResponse> {
-    return this.apiService.post<UserResponse | ConfirmationResponse, NewUserRequest>('/users', {
-      user: credentials,
-    });
+  register(request: NewUserRequest): Observable<UserResponse | ConfirmationResponse> {
+    return this.apiService.post<UserResponse | ConfirmationResponse, NewUserRequest>('/users', request);
   }
 
   // Opens the link from a confirmation email: confirms it and signs in.
@@ -77,9 +75,10 @@ export class AuthService {
   }
 
   // Sends a sign-up's confirmation link again.
-  resendConfirmation(email: string): Observable<ConfirmationResponse> {
-    return this.apiService.post<ConfirmationResponse, { user: { email: string } }>('/users/confirm-email/resend', {
+  resendConfirmation(email: string, turnstileToken?: string): Observable<ConfirmationResponse> {
+    return this.apiService.post<ConfirmationResponse, ResendConfirmationRequest>('/users/confirm-email/resend', {
       user: { email },
+      turnstileToken,
     });
   }
 }

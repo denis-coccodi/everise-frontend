@@ -38,12 +38,13 @@
             />
             <cdt-input-errors [control]="form.controls.password"></cdt-input-errors>
           </cdt-field>
+          <cdt-turnstile action="login" (token)="turnstileToken.set($event)" />
           <button
             data-testid="sign-in"
             cdtButton
             size="lg"
             class="pull-xs-right"
-            [disabled]="form.invalid || form.pending"
+            [disabled]="form.invalid || form.pending || waitingForCheck()"
             type="submit"
           >
             Sign in

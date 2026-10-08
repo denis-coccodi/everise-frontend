@@ -2,12 +2,18 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { API_URL } from '@everise/core/http-client';
+import { TURNSTILE_SITE_KEY, TurnstileApi } from '@everise/ui/components';
 import { CheckEmailComponent } from './check-email.component';
 
 describe('CheckEmailComponent', () => {
-  async function render() {
+  async function render(siteKey = '') {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '/api' }],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_URL, useValue: '/api' },
+        { provide: TURNSTILE_SITE_KEY, useValue: siteKey },
+      ],
     });
     const fixture = TestBed.createComponent(CheckEmailComponent);
     fixture.componentRef.setInput('email', 'alisaie@example.com');
@@ -17,7 +23,7 @@ describe('CheckEmailComponent', () => {
       fixture,
       page,
       http: TestBed.inject(HttpTestingController),
-      button: page.querySelector('button') as HTMLButtonElement,
+      button: page.querySelector('button[cdtButton]') as HTMLButtonElement,
       status: () => page.querySelector('[role=status]')?.textContent?.trim(),
     };
   }
@@ -42,6 +48,33 @@ describe('CheckEmailComponent', () => {
 
     expect(status()).toBe('Sent again to alisaie@example.com.');
     expect(button.disabled).toBe(false);
+  });
+
+  it('with a bot check, waits for its pass and sends it along', async () => {
+    let options: Parameters<TurnstileApi['render']>[1] | undefined;
+    (window as Window & { turnstile?: TurnstileApi }).turnstile = {
+      render: (_container, given) => {
+        options = given;
+        return 'widget-1';
+      },
+      reset: () => undefined,
+      remove: () => undefined,
+    };
+    const { fixture, http, button } = await render('site-key');
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    expect(options?.action).toBe('resend');
+    expect(button.disabled).toBe(true);
+
+    options?.callback('pass-1');
+    await fixture.whenStable();
+    button.click();
+
+    expect(JSON.parse(http.expectOne('/api/users/confirm-email/resend').request.body)).toEqual({
+      user: { email: 'alisaie@example.com' },
+      turnstileToken: 'pass-1',
+    });
+    delete (window as Window & { turnstile?: TurnstileApi }).turnstile;
   });
 
   it("passes on the backend's reason when it's too soon", async () => {

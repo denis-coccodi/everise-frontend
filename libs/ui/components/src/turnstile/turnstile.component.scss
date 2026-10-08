@@ -1,0 +1,12 @@
+// Uses the theme's role tokens only (../theme).
+:host {
+  display: block;
+  margin: 0 0 1rem;
+}
+
+// Turnstile's own window: 65 px tall (flexible) or 140 px (compact), drawn
+// in its iframe; the space is kept so the form doesn't jump when it loads.
+.widget {
+  min-height: 65px;
+  max-width: 100%;
+}

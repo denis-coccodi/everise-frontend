@@ -25,3 +25,4 @@ export * from './tab/tab.component';
 export * from './tabs/tabs.component';
 export * from './tag/tag.component';
 export * from './tooltip/tooltip.component';
+export * from './turnstile/turnstile.component';

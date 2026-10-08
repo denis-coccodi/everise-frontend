@@ -1,8 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
 import { AuthService } from '@everise/auth/data-access';
 import { serverMessage } from '@everise/core/forms';
-import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/components';
+import {
+  ButtonComponent,
+  MessageComponent,
+  PanelComponent,
+  TURNSTILE_SITE_KEY,
+  TurnstileComponent,
+} from '@everise/ui/components';
 
 // "Check your email": a confirmation link went to `email`, after signing up
 // or signing in before opening it. It can be sent again; the backend allows
@@ -16,14 +22,21 @@ import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/c
         >. Open it to confirm your address and sign in. It works for 24 hours.
       </p>
       <p class="hint">Nothing there? Look in your spam folder, or send it again.</p>
-      <button type="button" cdtButton="outline-secondary" size="sm" [disabled]="sending()" (click)="resend()">
+      <cdt-turnstile action="resend" (token)="turnstileToken.set($event)" />
+      <button
+        type="button"
+        cdtButton="outline-secondary"
+        size="sm"
+        [disabled]="sending() || waitingForCheck()"
+        (click)="resend()"
+      >
         Send the link again
       </button>
       <cdt-message class="status">{{ status() }}</cdt-message>
     </cdt-panel>
   `,
   styleUrl: './check-email.component.scss',
-  imports: [ButtonComponent, PanelComponent, MessageComponent],
+  imports: [ButtonComponent, PanelComponent, MessageComponent, TurnstileComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckEmailComponent {
@@ -33,10 +46,19 @@ export class CheckEmailComponent {
   protected readonly sending = signal(false);
   protected readonly status = signal('');
 
+  // The bot check's pass; with a site key, the button waits for it.
+  private readonly botCheck = viewChild.required(TurnstileComponent);
+  private readonly checked = !!inject(TURNSTILE_SITE_KEY);
+  protected readonly turnstileToken = signal<string | null>(null);
+  protected readonly waitingForCheck = computed(() => this.checked && !this.turnstileToken());
+
   protected resend() {
     this.sending.set(true);
     this.status.set('');
-    this.authService.resendConfirmation(this.email()).subscribe({
+    const token = this.turnstileToken() ?? undefined;
+    // A pass works once: the next try needs a new one.
+    this.botCheck().reset();
+    this.authService.resendConfirmation(this.email(), token).subscribe({
       next: () => {
         this.sending.set(false);
         this.status.set(`Sent again to ${this.email()}.`);

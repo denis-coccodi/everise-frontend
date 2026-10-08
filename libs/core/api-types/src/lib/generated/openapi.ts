@@ -2633,6 +2633,7 @@ export interface components {
         username: string;
         password: string;
       };
+      turnstileToken?: string;
     };
     LoginUser: {
       user: {
@@ -2640,6 +2641,7 @@ export interface components {
         email: string;
         password: string;
       };
+      turnstileToken?: string;
     };
     EmailConfirmationToken: {
       token: string;
@@ -2649,6 +2651,7 @@ export interface components {
         /** Format: email */
         email: string;
       };
+      turnstileToken?: string;
     };
     UserUpdate: {
       user: {
