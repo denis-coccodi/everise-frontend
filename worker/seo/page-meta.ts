@@ -53,6 +53,13 @@ export function headTags(meta: PageMeta, siteUrl: string): string {
   ].join('');
 }
 
+// The page's words as <cdt-root> holds them until the app starts: hidden,
+// so the page doesn't flash plain text before the app replaces it (with the
+// same words). Crawlers that don't run the app read the HTML as it is.
+export function rootContent(body: string): string {
+  return `<div hidden>${body}</div>`;
+}
+
 export function attribute(value: string): string {
   return text(value).replace(/"/g, '&quot;');
 }
