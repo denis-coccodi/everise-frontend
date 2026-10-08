@@ -1,12 +1,12 @@
 <div class="pf-page">
   <header class="hero">
     <h1 class="xiv-title">Party Finder</h1>
-    <p>The listings up in the game right now, on Light or Chaos, refreshed while you watch.</p>
+    <p>The listings up in the game right now, on any data centre, refreshed while you watch.</p>
   </header>
 
   <cdt-pf-filters />
 
-  <div class="status">
+  <div #status class="status">
     <p class="summary">
       @if (store.loadState() === 'ready') {
         {{ store.listings().length }} of {{ store.total() }} listings on {{ store.dataCentre() }} · checked
@@ -35,15 +35,24 @@
       <p class="notice">The listings couldn't be loaded. Try again in a minute.</p>
     }
     @default {
-      <h2 class="visually-hidden">Listings</h2>
+      <h2 #listingsHeading class="visually-hidden" tabindex="-1">Listings</h2>
       @if (store.listings().length === 0) {
         <p class="notice">No listings match. Try another category, role or world, or clear the search.</p>
       } @else if (store.icons(); as icons) {
         <ul class="listings">
-          @for (listing of store.listings(); track listing.id) {
+          @for (listing of store.pageListings(); track listing.id) {
             <li><cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons" /></li>
           }
         </ul>
+        @if (store.pages().length > 1) {
+          <cdt-pager
+            class="pager"
+            label="Listing pages"
+            [currentPage]="store.currentPage()"
+            [totalPages]="store.pages()"
+            (setPage)="showPage($event)"
+          />
+        }
       }
     }
   }

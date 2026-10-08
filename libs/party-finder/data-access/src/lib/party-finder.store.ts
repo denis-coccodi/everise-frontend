@@ -6,6 +6,7 @@ import { DataCentre, PartyFinderBoard } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { fromEvent, interval, pipe, switchMap, tap } from 'rxjs';
 import { PartyFinderFilters, categoriesIn, matchesFilters } from './listing-filters';
+import { SortOrder, sortListings } from './listing-sort';
 import { loadPreferences, savePreferences } from './party-finder-preferences';
 import { PartyFinderService } from './party-finder.service';
 
@@ -14,6 +15,8 @@ import { PartyFinderService } from './party-finder.service';
 export const POLL_MS = 30 * 1000;
 // The time shown ("12 min left") moves on this often.
 const TICK_MS = 15 * 1000;
+// Listings a page: an even number, for two a row.
+export const PAGE_SIZE = 20;
 
 interface PartyFinderState {
   board: PartyFinderBoard | null;
@@ -26,7 +29,13 @@ interface PartyFinderState {
   checkedAt: number;
   now: number;
   dataCentre: DataCentre;
+  // Every data centre by region, from the last answer (kept while another
+  // data centre loads).
+  regions: PartyFinderBoard['regions'];
   filters: PartyFinderFilters;
+  sort: SortOrder;
+  // The page of listings shown, from 1; kept through refreshes.
+  page: number;
 }
 
 function initialState(): PartyFinderState {
@@ -39,6 +48,9 @@ function initialState(): PartyFinderState {
     checkedAt: 0,
     now: Date.now(),
     dataCentre: preferences.dataCentre,
+    regions: [],
+    sort: preferences.sort,
+    page: 1,
     filters: {
       world: preferences.worlds[preferences.dataCentre] ?? null,
       category: '',
@@ -58,13 +70,36 @@ export const PartyFinderStore = signalStore(
   withComputed((store) => {
     // Listings whose time hasn't run out.
     const live = computed(() => (store.board()?.listings ?? []).filter((l) => Date.parse(l.expiresAt) > store.now()));
+    // The listings that match, in the order picked.
+    const listings = computed(() =>
+      sortListings(
+        live().filter((listing) => matchesFilters(listing, store.filters())),
+        store.sort(),
+      ),
+    );
+    const pages = computed(() =>
+      Array.from({ length: Math.max(1, Math.ceil(listings().length / PAGE_SIZE)) }, (_, i) => i + 1),
+    );
+    // The page picked, or the last one when a refresh left fewer.
+    const currentPage = computed(() => Math.min(store.page(), pages().length));
     return {
       worlds: computed(() => store.board()?.worlds ?? []),
       // The game's role icons and the beginners' sprout, once loaded.
-      icons: computed(() => store.board()?.icons ?? null),
+      // The same icons from one refresh to the next don't redraw the list.
+      icons: computed(() => store.board()?.icons ?? null, {
+        equal: (a, b) => JSON.stringify(a) === JSON.stringify(b),
+      }),
       categories: computed(() => categoriesIn(live())),
-      listings: computed(() => live().filter((listing) => matchesFilters(listing, store.filters()))),
+      listings,
       total: computed(() => live().length),
+      // The data centres for the list: by region, or just this one before
+      // the first answer.
+      regions: computed(() =>
+        store.regions().length ? store.regions() : [{ name: '', dataCentres: [store.dataCentre()] }],
+      ),
+      pages,
+      currentPage,
+      pageListings: computed(() => listings().slice((currentPage() - 1) * PAGE_SIZE, currentPage() * PAGE_SIZE)),
     };
   }),
   withMethods((store, service = inject(PartyFinderService)) => {
@@ -75,7 +110,14 @@ export const PartyFinderStore = signalStore(
           service.board(store.dataCentre()).pipe(
             tapResponse({
               next: (board) =>
-                patchState(store, { board, loadState: 'ready', loading: false, error: '', checkedAt: Date.now() }),
+                patchState(store, {
+                  board,
+                  regions: board.regions,
+                  loadState: 'ready',
+                  loading: false,
+                  error: '',
+                  checkedAt: Date.now(),
+                }),
               // A failed refresh keeps what's shown, and says why.
               error: (error: unknown) =>
                 patchState(store, {
@@ -93,6 +135,7 @@ export const PartyFinderStore = signalStore(
       savePreferences({
         dataCentre: store.dataCentre(),
         worlds: { ...saved.worlds, [store.dataCentre()]: store.filters().world },
+        sort: store.sort(),
       });
     };
     return {
@@ -105,14 +148,20 @@ export const PartyFinderStore = signalStore(
           board: null,
           loadState: 'loading' as const,
           filters: { ...filters, world, category: '' },
+          page: 1,
         }));
         remember();
         load();
       },
       setFilters(changes: Partial<PartyFinderFilters>) {
-        patchState(store, ({ filters }) => ({ filters: { ...filters, ...changes } }));
+        patchState(store, ({ filters }) => ({ filters: { ...filters, ...changes }, page: 1 }));
         if ('world' in changes) remember();
       },
+      setSort(sort: SortOrder) {
+        patchState(store, { sort, page: 1 });
+        remember();
+      },
+      setPage: (page: number) => patchState(store, { page }),
       tick: () => patchState(store, { now: Date.now() }),
       // Asks again if the list is older than a poll, e.g. back from another tab.
       refreshIfStale() {

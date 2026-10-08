@@ -2,8 +2,18 @@
   <div class="fields">
     <cdt-field label="Data centre" for="pf-data-centre">
       <select #dataCentre id="pf-data-centre" cdtInput (change)="setDataCentre(dataCentre.value)">
-        @for (name of dataCentres; track name) {
-          <option [value]="name" [selected]="name === store.dataCentre()">{{ name }}</option>
+        @for (region of store.regions(); track region.name) {
+          @if (region.name) {
+            <optgroup [label]="region.name">
+              @for (name of region.dataCentres; track name) {
+                <option [value]="name" [selected]="name === store.dataCentre()">{{ name }}</option>
+              }
+            </optgroup>
+          } @else {
+            @for (name of region.dataCentres; track name) {
+              <option [value]="name" [selected]="name === store.dataCentre()">{{ name }}</option>
+            }
+          }
         }
       </select>
     </cdt-field>
@@ -58,6 +68,14 @@
         [value]="store.filters().search"
         (input)="store.setFilters({ search: search.value })"
       />
+    </cdt-field>
+
+    <cdt-field label="Sort by" for="pf-sort">
+      <select #sort id="pf-sort" cdtInput (change)="setSort(sort.value)">
+        @for (option of sortOrders; track option.value) {
+          <option [value]="option.value" [selected]="option.value === store.sort()">{{ option.name }}</option>
+        }
+      </select>
     </cdt-field>
   </div>
 

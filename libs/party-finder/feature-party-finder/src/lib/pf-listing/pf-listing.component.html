@@ -6,6 +6,10 @@
         <span class="category">{{ category() }}</span>
       }
       <h3 class="title">
+        <!-- The duty type's icon, as in the game; the category above names it. -->
+        @if (dutyIcon(); as icon) {
+          <img class="duty-icon" [src]="icon" alt="" width="26" height="26" (error)="dutyIconMissing.set(true)" />
+        }
         @if (listing().beginnersWelcome) {
           @if (!sproutMissing()) {
             <img

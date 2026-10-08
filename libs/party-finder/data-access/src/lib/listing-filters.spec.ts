@@ -20,6 +20,8 @@ function listing(changes: Partial<PartyFinderListing> = {}): PartyFinderListing 
     homeWorld: SHIVA,
     category: 'HighEndDuty',
     duty: 'The Unending Coil of Bahamut (Ultimate)',
+    dutyIcon: 61832,
+    sortKey: 1,
     highEnd: true,
     worldOnly: false,
     onePlayerPerJob: true,

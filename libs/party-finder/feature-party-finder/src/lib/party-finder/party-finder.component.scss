@@ -63,6 +63,12 @@ h1 {
   }
 }
 
+.pager {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
 .source {
   margin-top: 2rem;
   font-size: 0.85rem;

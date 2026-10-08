@@ -18,6 +18,8 @@ function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFi
     homeWorld: SHIVA,
     category: 'HighEndDuty',
     duty: 'The Unending Coil of Bahamut (Ultimate)',
+    dutyIcon: 61832,
+    sortKey: 1,
     highEnd: true,
     worldOnly: false,
     onePlayerPerJob: true,
@@ -49,12 +51,31 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
   return {
     dataCentre: 'Light',
     worlds: LIGHT_WORLDS,
+    regions: [
+      { name: 'Europe', dataCentres: ['Light', 'Chaos'] },
+      { name: 'North America', dataCentres: ['Aether', 'Crystal', 'Dynamis', 'Primal'] },
+      { name: 'Japan', dataCentres: ['Elemental', 'Gaia', 'Mana', 'Meteor'] },
+      { name: 'Oceania', dataCentres: ['Materia'] },
+    ],
     fetchedAt: new Date().toISOString(),
     icons: { tank: 62581, healer: 62582, dps: 62583, beginner: 61523 },
     listings: [
       listing('66-1'),
-      listing('67-2', { category: 'TheHunt', duty: null, worldOnly: true, world: SHIVA }),
-      listing('66-3', { category: 'None', duty: null, description: 'Chatting at the Aetheryte' }),
+      listing('67-2', {
+        category: 'TheHunt',
+        duty: null,
+        dutyIcon: 61819,
+        sortKey: null,
+        worldOnly: true,
+        world: SHIVA,
+      }),
+      listing('66-3', {
+        category: 'None',
+        duty: null,
+        dutyIcon: null,
+        sortKey: null,
+        description: 'Chatting at the Aetheryte',
+      }),
     ],
     ...changes,
   };
@@ -96,9 +117,11 @@ describe('PartyFinderComponent', () => {
     expect(page.querySelector('.summary')?.textContent).toContain('1 of 3 listings on Light');
     const card = page.querySelector('cdt-pf-listing') as HTMLElement;
     expect(card.textContent).toContain('52 min left');
-    // The sprout before the title, the conditions in brackets, where the party is.
-    expect(card.querySelector('h3 img')?.getAttribute('alt')).toBe('Beginners welcome:');
-    expect(card.querySelector('h3 img')?.getAttribute('src')).toBe('/images/61523');
+    // The duty type's icon and the sprout before the title, the conditions in
+    // brackets, where the party is.
+    expect(card.querySelector('h3 .duty-icon')?.getAttribute('src')).toBe('/images/61832');
+    expect(card.querySelector('h3 .sprout')?.getAttribute('alt')).toBe('Beginners welcome:');
+    expect(card.querySelector('h3 .sprout')?.getAttribute('src')).toBe('/images/61523');
     expect(card.querySelector('.conditions')?.textContent?.replace(/\s+/g, '')).toBe('[Practice][OnePlayerperJob]');
     expect(card.querySelector('.facts')?.textContent?.replace(/\s+/g, ' ')).toContain('Location Odin');
     expect(card.querySelector('.facts')?.textContent).toContain('1 player remaining');
@@ -159,6 +182,67 @@ describe('PartyFinderComponent', () => {
 
     expect(titles()).toEqual(['Sastasha']);
     expect(JSON.parse(localStorage.getItem('partyFinder') ?? '{}').dataCentre).toBe('Chaos');
+  });
+
+  it('offers every data centre by region, Europe first', async () => {
+    const { fixture, http, select } = await render();
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    const groups = [...select('pf-data-centre').querySelectorAll('optgroup')];
+    expect(groups.map((group) => group.label)).toEqual(['Europe', 'North America', 'Japan', 'Oceania']);
+    expect([...groups[0].querySelectorAll('option')].map((option) => option.value)).toEqual(['Light', 'Chaos']);
+    expect(select('pf-data-centre').value).toBe('Light');
+  });
+
+  it('lists like the game, or in the order picked', async () => {
+    const { fixture, http, titles, change } = await render();
+    http.expectOne('/party-finder?dataCentre=Light').flush(
+      board({
+        listings: [
+          listing('66-1', { duty: "The Weapon's Refrain (Ultimate)", sortKey: 1 }),
+          listing('66-2', { duty: 'Futures Rewritten (Ultimate)', sortKey: 6 }),
+          listing('66-3', { category: 'Dungeon', duty: 'Sastasha', dutyIcon: 61801, sortKey: 1 }),
+        ],
+      }),
+    );
+    await fixture.whenStable();
+
+    expect(titles()).toEqual(['Sastasha', 'Futures Rewritten (Ultimate)', "The Weapon's Refrain (Ultimate)"]);
+
+    await change('pf-sort', 'name');
+    expect(titles()).toEqual(['Futures Rewritten (Ultimate)', 'Sastasha', "The Weapon's Refrain (Ultimate)"]);
+    expect(JSON.parse(localStorage.getItem('partyFinder') ?? '{}').sort).toBe('name');
+  });
+
+  it('shows 20 listings a page, and stays on the page through a refresh', async () => {
+    const { fixture, http, page, change } = await render();
+    const many = board({
+      listings: Array.from({ length: 25 }, (_, i) =>
+        listing(`66-${String(i).padStart(2, '0')}`, { recruiter: `Recruiter ${i}` }),
+      ),
+    });
+    http.expectOne('/party-finder?dataCentre=Light').flush(many);
+    await fixture.whenStable();
+
+    const tiles = () => page.querySelectorAll('cdt-pf-listing').length;
+    const pageButtons = () => [...page.querySelectorAll('cdt-pager button')] as HTMLButtonElement[];
+    expect(tiles()).toBe(20);
+    expect(pageButtons().map((button) => button.textContent?.trim())).toEqual(['Page 1', 'Page 2']);
+
+    pageButtons()[1].click();
+    await fixture.whenStable();
+    expect(tiles()).toBe(5);
+
+    (page.querySelector('.status button') as HTMLButtonElement).click();
+    http.expectOne('/party-finder?dataCentre=Light').flush(many);
+    await fixture.whenStable();
+    expect(tiles()).toBe(5);
+    expect(pageButtons()[1].getAttribute('aria-current')).toBe('page');
+
+    // A new filter starts from the first page again.
+    await change('pf-role', 'dps');
+    expect(tiles()).toBe(20);
   });
 
   it('keeps the listings shown when a refresh fails, and says why', async () => {

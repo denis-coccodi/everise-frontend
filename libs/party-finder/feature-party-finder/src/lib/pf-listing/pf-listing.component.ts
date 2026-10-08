@@ -9,8 +9,8 @@ import { PfPartyComponent } from '../pf-party/pf-party.component';
 const OBJECTIVES = { completion: 'Duty Completion', practice: 'Practice', loot: 'Loot' } as const;
 const LOOT = { normal: '', 'greed-only': 'Greed Only', lootmaster: 'Lootmaster' } as const;
 
-// One Party Finder listing, laid out like the game's: what it's for (with
-// the sprout when beginners are welcome), the recruiter, the conditions in
+// One Party Finder listing, laid out like the game's: what it's for (its
+// duty type's icon, and the sprout when beginners are welcome), the recruiter, the conditions in
 // brackets, the description, where the party is, the item level and how
 // many players it still needs, and its slots.
 @Component({
@@ -30,7 +30,14 @@ export class PfListingComponent {
   // The sprout didn't load: words instead, tried again on the next refresh.
   protected readonly sproutMissing = linkedSignal({ source: this.listing, computation: () => false });
 
+  // Nor did the duty type's icon: none, tried again on the next refresh.
+  protected readonly dutyIconMissing = linkedSignal({ source: this.listing, computation: () => false });
+
   protected readonly title = computed(() => listingTitle(this.listing()));
+  protected readonly dutyIcon = computed(() => {
+    const icon = this.listing().dutyIcon;
+    return icon === null || this.dutyIconMissing() ? null : gameImageUrl(this.apiUrl, icon);
+  });
   protected readonly category = computed(() => categoryName(this.listing().category));
   protected readonly sprout = computed(() => gameImageUrl(this.apiUrl, this.icons().beginner));
   // The game's conditions line: [Practice][Duty Complete]...
