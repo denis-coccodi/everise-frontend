@@ -48,12 +48,13 @@
               />
               <cdt-input-errors [control]="form.controls.password" />
             </cdt-field>
+            <cdt-turnstile action="signup" (token)="turnstileToken.set($event)" />
             <button
               data-testid="sign-up"
               cdtButton
               size="lg"
               class="pull-xs-right"
-              [disabled]="form.invalid || form.pending"
+              [disabled]="form.invalid || form.pending || waitingForCheck()"
               type="submit"
             >
               Sign up

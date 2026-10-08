@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { LoginUser, NewUser, User, UserChanges } from '@everise/core/api-types';
+import { LoginUserRequest, NewUserRequest, User, UserChanges } from '@everise/core/api-types';
 import { setLoaded, setLoading, withCallState } from '@everise/core/data-access';
 import { FormErrorsStore, serverMessage } from '@everise/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
@@ -34,11 +34,11 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
-      login: rxMethod<LoginUser>(
+      login: rxMethod<LoginUserRequest>(
         pipe(
           tap(() => patchState(store, { awaitingConfirmation: null })),
-          exhaustMap((credentials) =>
-            authService.login(credentials).pipe(
+          exhaustMap((request) =>
+            authService.login(request).pipe(
               tapResponse({
                 next: ({ user }) => {
                   patchState(store, { user, loggedIn: true });
@@ -57,11 +57,11 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
-      register: rxMethod<NewUser>(
+      register: rxMethod<NewUserRequest>(
         pipe(
           tap(() => patchState(store, { awaitingConfirmation: null })),
-          exhaustMap((newUserData) =>
-            authService.register(newUserData).pipe(
+          exhaustMap((request) =>
+            authService.register(request).pipe(
               tapResponse({
                 next: (response) => {
                   if ('confirmation' in response) {

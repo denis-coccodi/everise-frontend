@@ -118,25 +118,26 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 
 **The UI library provides the dumb, themed building blocks** every page uses. Each sits in its own folder with its `.ts`, `.scss` and `.spec.ts`:
 
-| Building block        | For                                                                        |
-| --------------------- | -------------------------------------------------------------------------- |
-| `cdtButton`           | buttons and button links                                                   |
-| `cdtInput`            | text fields and text areas (marks invalid fields with `aria-invalid`)      |
-| `<cdt-field>`         | a form field with its visible label and its errors                         |
-| `<cdt-checkbox>`      | a checkbox with its label                                                  |
-| `<cdt-switch>`        | an on/off switch for a setting that applies at once (dark mode)            |
-| `<cdt-tooltip>`       | a note on hover or keyboard focus (Escape hides it), read as a description |
-| `<cdt-panel>`         | a window                                                                   |
-| `<cdt-card>`          | a card with an optional footer                                             |
-| `<cdt-banner>`        | a page's title strip                                                       |
-| `<cdt-dialog>`        | a modal window that keeps the keyboard focus inside and gives it back      |
-| `<cdt-duty-card>`     | a roulette result, like the "Duty Found" window                            |
-| `<cdt-image-cropper>` | choosing a square area of a picture                                        |
-| `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries  |
-| `<cdt-byline>`        | an avatar, author name and date                                            |
-| `cdtTabs` / `cdtTab`  | tab bars: links for pages, buttons for views                               |
-| `cdtTag`              | tag pills                                                                  |
-| `<cdt-pager>`         | pagination                                                                 |
+| Building block        | For                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `cdtButton`           | buttons and button links                                                                  |
+| `cdtInput`            | text fields and text areas (marks invalid fields with `aria-invalid`)                     |
+| `<cdt-field>`         | a form field with its visible label and its errors                                        |
+| `<cdt-checkbox>`      | a checkbox with its label                                                                 |
+| `<cdt-switch>`        | an on/off switch for a setting that applies at once (dark mode)                           |
+| `<cdt-tooltip>`       | a note on hover or keyboard focus (Escape hides it), read as a description                |
+| `<cdt-turnstile>`     | Cloudflare Turnstile, the bot check on sign-up, sign-in and resending a confirmation link |
+| `<cdt-panel>`         | a window                                                                                  |
+| `<cdt-card>`          | a card with an optional footer                                                            |
+| `<cdt-banner>`        | a page's title strip                                                                      |
+| `<cdt-dialog>`        | a modal window that keeps the keyboard focus inside and gives it back                     |
+| `<cdt-duty-card>`     | a roulette result, like the "Duty Found" window                                           |
+| `<cdt-image-cropper>` | choosing a square area of a picture                                                       |
+| `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries                 |
+| `<cdt-byline>`        | an avatar, author name and date                                                           |
+| `cdtTabs` / `cdtTab`  | tab bars: links for pages, buttons for views                                              |
+| `cdtTag`              | tag pills                                                                                 |
+| `<cdt-pager>`         | pagination                                                                                |
 
 The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTab`, `cdtTag`, `cdtMenuItem`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 
@@ -186,5 +187,7 @@ Browser ──> prod / staging  ├─ static files (Angular build)
 Each Worker's custom domain is declared under `routes` in `wrangler.jsonc` (`everise.dev`, `staging.everise.dev`); the backends answer at `apis.everise.dev` and `staging.apis.everise.dev`. The old `workers.dev` addresses (`prod.everisefc.workers.dev`, `staging.everisefc.workers.dev`) stay on, so links saved before the move keep working.
 
 Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/): only allowed people can open it, after logging in once. CI gets through with an Access service token (`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` repository secrets).
+
+The bot check ([Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/)) on sign-up, sign-in and resending a confirmation link uses `turnstileSiteKey` from the environment: the Everise widget's site key on staging and production (public; the backend holds the secret, `TURNSTILE_SECRET_KEY`), and locally Cloudflare's test key, which always passes and shows "For testing only". The forms wait for the widget's pass, send it as `turnstileToken`, and ask for a new one after each try (a pass works once). An empty key turns the check off.
 
 Local development: start the backend (`npx wrangler dev --port 8080` in the backend repo), then `npm start`; the dev build calls it directly. To develop against the staging backend, set `api_url` in `environment.ts` to its URL (there as a comment) and first open that URL in the browser to log in to Cloudflare Access; its CORS allows `localhost:4200`. `npm run start-sw` builds the app and serves the built files with `wrangler dev`; set `serviceWorker: true` in `environment.ts` to try the offline features.

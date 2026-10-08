@@ -5,6 +5,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { AuthGuard } from '@everise/auth/data-access';
 import { errorHandlingInterceptor } from '@everise/core/error-handler';
 import { API_URL } from '@everise/core/http-client';
+import { TURNSTILE_SITE_KEY } from '@everise/ui/components';
 import { environment } from '../environments/environment';
 import { PageTitleStrategy } from './page-title.strategy';
 
@@ -108,6 +109,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideHttpClient(withXhr(), withInterceptors([errorHandlingInterceptor])),
     { provide: API_URL, useValue: environment.api_url },
+    { provide: TURNSTILE_SITE_KEY, useValue: environment.turnstileSiteKey },
     { provide: TitleStrategy, useClass: PageTitleStrategy },
     // provideServiceWorker('ngsw-worker.js', {
     //   enabled: !isDevMode(),

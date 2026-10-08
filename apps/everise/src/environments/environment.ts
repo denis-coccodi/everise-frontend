@@ -15,4 +15,7 @@ export const environment = {
   // api_url: 'https://staging.apis.everise.dev/api',
   // The production backend only accepts the production site, not localhost.
   // Deployed builds use the relative '/api' (environment.staging.ts, environment.prod.ts).
+  // Cloudflare Turnstile's test key, which always passes (a local backend
+  // has no Turnstile secret and checks nothing). '' turns the check off.
+  turnstileSiteKey: '1x00000000000000000000AA',
 };
