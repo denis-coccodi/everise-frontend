@@ -21,6 +21,7 @@ function listing(changes: Partial<PartyFinderListing> = {}): PartyFinderListing 
     category: 'HighEndDuty',
     duty: 'The Unending Coil of Bahamut (Ultimate)',
     dutyIcon: 61832,
+    level: 50,
     sortKey: 1,
     highEnd: true,
     worldOnly: false,

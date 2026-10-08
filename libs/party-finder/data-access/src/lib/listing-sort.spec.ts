@@ -11,6 +11,7 @@ function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFi
     category: 'Raid',
     duty: 'Abyssos: The Fifth Circle',
     dutyIcon: 61802,
+    level: 90,
     sortKey: 153,
     highEnd: false,
     worldOnly: false,
@@ -34,34 +35,46 @@ function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFi
 const ids = (listings: PartyFinderListing[]) => listings.map((l) => l.id);
 
 describe('sortListings', () => {
-  it('lists like the game: by tab, high-end duty by kind, the newest duty first, no duty last', () => {
+  it('lists like the game: by tab, high-end duty by kind, the highest level first, no duty last', () => {
+    const none = { duty: null, dutyIcon: null, level: null, sortKey: null };
     const listings = [
-      listing('none', { category: 'None', duty: null, dutyIcon: null, sortKey: null }),
-      listing('top', { category: 'HighEndDuty', duty: 'The Omega Protocol (Ultimate)', sortKey: 1005 }),
-      listing('unmaking', { category: 'HighEndDuty', duty: 'The Unmaking (Extreme)', sortKey: 247 }),
-      listing('m4s', { category: 'HighEndDuty', duty: 'AAC Light-heavyweight M4 (Savage)', sortKey: 201 }),
-      listing('dsr', { category: 'HighEndDuty', duty: 'Dragonsong’s Reprise (Ultimate)', sortKey: 1004 }),
-      listing('map', { category: 'TreasureHunt', duty: 'Timeworn Gazelleskin Map', sortKey: null }),
-      listing('abyssos', { sortKey: 153 }),
-      listing('anabaseios', { duty: 'Anabaseios: The Ninth Circle', sortKey: 154 }),
-      listing('sastasha', { category: 'Dungeon', duty: 'Sastasha', sortKey: 1 }),
-      listing('roulette', { category: 'DutyRoulette', duty: 'Duty Roulette: Leveling', sortKey: null }),
+      listing('none', { ...none, category: 'None' }),
+      listing('top', { category: 'HighEndDuty', duty: 'The Omega Protocol (Ultimate)', level: 90, sortKey: 1005 }),
+      listing('unmaking', { category: 'HighEndDuty', duty: 'The Unmaking (Extreme)', level: 100, sortKey: 247 }),
+      listing('m4s', { category: 'HighEndDuty', duty: 'AAC Light-heavyweight M4 (Savage)', level: 100, sortKey: 201 }),
+      listing('twr', { category: 'HighEndDuty', duty: "The Weapon's Refrain (Ultimate)", level: 70, sortKey: 1002 }),
+      listing('dsr', { category: 'HighEndDuty', duty: "Dragonsong's Reprise (Ultimate)", level: 90, sortKey: 1004 }),
+      listing('map', { ...none, category: 'TreasureHunt', duty: 'Timeworn Gazelleskin Map' }),
+      listing('abyssos', { level: 90, sortKey: 153 }),
+      listing('anabaseios', { duty: 'Anabaseios: The Ninth Circle', level: 90, sortKey: 154 }),
+      // A higher level beats a newer duty.
+      listing('sastasha', { category: 'Dungeon', duty: 'Sastasha', level: 15, sortKey: 300 }),
+      listing('aurum', { category: 'Dungeon', duty: 'The Aurum Vale', level: 47, sortKey: 20 }),
+      listing('roulette', { ...none, category: 'DutyRoulette', duty: 'Duty Roulette: Leveling' }),
     ];
 
     expect(ids(sortListings(listings, 'game'))).toEqual([
       'roulette',
+      'aurum',
       'sastasha',
       'anabaseios',
       'abyssos',
       'm4s',
       'top',
       'dsr',
+      'twr',
       'unmaking',
       'map',
       'none',
     ]);
   });
 
+  it("lists one duty's listings by time left, the least first", () => {
+    const later = listing('a', { expiresAt: '2026-10-08T10:30:00.000Z' });
+    const sooner = listing('b', { expiresAt: '2026-10-08T09:30:00.000Z' });
+
+    expect(ids(sortListings([later, sooner], 'game'))).toEqual(['b', 'a']);
+  });
   it('keeps listings that compare the same in one order, by id', () => {
     expect(ids(sortListings([listing('b'), listing('a')], 'game'))).toEqual(['a', 'b']);
   });

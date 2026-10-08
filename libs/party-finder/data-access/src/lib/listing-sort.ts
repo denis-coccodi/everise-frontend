@@ -56,13 +56,17 @@ const openSlots = (listing: PartyFinderListing) => listing.slots.filter((slot) =
 
 type Compare = (a: PartyFinderListing, b: PartyFinderListing) => number;
 
-// The game's order: by tab (high-end duty by kind), then the newest duty
-// first (its sort key), the duties it has no key for after, by name.
+// The game's order: by tab (high-end duty by kind), then the highest level
+// duty first, the newest (its sort key) among duties of one level, the
+// duties without either after, by name; one duty's listings by time left,
+// the least first.
 const byGame: Compare = (a, b) =>
   categoryRank(a.category) - categoryRank(b.category) ||
   kindRank(a) - kindRank(b) ||
+  (b.level ?? -1) - (a.level ?? -1) ||
   (b.sortKey ?? -1) - (a.sortKey ?? -1) ||
-  listingTitle(a).localeCompare(listingTitle(b));
+  listingTitle(a).localeCompare(listingTitle(b)) ||
+  Date.parse(a.expiresAt) - Date.parse(b.expiresAt);
 
 const COMPARE: Record<SortOrder, Compare> = {
   game: byGame,

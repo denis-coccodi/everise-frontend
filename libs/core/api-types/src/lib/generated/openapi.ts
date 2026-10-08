@@ -3114,6 +3114,7 @@ export interface components {
         category: string;
         duty: string | null;
         dutyIcon: number | null;
+        level: number | null;
         sortKey: number | null;
         highEnd: boolean;
         worldOnly: boolean;

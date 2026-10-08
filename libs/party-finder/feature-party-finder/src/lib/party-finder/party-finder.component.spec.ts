@@ -19,6 +19,7 @@ function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFi
     category: 'HighEndDuty',
     duty: 'The Unending Coil of Bahamut (Ultimate)',
     dutyIcon: 61832,
+    level: 50,
     sortKey: 1,
     highEnd: true,
     worldOnly: false,
@@ -65,6 +66,7 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
         category: 'TheHunt',
         duty: null,
         dutyIcon: 61819,
+        level: null,
         sortKey: null,
         worldOnly: true,
         world: SHIVA,
@@ -73,6 +75,7 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
         category: 'None',
         duty: null,
         dutyIcon: null,
+        level: null,
         sortKey: null,
         description: 'Chatting at the Aetheryte',
       }),
@@ -200,9 +203,9 @@ describe('PartyFinderComponent', () => {
     http.expectOne('/party-finder?dataCentre=Light').flush(
       board({
         listings: [
-          listing('66-1', { duty: "The Weapon's Refrain (Ultimate)", sortKey: 1 }),
-          listing('66-2', { duty: 'Futures Rewritten (Ultimate)', sortKey: 6 }),
-          listing('66-3', { category: 'Dungeon', duty: 'Sastasha', dutyIcon: 61801, sortKey: 1 }),
+          listing('66-1', { duty: "The Weapon's Refrain (Ultimate)", level: 70, sortKey: 1002 }),
+          listing('66-2', { duty: 'Futures Rewritten (Ultimate)', level: 100, sortKey: 1006 }),
+          listing('66-3', { category: 'Dungeon', duty: 'Sastasha', dutyIcon: 61801, level: 15, sortKey: 1 }),
         ],
       }),
     );
