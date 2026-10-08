@@ -7,6 +7,12 @@
           <a [routerLink]="['/register']">Need an account?</a>
         </p>
 
+        @if (fromDiscord) {
+          <cdt-message class="from-discord">
+            That was shared in the Everise Discord, for members: sign in to see it.
+          </cdt-message>
+        }
+
         <cdt-list-errors></cdt-list-errors>
 
         @if (unconfirmed(); as email) {

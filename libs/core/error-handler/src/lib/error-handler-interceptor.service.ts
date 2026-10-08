@@ -9,6 +9,11 @@ import { ErrorHandlerStore } from './error-handler.store';
 // that need an account have the AuthGuard for that.
 export const SKIP_LOGIN_REDIRECT = new HttpContextToken<boolean>(() => false);
 
+// Set on a request whose 404 is the page's to explain, such as sharing a
+// Party Finder listing that has just ended, so it doesn't send the visitor
+// to the home page (and close what they were doing).
+export const SKIP_NOT_FOUND_REDIRECT = new HttpContextToken<boolean>(() => false);
+
 export const errorHandlingInterceptor = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
@@ -23,7 +28,7 @@ export const errorHandlingInterceptor = (
             if (!request.context.get(SKIP_LOGIN_REDIRECT)) errorHandlerStore.handleError401(error);
             break;
           case 404:
-            errorHandlerStore.handleError404(error);
+            if (!request.context.get(SKIP_NOT_FOUND_REDIRECT)) errorHandlerStore.handleError404(error);
             break;
           default:
             throwError(error);

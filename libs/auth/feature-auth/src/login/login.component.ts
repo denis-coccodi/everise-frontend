@@ -1,12 +1,13 @@
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
 import {
   ButtonComponent,
   FieldComponent,
   InputComponent,
+  MessageComponent,
   TURNSTILE_SITE_KEY,
   TurnstileComponent,
 } from '@everise/ui/components';
@@ -27,12 +28,16 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
     SocialSignInComponent,
     CheckEmailComponent,
     TurnstileComponent,
+    MessageComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private readonly authStore = inject(AuthStore);
   private readonly fb = inject(FormBuilder);
+
+  // Sent here by a link from the Everise Discord (discordLinkGuard).
+  protected readonly fromDiscord = inject(ActivatedRoute).snapshot.queryParamMap.get('from') === 'discord';
 
   // Set when the password was right but the email isn't confirmed yet.
   protected readonly unconfirmed = this.authStore.awaitingConfirmation;

@@ -148,6 +148,22 @@ describe('static and post pages', () => {
     expect(staticPage('/settings', SITE)).toBeUndefined();
   });
 
+  it("a shared Party Finder listing's post previews with the picture of its card", () => {
+    const page = articlePage(
+      {
+        id: 'post-2',
+        title: 'Party Finder: Dancing Mad (Ultimate)',
+        description: 'Odin (Light) · 3 players needed',
+        body: 'Come prog!',
+        author: { username: 'Alisaie' },
+        partyFinder: { picture: 'https://everise.dev/api/media/pic-1' },
+      },
+      SITE,
+    );
+
+    expect(page.image).toBe('https://everise.dev/api/media/pic-1');
+  });
+
   it("a post's page has its card, its author and Article data", () => {
     const page = articlePage(
       {

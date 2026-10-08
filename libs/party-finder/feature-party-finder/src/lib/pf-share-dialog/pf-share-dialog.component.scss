@@ -1,22 +1,9 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
 
-// What's shared: the duty, and who and where.
-.listing {
+// The listing as it'll be shared.
+.card {
+  display: block;
   margin: 0 0 1rem;
-
-  p {
-    margin: 0;
-  }
-}
-
-.what {
-  font-weight: 700;
-  color: var(--color-contrast);
-}
-
-.where {
-  font-size: 0.9rem;
-  color: var(--color-contrast-muted);
 }
 
 fieldset {

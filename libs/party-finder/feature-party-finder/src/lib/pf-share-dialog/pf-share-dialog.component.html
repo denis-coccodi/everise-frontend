@@ -1,12 +1,10 @@
 <cdt-dialog [heading]="heading()" (dismissed)="store.close()">
   @if (store.sharing(); as sharing) {
-    <div class="listing">
-      <p class="what">{{ title() }}</p>
-      <p class="where">{{ sharing.listing.recruiter }} · {{ sharing.listing.world.name }} ({{ sharing.dataCentre }})</p>
-    </div>
+    <!-- The listing as it'll be shared; in Discord, as a picture of this card. -->
+    <cdt-pf-listing class="card" [listing]="sharing.listing" [icons]="sharing.icons" [now]="now" />
 
     <form (submit)="$event.preventDefault(); send()">
-      <fieldset [disabled]="store.sending()">
+      <fieldset [disabled]="busy()">
         <cdt-field
           [label]="asPost() ? 'Your message for the feed' : 'Your message for the Discord'"
           for="pf-share-message"
@@ -32,8 +30,8 @@
         <cdt-message tone="error">{{ store.error() }}</cdt-message>
 
         <div class="actions">
-          <button type="submit" cdtButton [attr.aria-busy]="store.sending()">
-            {{ store.sending() ? 'Sharing…' : asPost() ? 'Post' : 'Send to Discord' }}
+          <button type="submit" cdtButton [attr.aria-busy]="busy()">
+            {{ busy() ? 'Sharing…' : asPost() ? 'Post' : 'Send to Discord' }}
           </button>
           <button type="button" cdtButton="secondary" (click)="store.close()">Cancel</button>
         </div>

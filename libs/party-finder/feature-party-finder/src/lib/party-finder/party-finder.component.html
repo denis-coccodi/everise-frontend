@@ -41,6 +41,20 @@
     <cdt-pf-share-dialog />
   }
 
+  @if (listing()) {
+    <!-- The listing a link from the Everise Discord points to. -->
+    <section class="shared-listing" aria-labelledby="pf-shared-heading">
+      <h2 id="pf-shared-heading">Shared with you</h2>
+      @if (sharedListing(); as shared) {
+        @if (store.icons(); as icons) {
+          <cdt-pf-listing [listing]="shared" [now]="store.now()" [icons]="icons" />
+        }
+      } @else if (store.loadState() !== 'loading') {
+        <p class="notice">That listing has ended or filled up. Here's what's up on {{ store.dataCentre() }} now.</p>
+      }
+    </section>
+  }
+
   @switch (store.loadState()) {
     @case ('loading') {
       <p class="notice">Checking the Party Finder…</p>
@@ -59,7 +73,12 @@
               <cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons">
                 @if (signedIn()) {
                   <div cdtPfListingActions class="share">
-                    <button type="button" cdtButton="outline-primary" size="sm" (click)="openShare(listing, 'post')">
+                    <button
+                      type="button"
+                      cdtButton="outline-primary"
+                      size="sm"
+                      (click)="openShare(listing, 'post', icons)"
+                    >
                       <cdt-icon name="compose" />Share<span class="visually-hidden"> {{ titleOf(listing) }}</span> as
                       post
                     </button>
@@ -68,7 +87,7 @@
                         type="button"
                         cdtButton="outline-primary"
                         size="sm"
-                        (click)="openShare(listing, 'discord')"
+                        (click)="openShare(listing, 'discord', icons)"
                       >
                         <cdt-icon name="send" />Share<span class="visually-hidden"> {{ titleOf(listing) }}</span> to
                         Discord

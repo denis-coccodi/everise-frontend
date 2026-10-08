@@ -2922,6 +2922,7 @@ export interface components {
         | 'Materia';
       listingId: string;
       comment?: string;
+      pictureId?: string;
       shareToDiscord?: boolean;
     };
     NewPartyFinderDiscordShare: {
@@ -2940,6 +2941,7 @@ export interface components {
         | 'Materia';
       listingId: string;
       comment?: string;
+      pictureId?: string;
     };
     NewRouletteResult: {
       result: {
@@ -3251,6 +3253,7 @@ export interface components {
         /** Format: date-time */
         expiresAt: string;
       };
+      picture?: string;
     };
     Article: {
       id: string;

@@ -10,6 +10,8 @@ export interface Article {
   updatedAt?: string;
   author: { username: string };
   roulette?: { type: string; name: string; detail: string; image: number | null };
+  // A shared Party Finder listing, with the picture of its card.
+  partyFinder?: { picture?: string };
   // Images, GIFs and YouTube videos (older backends: absent).
   media?: { kind: 'image' | 'gif' | 'video'; url: string; videoId?: string }[];
 }
@@ -21,13 +23,16 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
   const description = roulette
     ? `${roulette.type}: ${roulette.name}${roulette.detail ? ` · ${roulette.detail}` : ''}. ${article.description}`
     : article.description;
-  // The roulette's duty banner, else the post's first image, else its first
-  // YouTube video's thumbnail, else the crest.
+  // The roulette's duty banner, else a shared listing's card, else the
+  // post's first image, else its first YouTube video's thumbnail, else the
+  // crest.
   const media = article.media ?? [];
   const firstImage = media.find((item) => item.kind !== 'video')?.url;
   const video = media.find((item) => item.kind === 'video' && item.videoId);
   const thumbnail = video ? `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` : undefined;
-  const picture = roulette?.image ? `${siteUrl}/api/images/${roulette.image}` : firstImage ?? thumbnail;
+  const picture = roulette?.image
+    ? `${siteUrl}/api/images/${roulette.image}`
+    : article.partyFinder?.picture ?? firstImage ?? thumbnail;
   // Always the id, even when an old link was followed.
   const path = `/article/${encodeURIComponent(article.id)}`;
   const author = article.author.username;

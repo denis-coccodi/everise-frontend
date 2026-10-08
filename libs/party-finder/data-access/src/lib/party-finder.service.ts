@@ -1,4 +1,6 @@
+import { HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import {
   ArticleResponse,
   DataCentre,
@@ -20,11 +22,21 @@ export class PartyFinderService {
 
   // Shares a listing as a post (in the Everise Discord too, when asked).
   sharePost(post: NewPartyFinderPost) {
-    return this.api.post<ArticleResponse, NewPartyFinderPost>('/party-finder/posts', post);
+    return this.api.post<ArticleResponse, NewPartyFinderPost>('/party-finder/posts', post, shareContext());
   }
 
   // Shares a listing in the Everise Discord only.
   shareToDiscord(share: NewPartyFinderDiscordShare) {
-    return this.api.post<PartyFinderDiscordShareResponse, NewPartyFinderDiscordShare>('/party-finder/discord', share);
+    return this.api.post<PartyFinderDiscordShareResponse, NewPartyFinderDiscordShare>(
+      '/party-finder/discord',
+      share,
+      shareContext(),
+    );
   }
+}
+
+// A listing that ended while the member wrote (404) is the share window's to
+// say, not a reason to leave the page.
+function shareContext() {
+  return new HttpContext().set(SKIP_NOT_FOUND_REDIRECT, true);
 }
