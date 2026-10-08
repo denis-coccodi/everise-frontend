@@ -1,5 +1,12 @@
 import { PartyFinderListing } from '@everise/core/api-types';
-import { PartyFinderFilters, categoriesIn, categoryName, listingTitle, matchesFilters } from './listing-filters';
+import {
+  PartyFinderFilters,
+  categoriesIn,
+  categoryName,
+  kindOf,
+  listingTitle,
+  matchesFilters,
+} from './listing-filters';
 
 const ODIN = { id: 66, name: 'Odin' };
 const SHIVA = { id: 67, name: 'Shiva' };
@@ -74,17 +81,39 @@ describe('Party Finder filters', () => {
     expect(matchesFilters(listing(), { ...none, search: 'shiva' })).toBe(true);
   });
 
-  it('names categories, and lists the ones present by name with "No duty" last', () => {
+  it('names categories, and lists the ones present by name with "No duty" last, high-end duties by kind', () => {
     expect(categoryName('VariantAndCriterionDungeon')).toBe('V&C Dungeons');
     expect(categoryName('SomethingNew')).toBe('Something New');
+    expect(categoryName('HighEndDuty:Ultimate')).toBe('Ultimate');
+    expect(categoryName('HighEndDuty:Other')).toBe('Other high-end');
     expect(listingTitle(listing({ category: 'TheHunt', duty: null }))).toBe('The Hunt');
     expect(
       categoriesIn([
         listing({ category: 'None' }),
         listing({ category: 'Trial' }),
         listing(),
+        listing({ duty: 'The Jade Stoa (Extreme)' }),
         listing({ category: 'Fate' }),
       ]),
-    ).toEqual(['Fate', 'HighEndDuty', 'Trial', 'None']);
+    ).toEqual({
+      others: ['Fate', 'Trial', 'None'],
+      highEnd: ['HighEndDuty:Ultimate', 'HighEndDuty:Extreme'],
+    });
+  });
+
+  it('tells ultimates, savage raids, extremes and unreals apart, or takes all high-end duty together', () => {
+    const duty = (name: string) => listing({ duty: name });
+    expect(kindOf(duty('The Unending Coil of Bahamut (Ultimate)'))).toBe('HighEndDuty:Ultimate');
+    expect(kindOf(duty('AAC Heavyweight M3 (Savage)'))).toBe('HighEndDuty:Savage');
+    expect(kindOf(duty('The Jade Stoa (Extreme)'))).toBe('HighEndDuty:Extreme');
+    expect(kindOf(duty("The Minstrel's Ballad: Endsinger's Aria"))).toBe('HighEndDuty:Extreme');
+    expect(kindOf(duty("Shinryu's Domain (Unreal)"))).toBe('HighEndDuty:Unreal');
+    expect(kindOf(duty('The Cloud of Darkness (Chaotic)'))).toBe('HighEndDuty:Chaotic');
+    expect(kindOf(listing({ category: 'Trial', duty: 'The Jade Stoa' }))).toBe('Trial');
+
+    const unreal = duty("Shinryu's Domain (Unreal)");
+    expect(matchesFilters(unreal, { ...none, category: 'HighEndDuty:Ultimate' })).toBe(false);
+    expect(matchesFilters(unreal, { ...none, category: 'HighEndDuty:Unreal' })).toBe(true);
+    expect(matchesFilters(unreal, { ...none, category: 'HighEndDuty' })).toBe(true);
   });
 });
