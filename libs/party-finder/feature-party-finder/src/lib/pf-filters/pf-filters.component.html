@@ -23,7 +23,17 @@
     <cdt-field label="Category" for="pf-category">
       <select #category id="pf-category" cdtInput (change)="store.setFilters({ category: category.value })">
         <option value="" [selected]="!store.filters().category">All categories</option>
-        @for (option of store.categories(); track option) {
+        @if (store.categories().highEnd.length) {
+          <optgroup label="High-end Duty">
+            <option [value]="highEnd" [selected]="store.filters().category === highEnd">All high-end duty</option>
+            @for (option of store.categories().highEnd; track option) {
+              <option [value]="option" [selected]="option === store.filters().category">
+                {{ categoryName(option) }}
+              </option>
+            }
+          </optgroup>
+        }
+        @for (option of store.categories().others; track option) {
           <option [value]="option" [selected]="option === store.filters().category">{{ categoryName(option) }}</option>
         }
       </select>
