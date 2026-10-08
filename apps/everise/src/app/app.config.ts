@@ -9,6 +9,8 @@ import { TURNSTILE_SITE_KEY } from '@everise/ui/components';
 import { environment } from '../environments/environment';
 import { PageTitleStrategy } from './page-title.strategy';
 
+const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
@@ -80,6 +82,13 @@ export const appConfig: ApplicationConfig = {
           path: 'party-finder',
           title: 'Party Finder',
           // Open to everyone: the listings are public in the game and on xivpf.
+          loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
+        },
+        {
+          // A data centre's own page (/party-finder/light), which search
+          // engines list and links share.
+          path: 'party-finder/:dataCentre',
+          title: (route) => `${capitalised(route.paramMap.get('dataCentre') ?? '')} Party Finder`,
           loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
         },
         {

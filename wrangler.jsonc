@@ -14,12 +14,31 @@
     "directory": "./dist/apps/everise",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/article/*"]
+    // The API, and the pages that get their own tags and words (worker/seo).
+    "run_worker_first": [
+      "/api/*",
+      "/article/*",
+      "/",
+      "/home",
+      "/party-finder",
+      "/party-finder/*",
+      "/roulette",
+      "/waking-sands",
+      "/privacy",
+      "/login",
+      "/register",
+      "/robots.txt",
+      "/sitemap.xml"
+    ]
   },
 
   // The backend Worker of this environment, reached inside Cloudflare (not over
   // the public internet): the app calls the relative /api and this site forwards it.
   "services": [{ "binding": "API", "service": "be-prod" }],
+
+  // The site's address for canonical URLs, and whether search engines may
+  // index it (only production).
+  "vars": { "SITE_URL": "https://everise.dev", "SEARCH_ENGINES": "allow" },
 
   // The site's address. Its workers.dev address stays on for links saved
   // before the move (pictures, uploads, emails).
@@ -39,7 +58,9 @@
       // Not inherited either.
       "routes": [{ "pattern": "staging.everise.dev", "custom_domain": true }],
       "workers_dev": true,
-      "services": [{ "binding": "API", "service": "be-staging" }]
+      "services": [{ "binding": "API", "service": "be-staging" }],
+      // Not inherited: staging keeps search engines away.
+      "vars": { "SITE_URL": "https://staging.everise.dev", "SEARCH_ENGINES": "block" }
     }
   }
 }

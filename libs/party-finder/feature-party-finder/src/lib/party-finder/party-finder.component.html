@@ -57,6 +57,34 @@
     }
   }
 
+  @if (!signedIn()) {
+    <p class="join">
+      Everise is a laid-back free company on Odin (Light).
+      <a routerLink="/register">Sign up</a> to post in the feed, share your roulette results and talk in the Waking
+      Sands.
+    </p>
+  }
+
+  <nav class="data-centres" aria-labelledby="pf-data-centres">
+    <h2 id="pf-data-centres">Every data centre</h2>
+    @for (region of store.regions(); track region.name) {
+      <div class="region">
+        @if (region.name) {
+          <h3>{{ region.name }}</h3>
+        }
+        <ul>
+          @for (name of region.dataCentres; track name) {
+            <li>
+              <a [routerLink]="pathOf(name)" [attr.aria-current]="name === store.dataCentre() ? 'page' : null">{{
+                name
+              }}</a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
+
   <p class="source">
     Listings from
     <a href="https://xivpf.com/listings" target="_blank" rel="noopener noreferrer"
