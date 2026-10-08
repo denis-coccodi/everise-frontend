@@ -7,6 +7,7 @@ import { errorHandlingInterceptor } from '@everise/core/error-handler';
 import { API_URL } from '@everise/core/http-client';
 import { TURNSTILE_SITE_KEY } from '@everise/ui/components';
 import { environment } from '../environments/environment';
+import { watchAppUpdates } from './app-updates';
 import { PageTitleStrategy } from './page-title.strategy';
 
 const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
@@ -128,6 +129,8 @@ export const appConfig: ApplicationConfig = {
     //   enabled: !isDevMode(),
     //   registrationStrategy: 'registerWhenStable:30000',
     // }),
+    // A new version of the site replaces the cached one (app-updates.ts).
+    provideAppInitializer(watchAppUpdates),
     provideServiceWorker('offline-sw.js', {
       enabled: environment.serviceWorker,
       registrationStrategy: 'registerWhenStable:30000',
