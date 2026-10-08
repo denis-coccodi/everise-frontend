@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DataCentre, PartyRole } from '@everise/core/api-types';
-import { PartyFinderStore, categoryName } from '@everise/party-finder/data-access';
+import { HIGH_END, PartyFinderStore, categoryName } from '@everise/party-finder/data-access';
 import { FieldComponent, InputComponent, PanelComponent, SwitchComponent } from '@everise/ui/components';
 
 // What the Party Finder page shows: the data centre and the world the
@@ -23,6 +23,7 @@ export class PfFiltersComponent {
     { value: 'dps', name: 'DPS' },
   ];
   protected readonly categoryName = categoryName;
+  protected readonly highEnd = HIGH_END;
 
   protected setDataCentre(value: string) {
     this.store.setDataCentre(value as DataCentre);
