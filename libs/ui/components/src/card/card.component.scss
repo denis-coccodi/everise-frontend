@@ -17,6 +17,20 @@
   padding: 0;
 }
 
+// As tall as the space it's in, its content in a column.
+:host(.stretch) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-bottom: 0;
+}
+
+:host(.stretch) .body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
 .footer {
   display: flex;
   align-items: center;
