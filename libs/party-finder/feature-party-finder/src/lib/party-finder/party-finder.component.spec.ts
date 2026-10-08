@@ -1,9 +1,12 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { DiscordSharingService } from '@everise/articles/data-access';
+import { AuthStore } from '@everise/auth/data-access';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
+import { PartyFinderBoard, PartyFinderListing, User } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
 import { PartyFinderComponent } from './party-finder.component';
 
@@ -88,10 +91,12 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
 
 describe('PartyFinderComponent', () => {
   // The page as the app routes it: /party-finder, or a data centre's own.
-  async function render(url = '/party-finder') {
+  async function render(url = '/party-finder', { signedIn = false, discord = true } = {}) {
     localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
+        // Whether the backend can share in the Everise Discord.
+        { provide: DiscordSharingService, useValue: { available: signal(discord) } },
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: API_URL, useValue: '' },
@@ -104,6 +109,7 @@ describe('PartyFinderComponent', () => {
         ),
       ],
     });
+    if (signedIn) TestBed.inject(AuthStore).confirmed({ id: 'u1', username: 'alisaie' } as User);
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(url);
     const fixture = harness.fixture;
@@ -302,5 +308,94 @@ describe('PartyFinderComponent', () => {
 
     expect(titles()).toEqual(['The Unending Coil of Bahamut (Ultimate)']);
     expect(page.querySelector('cdt-message')?.textContent).toContain("can't be reached right now");
+  });
+
+  describe('sharing a listing', () => {
+    const buttons = (page: HTMLElement) =>
+      [...page.querySelectorAll('cdt-pf-listing .share button')].map((b) => b.textContent?.replace(/\s+/g, ' ').trim());
+
+    it("isn't offered to guests", async () => {
+      const { fixture, http, page } = await render();
+      http.expectOne('/party-finder?dataCentre=Light').flush(board());
+      await fixture.whenStable();
+
+      expect(buttons(page)).toEqual([]);
+      expect(page.querySelector('.join')?.textContent).toContain('share listings');
+    });
+
+    it('posts it with a message and, when ticked, in the Discord too, then links to the post', async () => {
+      const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+      http.expectOne('/party-finder?dataCentre=Light').flush(board());
+      await fixture.whenStable();
+      // Each button names its listing for screen readers.
+      expect(buttons(page)).toEqual([
+        'Share The Unending Coil of Bahamut (Ultimate) as post',
+        'Share The Unending Coil of Bahamut (Ultimate) to Discord',
+      ]);
+
+      (page.querySelector('cdt-pf-listing .share button') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      const dialog = page.querySelector('cdt-pf-share-dialog') as HTMLElement;
+      expect(dialog.querySelector('[role=dialog] h2')?.textContent).toBe('Share as post');
+      const message = dialog.querySelector('textarea') as HTMLTextAreaElement;
+      message.value = '  Come prog!  ';
+      message.dispatchEvent(new Event('input'));
+      (dialog.querySelector('cdt-checkbox input') as HTMLInputElement).click();
+      await fixture.whenStable();
+      (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+
+      const request = http.expectOne('/party-finder/posts');
+      expect(JSON.parse(request.request.body)).toEqual({
+        dataCentre: 'Light',
+        listingId: '66-1',
+        comment: 'Come prog!',
+        shareToDiscord: true,
+      });
+      request.flush({ article: { id: 'post-9' } }, { status: 201, statusText: 'Created' });
+      await fixture.whenStable();
+
+      expect(page.querySelector('cdt-pf-share-dialog')).toBeNull();
+      const done = page.querySelector('.shared') as HTMLElement;
+      expect(done.textContent).toContain('Posted to the feed.');
+      expect(done.querySelector('a')?.getAttribute('href')).toBe('/article/post-9');
+    });
+
+    it('sends it to the Discord only, and keeps the window open with the reason when it fails', async () => {
+      const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+      http.expectOne('/party-finder?dataCentre=Light').flush(board());
+      await fixture.whenStable();
+
+      (page.querySelectorAll('cdt-pf-listing .share button')[1] as HTMLButtonElement).click();
+      await fixture.whenStable();
+      const dialog = page.querySelector('cdt-pf-share-dialog') as HTMLElement;
+      expect(dialog.querySelector('[role=dialog] h2')?.textContent).toBe('Share to Discord');
+      // Already going to Discord: no "also" box.
+      expect(dialog.querySelector('cdt-checkbox')).toBeNull();
+      (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+
+      http
+        .expectOne('/party-finder/discord')
+        .flush(
+          { errors: { body: ['You can share another listing in 42 seconds.'] } },
+          { status: 429, statusText: 'Too Many Requests' },
+        );
+      await fixture.whenStable();
+      expect(dialog.querySelector('[role=alert]')?.textContent).toContain('42 seconds');
+
+      (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+      const request = http.expectOne('/party-finder/discord');
+      expect(JSON.parse(request.request.body)).toEqual({ dataCentre: 'Light', listingId: '66-1' });
+      request.flush({ shared: true }, { status: 202, statusText: 'Accepted' });
+      await fixture.whenStable();
+      expect(page.querySelector('.shared')?.textContent).toContain('Sent to the Everise Discord.');
+    });
+
+    it("doesn't offer Discord where the site can't share there", async () => {
+      const { fixture, http, page } = await render('/party-finder', { signedIn: true, discord: false });
+      http.expectOne('/party-finder?dataCentre=Light').flush(board());
+      await fixture.whenStable();
+
+      expect(buttons(page)).toEqual(['Share The Unending Coil of Bahamut (Ultimate) as post']);
+    });
   });
 });

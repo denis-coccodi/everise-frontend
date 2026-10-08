@@ -119,3 +119,14 @@ h1 {
     text-decoration: none;
   }
 }
+
+// A listing's share buttons, in its card's footer.
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  cdt-icon {
+    margin-inline-end: 0.35em;
+  }
+}

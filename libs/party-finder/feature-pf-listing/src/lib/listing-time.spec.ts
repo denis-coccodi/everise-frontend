@@ -6,6 +6,8 @@ describe('listing times', () => {
   it('says how long is left, in whole minutes', () => {
     expect(timeLeft('2026-10-07T18:52:30Z', now)).toBe('52 min left');
     expect(timeLeft('2026-10-07T18:00:40Z', now)).toBe('under a minute left');
+    // A shared listing seen after its time ran out.
+    expect(timeLeft('2026-10-07T17:59:00Z', now)).toBe('ended');
   });
 
   it('says how long ago, from "just now" to hours', () => {

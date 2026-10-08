@@ -70,5 +70,9 @@
 
   <cdt-pf-party [slots]="listing().slots" [icons]="icons()" />
 
-  <p class="seen">seen {{ seen() }}</p>
+  <div class="footer">
+    <!-- What the page offers to do with it, e.g. share it: <div cdtPfListingActions>. -->
+    <ng-content select="[cdtPfListingActions]" />
+    <p class="seen">seen {{ seen() }}</p>
+  </div>
 </cdt-card>

@@ -10,12 +10,21 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DiscordSharingService } from '@everise/articles/data-access';
 import { AuthStore } from '@everise/auth/data-access';
-import { PartyFinderStore, dataCentreName, dataCentrePath } from '@everise/party-finder/data-access';
+import { PartyFinderListing } from '@everise/core/api-types';
+import {
+  PartyFinderStore,
+  PfShareStore,
+  ShareWay,
+  dataCentreName,
+  dataCentrePath,
+  listingTitle,
+} from '@everise/party-finder/data-access';
 import { ButtonComponent, IconComponent, MessageComponent, PagerComponent } from '@everise/ui/components';
-import { ago } from '../listing-time';
 import { PfFiltersComponent } from '../pf-filters/pf-filters.component';
-import { PfListingComponent } from '../pf-listing/pf-listing.component';
+import { PfShareDialogComponent } from '../pf-share-dialog/pf-share-dialog.component';
+import { PfListingComponent, ago } from '@everise/party-finder/feature-pf-listing';
 
 // The Party Finder: the listings up on a data centre (the one in the address,
 // /party-finder/chaos; else the one picked last, or Light, Everise's, from
@@ -33,14 +42,24 @@ import { PfListingComponent } from '../pf-listing/pf-listing.component';
     IconComponent,
     MessageComponent,
     PagerComponent,
+    PfShareDialogComponent,
     RouterLink,
   ],
-  providers: [PartyFinderStore],
+  providers: [PartyFinderStore, PfShareStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PartyFinderComponent {
   protected readonly store = inject(PartyFinderStore);
   protected readonly signedIn = inject(AuthStore).loggedIn;
+  // Members share a listing as a post, or in the Everise Discord (where
+  // the site can).
+  protected readonly share = inject(PfShareStore);
+  protected readonly discordAvailable = inject(DiscordSharingService).available;
+  protected readonly titleOf = listingTitle;
+  protected readonly sharedPostId = computed(() => {
+    const shared = this.share.shared();
+    return shared?.way === 'post' ? shared.articleId : '';
+  });
   protected readonly pathOf = dataCentrePath;
 
   // The data centre in the address (/party-finder/chaos), from the route.
@@ -56,6 +75,10 @@ export class PartyFinderComponent {
       const name = this.dataCentre();
       if (name) untracked(() => this.store.setDataCentre(dataCentreName(name)));
     });
+  }
+
+  protected openShare(listing: PartyFinderListing, way: ShareWay) {
+    this.share.open(listing, way, this.store.dataCentre());
   }
 
   // Another page starts from its top, and keyboard and screen reader users

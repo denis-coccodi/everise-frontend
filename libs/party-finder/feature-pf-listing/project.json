@@ -1,0 +1,17 @@
+{
+  "name": "party-finder-feature-pf-listing",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/party-finder/feature-pf-listing/src",
+  "prefix": "cdt",
+  "tags": ["type:widget"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/party-finder/feature-pf-listing"
+      }
+    }
+  }
+}

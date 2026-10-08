@@ -1,0 +1,55 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+// What's shared: the duty, and who and where.
+.listing {
+  margin: 0 0 1rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.what {
+  font-weight: 700;
+  color: var(--color-contrast);
+}
+
+.where {
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  resize: vertical;
+}
+
+.count {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  text-align: right;
+  color: var(--color-contrast-faint);
+}
+
+.also {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

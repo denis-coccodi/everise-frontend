@@ -3,10 +3,10 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ArticleStore } from '@everise/articles/data-access';
+import { ArticleStore, DiscordSharingService } from '@everise/articles/data-access';
 import { AttachmentsEditorComponent } from '@everise/media';
 import { Attachment, MAX_POST_ATTACHMENTS, NewAttachment } from '@everise/core/api-types';
-import { ButtonComponent, FieldComponent, InputComponent } from '@everise/ui/components';
+import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@everise/ui/components';
 
 @Component({
   selector: 'cdt-article-edit',
@@ -14,6 +14,7 @@ import { ButtonComponent, FieldComponent, InputComponent } from '@everise/ui/com
   styleUrl: './article-edit.component.scss',
   imports: [
     AttachmentsEditorComponent,
+    CheckboxComponent,
     FieldComponent,
     ButtonComponent,
     InputComponent,
@@ -35,6 +36,9 @@ export class ArticleEditComponent implements OnDestroy {
   // Up to 4 images, GIFs and videos, shown apart from the text.
   protected readonly attachments = signal<NewAttachment[]>([]);
   protected readonly maxAttachments = MAX_POST_ATTACHMENTS;
+  // A new post goes to the Everise Discord too only when ticked.
+  protected readonly discordAvailable = inject(DiscordSharingService).available;
+  protected readonly shareToDiscord = signal(false);
 
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required]],
@@ -72,7 +76,10 @@ export class ArticleEditComponent implements OnDestroy {
     if (this.articleStore.data.id()) {
       this.articleStore.editArticle({ editArticle: article, articleId: this.articleStore.data.id() });
     } else {
-      this.articleStore.publishArticle(article);
+      this.articleStore.publishArticle({
+        ...article,
+        ...(this.shareToDiscord() && this.discordAvailable() ? { shareToDiscord: true } : {}),
+      });
     }
   }
 

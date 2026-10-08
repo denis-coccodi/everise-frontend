@@ -27,6 +27,7 @@ export const ICON_NAMES = [
   'moon',
   'party',
   'refresh',
+  'send',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -129,6 +130,9 @@ export type IconName = (typeof ICON_NAMES)[number];
         }
         @case ('refresh') {
           <path d="M21 12a9 9 0 1 1-2.6-6.4L21 8M21 3v5h-5" />
+        }
+        @case ('send') {
+          <path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" />
         }
       }
     </svg>

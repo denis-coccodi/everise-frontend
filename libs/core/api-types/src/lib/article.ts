@@ -4,6 +4,9 @@ import { Schemas } from './schemas';
 // data. Images are ids for GET /api/images/:id (see gameImageUrl).
 export type RouletteCard = Schemas['RouletteCard'];
 
+// A Party Finder listing shared as a post: the listing as it was then.
+export type PartyFinderPost = Schemas['PartyFinderPost'];
+
 export type Article = Schemas['Article'];
 
 export type CreateArticle = Schemas['NewArticle'];
