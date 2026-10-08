@@ -10,6 +10,7 @@ import { FormErrorsStore, serverMessage } from '@everise/core/forms';
 import { exhaustMap, pipe, switchMap, tap } from 'rxjs';
 import { AuthState, authInitialState, initialUserValue } from './auth.model';
 import { AuthService } from './auth.service';
+import { takeReturnUrl } from './return-url';
 
 export const AuthStore = signalStore(
   { providedIn: 'root' },
@@ -22,12 +23,16 @@ export const AuthStore = signalStore(
           switchMap(() =>
             authService.user().pipe(
               tapResponse({
-                next: ({ user }) =>
+                next: ({ user }) => {
                   patchState(store, {
                     user,
                     loggedIn: true,
                     ...setLoaded('getUser'),
-                  }),
+                  });
+                  // Back from a provider's sign-in, asked for by a Discord link.
+                  const back = takeReturnUrl();
+                  if (back) router.navigateByUrl(back);
+                },
                 error: () => patchState(store, { loggedIn: false, ...setLoaded('getUser') }),
               }),
             ),
@@ -42,7 +47,8 @@ export const AuthStore = signalStore(
               tapResponse({
                 next: ({ user }) => {
                   patchState(store, { user, loggedIn: true });
-                  router.navigateByUrl('/');
+                  // Where a Discord link was going, else the home page.
+                  router.navigateByUrl(takeReturnUrl() ?? '/');
                 },
                 error: (response: HttpErrorResponse) => {
                   formErrorsStore.setResponseErrors(response);
@@ -69,7 +75,7 @@ export const AuthStore = signalStore(
                     return;
                   }
                   patchState(store, { user: response.user, loggedIn: true });
-                  router.navigateByUrl('/');
+                  router.navigateByUrl(takeReturnUrl() ?? '/');
                 },
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),

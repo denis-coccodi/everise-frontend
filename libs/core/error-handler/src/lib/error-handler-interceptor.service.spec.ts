@@ -2,20 +2,26 @@ import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from '@a
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ErrorHandlerStore } from './error-handler.store';
-import { SKIP_LOGIN_REDIRECT, errorHandlingInterceptor } from './error-handler-interceptor.service';
+import {
+  SKIP_LOGIN_REDIRECT,
+  SKIP_NOT_FOUND_REDIRECT,
+  errorHandlingInterceptor,
+} from './error-handler-interceptor.service';
 
 describe('errorHandlingInterceptor', () => {
   const handleError401 = vi.fn();
+  const handleError404 = vi.fn();
   let http: HttpClient;
   let backend: HttpTestingController;
 
   beforeEach(() => {
     handleError401.mockClear();
+    handleError404.mockClear();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([errorHandlingInterceptor])),
         provideHttpClientTesting(),
-        { provide: ErrorHandlerStore, useValue: { handleError401, handleError404: vi.fn() } },
+        { provide: ErrorHandlerStore, useValue: { handleError401, handleError404 } },
       ],
     });
     http = TestBed.inject(HttpClient);
@@ -35,5 +41,17 @@ describe('errorHandlingInterceptor', () => {
   it("doesn't redirect a request that only checks whether someone is logged in", () => {
     failWith401(new HttpContext().set(SKIP_LOGIN_REDIRECT, true));
     expect(handleError401).not.toHaveBeenCalled();
+  });
+
+  it('leaves a 404 to the page when it says it explains it itself', () => {
+    const failWith404 = (context?: HttpContext) => {
+      http.post('/api/party-finder/discord', {}, { context }).subscribe({ error: () => undefined });
+      backend.expectOne('/api/party-finder/discord').flush(null, { status: 404, statusText: 'Not Found' });
+    };
+
+    failWith404(new HttpContext().set(SKIP_NOT_FOUND_REDIRECT, true));
+    expect(handleError404).not.toHaveBeenCalled();
+    failWith404();
+    expect(handleError404).toHaveBeenCalledOnce();
   });
 });

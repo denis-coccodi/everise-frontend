@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/ht
 import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
 import { TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
-import { AuthGuard } from '@everise/auth/data-access';
+import { AuthGuard, discordLinkGuard } from '@everise/auth/data-access';
 import { errorHandlingInterceptor } from '@everise/core/error-handler';
 import { API_URL } from '@everise/core/http-client';
 import { TURNSTILE_SITE_KEY } from '@everise/ui/components';
@@ -62,6 +62,8 @@ export const appConfig: ApplicationConfig = {
         {
           path: 'article',
           title: 'Article',
+          // A post linked from the Everise Discord asks for sign-in first.
+          canActivate: [discordLinkGuard],
           loadChildren: () => import('@everise/articles/article').then((m) => m.ARTICLE_ROUTES),
         },
         {
@@ -81,6 +83,7 @@ export const appConfig: ApplicationConfig = {
         {
           path: 'party-finder',
           title: 'Party Finder',
+          canActivate: [discordLinkGuard],
           // Open to everyone: the listings are public in the game and on xivpf.
           loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
         },
@@ -88,6 +91,7 @@ export const appConfig: ApplicationConfig = {
           // A data centre's own page (/party-finder/light), which search
           // engines list and links share.
           path: 'party-finder/:dataCentre',
+          canActivate: [discordLinkGuard],
           title: (route) => `${capitalised(route.paramMap.get('dataCentre') ?? '')} Party Finder`,
           loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
         },

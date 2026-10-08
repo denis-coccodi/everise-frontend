@@ -10,6 +10,16 @@ import { PartyFinderBoard, PartyFinderListing, User } from '@everise/core/api-ty
 import { API_URL } from '@everise/core/http-client';
 import { PartyFinderComponent } from './party-finder.component';
 
+// jsdom can't draw: the card's picture is a stand-in.
+vi.mock('../pf-share-dialog/card-picture', () => ({
+  cardPicture: async () => new Blob(['png'], { type: 'image/png' }),
+}));
+
+// The card's picture, as POST /api/media answers for it.
+const uploaded = (id: string) => ({
+  media: { id, url: `/media/${id}`, contentType: 'image/png', width: 520, height: 300 },
+});
+
 const ODIN = { id: 66, name: 'Odin' };
 const SHIVA = { id: 67, name: 'Shiva' };
 const LIGHT_WORLDS = [{ id: 402, name: 'Alpha' }, ODIN, SHIVA];
@@ -343,13 +353,17 @@ describe('PartyFinderComponent', () => {
       (dialog.querySelector('cdt-checkbox input') as HTMLInputElement).click();
       await fixture.whenStable();
       (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+      await fixture.whenStable();
 
+      // Going to Discord too: the card's picture is uploaded first.
+      http.expectOne('/media').flush(uploaded('pic-1'));
       const request = http.expectOne('/party-finder/posts');
       expect(JSON.parse(request.request.body)).toEqual({
         dataCentre: 'Light',
         listingId: '66-1',
         comment: 'Come prog!',
         shareToDiscord: true,
+        pictureId: 'pic-1',
       });
       request.flush({ article: { id: 'post-9' } }, { status: 201, statusText: 'Created' });
       await fixture.whenStable();
@@ -372,7 +386,9 @@ describe('PartyFinderComponent', () => {
       // Already going to Discord: no "also" box.
       expect(dialog.querySelector('cdt-checkbox')).toBeNull();
       (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+      await fixture.whenStable();
 
+      http.expectOne('/media').flush(uploaded('pic-1'));
       http
         .expectOne('/party-finder/discord')
         .flush(
@@ -383,11 +399,43 @@ describe('PartyFinderComponent', () => {
       expect(dialog.querySelector('[role=alert]')?.textContent).toContain('42 seconds');
 
       (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      http.expectOne('/media').flush(uploaded('pic-2'));
       const request = http.expectOne('/party-finder/discord');
-      expect(JSON.parse(request.request.body)).toEqual({ dataCentre: 'Light', listingId: '66-1' });
+      expect(JSON.parse(request.request.body)).toEqual({ dataCentre: 'Light', listingId: '66-1', pictureId: 'pic-2' });
       request.flush({ shared: true }, { status: 202, statusText: 'Accepted' });
       await fixture.whenStable();
       expect(page.querySelector('.shared')?.textContent).toContain('Sent to the Everise Discord.');
+    });
+
+    it('a listing that ended while the member wrote: says so, stays on the page, and refreshes the listings', async () => {
+      const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+      http.expectOne('/party-finder?dataCentre=Light').flush(board());
+      await fixture.whenStable();
+
+      (page.querySelectorAll('cdt-pf-listing .share button')[1] as HTMLButtonElement).click();
+      await fixture.whenStable();
+      const dialog = page.querySelector('cdt-pf-share-dialog') as HTMLElement;
+      const message = dialog.querySelector('textarea') as HTMLTextAreaElement;
+      message.value = 'Taking a while to write this…';
+      message.dispatchEvent(new Event('input'));
+      (dialog.querySelector('button[type=submit]') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      http.expectOne('/media').flush(uploaded('pic-1'));
+      http
+        .expectOne('/party-finder/discord')
+        .flush(
+          { errors: { body: ['That listing has ended or filled up. Pick another one.'] } },
+          { status: 404, statusText: 'Not Found' },
+        );
+      await fixture.whenStable();
+
+      expect(TestBed.inject(Router).url).toBe('/party-finder');
+      expect(page.querySelector('cdt-pf-share-dialog [role=alert]')?.textContent).toContain('ended or filled up');
+      expect((page.querySelector('cdt-pf-share-dialog textarea') as HTMLTextAreaElement).value).toBe(
+        'Taking a while to write this…',
+      );
+      http.expectOne('/party-finder?dataCentre=Light');
     });
 
     it("doesn't offer Discord where the site can't share there", async () => {

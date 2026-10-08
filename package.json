@@ -29,6 +29,7 @@
     "@ngrx/operators": "22.0.1",
     "@ngrx/signals": "22.0.1",
     "@nx/angular": "23.2.1",
+    "html-to-image": "^1.11.13",
     "marked": "5.0.1",
     "rxjs": "7.8.2"
   },

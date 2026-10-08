@@ -12,7 +12,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { DiscordSharingService } from '@everise/articles/data-access';
 import { AuthStore } from '@everise/auth/data-access';
-import { PartyFinderListing } from '@everise/core/api-types';
+import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
 import {
   PartyFinderStore,
   PfShareStore,
@@ -64,6 +64,13 @@ export class PartyFinderComponent {
 
   // The data centre in the address (/party-finder/chaos), from the route.
   readonly dataCentre = input<string>();
+  // A listing shared in the Everise Discord (?listing=<id>), shown first
+  // while it's up.
+  // (In the template's loops, `listing` is each listing instead.)
+  readonly listing = input<string>();
+  protected readonly sharedListing = computed(
+    () => this.store.board()?.listings.find((shown) => shown.id === this.listing()),
+  );
 
   protected readonly checked = computed(() => ago(this.store.checkedAt(), this.store.now()));
   private readonly status = viewChild<ElementRef<HTMLElement>>('status');
@@ -77,8 +84,8 @@ export class PartyFinderComponent {
     });
   }
 
-  protected openShare(listing: PartyFinderListing, way: ShareWay) {
-    this.share.open(listing, way, this.store.dataCentre());
+  protected openShare(listing: PartyFinderListing, way: ShareWay, icons: PartyFinderBoard['icons']) {
+    this.share.open(listing, way, this.store.dataCentre(), icons);
   }
 
   // Another page starts from its top, and keyboard and screen reader users

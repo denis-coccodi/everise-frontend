@@ -1,7 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Component } from '@angular/core';
+import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { API_URL } from '@everise/core/http-client';
 import { TURNSTILE_SITE_KEY, TurnstileApi } from '@everise/ui/components';
 import { LoginComponent } from './login.component';
@@ -82,6 +84,49 @@ describe('LoginComponent', () => {
 
     expect(JSON.parse(http.expectOne('/api/users/login').request.body)).toEqual({
       user: { email: 'alisaie@example.com', password: 'echo-of-light' },
+    });
+  });
+
+  describe('coming from a link in the Everise Discord', () => {
+    @Component({ template: '' })
+    class PostPage {}
+
+    it('says why, then goes back to the link once signed in', async () => {
+      sessionStorage.setItem('returnUrl', '/article/post-1?from=discord');
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideRouter([
+            { path: 'login', component: LoginComponent },
+            { path: 'article/:id', component: PostPage },
+          ]),
+          { provide: API_URL, useValue: '/api' },
+          { provide: TURNSTILE_SITE_KEY, useValue: '' },
+        ],
+      });
+      const harness = await RouterTestingHarness.create();
+      await harness.navigateByUrl('/login?from=discord');
+      const page = harness.fixture.nativeElement as HTMLElement;
+      expect(page.querySelector('.from-discord')?.textContent).toContain('shared in the Everise Discord');
+
+      for (const [id, value] of [
+        ['email', 'alisaie@example.com'],
+        ['password', 'echo-of-light'],
+      ]) {
+        const input = page.querySelector(`#${id}`) as HTMLInputElement;
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+      }
+      await harness.fixture.whenStable();
+      (page.querySelector('[data-testid=sign-in]') as HTMLButtonElement).click();
+      TestBed.inject(HttpTestingController)
+        .expectOne('/api/users/login')
+        .flush({ user: { id: 'u1', username: 'alisaie' } });
+      await harness.fixture.whenStable();
+
+      expect(TestBed.inject(Router).url).toBe('/article/post-1?from=discord');
+      expect(sessionStorage.getItem('returnUrl')).toBeNull();
     });
   });
 });
