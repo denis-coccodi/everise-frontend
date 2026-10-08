@@ -87,3 +87,10 @@ cdt-duty-card {
 .tag-list li {
   font-weight: 300;
 }
+
+// A shared Party Finder listing, under its title.
+.shared-listing {
+  display: block;
+  max-width: 560px;
+  margin: 0.25rem 0 0.75rem;
+}

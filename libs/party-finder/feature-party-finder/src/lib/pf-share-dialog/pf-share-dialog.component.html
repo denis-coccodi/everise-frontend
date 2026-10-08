@@ -1,0 +1,43 @@
+<cdt-dialog [heading]="heading()" (dismissed)="store.close()">
+  @if (store.sharing(); as sharing) {
+    <div class="listing">
+      <p class="what">{{ title() }}</p>
+      <p class="where">{{ sharing.listing.recruiter }} · {{ sharing.listing.world.name }} ({{ sharing.dataCentre }})</p>
+    </div>
+
+    <form (submit)="$event.preventDefault(); send()">
+      <fieldset [disabled]="store.sending()">
+        <cdt-field
+          [label]="asPost() ? 'Your message for the feed' : 'Your message for the Discord'"
+          for="pf-share-message"
+        >
+          <textarea
+            #messageBox="cdtInput"
+            id="pf-share-message"
+            cdtInput
+            rows="3"
+            [attr.maxlength]="maxMessage"
+            aria-describedby="pf-share-count"
+            placeholder="Come join us! (optional)"
+            [value]="message()"
+            (input)="message.set(messageBox.value)"
+          ></textarea>
+          <span id="pf-share-count" class="count" aria-live="polite">{{ message().length }} / {{ maxMessage }}</span>
+        </cdt-field>
+
+        @if (asPost() && discordAvailable()) {
+          <cdt-checkbox class="also" [(checked)]="alsoDiscord">Also share in the Everise Discord</cdt-checkbox>
+        }
+
+        <cdt-message tone="error">{{ store.error() }}</cdt-message>
+
+        <div class="actions">
+          <button type="submit" cdtButton [attr.aria-busy]="store.sending()">
+            {{ store.sending() ? 'Sharing…' : asPost() ? 'Post' : 'Send to Discord' }}
+          </button>
+          <button type="button" cdtButton="secondary" (click)="store.close()">Cancel</button>
+        </div>
+      </fieldset>
+    </form>
+  }
+</cdt-dialog>

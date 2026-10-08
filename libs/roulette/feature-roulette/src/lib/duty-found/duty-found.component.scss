@@ -35,6 +35,14 @@
   color: var(--color-contrast-faint);
 }
 
+// "Also share in the Everise Discord": a plain group, no fieldset frame.
+.share {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  border: 0;
+  text-align: left;
+}
+
 .note {
   margin: 1rem 0 0;
   font-size: 0.85rem;

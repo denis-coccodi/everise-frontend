@@ -35,6 +35,11 @@
       ></textarea>
       <span class="count" aria-live="polite">{{ comment().length }} / {{ maxComment }}</span>
     </label>
+    @if (discordAvailable()) {
+      <fieldset class="share" [disabled]="posting()">
+        <cdt-checkbox [(checked)]="shareToDiscord">Also share in the Everise Discord</cdt-checkbox>
+      </fieldset>
+    }
   } @else {
     <p class="note">You're not signed in, so Tataru will post this to the feed for you.</p>
   }
@@ -45,7 +50,7 @@
   <div class="timer" aria-hidden="true"><span></span></div>
 
   <div class="actions">
-    <button #commenceButton type="button" cdtButton [disabled]="posting()" (click)="commence.emit(comment().trim())">
+    <button #commenceButton type="button" cdtButton [disabled]="posting()" (click)="accept()">
       {{ posting() ? 'Posting…' : 'Commence' }}
     </button>
     <button type="button" cdtButton="secondary" [disabled]="posting()" (click)="withdraw.emit()">Withdraw</button>

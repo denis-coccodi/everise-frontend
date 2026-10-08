@@ -26,6 +26,20 @@
   </div>
 
   <cdt-message tone="error">{{ store.error() }}</cdt-message>
+  <cdt-message class="shared">
+    @switch (share.shared()?.way) {
+      @case ('post') {
+        Posted to the feed. <a [routerLink]="['/article', sharedPostId()]">See your post</a>
+      }
+      @case ('discord') {
+        Sent to the Everise Discord.
+      }
+    }
+  </cdt-message>
+
+  @if (share.sharing()) {
+    <cdt-pf-share-dialog />
+  }
 
   @switch (store.loadState()) {
     @case ('loading') {
@@ -41,7 +55,29 @@
       } @else if (store.icons(); as icons) {
         <ul class="listings">
           @for (listing of store.pageListings(); track listing.id) {
-            <li><cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons" /></li>
+            <li>
+              <cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons">
+                @if (signedIn()) {
+                  <div cdtPfListingActions class="share">
+                    <button type="button" cdtButton="outline-primary" size="sm" (click)="openShare(listing, 'post')">
+                      <cdt-icon name="compose" />Share<span class="visually-hidden"> {{ titleOf(listing) }}</span> as
+                      post
+                    </button>
+                    @if (discordAvailable()) {
+                      <button
+                        type="button"
+                        cdtButton="outline-primary"
+                        size="sm"
+                        (click)="openShare(listing, 'discord')"
+                      >
+                        <cdt-icon name="send" />Share<span class="visually-hidden"> {{ titleOf(listing) }}</span> to
+                        Discord
+                      </button>
+                    }
+                  </div>
+                }
+              </cdt-pf-listing>
+            </li>
           }
         </ul>
         @if (store.pages().length > 1) {
@@ -60,7 +96,7 @@
   @if (!signedIn()) {
     <p class="join">
       Everise is a laid-back free company on Odin (Light).
-      <a routerLink="/register">Sign up</a> to post in the feed, share your roulette results and talk in the Waking
+      <a routerLink="/register">Sign up</a> to share listings with your friends, post in the feed and talk in the Waking
       Sands.
     </p>
   }

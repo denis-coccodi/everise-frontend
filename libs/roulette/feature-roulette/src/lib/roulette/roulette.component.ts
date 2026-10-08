@@ -23,7 +23,7 @@ import {
   spreadSample,
 } from '@everise/roulette/data-access';
 import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/components';
-import { DutyFoundComponent, RouletteResult } from '../duty-found/duty-found.component';
+import { Commence, DutyFoundComponent, RouletteResult } from '../duty-found/duty-found.component';
 import { wait } from '../motion';
 import { ReelComponent, ReelItem } from '../reel/reel.component';
 import { Day, bannerOf, dutyItem, jobItem, modeItem, toResult, toSpunCandidate, typeItem } from './reel-items';
@@ -179,9 +179,9 @@ export class RouletteComponent {
 
   // Commence in the window: posts the result to the feeds (a guest's is
   // posted by Tataru; the backend checks it and builds the card).
-  accept(comment: string) {
+  accept(choice: Commence) {
     if (!this.lastSpin || this.store.posting()) return;
-    this.store.post({ result: this.lastSpin, ...(this.signedIn() && comment ? { comment } : {}) });
+    this.store.post({ result: this.lastSpin, ...(this.signedIn() ? choice : {}) });
   }
 
   withdraw() {

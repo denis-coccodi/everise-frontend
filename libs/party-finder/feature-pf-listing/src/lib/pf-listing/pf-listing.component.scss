@@ -107,8 +107,19 @@ dd {
   color: var(--color-contrast);
 }
 
+// The page's actions on the left, when seen on the right; in a row
+// while they fit, on their own lines on a narrow card.
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .seen {
-  margin: 0.5rem 0 0;
+  margin: 0 0 0 auto;
   font-size: 0.8rem;
   text-align: right;
 }

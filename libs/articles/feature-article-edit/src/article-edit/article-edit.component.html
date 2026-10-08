@@ -51,6 +51,10 @@
             />
           </cdt-field>
 
+          @if (!editing() && discordAvailable()) {
+            <cdt-checkbox class="share" [(checked)]="shareToDiscord">Also share in the Everise Discord</cdt-checkbox>
+          }
+
           <button
             cdtButton
             size="lg"

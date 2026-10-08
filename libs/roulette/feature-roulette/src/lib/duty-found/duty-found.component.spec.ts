@@ -1,5 +1,7 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DutyFoundComponent, RouletteResult } from './duty-found.component';
+import { DiscordSharingService } from '@everise/articles/data-access';
+import { Commence, DutyFoundComponent, RouletteResult } from './duty-found.component';
 
 const result: RouletteResult = {
   type: 'Raids — Savage',
@@ -13,8 +15,14 @@ const result: RouletteResult = {
 describe('DutyFoundComponent', () => {
   let fixture: ComponentFixture<DutyFoundComponent>;
 
+  // Whether the backend can share in the Everise Discord.
+  const discordAvailable = signal(true);
+
   async function show(shown: RouletteResult, signedIn = false) {
-    await TestBed.configureTestingModule({ imports: [DutyFoundComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [DutyFoundComponent],
+      providers: [{ provide: DiscordSharingService, useValue: { available: discordAvailable } }],
+    }).compileComponents();
     fixture = TestBed.createComponent(DutyFoundComponent);
     fixture.componentRef.setInput('result', shown);
     fixture.componentRef.setInput('signedIn', signedIn);
@@ -27,8 +35,8 @@ describe('DutyFoundComponent', () => {
 
   it('lets a signed-in user add a comment, which Commence sends', async () => {
     const page = await show(result, true);
-    const sent: string[] = [];
-    fixture.componentInstance.commence.subscribe((comment) => sent.push(comment));
+    const sent: Commence[] = [];
+    fixture.componentInstance.commence.subscribe((choice) => sent.push(choice));
 
     const textarea = page.querySelector('textarea') as HTMLTextAreaElement;
     textarea.value = '  Wish me luck!  ';
@@ -37,19 +45,46 @@ describe('DutyFoundComponent', () => {
     expect(page.querySelector('.count')?.textContent?.trim()).toBe('17 / 280');
 
     commenceButton(page).click();
-    expect(sent).toEqual(['Wish me luck!']);
+    expect(sent).toEqual([{ comment: 'Wish me luck!' }]);
     expect(page.querySelector('.note')).toBeNull();
   });
 
   it('tells a guest Tataru will post for them, with no comment box', async () => {
     const page = await show(result);
-    const sent: string[] = [];
-    fixture.componentInstance.commence.subscribe((comment) => sent.push(comment));
+    const sent: Commence[] = [];
+    fixture.componentInstance.commence.subscribe((choice) => sent.push(choice));
 
     expect(page.querySelector('textarea')).toBeNull();
+    // Tataru only posts on the site.
+    expect(page.querySelector('cdt-checkbox')).toBeNull();
     expect(page.querySelector('.note')?.textContent).toContain('Tataru will post this to the feed for you');
     commenceButton(page).click();
-    expect(sent).toEqual(['']);
+    expect(sent).toEqual([{}]);
+  });
+
+  it('shares in the Everise Discord only when the member ticks it', async () => {
+    discordAvailable.set(true);
+    const page = await show(result, true);
+    const sent: Commence[] = [];
+    fixture.componentInstance.commence.subscribe((choice) => sent.push(choice));
+
+    const box = page.querySelector('cdt-checkbox input') as HTMLInputElement;
+    expect(page.querySelector('cdt-checkbox')?.textContent?.trim()).toBe('Also share in the Everise Discord');
+    expect(box.checked).toBe(false);
+    commenceButton(page).click();
+    box.click();
+    await fixture.whenStable();
+    commenceButton(page).click();
+
+    expect(sent).toEqual([{}, { shareToDiscord: true }]);
+  });
+
+  it("doesn't offer Discord where the site can't share there", async () => {
+    discordAvailable.set(false);
+    const page = await show(result, true);
+
+    expect(page.querySelector('cdt-checkbox')).toBeNull();
+    discordAvailable.set(true);
   });
 
   it('shows the posting state and why posting failed', async () => {

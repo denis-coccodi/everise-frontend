@@ -1,8 +1,11 @@
 // How long a listing has left, and how long ago something happened, in the
 // words the page shows.
 
+// A shared listing in the feeds is kept after its time ran out: "ended".
 export function timeLeft(expiresAt: string, now: number) {
-  const minutes = Math.floor((Date.parse(expiresAt) - now) / 60000);
+  const left = Date.parse(expiresAt) - now;
+  if (left <= 0) return 'ended';
+  const minutes = Math.floor(left / 60000);
   return minutes < 1 ? 'under a minute left' : `${minutes} min left`;
 }
 

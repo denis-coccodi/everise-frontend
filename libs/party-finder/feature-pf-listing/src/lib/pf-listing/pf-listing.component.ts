@@ -12,7 +12,9 @@ const LOOT = { normal: '', 'greed-only': 'Greed Only', lootmaster: 'Lootmaster' 
 // One Party Finder listing, laid out like the game's: what it's for (its
 // duty type's icon, and the sprout when beginners are welcome), the recruiter, the conditions in
 // brackets, the description, where the party is, the item level and how
-// many players it still needs, and its slots.
+// many players it still needs, and its slots. Content marked
+// cdtPfListingActions (the Party Finder page's share buttons) goes in its
+// footer. Also shows shared listings in the feeds, as they were.
 @Component({
   selector: 'cdt-pf-listing',
   templateUrl: './pf-listing.component.html',

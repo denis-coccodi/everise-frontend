@@ -37,11 +37,21 @@
         [jobName]="card.job?.name"
         [jobIcon]="imageUrl(card.job?.icon)"
       />
+    } @else if (article().partyFinder) {
+      <!-- A shared Party Finder listing: the member's words, then the listing below. -->
+      @if (article().body) {
+        <p class="top-line">{{ article().body }}</p>
+      }
+      <h2 data-testid="article-list-title">{{ article().title }}</h2>
     } @else {
       <h2 data-testid="article-list-title">{{ article().title }}</h2>
       <p>{{ article().description }}</p>
     }
   </a>
+  <!-- Outside the link: its slots have their own tooltips. -->
+  @if (article().partyFinder; as shared) {
+    <cdt-pf-listing class="shared-listing" [listing]="shared.listing" [icons]="shared.icons" [now]="now" />
+  }
   <!-- Outside the link: the grid has its own buttons (open, play, pause). -->
   <cdt-media-grid [items]="article().media" />
   <div class="footer">

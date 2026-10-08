@@ -31,6 +31,14 @@
               [jobIcon]="imageUrl(card.job?.icon)"
             />
           }
+          @if (article.partyFinder; as shared) {
+            <!-- A shared Party Finder listing, as it was then; the member's words follow. -->
+            <h2 class="visually-hidden">Shared Party Finder listing</h2>
+            <cdt-pf-listing class="shared-listing" [listing]="shared.listing" [icons]="shared.icons" [now]="now" />
+            <p class="shared-link">
+              <a [routerLink]="pathOf(shared.dataCentre)">{{ shared.dataCentre }} Party Finder, right now</a>
+            </p>
+          }
           <cdt-rich-text data-testid="article-body" [text]="article.body" />
           <cdt-media-grid [items]="article.media" />
         </div>

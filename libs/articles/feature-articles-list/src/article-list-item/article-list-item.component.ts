@@ -10,6 +10,7 @@ import {
   TagComponent,
 } from '@everise/ui/components';
 import { MediaGridComponent } from '@everise/media';
+import { PfListingComponent } from '@everise/party-finder/feature-pf-listing';
 @Component({
   selector: 'cdt-article-list-item',
   templateUrl: './article-list-item.component.html',
@@ -22,6 +23,7 @@ import { MediaGridComponent } from '@everise/media';
     TagComponent,
     RouterModule,
     IconComponent,
+    PfListingComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -31,6 +33,8 @@ export class ArticleListItemComponent {
   unFavorite = output<string>();
 
   private readonly apiUrl = inject(API_URL);
+  // A shared listing's time left, from when the feed showed it.
+  protected readonly now = Date.now();
 
   // A roulette card's game image.
   protected imageUrl(id: number | null | undefined) {

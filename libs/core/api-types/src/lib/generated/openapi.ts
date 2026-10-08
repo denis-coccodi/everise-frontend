@@ -1088,6 +1088,51 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/discord/sharing': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Whether members can share in the Everise Discord */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Whether. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['DiscordSharingResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/discord/widget': {
     parameters: {
       query?: never;
@@ -1646,6 +1691,104 @@ export interface paths {
     };
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/party-finder/discord': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Share a Party Finder listing in the Everise Discord */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['NewPartyFinderDiscordShare'];
+        };
+      };
+      responses: {
+        /** @description Sent to the channel. */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PartyFinderDiscordShareResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/party-finder/posts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Share a Party Finder listing as a post */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['NewPartyFinderPost'];
+        };
+      };
+      responses: {
+        /** @description The post. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ArticleResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
     delete?: never;
     options?: never;
     head?: never;
@@ -2746,6 +2889,7 @@ export interface components {
         tagList?: string[];
         media?: components['schemas']['NewAttachment'][];
       };
+      shareToDiscord?: boolean;
     };
     ArticleUpdate: {
       article: {
@@ -2762,6 +2906,41 @@ export interface components {
         media?: components['schemas']['NewAttachment'][];
       };
     };
+    NewPartyFinderPost: {
+      /** @enum {string} */
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
+      listingId: string;
+      comment?: string;
+      shareToDiscord?: boolean;
+    };
+    NewPartyFinderDiscordShare: {
+      /** @enum {string} */
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
+      listingId: string;
+      comment?: string;
+    };
     NewRouletteResult: {
       result: {
         type: string;
@@ -2774,6 +2953,7 @@ export interface components {
         jobId?: number;
       };
       comment?: string;
+      shareToDiscord?: boolean;
     };
     ErrorResponse: {
       errors: {
@@ -2923,6 +3103,91 @@ export interface components {
           start?: number;
           alt?: string;
         };
+    PartyFinderResponse: {
+      /** @enum {string} */
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
+      worlds: {
+        id: number;
+        name: string;
+      }[];
+      regions: {
+        name: string;
+        dataCentres: (
+          | 'Light'
+          | 'Chaos'
+          | 'Aether'
+          | 'Crystal'
+          | 'Dynamis'
+          | 'Primal'
+          | 'Elemental'
+          | 'Gaia'
+          | 'Mana'
+          | 'Meteor'
+          | 'Materia'
+        )[];
+      }[];
+      /** Format: date-time */
+      fetchedAt: string;
+      icons: {
+        tank: number;
+        healer: number;
+        dps: number;
+        beginner: number;
+      };
+      listings: {
+        id: string;
+        recruiter: string;
+        description: string;
+        world: {
+          id: number;
+          name: string;
+        };
+        homeWorld: {
+          id: number;
+          name: string;
+        };
+        category: string;
+        duty: string | null;
+        dutyIcon: number | null;
+        level: number | null;
+        sortKey: number | null;
+        highEnd: boolean;
+        worldOnly: boolean;
+        onePlayerPerJob: boolean;
+        beginnersWelcome: boolean;
+        minItemLevel: number;
+        objective: ('completion' | 'practice' | 'loot') | null;
+        dutyComplete: boolean;
+        /** @enum {string} */
+        loot: 'normal' | 'greed-only' | 'lootmaster';
+        parties: number;
+        slots: {
+          job: string | null;
+          icon: number | null;
+          roles: ('tank' | 'healer' | 'dps')[];
+          accepts: {
+            /** @enum {string} */
+            role: 'tank' | 'healer' | 'dps';
+            jobs: string[];
+          }[];
+        }[];
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      }[];
+    };
     RouletteCard: {
       type: string;
       name: string;
@@ -2935,6 +3200,57 @@ export interface components {
         icon: number;
       } | null;
       guest: boolean;
+    };
+    PartyFinderPost: {
+      dataCentre: string;
+      icons: {
+        tank: number;
+        healer: number;
+        dps: number;
+        beginner: number;
+      };
+      listing: {
+        id: string;
+        recruiter: string;
+        description: string;
+        world: {
+          id: number;
+          name: string;
+        };
+        homeWorld: {
+          id: number;
+          name: string;
+        };
+        category: string;
+        duty: string | null;
+        dutyIcon: number | null;
+        level: number | null;
+        sortKey: number | null;
+        highEnd: boolean;
+        worldOnly: boolean;
+        onePlayerPerJob: boolean;
+        beginnersWelcome: boolean;
+        minItemLevel: number;
+        objective: ('completion' | 'practice' | 'loot') | null;
+        dutyComplete: boolean;
+        /** @enum {string} */
+        loot: 'normal' | 'greed-only' | 'lootmaster';
+        parties: number;
+        slots: {
+          job: string | null;
+          icon: number | null;
+          roles: ('tank' | 'healer' | 'dps')[];
+          accepts: {
+            /** @enum {string} */
+            role: 'tank' | 'healer' | 'dps';
+            jobs: string[];
+          }[];
+        }[];
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      };
     };
     Article: {
       id: string;
@@ -2951,6 +3267,7 @@ export interface components {
       favoritesCount: number;
       media: components['schemas']['Attachment'][];
       roulette?: components['schemas']['RouletteCard'];
+      partyFinder?: components['schemas']['PartyFinderPost'];
       author: components['schemas']['Profile'];
     };
     ArticleResponse: {
@@ -3105,90 +3422,9 @@ export interface components {
       failed: number[];
       downloaded: number;
     };
-    PartyFinderResponse: {
-      /** @enum {string} */
-      dataCentre:
-        | 'Light'
-        | 'Chaos'
-        | 'Aether'
-        | 'Crystal'
-        | 'Dynamis'
-        | 'Primal'
-        | 'Elemental'
-        | 'Gaia'
-        | 'Mana'
-        | 'Meteor'
-        | 'Materia';
-      worlds: {
-        id: number;
-        name: string;
-      }[];
-      regions: {
-        name: string;
-        dataCentres: (
-          | 'Light'
-          | 'Chaos'
-          | 'Aether'
-          | 'Crystal'
-          | 'Dynamis'
-          | 'Primal'
-          | 'Elemental'
-          | 'Gaia'
-          | 'Mana'
-          | 'Meteor'
-          | 'Materia'
-        )[];
-      }[];
-      /** Format: date-time */
-      fetchedAt: string;
-      icons: {
-        tank: number;
-        healer: number;
-        dps: number;
-        beginner: number;
-      };
-      listings: {
-        id: string;
-        recruiter: string;
-        description: string;
-        world: {
-          id: number;
-          name: string;
-        };
-        homeWorld: {
-          id: number;
-          name: string;
-        };
-        category: string;
-        duty: string | null;
-        dutyIcon: number | null;
-        level: number | null;
-        sortKey: number | null;
-        highEnd: boolean;
-        worldOnly: boolean;
-        onePlayerPerJob: boolean;
-        beginnersWelcome: boolean;
-        minItemLevel: number;
-        objective: ('completion' | 'practice' | 'loot') | null;
-        dutyComplete: boolean;
-        /** @enum {string} */
-        loot: 'normal' | 'greed-only' | 'lootmaster';
-        parties: number;
-        slots: {
-          job: string | null;
-          icon: number | null;
-          roles: ('tank' | 'healer' | 'dps')[];
-          accepts: {
-            /** @enum {string} */
-            role: 'tank' | 'healer' | 'dps';
-            jobs: string[];
-          }[];
-        }[];
-        /** Format: date-time */
-        updatedAt: string;
-        /** Format: date-time */
-        expiresAt: string;
-      }[];
+    PartyFinderDiscordShareResponse: {
+      /** @constant */
+      shared: true;
     };
     SitemapResponse: {
       articles: {
@@ -3246,6 +3482,9 @@ export interface components {
           status: string;
         }[];
       } | null;
+    };
+    DiscordSharingResponse: {
+      available: boolean;
     };
   };
   responses: never;
