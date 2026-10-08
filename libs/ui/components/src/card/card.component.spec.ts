@@ -10,6 +10,7 @@ import { CardComponent } from './card.component';
       <div cdtCardFooter><span>Thancred</span></div>
     </cdt-card>
     <cdt-card id="plain" [flush]="true"><p>Body only</p></cdt-card>
+    <cdt-card id="stretched" [stretch]="true"><p>As tall as its row</p></cdt-card>
   `,
 })
 class HostComponent {}
@@ -25,5 +26,8 @@ describe('CardComponent', () => {
     expect(el('#with-footer .footer span')?.textContent).toBe('Thancred');
     expect(el('#plain .body').classList).toContain('flush');
     expect(el('#plain .footer').childElementCount).toBe(0);
+    // Stretching is the host's: only asked for, it fills the space it's in.
+    expect(el('#stretched').classList).toContain('stretch');
+    expect(el('#plain').classList).not.toContain('stretch');
   });
 });

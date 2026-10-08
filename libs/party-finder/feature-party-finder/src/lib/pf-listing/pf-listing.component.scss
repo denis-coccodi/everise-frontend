@@ -1,6 +1,13 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+// As tall as its row of the list, so tiles side by side end level.
 :host {
   display: block;
+  height: 100%;
+}
+
+cdt-card {
+  height: 100%;
 }
 
 .head {
@@ -79,11 +86,14 @@
   color: var(--color-contrast-soft);
 }
 
+// Where the party is, its slots and when it was seen keep to the tile's
+// bottom: in a row of tiles they line up whatever the descriptions' length.
 .facts {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 1.5rem;
-  margin: 0.6rem 0;
+  margin: auto 0 0.6rem;
+  padding-top: 0.6rem;
 }
 
 dt {
