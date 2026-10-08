@@ -1,6 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { DataCentre, PartyRole } from '@everise/core/api-types';
-import { HIGH_END, PartyFinderStore, SORT_ORDERS, SortOrder, categoryName } from '@everise/party-finder/data-access';
+import {
+  HIGH_END,
+  PartyFinderStore,
+  SORT_ORDERS,
+  SortOrder,
+  categoryName,
+  dataCentrePath,
+} from '@everise/party-finder/data-access';
 import { FieldComponent, InputComponent, PanelComponent, SwitchComponent } from '@everise/ui/components';
 
 // What the Party Finder page shows: the data centre (any, by region) and
@@ -17,6 +25,7 @@ import { FieldComponent, InputComponent, PanelComponent, SwitchComponent } from 
 })
 export class PfFiltersComponent {
   protected readonly store = inject(PartyFinderStore);
+  private readonly router = inject(Router);
   protected readonly sortOrders = SORT_ORDERS;
   protected readonly roles: { value: PartyRole; name: string }[] = [
     { value: 'tank', name: 'Tank' },
@@ -26,8 +35,11 @@ export class PfFiltersComponent {
   protected readonly categoryName = categoryName;
   protected readonly highEnd = HIGH_END;
 
+  // Each data centre has its own page (/party-finder/chaos), which the
+  // page follows.
   protected setDataCentre(value: string) {
-    this.store.setDataCentre(value as DataCentre);
+    this.store.rememberDataCentre(value as DataCentre);
+    this.router.navigate(dataCentrePath(value));
   }
 
   protected setSort(value: string) {

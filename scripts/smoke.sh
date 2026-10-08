@@ -110,6 +110,11 @@ case "$MODE" in
     signup=$(http -s -b "$J" -c "$J" -H 'Content-Type: application/json' "$API/users" \
       -d "{\"user\":{\"email\":\"$E\",\"username\":\"$U\",\"password\":\"Passw0rd!\"}}")
     case "$signup" in
+      *"not a bot"*)
+        # The backend has the bot check (TURNSTILE_SECRET_KEY): a script
+        # can't sign up, which is what this shows.
+        ok "[403] register $U: refused without the bot check's token"
+        ;;
       *'"confirmation"'*)
         ok "[201] register $U: a confirmation link was emailed"
         req 403 '"unconfirmedEmail"' "sign-in refused until the email is confirmed" \

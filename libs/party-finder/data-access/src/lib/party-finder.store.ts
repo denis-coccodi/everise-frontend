@@ -1,10 +1,12 @@
 import { computed, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { DataCentre, PartyFinderBoard } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { fromEvent, interval, pipe, switchMap, tap } from 'rxjs';
+import { dataCentreName } from './data-centre-path';
 import { PartyFinderFilters, categoriesIn, matchesFilters } from './listing-filters';
 import { SortOrder, sortListings } from './listing-sort';
 import { loadPreferences, savePreferences } from './party-finder-preferences';
@@ -40,6 +42,9 @@ interface PartyFinderState {
 
 function initialState(): PartyFinderState {
   const preferences = loadPreferences();
+  // The data centre in the address (/party-finder/chaos), else the one picked last.
+  const inAddress = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('dataCentre');
+  const dataCentre = inAddress ? dataCentreName(inAddress) : preferences.dataCentre;
   return {
     board: null,
     loadState: 'loading',
@@ -47,12 +52,12 @@ function initialState(): PartyFinderState {
     error: '',
     checkedAt: 0,
     now: Date.now(),
-    dataCentre: preferences.dataCentre,
+    dataCentre,
     regions: [],
     sort: preferences.sort,
     page: 1,
     filters: {
-      world: preferences.worlds[preferences.dataCentre] ?? null,
+      world: preferences.worlds[dataCentre] ?? null,
       category: '',
       role: '',
       search: '',
@@ -150,8 +155,13 @@ export const PartyFinderStore = signalStore(
           filters: { ...filters, world, category: '' },
           page: 1,
         }));
-        remember();
         load();
+      },
+      // The data centre the member picked, where /party-finder starts next
+      // time (one only opened from a link isn't).
+      rememberDataCentre(dataCentre: DataCentre) {
+        const saved = loadPreferences();
+        savePreferences({ ...saved, dataCentre });
       },
       setFilters(changes: Partial<PartyFinderFilters>) {
         patchState(store, ({ filters }) => ({ filters: { ...filters, ...changes }, page: 1 }));

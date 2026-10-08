@@ -27,6 +27,9 @@ jobs:
       - run: node scripts/check-sizes.mjs
       - run: node scripts/check-structure.mjs
       - run: npx nx run-many -t lint test
+      # The Worker in front of the site (worker/): type-check and its tests.
+      - run: npx tsc -p worker/tsconfig.json
+      - run: npx vitest run --config worker/vitest.config.mts
       - run: npx nx run everise:build --configuration=production
       - run: npx nx run everise:build --configuration=staging
 

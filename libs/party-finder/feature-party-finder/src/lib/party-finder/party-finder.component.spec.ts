@@ -1,6 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
 import { PartyFinderComponent } from './party-finder.component';
@@ -85,13 +87,26 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
 }
 
 describe('PartyFinderComponent', () => {
-  async function render() {
+  // The page as the app routes it: /party-finder, or a data centre's own.
+  async function render(url = '/party-finder') {
     localStorage.clear();
     TestBed.configureTestingModule({
-      imports: [PartyFinderComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '' }],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_URL, useValue: '' },
+        provideRouter(
+          [
+            { path: 'party-finder', component: PartyFinderComponent },
+            { path: 'party-finder/:dataCentre', component: PartyFinderComponent },
+          ],
+          withComponentInputBinding(),
+        ),
+      ],
     });
-    const fixture = TestBed.createComponent(PartyFinderComponent);
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    const fixture = harness.fixture;
     const http = TestBed.inject(HttpTestingController);
     await fixture.whenStable();
     const page = fixture.nativeElement as HTMLElement;
@@ -174,6 +189,8 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
 
     await change('pf-data-centre', 'Chaos');
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/party-finder/chaos');
     http.expectOne('/party-finder?dataCentre=Chaos').flush(
       board({
         dataCentre: 'Chaos',
@@ -185,6 +202,27 @@ describe('PartyFinderComponent', () => {
 
     expect(titles()).toEqual(['Sastasha']);
     expect(JSON.parse(localStorage.getItem('partyFinder') ?? '{}').dataCentre).toBe('Chaos');
+  });
+
+  it("opens the data centre in the address, without making it the member's choice", async () => {
+    const { fixture, http, page, select } = await render('/party-finder/chaos');
+    http.expectOne('/party-finder?dataCentre=Chaos').flush(board({ dataCentre: 'Chaos', worlds: [] }));
+    await fixture.whenStable();
+
+    expect(select('pf-data-centre').value).toBe('Chaos');
+    expect(page.querySelector('.data-centres [aria-current=page]')?.textContent?.trim()).toBe('Chaos');
+    expect(localStorage.getItem('partyFinder')).toBeNull();
+  });
+
+  it("links to every data centre's page, and invites guests to join", async () => {
+    const { fixture, http, page } = await render();
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    const nav = page.querySelector('nav.data-centres') as HTMLElement;
+    expect(nav.getAttribute('aria-labelledby')).toBe('pf-data-centres');
+    expect([...nav.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toContain('/party-finder/materia');
+    expect(page.querySelector('.join a')?.getAttribute('href')).toBe('/register');
   });
 
   it('offers every data centre by region, Europe first', async () => {

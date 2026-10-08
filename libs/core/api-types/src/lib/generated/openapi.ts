@@ -1963,6 +1963,51 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/sitemap': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The posts and Party Finder pages for the site's sitemap */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The pages. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['SitemapResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/tags': {
     parameters: {
       query?: never;
@@ -3144,6 +3189,26 @@ export interface components {
         /** Format: date-time */
         expiresAt: string;
       }[];
+    };
+    SitemapResponse: {
+      articles: {
+        id: string;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
+      dataCentres: (
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia'
+      )[];
     };
     ProvidersResponse: {
       providers: ('google' | 'facebook' | 'microsoft' | 'discord')[];

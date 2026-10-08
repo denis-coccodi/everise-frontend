@@ -5,13 +5,21 @@
 // Cloudflare Access login on staging. Everything else is a static file, with
 // index.html for unknown paths (single-page-application fallback).
 //
-// A post's page (/article/<id>) also passes through here, so a link to it
-// pasted in Discord (or anywhere that reads Open Graph tags) shows a card with
-// the post's title, description and picture: the app itself only fills those
-// in after it runs, which link previews never wait for.
+// The pages search engines and link previews read also pass through here:
+// their <head> gets the page's own title, description, canonical address,
+// card tags and structured data, and <cdt-root> the page's words as plain
+// HTML (worker/seo). The app only fills those in after it runs, which link
+// previews never wait for and not every crawler does. robots.txt and
+// sitemap.xml are written here too.
 //
-// Only /api/* and /article/* reach this script (assets.run_worker_first); the
-// ASSETS branch below is a fallback in case that routing changes.
+// Only the paths in assets.run_worker_first reach this script; the ASSETS
+// branch below is a fallback in case that routing changes.
+
+import { Article, articlePage } from './seo/article-page';
+import { SitemapData, robotsTxt, sitemapXml } from './seo/crawling';
+import { PageMeta, headTags } from './seo/page-meta';
+import { Board, dataCentreIn, partyFinderPage } from './seo/party-finder-page';
+import { staticPage } from './seo/static-pages';
 
 interface Fetcher {
   fetch(request: Request): Promise<Response>;
@@ -20,11 +28,15 @@ interface Fetcher {
 interface Env {
   API: Fetcher;
   ASSETS: Fetcher;
+  // The site's address, for canonical URLs: https://everise.dev.
+  SITE_URL: string;
+  // "allow" in production; anything else keeps search engines away.
+  SEARCH_ENGINES?: string;
 }
 
 // Cloudflare's streaming HTML editor, available in every Worker.
 interface HtmlElement {
-  setInnerContent(content: string): void;
+  setInnerContent(content: string, options?: { html: boolean }): void;
   append(content: string, options: { html: boolean }): void;
   remove(): void;
 }
@@ -34,94 +46,103 @@ interface HtmlRewriter {
 }
 declare const HTMLRewriter: { new (): HtmlRewriter };
 
-// A post as GET /api/articles/:id returns it (the parts the card uses).
-interface Article {
-  id: string;
-  title: string;
-  description: string;
-  body: string;
-  author: { username: string };
-  roulette?: { type: string; name: string; detail: string; image: number | null };
-  // Images, GIFs and YouTube videos (older backends: absent).
-  media?: { kind: 'image' | 'gif' | 'video'; url: string; videoId?: string }[];
-}
-
 const ARTICLE_PAGE = /^\/article\/([^/]+)\/?$/;
+// How long a page waits for the Party Finder before it's sent without it.
+const BOARD_WAIT_MS = 1500;
 
 export default {
-  fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
 
     if (pathname === '/api' || pathname.startsWith('/api/')) {
       return env.API.fetch(request);
     }
 
-    const article = ARTICLE_PAGE.exec(pathname);
-    if (article && request.method === 'GET') {
-      return articlePage(request, env, decodeURIComponent(article[1]));
+    const indexable = env.SEARCH_ENGINES === 'allow';
+    let response: Response;
+    if (pathname === '/robots.txt') {
+      response = textResponse(robotsTxt(env.SITE_URL, indexable), 'text/plain');
+    } else if (pathname === '/sitemap.xml') {
+      response = textResponse(
+        sitemapXml(env.SITE_URL, await apiJson<SitemapData>(request, env, '/sitemap')),
+        'application/xml',
+      );
+    } else if (request.method === 'GET') {
+      const meta = await pageMeta(request, env, pathname);
+      response = meta ? await withMeta(request, env, meta) : await env.ASSETS.fetch(request);
+    } else {
+      response = await env.ASSETS.fetch(request);
     }
 
-    return env.ASSETS.fetch(request);
+    if (indexable) return response;
+    // Staging and previews never end up in search results.
+    const kept = new Response(response.body, response);
+    kept.headers.set('X-Robots-Tag', 'noindex');
+    return kept;
   },
 };
 
-// The app's page, with the post's card tags in its <head>. If the post can't
-// be read, the page is served as it is.
-// `key` is the post's id, or the slug an old link used.
-async function articlePage(request: Request, env: Env, key: string): Promise<Response> {
+// What the page at `pathname` says about itself, or undefined to serve the
+// app as it is.
+async function pageMeta(request: Request, env: Env, pathname: string): Promise<PageMeta | undefined> {
+  const article = ARTICLE_PAGE.exec(pathname);
+  if (article) {
+    // The post's id, or the slug an old link used.
+    const key = encodeURIComponent(decodeURIComponent(article[1]));
+    const answer = await apiJson<{ article: Article }>(request, env, `/articles/${key}`);
+    return answer && articlePage(answer.article, env.SITE_URL);
+  }
+  const dataCentre = dataCentreIn(pathname);
+  if (dataCentre || pathname === '/party-finder' || pathname === '/party-finder/') {
+    // The regions come with any data centre's board; Light is Everise's.
+    const board = await apiJson<Board>(
+      request,
+      env,
+      `/party-finder?dataCentre=${dataCentre ?? 'Light'}`,
+      BOARD_WAIT_MS,
+    );
+    return partyFinderPage(dataCentre, board, env.SITE_URL, Date.now());
+  }
+  return staticPage(pathname.replace(/(.)\/$/, '$1'), env.SITE_URL);
+}
+
+// The app's page with the page's tags in its <head> and its words in
+// <cdt-root>, which the app replaces when it starts.
+async function withMeta(request: Request, env: Env, meta: PageMeta): Promise<Response> {
   const origin = new URL(request.url).origin;
   const page = await env.ASSETS.fetch(new Request(`${origin}/`, { headers: request.headers }));
   if (!page.ok) return page;
-
-  let article: Article | undefined;
-  try {
-    const answer = await env.API.fetch(
-      new Request(`${origin}/api/articles/${encodeURIComponent(key)}`, { headers: { Accept: 'application/json' } }),
-    );
-    if (answer.ok) article = ((await answer.json()) as { article: Article }).article;
-  } catch {
-    // Served without the card.
-  }
-  if (!article) return page;
-  const post = article;
-
-  return new HTMLRewriter()
-    .on('title', { element: (title) => title.setInnerContent(`${post.title} · Everise`) })
+  const rewriter = new HTMLRewriter()
+    .on('title', { element: (title) => title.setInnerContent(meta.title) })
     .on('meta[property^="og:"], meta[name^="twitter:"], meta[name="description"]', {
-      element: (meta) => meta.remove(),
+      element: (tag) => tag.remove(),
     })
-    .on('head', { element: (head) => head.append(cardOf(post, origin), { html: true }) })
-    .transform(page);
+    .on('head', { element: (head) => head.append(headTags(meta, env.SITE_URL), { html: true }) });
+  const body = meta.body;
+  if (body) rewriter.on('cdt-root', { element: (root) => root.setInnerContent(body, { html: true }) });
+  return rewriter.transform(page);
 }
 
-function cardOf(article: Article, origin: string): string {
-  // Always the id, even when an old link was followed.
-  const url = `${origin}/article/${encodeURIComponent(article.id)}`;
-  const roulette = article.roulette;
-  const description = roulette
-    ? `${roulette.type}: ${roulette.name}${roulette.detail ? ` · ${roulette.detail}` : ''}. ${article.description}`
-    : article.description;
-  // The roulette's duty banner, else the post's first image, else its first
-  // YouTube video's thumbnail, else the crest.
-  const media = article.media ?? [];
-  const firstImage = media.find((item) => item.kind !== 'video')?.url;
-  const video = media.find((item) => item.kind === 'video' && item.videoId);
-  const thumbnail = video ? `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` : undefined;
-  const picture = roulette?.image ? `${origin}/api/images/${roulette.image}` : firstImage ?? thumbnail ?? null;
-  const tags: [string, string, string][] = [
-    ['name', 'description', description],
-    ['property', 'og:site_name', 'Everise'],
-    ['property', 'og:type', 'article'],
-    ['property', 'og:url', url],
-    ['property', 'og:title', article.title],
-    ['property', 'og:description', description],
-    ['property', 'og:image', picture ?? `${origin}/assets/images/everise-crest.png`],
-    ['property', 'article:author', article.author.username],
-    ['name', 'twitter:card', picture ? 'summary_large_image' : 'summary'],
-  ];
-  return tags.map(([key, name, content]) => `<meta ${key}="${name}" content="${attribute(content)}" />`).join('');
+// An answer from the backend, or undefined when it fails or takes longer
+// than `waitMs`: the page is then sent without it.
+async function apiJson<T>(request: Request, env: Env, path: string, waitMs?: number): Promise<T | undefined> {
+  const origin = new URL(request.url).origin;
+  const read = (async () => {
+    try {
+      const answer = await env.API.fetch(
+        new Request(`${origin}/api${path}`, { headers: { Accept: 'application/json' } }),
+      );
+      return answer.ok ? ((await answer.json()) as T) : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+  if (!waitMs) return read;
+  return Promise.race([read, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), waitMs))]);
 }
 
-function attribute(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function textResponse(body: string, type: string): Response {
+  return new Response(body, {
+    headers: { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'public, max-age=3600' },
+  });
 }
