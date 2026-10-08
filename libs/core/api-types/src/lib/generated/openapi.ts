@@ -1605,7 +1605,18 @@ export interface paths {
     get: {
       parameters: {
         query?: {
-          dataCentre?: 'Light' | 'Chaos';
+          dataCentre?:
+            | 'Light'
+            | 'Chaos'
+            | 'Aether'
+            | 'Crystal'
+            | 'Dynamis'
+            | 'Primal'
+            | 'Elemental'
+            | 'Gaia'
+            | 'Mana'
+            | 'Meteor'
+            | 'Materia';
         };
         header?: never;
         path?: never;
@@ -3048,10 +3059,37 @@ export interface components {
     };
     PartyFinderResponse: {
       /** @enum {string} */
-      dataCentre: 'Light' | 'Chaos';
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
       worlds: {
         id: number;
         name: string;
+      }[];
+      regions: {
+        name: string;
+        dataCentres: (
+          | 'Light'
+          | 'Chaos'
+          | 'Aether'
+          | 'Crystal'
+          | 'Dynamis'
+          | 'Primal'
+          | 'Elemental'
+          | 'Gaia'
+          | 'Mana'
+          | 'Meteor'
+          | 'Materia'
+        )[];
       }[];
       /** Format: date-time */
       fetchedAt: string;
@@ -3075,6 +3113,8 @@ export interface components {
         };
         category: string;
         duty: string | null;
+        dutyIcon: number | null;
+        sortKey: number | null;
         highEnd: boolean;
         worldOnly: boolean;
         onePlayerPerJob: boolean;

@@ -6,7 +6,8 @@
   display: block;
 }
 
-// Phones: one field a row. Wider: two, then three, the search across.
+// Phones: one field a row. Wider: two, then four, the search beside the
+// order.
 .fields {
   display: grid;
   gap: 0 1rem;
@@ -27,6 +28,12 @@
 
 .search {
   grid-column: 1 / -1;
+}
+
+@include bp.up(lg) {
+  .search {
+    grid-column: 1 / 4;
+  }
 }
 
 .hint {
