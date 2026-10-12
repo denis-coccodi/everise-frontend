@@ -247,7 +247,7 @@ page({
   title: 'Duty Roulette',
   lines: [
     'Three reels: duty type, duty, party settings',
-    'Duty Finder Settings: duty types, level range',
+    'Duty Finder Settings: duty types, level range (in the URL)',
     'Per-type lists to pick duties one by one',
     'Commence spins; "Pause animations" stops the idle reels',
     '"Duty Found" window: the result, its wiki guide',

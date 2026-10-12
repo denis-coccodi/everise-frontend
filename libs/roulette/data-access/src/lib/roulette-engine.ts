@@ -292,24 +292,6 @@ export function candidateLevel(candidate: Candidate) {
   return candidate.kind === 'duty' ? candidate.duty.level : candidate.roulette.level;
 }
 
-// Settings saved by an older version of the page: keep the types and levels,
-// carry over the ticked duty roulettes, and default the rest.
-export function upgradeSettings(saved: unknown, defaults: RouletteSettings): RouletteSettings {
-  if (!saved || typeof saved !== 'object') return defaults;
-  const s = saved as Partial<RouletteSettings> & { roulettes?: number[] };
-  const picks = { ...defaults.picks, ...(s.picks ?? {}) };
-  if (!s.picks && Array.isArray(s.roulettes)) {
-    const keys = s.roulettes.map((id) => `roulette:${id}`);
-    picks[ROULETTES_TYPE] = defaults.picks[ROULETTES_TYPE].filter((k) => keys.includes(k));
-  }
-  return {
-    types: Array.isArray(s.types) ? s.types : defaults.types,
-    picks,
-    minLevel: typeof s.minLevel === 'number' ? s.minLevel : null,
-    maxLevel: typeof s.maxLevel === 'number' ? s.maxLevel : null,
-  };
-}
-
 // A uniformly random index into a list of `length` items.
 export function pickIndex(length: number, random: () => number = Math.random) {
   return Math.min(length - 1, Math.floor(random() * length));
