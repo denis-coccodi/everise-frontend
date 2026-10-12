@@ -94,7 +94,7 @@ Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`,
    - Fonts:
      - `--font-display` (Cinzel: titles, window headers, big buttons);
      - `--font-body` (Source Sans Pro);
-     - `--font-reading` (article text);
+     - `--font-reading` (Marcellus: post and comment text, long pages such as the privacy policy);
      - letter spacing: `--letter-spacing-display`, `--letter-spacing-label`.
    - Shapes: `--radius-sm/md/lg/xl/pill`, `--border-width`, `--border-width-strong`.
    - Depth: `--shadow-raised`, `--shadow-panel`, `--shadow-inset`, `--glow-primary(-strong)`, `--glow-crystal`, `--glow-heading`.
