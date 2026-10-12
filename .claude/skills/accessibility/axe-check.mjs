@@ -10,21 +10,21 @@ import { chromium } from 'playwright';
 const require = createRequire(import.meta.url);
 const axeSource = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const [base = 'http://localhost:4200', ...paths] = process.argv.slice(2);
-const pages = paths.length ? paths : ['/home', '/roulette', '/login', '/register'];
+const pages = paths.length ? paths : ['/', '/roulette', '/login', '/register'];
 const { EVERISE_EMAIL: email, EVERISE_PASSWORD: password } = process.env;
 
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 let violations = 0;
 for (const mode of ['dark', 'light']) {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
-  await page.goto(base + '/home');
+  await page.goto(base + '/');
   await page.evaluate((dark) => localStorage.setItem('darkMode', String(dark)), mode === 'dark');
   if (email && password) {
     await page.goto(base + '/login');
     await page.fill('#email', email);
     await page.fill('#password', password);
     await page.click('button[type=submit]');
-    await page.waitForURL('**/home');
+    await page.waitForURL((url) => url.pathname === '/');
     // A signed-in user's saved mode wins; set this browser's mode again.
     await page.evaluate((dark) => localStorage.setItem('darkMode', String(dark)), mode === 'dark');
   }

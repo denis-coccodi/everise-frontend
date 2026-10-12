@@ -58,7 +58,7 @@ All four, before pushing a change that touches the UI:
 2. **axe** on every page you touched, guest and signed in, dark and light. With the app running (`npm start` and a local backend):
    ```
    npm i --no-save axe-core
-   node .claude/skills/accessibility/axe-check.mjs http://localhost:4200 /home /roulette /login
+   node .claude/skills/accessibility/axe-check.mjs http://localhost:4200 / /roulette /login
    ```
    It signs in when `EVERISE_EMAIL` and `EVERISE_PASSWORD` are set, checks each page in both modes and prints the violations (exit code 1 if any). It must report none. axe can't measure text on gradients ("incomplete"); check those by eye against the token contrast, or sample the pixels.
 3. **Keyboard**: tab through the page; everything is reachable, in order, visibly focused, and works with Enter/Space; dialogs and menus behave as above.

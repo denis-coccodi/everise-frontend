@@ -28,16 +28,18 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       [
         {
+          // The home page is the site's own address (/), its canonical one;
+          // /home, its old address, leads there.
           path: '',
-          redirectTo: 'home',
           pathMatch: 'full',
-        },
-        {
-          path: 'home',
           title: 'Home',
           // Open to everyone: guests see the global feed, where roulette
           // results are posted; "Your Feed" needs an account.
           loadComponent: () => import('@everise/home/feature-home').then((m) => m.HomeComponent),
+        },
+        {
+          path: 'home',
+          redirectTo: '',
         },
         {
           path: 'login',
@@ -115,7 +117,7 @@ export const appConfig: ApplicationConfig = {
         },
         {
           path: '**',
-          redirectTo: 'home',
+          redirectTo: '',
         },
       ],
       withViewTransitions(),

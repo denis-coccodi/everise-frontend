@@ -63,6 +63,23 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
         publisher: { '@type': 'Organization', name: SITE_NAME },
       },
     ],
-    body: `<h1>${text(article.title)}</h1><p>By ${text(author)}</p><p>${text(description)}</p>`,
+    body: `<h1>${text(article.title)}</h1><p>By ${text(author)}</p><p>${text(description)}</p>${bodyText(
+      article.body,
+    )}`,
   };
+}
+
+// The most a page's words carry of a post's text.
+const MAX_BODY_TEXT = 5000;
+
+// The post's own text, a paragraph per block, as plain words (its Markdown
+// left as written): what the post says, for crawlers that don't run the app.
+function bodyText(body: string): string {
+  const words = body.length > MAX_BODY_TEXT ? `${body.slice(0, MAX_BODY_TEXT).trimEnd()}…` : body;
+  return words
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => `<p>${text(block)}</p>`)
+    .join('');
 }
