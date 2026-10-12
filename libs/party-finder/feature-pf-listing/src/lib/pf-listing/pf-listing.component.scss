@@ -1,12 +1,14 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
 
-// As tall as its row of the list, so tiles side by side end level.
+// With `fill`, as tall as its row of the list, so tiles side by side end
+// level. Otherwise as tall as its content: on a post, a taller box would
+// leave a gap between the description and where the party is.
 :host {
   display: block;
-  height: 100%;
 }
 
-cdt-card {
+:host(.fill),
+:host(.fill) cdt-card {
   height: 100%;
 }
 

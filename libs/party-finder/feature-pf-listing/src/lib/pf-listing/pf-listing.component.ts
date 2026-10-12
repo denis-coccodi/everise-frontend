@@ -14,9 +14,11 @@ const LOOT = { normal: '', 'greed-only': 'Greed Only', lootmaster: 'Lootmaster' 
 // brackets, the description, where the party is, the item level and how
 // many players it still needs, and its slots. Content marked
 // cdtPfListingActions (the Party Finder page's share buttons) goes in its
-// footer. Also shows shared listings in the feeds, as they were.
+// footer. Also shows shared listings in the feeds, as they were. `fill`
+// makes it as tall as its grid cell, for the Party Finder's tiles.
 @Component({
   selector: 'cdt-pf-listing',
+  host: { '[class.fill]': 'fill()' },
   templateUrl: './pf-listing.component.html',
   styleUrl: './pf-listing.component.scss',
   imports: [CardComponent, PfPartyComponent],
@@ -27,6 +29,7 @@ export class PfListingComponent {
   // The page's clock, for the time left.
   readonly now = input.required<number>();
   readonly icons = input.required<PartyFinderBoard['icons']>();
+  readonly fill = input(false);
 
   private readonly apiUrl = inject(API_URL);
   // The sprout didn't load: words instead, tried again on the next refresh.
