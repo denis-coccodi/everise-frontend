@@ -687,6 +687,53 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/articles/{id}/discord': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Share a post in the Everise Discord (its author or an admin) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Sent to the channel. */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ArticleDiscordShareResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/articles/{id}/favorite': {
     parameters: {
       query?: never;
@@ -3130,6 +3177,10 @@ export interface components {
     };
     ArticleResponse: {
       article: components['schemas']['Article'];
+    };
+    ArticleDiscordShareResponse: {
+      /** @constant */
+      shared: true;
     };
     ArticlesResponse: {
       articles: components['schemas']['Article'][];

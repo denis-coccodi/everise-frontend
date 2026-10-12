@@ -1,0 +1,18 @@
+@if (canShare()) {
+  <button
+    type="button"
+    cdtButton="outline-secondary"
+    size="sm"
+    [disabled]="store.status() === 'sending'"
+    (click)="share()"
+  >
+    <cdt-icon name="send" />{{ store.status() === 'sending' ? 'Sharing…' : 'Share to Discord' }}
+  </button>
+  <cdt-message class="status" [tone]="store.status() === 'error' ? 'error' : 'status'">
+    @if (store.status() === 'shared') {
+      Sent to the Everise Discord.
+    } @else if (store.status() === 'error') {
+      {{ store.error() }}
+    }
+  </cdt-message>
+}
