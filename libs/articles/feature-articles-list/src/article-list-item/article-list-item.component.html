@@ -4,7 +4,7 @@
       [image]="article().author.image"
       [name]="article().author.username"
       [date]="article().createdAt"
-      [link]="['/profile', article().author.id]"
+      [link]="authorLink(article().author)"
     />
     <button
       [cdtButton]="article().favorited ? 'primary' : 'outline-primary'"

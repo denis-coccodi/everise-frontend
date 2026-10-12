@@ -12,7 +12,6 @@ const tataru: CharacterSettings = {
   persona: 'You are Tataru.',
   defaultPersona: 'You are Tataru.',
   image: '/api/profile-images/1',
-  bio: 'Keeper of the books.',
   edited: { title: false, persona: false },
 };
 const barnaby: CharacterSettings = {
@@ -42,26 +41,24 @@ describe('AdminCharactersComponent', () => {
     return { fixture, http, page, tab, field };
   }
 
-  it('has a tab per character, the first one open with its picture, title, bio and personality', async () => {
+  it('has a tab per character, the first one open with its picture, title and personality', async () => {
     const { page, tab, field } = await render();
 
     expect([...page.querySelectorAll('[cdtTab]')].map((t) => t.textContent?.trim())).toEqual(['Tataru', 'Barnaby']);
     expect(tab('Tataru').getAttribute('aria-current')).toBe('true');
     expect((page.querySelector('cdt-avatar img') as HTMLImageElement).alt).toBe("Tataru's picture");
     expect(field('character-title')?.value).toBe('Receptionist');
-    expect(field('character-bio')?.value).toBe('Keeper of the books.');
     expect(field('character-persona')?.value).toBe('You are Tataru.');
     expect(field('character-persona')?.labels?.[0].textContent?.trim()).toBe('Personality');
   });
 
-  it('switches to another character, who has no bio, and can restore their original personality', async () => {
+  it('switches to another character, and can restore their original personality', async () => {
     const { fixture, http, page, tab, field } = await render();
 
     tab('Barnaby').click();
     await fixture.whenStable();
 
     expect(page.querySelector('h3')?.textContent).toBe('Barnaby Bollocksworth');
-    expect(field('character-bio')).toBeNull();
     expect(field('character-persona')?.value).toBe('You are Barnaby, and you swear.');
     const restore = [...page.querySelectorAll('button')].find(
       (b) => b.textContent?.includes('Restore the original'),
@@ -81,7 +78,7 @@ describe('AdminCharactersComponent', () => {
     expect(page.querySelector('.status')?.textContent?.trim()).toBe("Barnaby's original personality is back.");
   });
 
-  it("saves the open character's title, bio and personality", async () => {
+  it("saves the open character's title and personality", async () => {
     const { fixture, http, page, field } = await render();
     const persona = field('character-persona') as HTMLTextAreaElement;
 
@@ -94,7 +91,6 @@ describe('AdminCharactersComponent', () => {
       character: {
         title: 'Receptionist',
         persona: 'You are Tataru, and you charge for everything.',
-        bio: 'Keeper of the books.',
       },
     });
     request.flush({ character: { ...tataru, persona: 'You are Tataru, and you charge for everything.' } });

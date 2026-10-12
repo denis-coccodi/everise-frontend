@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { authorLink } from '@everise/articles/data-access';
 import { Article } from '@everise/core/api-types';
 import { ButtonComponent, BylineComponent, IconComponent } from '@everise/ui/components';
 @Component({
@@ -17,6 +18,8 @@ export class ArticleMetaComponent {
   unfavorite = output<string>();
   favorite = output<string>();
   delete = output<string>();
+
+  protected readonly authorLink = authorLink;
 
   toggleFavorite() {
     if (this.article().favorited) {

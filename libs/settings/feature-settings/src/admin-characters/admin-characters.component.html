@@ -1,7 +1,7 @@
 <cdt-panel heading="Waking Sands characters">
   <p class="intro">
     Who members can talk to in the Waking Sands. The personality tells the AI who a character is and how they talk;
-    Tataru's bio is also her profile's, on the roulette results she posts for guests.
+    Tataru's picture and title also show on the roulette results she posts for guests.
   </p>
 
   @if (store.characters(); as characters) {
@@ -53,12 +53,6 @@
           <input id="character-title" cdtInput formControlName="title" [attr.maxlength]="store.limits()?.title" />
         </cdt-field>
         <p class="hint field-hint">Under the name in the Waking Sands. Empty goes back to the original.</p>
-
-        @if (character.bio !== undefined) {
-          <cdt-field label="Bio" for="character-bio">
-            <textarea id="character-bio" cdtInput rows="3" formControlName="bio"></textarea>
-          </cdt-field>
-        }
 
         <cdt-field label="Personality" for="character-persona">
           <textarea

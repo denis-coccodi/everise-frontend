@@ -89,7 +89,7 @@ describe('SettingsComponent dark mode', () => {
     expect(settings.darkMode()).toBe(false);
   });
 
-  it("shows Tataru's and the members' windows to admins only", async () => {
+  it("shows the characters' and the members' windows to admins only", async () => {
     const member = await render();
     expect(member.page.querySelector('cdt-admin-characters')).toBeNull();
     expect(member.page.querySelector('cdt-admin-members')).toBeNull();

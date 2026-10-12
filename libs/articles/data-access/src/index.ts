@@ -6,3 +6,4 @@ export { ArticlesListStore } from './articles-list.store';
 export { NewComment } from './articles.service';
 export { TagsStore } from './tags.store';
 export { DiscordSharingService } from './discord-sharing.service';
+export { authorLink } from './author-link';

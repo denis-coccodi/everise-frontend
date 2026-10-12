@@ -54,7 +54,7 @@
 <text x="70" y="408" font-size="12.5" font-weight="400" fill="#334155">•  Popular tags sidebar: pick a tag to filter (tag tab)</text>
 <text x="70" y="427" font-size="12.5" font-weight="400" fill="#334155">•  Previews with favorite ♥ and a pager</text>
 <text x="70" y="446" font-size="12.5" font-weight="400" fill="#334155">•  Roulette results as duty cards, with the comment</text>
-<text x="87" y="465" font-size="12.5" font-weight="400" fill="#334155">or Tataru's remark for a guest's result</text>
+<text x="87" y="465" font-size="12.5" font-weight="400" fill="#334155">or Tataru's AI-written remark for a guest's result</text>
 <text x="70" y="484" font-size="12.5" font-weight="400" fill="#334155">•  Live: new posts pushed over a WebSocket appear at the top</text>
 <text x="70" y="503" font-size="12.5" font-weight="400" fill="#334155">•  Offline: cached feed, favorites synced when back online</text>
 <text x="70" y="524" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
@@ -70,7 +70,7 @@
 <text x="70" y="733" font-size="12.5" font-weight="400" fill="#334155">•  "Duty Found" window: the result, its wiki guide</text>
 <text x="87" y="752" font-size="12.5" font-weight="400" fill="#334155">Commence posts it to the feeds</text>
 <text x="87" y="771" font-size="12.5" font-weight="400" fill="#334155">signed in: with an optional comment</text>
-<text x="87" y="790" font-size="12.5" font-weight="400" fill="#334155">guest: Tataru posts it for them</text>
+<text x="87" y="790" font-size="12.5" font-weight="400" fill="#334155">guest: Tataru (the Waking Sands character) posts it</text>
 <text x="87" y="809" font-size="12.5" font-weight="400" fill="#334155">Withdraw spins again</text>
 <text x="70" y="828" font-size="12.5" font-weight="400" fill="#334155">•  Game data (duties, roulettes, jobs, images) comes</text>
 <text x="87" y="847" font-size="12.5" font-weight="400" fill="#334155">from the backend, which caches it from XIVAPI</text>
@@ -118,7 +118,7 @@
 <text x="1040" y="557" font-size="12.5" font-weight="400" fill="#334155">•  Profile picture: choose, crop to a square, upload</text>
 <text x="1040" y="576" font-size="12.5" font-weight="400" fill="#334155">•  Username, bio, email, new password</text>
 <text x="1040" y="595" font-size="12.5" font-weight="400" fill="#334155">•  Appearance: dark mode, saved with the account</text>
-<text x="1040" y="614" font-size="12.5" font-weight="400" fill="#334155">•  Admins: Tataru's picture and bio; members' roles</text>
+<text x="1040" y="614" font-size="12.5" font-weight="400" fill="#334155">•  Admins: the Waking Sands characters; members' roles</text>
 <text x="1057" y="633" font-size="12.5" font-weight="400" fill="#334155">(staging tester: may open the staging site)</text>
 <text x="1040" y="654" font-size="11" font-weight="700" fill="#64748b">GOES TO</text>
 <text x="1040" y="673" font-size="12.5" xml:space="preserve"><tspan fill="#64748b" font-weight="400">→ </tspan><tspan fill="#334155" font-weight="400">Update settings </tspan><tspan fill="#c2410c" font-weight="600" font-family="Consolas, SFMono-Regular, Menlo, monospace">/profile/:username</tspan></text>

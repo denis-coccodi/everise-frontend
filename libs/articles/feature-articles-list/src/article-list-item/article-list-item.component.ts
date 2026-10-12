@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, output, input, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { authorLink } from '@everise/articles/data-access';
 import { Article } from '@everise/core/api-types';
 import { API_URL, gameImageUrl } from '@everise/core/http-client';
 import {
@@ -32,6 +33,7 @@ export class ArticleListItemComponent {
   favorite = output<string>();
   unFavorite = output<string>();
 
+  protected readonly authorLink = authorLink;
   private readonly apiUrl = inject(API_URL);
   // A shared listing's time left, from when the feed showed it.
   protected readonly now = Date.now();
