@@ -76,4 +76,14 @@ describe('settingsFromQuery', () => {
     expect(read.minLevel).toBeNull();
     expect(read.maxLevel).toBe(100);
   });
+
+  it('gives a picked type a link turns on without naming its entries its usual ones', () => {
+    const usual = (type: string) => (type === ROULETTES_TYPE ? ['roulette:9'] : []);
+    const read = settingsFromQuery(query({ types: ROULETTES_TYPE }), defaults, usual);
+
+    expect(read.picks[ROULETTES_TYPE]).toEqual(['roulette:9']);
+    expect(
+      settingsFromQuery(query({ types: ROULETTES_TYPE, roulettes: '' }), defaults, usual).picks[ROULETTES_TYPE],
+    ).toEqual([]);
+  });
 });

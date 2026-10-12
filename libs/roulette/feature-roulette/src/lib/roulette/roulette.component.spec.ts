@@ -84,15 +84,15 @@ describe('RouletteComponent', () => {
     expect(router.url).toBe('/');
 
     store().setLevel('minLevel', '50');
-    store().toggleType('Dungeons', false);
+    store().toggleType('Dungeons', true);
     await fixture.whenStable();
 
     const url = new URL(router.url, 'https://everise.dev');
     expect(url.searchParams.get('min')).toBe('50');
-    expect(url.searchParams.get('types')?.split(',')).not.toContain('Dungeons');
+    expect(url.searchParams.get('types')).toBe('Dungeons');
 
     store().setLevel('minLevel', '');
-    store().toggleType('Dungeons', true);
+    store().toggleType('Dungeons', false);
     await fixture.whenStable();
     expect(router.url).toBe('/');
   });
@@ -143,13 +143,22 @@ describe('RouletteComponent', () => {
     http.expectNone('/api/duties');
   });
 
-  it('shows the duty types once the lists load, with Commence enabled', async () => {
+  it('starts with nothing ticked and Commence disabled, until a duty type is picked', async () => {
     await load();
 
     expect(text()).toContain('Dungeons');
     expect(text()).toContain('Duty Roulettes');
-    const commence = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button.commence');
-    expect(commence?.disabled).toBe(false);
+    expect(store().settings().types).toEqual([]);
+    expect(text()).toContain('Tick at least one duty type to spin.');
+    const commence = () => (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button.commence');
+    expect(commence()?.disabled).toBe(true);
+
+    store().toggleType('Duty Roulettes', true);
+    await fixture.whenStable();
+
+    // Its usual roulettes are ticked with it, so there's something to land on.
+    expect(store().isPicked('Duty Roulettes', 'roulette:1')).toBe(true);
+    expect(commence()?.disabled).toBe(false);
   });
 
   it("shows each duty type's icon from the backend", async () => {
@@ -162,6 +171,7 @@ describe('RouletteComponent', () => {
   });
 
   it("offers the same job and dealer's choice on the third reel", async () => {
+    await open('/?types=Dungeons,Duty%20Roulettes');
     await load();
 
     expect(reelTitles(2)).toEqual([

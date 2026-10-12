@@ -90,17 +90,6 @@ export interface TypeOption {
   candidates: Candidate[];
 }
 
-// The types the first reel starts with: the everyday PvE content.
-export const DEFAULT_TYPES = [
-  'Dungeons',
-  'Trials — Normal',
-  'Trials — Extreme',
-  'Raids — Normal',
-  'Raids — Savage',
-  'Alliance Raids',
-  ROULETTES_TYPE,
-];
-
 // What each party setting means, shown under it on the third reel.
 const RUN_MODE_DETAILS: Record<RunMode, string> = {
   'Min IL + Silence Echo': 'Minimum item level, the Echo turned off',
@@ -147,20 +136,38 @@ export function pickOptions(groups: DutyGroup[], roulettes: DutyRoulette[]): Rec
   };
 }
 
-// Custom matches need a pre-arranged party, so they start unticked.
-function tickedByDefault(option: PickOption) {
-  return !candidateName(option.candidate).includes('Custom Match');
+// The entries a picked type ticks when it's turned on with none ticked:
+// all of them but custom matches, which need a pre-arranged party.
+export function usualPicks(options: Record<string, PickOption[]>, type: string): string[] {
+  return (options[type] ?? [])
+    .filter((option) => !candidateName(option.candidate).includes('Custom Match'))
+    .map((o) => o.key);
 }
 
-export function defaultSettings(options: Record<string, PickOption[]>): RouletteSettings {
+// The page starts with nothing ticked: the visitor picks what to spin.
+export function defaultSettings(): RouletteSettings {
   return {
-    types: DEFAULT_TYPES,
-    picks: Object.fromEntries(
-      PICKED_TYPES.map((type) => [type, (options[type] ?? []).filter(tickedByDefault).map((o) => o.key)]),
-    ),
+    types: [],
+    picks: Object.fromEntries(PICKED_TYPES.map((type) => [type, []])),
     minLevel: null,
     maxLevel: null,
   };
+}
+
+// Turning on a picked type (Duty Roulettes, PvP, Gold Saucer) with none of
+// its entries ticked ticks its usual ones, so the reels have something to
+// land on. Only when it's turned on: "None" on its list stays none.
+export function withUsualPicks(
+  settings: RouletteSettings,
+  before: RouletteSettings,
+  options: Record<string, PickOption[]>,
+): RouletteSettings {
+  const picks = { ...settings.picks };
+  for (const type of PICKED_TYPES) {
+    const turnedOn = settings.types.includes(type) && !before.types.includes(type);
+    if (turnedOn && (picks[type] ?? []).length === 0) picks[type] = usualPicks(options, type);
+  }
+  return { ...settings, picks };
 }
 
 export function inLevelRange(level: number, settings: RouletteSettings) {
