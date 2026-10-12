@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Article } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
@@ -51,5 +51,42 @@ describe('ArticlesListStore.addLiveArticle', () => {
     viewing({}, { tag: 'roulette' });
     expect(store.addLiveArticle(post('y', ['news']))).toBe(false);
     expect(store.addLiveArticle(post('z', ['roulette']))).toBe(true);
+  });
+});
+
+describe('ArticlesListStore.followAuthor', () => {
+  const author = (id: string, following = false) => ({ id, username: id, following, bio: null, image: '' });
+  const by = (id: string, authorId: string) => ({ ...post(id), author: author(authorId) }) as unknown as Article;
+
+  it("follows a post's author, and every post of theirs on the page shows it; unfollowing undoes it", () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '/api' }],
+    });
+    const store = TestBed.inject(ArticlesListStore);
+    const http = TestBed.inject(HttpTestingController);
+    store.setListConfig({ ...articlesListInitialState.listConfig });
+    for (const article of [by('c', 'alisaie'), by('b', 'thancred'), by('a', 'alisaie')]) store.addLiveArticle(article);
+    const following = () => store.articles.entities().map((a) => [a.id, a.author.following]);
+
+    store.followAuthor('alisaie');
+    const follow = http.expectOne('/api/profiles/alisaie/follow');
+    expect(follow.request.method).toBe('POST');
+    follow.flush({ profile: author('alisaie', true) });
+    expect(following()).toEqual([
+      ['a', true],
+      ['b', false],
+      ['c', true],
+    ]);
+
+    store.unfollowAuthor('alisaie');
+    const unfollow = http.expectOne('/api/profiles/alisaie/follow');
+    expect(unfollow.request.method).toBe('DELETE');
+    unfollow.flush({ profile: author('alisaie', false) });
+    expect(following()).toEqual([
+      ['a', false],
+      ['b', false],
+      ['c', false],
+    ]);
+    http.verify();
   });
 });

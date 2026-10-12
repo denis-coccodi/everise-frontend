@@ -4,7 +4,10 @@
       data-testid="article-list"
       (unFavorite)="unFavorite($event)"
       (favorite)="favorite($event)"
+      (follow)="follow($event)"
+      (unfollow)="unfollow($event)"
       [article]="article"
+      [canFollow]="canFollow(article)"
       [class.live]="$liveIds().includes(article.id)"
     >
     </cdt-article-list-item>
