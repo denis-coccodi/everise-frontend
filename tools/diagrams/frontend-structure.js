@@ -265,7 +265,7 @@ const feats = [
     domain: 'home',
     name: 'feature-home',
     lines: [
-      { t: '/home', kind: 'route' },
+      { t: '/', kind: 'route' },
       { t: 'Global / your feed,' },
       { t: 'popular tags' },
       { t: 'uses: core/http-client', kind: 'uses' },

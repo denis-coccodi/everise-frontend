@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/home');
+  await page.goto('/');
   await page.getByTestId('global-feed').click();
 });
 
