@@ -10,31 +10,49 @@
   list-style: none;
 }
 
+// The name has the whole width beside the picture, so a long one stays on
+// one line; the title and the button share the line under it.
 .person {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'avatar name name'
+    'avatar title action';
   align-items: center;
-  gap: 0.75rem;
+  column-gap: 0.75rem;
+  row-gap: 0.2rem;
   padding: 0.6rem 0;
+}
+
+.avatar {
+  grid-area: avatar;
+}
+
+.action {
+  grid-area: action;
 }
 
 .person + .person {
   border-top: var(--border-width) solid var(--color-border-faint);
 }
 
+// Its name and title are placed in the row's grid.
 .who {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
+  display: contents;
 }
 
 .name {
+  grid-area: name;
   color: var(--color-link);
   font-weight: 600;
 }
 
 .name:hover {
   color: var(--color-link-hover);
+}
+
+.title {
+  grid-area: title;
 }
 
 .title,

@@ -10,6 +10,7 @@
     @for (character of store.characters(); track character.id) {
       <li class="person" [class.present]="store.isPresent(character.id)">
         <cdt-avatar
+          class="avatar"
           [src]="character.image"
           [size]="48"
           [frame]="store.isPresent(character.id) ? 'highlight' : 'line'"
@@ -22,11 +23,17 @@
         </span>
         @if (signedIn()) {
           @if (store.isPresent(character.id)) {
-            <button type="button" cdtButton="outline-secondary" size="sm" (click)="store.dismiss(character.id)">
+            <button
+              type="button"
+              class="action"
+              cdtButton="outline-secondary"
+              size="sm"
+              (click)="store.dismiss(character.id)"
+            >
               Send out<span class="visually-hidden"> {{ character.name }}</span>
             </button>
           } @else if (!store.full()) {
-            <button type="button" cdtButton size="sm" (click)="store.invite(character.id)">
+            <button type="button" class="action" cdtButton size="sm" (click)="store.invite(character.id)">
               Invite<span class="visually-hidden"> {{ character.name }}</span>
             </button>
           }
