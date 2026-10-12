@@ -11,6 +11,7 @@ import {
 } from '@everise/ui/components';
 import { MediaGridComponent } from '@everise/media';
 import { PfListingComponent } from '@everise/party-finder/feature-pf-listing';
+import { SharePostDiscordComponent } from '../share-post-discord/share-post-discord.component';
 @Component({
   selector: 'cdt-article-list-item',
   templateUrl: './article-list-item.component.html',
@@ -24,6 +25,7 @@ import { PfListingComponent } from '@everise/party-finder/feature-pf-listing';
     RouterModule,
     IconComponent,
     PfListingComponent,
+    SharePostDiscordComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
