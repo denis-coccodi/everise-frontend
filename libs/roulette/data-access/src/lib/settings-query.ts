@@ -34,20 +34,24 @@ export function settingsToQuery(settings: RouletteSettings, defaults: RouletteSe
 }
 
 // The settings a query string asks for; the defaults for what it leaves
-// out or gets wrong.
+// out or gets wrong. A picked type it turns on without naming its entries
+// (a hand-written link) gets its usual ones (`usual`).
 export function settingsFromQuery(
   query: { get(name: string): string | null },
   defaults: RouletteSettings,
+  usual: (type: string) => string[] = () => [],
 ): RouletteSettings {
   const list = (value: string) => value.split(',').filter(Boolean);
-  const types = query.get('types');
+  const typesParam = query.get('types');
+  const types = typesParam === null ? defaults.types : list(typesParam);
   const picks = { ...defaults.picks };
   for (const [type, param] of Object.entries(PICK_PARAMS)) {
     const value = query.get(param);
     if (value !== null) picks[type] = list(value).flatMap((key) => longKey(key) ?? []);
+    else if (typesParam !== null && types.includes(type)) picks[type] = usual(type);
   }
   return {
-    types: types === null ? defaults.types : list(types),
+    types,
     picks,
     minLevel: level(query.get('min')),
     maxLevel: level(query.get('max')),

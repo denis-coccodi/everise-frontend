@@ -11,6 +11,8 @@ import {
   candidateDetail,
   dealableJobs,
   defaultSettings,
+  usualPicks,
+  withUsualPicks,
   eligibleTypes,
   pickIndex,
   pickOptions,
@@ -105,7 +107,8 @@ const options = pickOptions(groups, roulettes);
 
 function settings(change: Partial<RouletteSettings> = {}): RouletteSettings {
   return {
-    ...defaultSettings(options),
+    ...defaultSettings(),
+    picks: Object.fromEntries([ROULETTES_TYPE, PVP_TYPE, GOLD_SAUCER_TYPE].map((t) => [t, usualPicks(options, t)])),
     types: ['Dungeons', 'Raids — Ultimate', 'Treasure Hunt', PVP_TYPE, GOLD_SAUCER_TYPE, ROULETTES_TYPE],
     ...change,
   };
@@ -135,11 +138,39 @@ describe('pickOptions', () => {
 });
 
 describe('defaultSettings', () => {
-  it('ticks every entry except custom matches', () => {
-    const picks = defaultSettings(options).picks;
-    expect(picks[ROULETTES_TYPE]).toEqual(['roulette:1', 'roulette:2']);
-    expect(picks[PVP_TYPE]).toEqual(['roulette:4', `duty:${hiddenGorge.id}`]);
-    expect(picks[GOLD_SAUCER_TYPE]).toEqual(['roulette:3', `duty:${lovm.id}`]);
+  it('ticks nothing', () => {
+    expect(defaultSettings()).toEqual({
+      types: [],
+      picks: { [ROULETTES_TYPE]: [], [PVP_TYPE]: [], [GOLD_SAUCER_TYPE]: [] },
+      minLevel: null,
+      maxLevel: null,
+    });
+  });
+});
+
+describe('usualPicks', () => {
+  it('is every entry except custom matches', () => {
+    expect(usualPicks(options, ROULETTES_TYPE)).toEqual(['roulette:1', 'roulette:2']);
+    expect(usualPicks(options, PVP_TYPE)).toEqual(['roulette:4', `duty:${hiddenGorge.id}`]);
+    expect(usualPicks(options, GOLD_SAUCER_TYPE)).toEqual(['roulette:3', `duty:${lovm.id}`]);
+  });
+});
+
+describe('withUsualPicks', () => {
+  const none = defaultSettings();
+
+  it('ticks the usual entries of a picked type turned on with none ticked', () => {
+    const on = withUsualPicks({ ...none, types: [ROULETTES_TYPE] }, none, options);
+    expect(on.picks[ROULETTES_TYPE]).toEqual(['roulette:1', 'roulette:2']);
+    expect(on.picks[PVP_TYPE]).toEqual([]);
+  });
+
+  it('keeps what is ticked, and "None" on a type that was already on', () => {
+    const some = { ...none, types: [ROULETTES_TYPE], picks: { ...none.picks, [ROULETTES_TYPE]: ['roulette:2'] } };
+    expect(withUsualPicks(some, none, options).picks[ROULETTES_TYPE]).toEqual(['roulette:2']);
+
+    const cleared = { ...some, picks: { ...some.picks, [ROULETTES_TYPE]: [] } };
+    expect(withUsualPicks(cleared, some, options).picks[ROULETTES_TYPE]).toEqual([]);
   });
 });
 

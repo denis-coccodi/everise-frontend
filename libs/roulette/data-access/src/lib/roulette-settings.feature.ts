@@ -4,7 +4,15 @@ import { patchState, signalStoreFeature, type, withMethods } from '@ngrx/signals
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tap } from 'rxjs';
 import { DutyGroup, DutyRoulette } from '@everise/core/api-types';
-import { RouletteSettings, RunMode, defaultSettings, pickOptions, typeCandidates } from './roulette-engine';
+import {
+  RouletteSettings,
+  RunMode,
+  defaultSettings,
+  pickOptions,
+  typeCandidates,
+  usualPicks,
+  withUsualPicks,
+} from './roulette-engine';
 import { settingsFromQuery, settingsToQuery } from './settings-query';
 
 export type RouletteLoadState = 'loading' | 'ready' | 'empty' | 'error';
@@ -26,9 +34,9 @@ export function withRouletteSettings<_>() {
     },
     withMethods((store, router = inject(Router), route = inject(ActivatedRoute)) => {
       const pickable = () => pickOptions(store.groups(), store.roulettes());
-      const defaults = () => defaultSettings(pickable());
+      const defaults = () => defaultSettings();
       const update = (change: (s: RouletteSettings) => RouletteSettings) => {
-        const settings = change(store.settings());
+        const settings = withUsualPicks(change(store.settings()), store.settings(), pickable());
         patchState(store, { settings, spunModes: null });
         void router.navigate([], {
           relativeTo: route,
@@ -58,12 +66,16 @@ export function withRouletteSettings<_>() {
         },
         // The settings the query string asks for, once the lists are in.
         readSettings: () =>
-          patchState(store, { settings: settingsFromQuery(route.snapshot.queryParamMap, defaults()) }),
+          patchState(store, {
+            settings: settingsFromQuery(route.snapshot.queryParamMap, defaults(), (type) =>
+              usualPicks(pickable(), type),
+            ),
+          }),
         // The query string changed: its settings, unless they're these.
         followQuery: rxMethod<ParamMap>(
           tap((query) => {
             if (store.loadState() !== 'ready') return;
-            const settings = settingsFromQuery(query, defaults());
+            const settings = settingsFromQuery(query, defaults(), (type) => usualPicks(pickable(), type));
             if (JSON.stringify(settings) !== JSON.stringify(store.settings())) {
               patchState(store, { settings, spunModes: null });
             }

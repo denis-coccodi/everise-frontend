@@ -57,7 +57,7 @@ const initialState: RouletteState = {
   jobs: [],
   rouletteIcon: null,
   dayEndsAt: null,
-  settings: defaultSettings({}),
+  settings: defaultSettings(),
   spunModes: null,
   posting: false,
   postError: null,
