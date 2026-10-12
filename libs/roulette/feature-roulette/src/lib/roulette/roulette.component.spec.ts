@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { API_URL } from '@everise/core/http-client';
 import { RouletteStore } from '@everise/roulette/data-access';
 import { RouletteComponent } from './roulette.component';
@@ -9,22 +10,26 @@ describe('RouletteComponent', () => {
   let fixture: ComponentFixture<RouletteComponent>;
   let http: HttpTestingController;
 
-  beforeEach(async () => {
-    try {
-      localStorage.clear();
-    } catch {
-      // No storage in this environment.
-    }
-
+  // The page, opened at `url` (its query string holds the settings).
+  async function open(url = '/') {
+    TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [RouletteComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '/api' }],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: API_URL, useValue: '/api' },
+      ],
     }).compileComponents();
+    await TestBed.inject(Router).navigateByUrl(url);
 
     fixture = TestBed.createComponent(RouletteComponent);
     http = TestBed.inject(HttpTestingController);
     await fixture.whenStable();
-  });
+  }
+
+  beforeEach(() => open());
 
   // The page's own store (it provides one).
   function store() {
@@ -72,6 +77,34 @@ describe('RouletteComponent', () => {
     }
     await fixture.whenStable();
   }
+
+  it('keeps the settings in the query string, and only what differs from the defaults', async () => {
+    await load();
+    const router = TestBed.inject(Router);
+    expect(router.url).toBe('/');
+
+    store().setLevel('minLevel', '50');
+    store().toggleType('Dungeons', false);
+    await fixture.whenStable();
+
+    const url = new URL(router.url, 'https://everise.dev');
+    expect(url.searchParams.get('min')).toBe('50');
+    expect(url.searchParams.get('types')?.split(',')).not.toContain('Dungeons');
+
+    store().setLevel('minLevel', '');
+    store().toggleType('Dungeons', true);
+    await fixture.whenStable();
+    expect(router.url).toBe('/');
+  });
+
+  it('opens with the settings a link asks for', async () => {
+    await open('/?types=Dungeons&max=40');
+    await load();
+
+    expect(store().settings().types).toEqual(['Dungeons']);
+    expect(store().settings().maxLevel).toBe(40);
+    expect(store().isTypeOn('Duty Roulettes')).toBe(false);
+  });
 
   it('reads the duties again once the game day ends, for the next Frontline map', async () => {
     const frontline = (name: string) => ({

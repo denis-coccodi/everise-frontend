@@ -19,7 +19,6 @@ import {
   runModeDetail,
   spreadSample,
   typeCandidates,
-  upgradeSettings,
   wikiUrl,
 } from './roulette-engine';
 
@@ -346,25 +345,6 @@ describe('dealableJobs', () => {
       'Paladin',
       'Viper',
     ]);
-  });
-});
-
-describe('upgradeSettings', () => {
-  it('keeps types, levels and ticked duty roulettes from the old format', () => {
-    const upgraded = upgradeSettings(
-      { types: ['Dungeons'], roulettes: [2, 3], minLevel: 50, maxLevel: null },
-      defaultSettings(options),
-    );
-    expect(upgraded.types).toEqual(['Dungeons']);
-    expect(upgraded.minLevel).toBe(50);
-    // Roulette 3 is a Chocobo race: no longer a duty roulette.
-    expect(upgraded.picks[ROULETTES_TYPE]).toEqual(['roulette:2']);
-    expect(upgraded.picks[PVP_TYPE]).toEqual(defaultSettings(options).picks[PVP_TYPE]);
-  });
-
-  it('falls back to the defaults for missing or broken settings', () => {
-    expect(upgradeSettings(null, defaultSettings(options))).toEqual(defaultSettings(options));
-    expect(upgradeSettings('x', defaultSettings(options))).toEqual(defaultSettings(options));
   });
 });
 

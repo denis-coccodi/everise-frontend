@@ -1,4 +1,5 @@
 import { computed, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
@@ -20,16 +21,15 @@ import {
   possibleModes,
   todaysFrontline,
   typeCandidates,
-  upgradeSettings,
 } from './roulette-engine';
-import { loadSettings, saveSettings } from './settings-storage';
+import { RouletteLoadState, withRouletteSettings } from './roulette-settings.feature';
 
 // setTimeout's longest wait (about 24.8 days).
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 // A moment after the daily reset, so the backend is on the new day.
 const AFTER_RESET_MS = 2000;
 
-export type RouletteLoadState = 'loading' | 'ready' | 'empty' | 'error';
+export type { RouletteLoadState };
 
 interface RouletteState {
   loadState: RouletteLoadState;
@@ -39,7 +39,7 @@ interface RouletteState {
   rouletteIcon: number | null;
   // The next daily reset, when the Frontline map changes (null if unknown).
   dayEndsAt: Date | null;
-  // The Duty Finder settings, saved in the browser.
+  // The Duty Finder settings, kept in the page's query string.
   settings: RouletteSettings;
   // The third reel's choices after a spin: the winning duty's party settings,
   // until the settings change.
@@ -128,29 +128,10 @@ export const RouletteStore = signalStore(
       ready: computed(() => store.loadState() === 'ready' && !levelError() && options().length > 0),
     };
   }),
+  withRouletteSettings(),
   withMethods((store, duties = inject(DutiesService)) => {
-    const updateSettings = (change: (s: RouletteSettings) => RouletteSettings) => {
-      const settings = change(store.settings());
-      patchState(store, { settings, spunModes: null });
-      saveSettings(settings);
-    };
     return {
       imageUrl: (id: number | null | undefined) => duties.imageUrl(id),
-      isTypeOn: (name: string) => store.settings().types.includes(name),
-      isPicked: (type: string, key: string) => store.settings().picks[type]?.includes(key) ?? false,
-      toggleType: (name: string, on: boolean) => updateSettings((s) => ({ ...s, types: toggled(s.types, name, on) })),
-      togglePick: (type: string, key: string, on: boolean) =>
-        updateSettings((s) => ({ ...s, picks: { ...s.picks, [type]: toggled(s.picks[type] ?? [], key, on) } })),
-      setAllTypes: (on: boolean) =>
-        updateSettings((s) => ({ ...s, types: on ? store.types().map((t) => t.name) : [] })),
-      setAllPicks: (type: string, on: boolean) => {
-        const keys = on ? (store.pickable()[type] ?? []).map((o) => o.key) : [];
-        updateSettings((s) => ({ ...s, picks: { ...s.picks, [type]: keys } }));
-      },
-      setLevel: (which: 'minLevel' | 'maxLevel', value: string) => {
-        const level = value.trim() === '' ? null : Math.max(1, Math.min(100, Math.floor(Number(value))));
-        updateSettings((s) => ({ ...s, [which]: Number.isNaN(level) ? null : level }));
-      },
       // The third reel offers only what the spun duty allows.
       setSpunModes: (modes: RunMode[]) => patchState(store, { spunModes: modes }),
       // A new spin: the last one's post is forgotten.
@@ -162,10 +143,8 @@ export const RouletteStore = signalStore(
               tapResponse({
                 next: ({ groups, roulettes, rouletteIcon, jobs, dayEndsAt }) => {
                   patchState(store, { groups, roulettes, rouletteIcon, jobs, dayEndsAt });
-                  patchState(store, {
-                    settings: upgradeSettings(loadSettings(), defaultSettings(store.pickable())),
-                    loadState: groups.length > 0 ? 'ready' : 'empty',
-                  });
+                  store.readSettings();
+                  patchState(store, { loadState: groups.length > 0 ? 'ready' : 'empty' });
                 },
                 error: () => patchState(store, { loadState: 'error' }),
               }),
@@ -203,7 +182,7 @@ export const RouletteStore = signalStore(
       ),
     };
   }),
-  withHooks((store) => {
+  withHooks((store, route = inject(ActivatedRoute)) => {
     let dayEndTimer: ReturnType<typeof setTimeout> | undefined;
     // A page left open past the daily reset reads the new Frontline map.
     // Timers wait longer in a hidden tab or a sleeping computer, so coming
@@ -215,6 +194,7 @@ export const RouletteStore = signalStore(
     return {
       onInit() {
         store.load();
+        store.followQuery(route.queryParamMap);
         document.addEventListener('visibilitychange', onVisible);
         // Each time the day's end is known, wait for it.
         rxMethod<Date | null>(
@@ -233,8 +213,3 @@ export const RouletteStore = signalStore(
     };
   }),
 );
-
-function toggled<T>(list: T[], item: T, on: boolean) {
-  const without = list.filter((x) => x !== item);
-  return on ? [...without, item] : without;
-}
