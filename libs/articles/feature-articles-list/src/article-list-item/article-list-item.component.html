@@ -15,9 +15,6 @@
           size="sm"
           (click)="toggleFollow(article())"
         >
-          @if (!article().author.following) {
-            <cdt-icon name="plus" />
-          }
           {{ article().author.following ? 'Unfollow' : 'Follow'
           }}<span class="visually-hidden"> {{ article().author.username }}</span>
         </button>
