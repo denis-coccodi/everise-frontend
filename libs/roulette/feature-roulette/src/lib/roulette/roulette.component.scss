@@ -110,9 +110,16 @@ h1 {
   color: var(--color-contrast-muted);
 }
 
+// A compact switch, centred under Commence.
 .motion {
-  margin: 0.25rem 0 0;
-  text-align: center;
+  display: block;
+  max-width: 21rem;
+  margin: 0.25rem auto 0;
+}
+
+.motion-hint {
+  font-size: 0.85em;
+  color: var(--color-contrast-muted);
 }
 
 .hero-crystal.paused {

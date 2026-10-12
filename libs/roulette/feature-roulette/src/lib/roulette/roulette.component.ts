@@ -22,19 +22,13 @@ import {
   runModes,
   spreadSample,
 } from '@everise/roulette/data-access';
-import { ButtonComponent, MessageComponent, PanelComponent } from '@everise/ui/components';
+import { ButtonComponent, MessageComponent, PanelComponent, SwitchComponent } from '@everise/ui/components';
 import { Commence, DutyFoundComponent, RouletteResult } from '../duty-found/duty-found.component';
-import { wait } from '../motion';
+import { PAUSE_BEFORE_DEAL_MS, PAUSE_BETWEEN_REELS_MS, REEL_PREVIEW_MAX, wait } from '../motion';
 import { ReelComponent, ReelItem } from '../reel/reel.component';
 import { Day, bannerOf, dutyItem, jobItem, modeItem, toResult, toSpunCandidate, typeItem } from './reel-items';
 import { RoulettePicksComponent } from '../roulette-picks/roulette-picks.component';
 import { RouletteSettingsComponent } from '../roulette-settings/roulette-settings.component';
-
-const PAUSE_BETWEEN_REELS_MS = 600;
-// The pause between landing on dealer's choice and dealing the job.
-const PAUSE_BEFORE_DEAL_MS = 500;
-// Most outcomes the idle duty reel previews.
-const REEL_PREVIEW_MAX = 60;
 
 // The Duty Roulette page: three reels pick the duty type, the duty and the
 // party settings, then the "Duty Found" window offers to post the result.
@@ -53,6 +47,7 @@ const REEL_PREVIEW_MAX = 60;
     RoulettePicksComponent,
     RouterLink,
     MessageComponent,
+    SwitchComponent,
   ],
   providers: [RouletteStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,7 +67,7 @@ export class RouletteComponent {
 
   readonly spinning = signal(false);
   readonly status = signal('');
-  // The "Pause animations" button: stops the idle reels and the crystal.
+  // The "Idle animations" switch, off: stops the idle reels and the crystal.
   readonly motionPaused = signal(false);
   readonly result = signal<RouletteResult | null>(null);
   readonly showResult = signal(false);

@@ -37,7 +37,7 @@ Every frontend change keeps the site **WCAG 2.2 level AA** compliant, in **both 
 
 - Text is at least 4.5:1 against its background (3:1 at 24 px, or 18.66 px bold); control outlines, focus rings and meaningful icons at least 3:1. Use role tokens (already checked in both modes); a new token or palette value must be measured in both modes before use.
 - Colour is never the only way something is shown (add text, an icon or a shape).
-- Animations respect `prefers-reduced-motion`. Anything that moves, blinks or scrolls on its own for more than 5 seconds has a pause control (the roulette's "Pause animations").
+- Animations respect `prefers-reduced-motion`. Anything that moves, blinks or scrolls on its own for more than 5 seconds has a pause control (the roulette's "Idle animations" switch).
 - Pages reflow at 320 CSS px wide (400% zoom) without horizontal scrolling; dialogs scroll inside on short screens. Text can be resized and spaced without clipping: no fixed heights on text containers.
 - Pointer targets are at least 24 × 24 px, or spaced so a 24 px circle around them touches no other target.
 

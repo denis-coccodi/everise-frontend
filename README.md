@@ -164,7 +164,7 @@ The site aims at **WCAG 2.2 level AA**, in both colour modes.
 - **Forms:** visible labels on every field, required fields marked, `autocomplete` on sign-in and sign-up fields, `aria-invalid` on invalid fields, and error messages that screen readers announce.
 - **Screen readers:** icons are hidden from them, icon-only buttons have names ("Favorite, 7 favorites", with `aria-pressed`), the current tab and page are `aria-current`, and status messages (loading, the roulette's result, form errors) are live regions.
 - **Colour and contrast:** text is at least 4.5:1 and field outlines and the focus ring at least 3:1 against their background, checked for every role token in both modes.
-- **Motion:** animations respect `prefers-reduced-motion`, and the roulette's idle reels have a **Pause animations** button.
+- **Motion:** animations respect `prefers-reduced-motion`, and the roulette has an **Idle animations** switch, which stops the reels scrolling and the crystal floating between spins.
 - **Zoom and small screens:** pages reflow down to 320 px wide without sideways scrolling, and dialogs scroll inside when the screen is short.
 
 **Checking a change.** Run [axe](https://github.com/dequelabs/axe-core) (the browser extension, or `@axe-core/playwright`) on the pages you touched, signed in and out, in both modes; tab through them with the keyboard; and look at them at 320 px wide. The `theme` skill's rules keep colours on role tokens, whose contrast is already checked.

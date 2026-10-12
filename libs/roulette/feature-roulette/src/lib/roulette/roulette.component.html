@@ -53,17 +53,17 @@
             {{ spinning() ? 'Spinning…' : result() ? 'Spin again' : 'Commence' }}
           </button>
           <cdt-message class="status">{{ status() }}</cdt-message>
-          <!-- The idle reels scroll on and on; this stops them (WCAG 2.2.2). -->
-          <p class="motion">
-            <button
-              type="button"
-              cdtButton="chip"
-              [attr.aria-pressed]="motionPaused()"
-              (click)="motionPaused.set(!motionPaused())"
-            >
-              Pause animations
-            </button>
-          </p>
+          <!-- The idle reels scroll and the crystal floats on and on; this stops
+               them (WCAG 2.2.2). A spin, which the visitor starts, still moves. -->
+          <cdt-switch
+            class="motion"
+            onIcon="play"
+            offIcon="pause"
+            [checked]="!motionPaused()"
+            (checkedChange)="motionPaused.set(!$event)"
+          >
+            Idle animations <span class="motion-hint">(between spins)</span>
+          </cdt-switch>
 
           @if (result(); as last) {
             @if (!showResult()) {
