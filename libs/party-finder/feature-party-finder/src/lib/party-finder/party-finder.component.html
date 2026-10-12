@@ -70,7 +70,7 @@
         <ul class="listings">
           @for (listing of store.pageListings(); track listing.id) {
             <li>
-              <cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons">
+              <cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons" [fill]="true">
                 @if (signedIn()) {
                   <div cdtPfListingActions class="share">
                     <button
