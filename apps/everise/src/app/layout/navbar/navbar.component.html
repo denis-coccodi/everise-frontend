@@ -22,7 +22,13 @@
     <div id="site-menu" class="menu" [class.open]="open()">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" routerLink="/home" routerLinkActive="active" ariaCurrentWhenActive="page">
+          <a
+            class="nav-link"
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            ariaCurrentWhenActive="page"
+          >
             <cdt-icon name="home" />Home
           </a>
         </li>

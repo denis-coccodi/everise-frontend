@@ -24,7 +24,7 @@ type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | 
                 }
                 @case ('confirmed') {
                   <p>Your email address is confirmed. Welcome to Everise, {{ username() }}!</p>
-                  <a cdtButton routerLink="/home">Go to the home page</a>
+                  <a cdtButton routerLink="/">Go to the home page</a>
                 }
                 @case ('failed') {
                   <p>{{ message() }}</p>

@@ -60,7 +60,11 @@ export default {
 
     const indexable = env.SEARCH_ENGINES === 'allow';
     let response: Response;
-    if (pathname === '/robots.txt') {
+    if (pathname === '/home' || pathname === '/home/') {
+      // The home page's old address: for good at /, its canonical one.
+      const url = new URL(request.url);
+      response = Response.redirect(`${url.origin}/${url.search}`, 301);
+    } else if (pathname === '/robots.txt') {
       response = textResponse(robotsTxt(env.SITE_URL, indexable), 'text/plain');
     } else if (pathname === '/sitemap.xml') {
       response = textResponse(

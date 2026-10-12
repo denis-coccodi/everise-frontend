@@ -211,4 +211,19 @@ describe('static and post pages', () => {
       }),
     );
   });
+
+  it("a post's page carries its own text for crawlers, a paragraph per block, escaped", () => {
+    const page = articlePage(
+      {
+        id: 'post-4',
+        title: 'Duty Found: Sastasha',
+        description: 'Dungeons · Regular',
+        body: "Sastasha, is it? That'll be 500 gil.\n\nPay <b>up</b>!",
+        author: { username: 'Tataru Taru' },
+      },
+      SITE,
+    );
+
+    expect(page.body).toContain("<p>Sastasha, is it? That'll be 500 gil.</p><p>Pay &lt;b&gt;up&lt;/b&gt;!</p>");
+  });
 });

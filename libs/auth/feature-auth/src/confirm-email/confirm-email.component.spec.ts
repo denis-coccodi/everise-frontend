@@ -32,7 +32,7 @@ describe('ConfirmEmailComponent', () => {
     await fixture.whenStable();
 
     expect(page.querySelector('[role=status]')?.textContent).toContain('Welcome to Everise, Alisaie!');
-    expect(page.querySelector('a[href="/home"]')).not.toBeNull();
+    expect(page.querySelector('a[href="/"]')).not.toBeNull();
     const store = TestBed.inject(AuthStore);
     expect(store.loggedIn()).toBe(true);
     expect(store.user().username).toBe('Alisaie');

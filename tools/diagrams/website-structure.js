@@ -92,13 +92,13 @@ function navbar(x, y, w, label, links) {
   }
 }
 navbar(X0 + 30, 98, 640, 'NAVBAR · SIGNED OUT', [
-  { t: 'Home', path: '/home', c: 'home', active: true },
+  { t: 'Home', path: '/', c: 'home', active: true },
   { t: 'Roulette', path: '/roulette', c: 'roulette' },
   { t: 'Sign in', path: '/login', c: 'auth' },
   { t: 'Sign up', path: '/register', c: 'auth' },
 ]);
 navbar(X0 + 720, 98, 760, 'NAVBAR · SIGNED IN', [
-  { t: 'Home', path: '/home', c: 'home', active: true },
+  { t: 'Home', path: '/', c: 'home', active: true },
   { t: 'Roulette', path: '/roulette', c: 'roulette' },
   { t: 'New Post', path: '/editor', c: 'articles' },
   { t: '◉ username ▾', path: 'menu: profile · settings · sign out', c: 'profile' },
@@ -122,14 +122,14 @@ const RX = 630,
 add(
   `<rect x="${RX}" y="${RY}" width="${RW}" height="${RH}" rx="10" fill="${T.app}" stroke="${C.app}" stroke-width="2"/>`,
 );
-text(RX + RW / 2, RY + 25, '/  → redirects to /home', {
+text(RX + RW / 2, RY + 25, '/home  → redirects to /', {
   size: 14,
   weight: 700,
   anchor: 'middle',
   mono: true,
   fill: C.app,
 });
-text(RX + RW / 2, RY + 46, 'unknown paths (**) → /home', { size: 12, anchor: 'middle', mono: true, fill: C.muted });
+text(RX + RW / 2, RY + 46, 'unknown paths (**) → /', { size: 12, anchor: 'middle', mono: true, fill: C.muted });
 
 // --- Groups
 const GY = 300,
@@ -218,7 +218,7 @@ page({
   w: PW,
   h: 256,
   c: 'home',
-  path: '/home',
+  path: '/',
   title: 'Home',
   lines: [
     'Tabs: Global Feed · Your Feed (signed in: followed authors)',
@@ -285,7 +285,7 @@ page({
       to: [
         ['author', '/profile/:username', 'profile'],
         ['your article: Edit', '/editor/:slug', 'articles'],
-        ['your article: Delete', '/home', 'home'],
+        ['your article: Delete', '/', 'home'],
         ['signed out: Sign in / up', '/login  /register', 'auth'],
       ],
     },
@@ -304,7 +304,7 @@ page({
     'Wrong details: the message, email kept',
     {
       to: [
-        ['signed in:', '/home', 'home'],
+        ['signed in:', '/', 'home'],
         ['"Need an account?"', '/register', 'auth'],
       ],
     },
@@ -323,7 +323,7 @@ page({
     'A problem: the message, name and email kept',
     {
       to: [
-        ['registered and signed in:', '/home', 'home'],
+        ['registered and signed in:', '/', 'home'],
         ['"Have an account?"', '/login', 'auth'],
       ],
     },
@@ -435,7 +435,7 @@ const rules = [
     ['Routing: ', null],
     ['/', 'app'],
     [' and unknown paths go to ', null],
-    ['/home', 'home'],
+    ['/', 'home'],
     ['; signed-out visitors of a guarded page go to ', null],
     ['/login', 'auth'],
     ['.', null],
