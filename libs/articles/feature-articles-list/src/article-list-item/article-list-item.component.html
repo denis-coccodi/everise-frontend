@@ -1,11 +1,28 @@
 <div class="article-preview">
   <div class="article-meta">
-    <cdt-byline
-      [image]="article().author.image"
-      [name]="article().author.username"
-      [date]="article().createdAt"
-      [link]="['/profile', article().author.id]"
-    />
+    <div class="author">
+      <cdt-byline
+        [image]="article().author.image"
+        [name]="article().author.username"
+        [date]="article().createdAt"
+        [link]="['/profile', article().author.id]"
+      />
+      @if (canFollow()) {
+        <button
+          type="button"
+          class="follow"
+          [cdtButton]="article().author.following ? 'secondary' : 'outline-secondary'"
+          size="sm"
+          (click)="toggleFollow(article())"
+        >
+          @if (!article().author.following) {
+            <cdt-icon name="plus" />
+          }
+          {{ article().author.following ? 'Unfollow' : 'Follow'
+          }}<span class="visually-hidden"> {{ article().author.username }}</span>
+        </button>
+      }
+    </div>
     <button
       [cdtButton]="article().favorited ? 'primary' : 'outline-primary'"
       size="sm"
