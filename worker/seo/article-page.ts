@@ -9,8 +9,8 @@ export interface Article {
   createdAt?: string;
   updatedAt?: string;
   // `character` on a Waking Sands character (Tataru, who posts guests'
-  // roulette results), who has no profile page.
-  author: { username: string; character?: string };
+  // roulette results), whose profile is found by id (`character:<id>`).
+  author: { id?: string; username: string; character?: string };
   roulette?: { type: string; name: string; detail: string; image: number | null };
   // A shared Party Finder listing, with the picture of its card.
   partyFinder?: { picture?: string };
@@ -38,9 +38,9 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
   // Always the id, even when an old link was followed.
   const path = `/article/${encodeURIComponent(article.id)}`;
   const author = article.author.username;
-  const authorUrl = article.author.character
-    ? `${siteUrl}/waking-sands`
-    : `${siteUrl}/profile/${encodeURIComponent(author)}`;
+  const authorUrl = `${siteUrl}/profile/${encodeURIComponent(
+    article.author.character && article.author.id ? article.author.id : author,
+  )}`;
   return {
     title: `${article.title} · ${SITE_NAME}`,
     description,

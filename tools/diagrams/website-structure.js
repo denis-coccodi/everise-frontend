@@ -375,7 +375,11 @@ page({
   c: 'profile',
   path: '/profile/:username',
   title: 'Profile',
-  lines: ['Avatar, bio; Follow (others) or Edit settings (you)', { gap: 6 }],
+  lines: [
+    'Avatar, bio; Follow (others) or Edit settings (you)',
+    'Also /profile/character:<id> (no Follow/Favorites)',
+    { gap: 6 },
+  ],
   children: (p, y) => {
     // two child routes as tabs
     const tw = (p.w - 42) / 2,

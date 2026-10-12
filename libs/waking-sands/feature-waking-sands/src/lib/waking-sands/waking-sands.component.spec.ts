@@ -119,6 +119,16 @@ describe('WakingSandsComponent', () => {
     expect(text(button('Invite'))).toBe('Invite Barnaby Bollocksworth');
   });
 
+  it("links each character's name to their profile", async () => {
+    await render();
+
+    const names = [...page.querySelectorAll<HTMLAnchorElement>('.cast a.name')];
+    expect(names.map((a) => [text(a), a.getAttribute('href')])).toEqual([
+      ['Tataru', '/profile/character:tataru'],
+      ['Barnaby Bollocksworth', '/profile/character:barnaby'],
+    ]);
+  });
+
   it('brings a character in for everyone', async () => {
     await render();
 

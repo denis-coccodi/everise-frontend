@@ -11,8 +11,9 @@ const tataru: CharacterSettings = {
   title: 'Receptionist',
   persona: 'You are Tataru.',
   defaultPersona: 'You are Tataru.',
+  bio: 'Keeper of the books.',
   image: '/api/profile-images/1',
-  edited: { title: false, persona: false },
+  edited: { title: false, persona: false, bio: false },
 };
 const barnaby: CharacterSettings = {
   id: 'barnaby',
@@ -20,8 +21,9 @@ const barnaby: CharacterSettings = {
   title: 'Primal hunter',
   persona: 'You are Barnaby, and you swear.',
   defaultPersona: 'You are Barnaby.',
+  bio: 'Slayer of primals.',
   image: '/api/waking-sands/characters/barnaby/picture',
-  edited: { title: false, persona: true },
+  edited: { title: false, persona: true, bio: false },
 };
 
 describe('AdminCharactersComponent', () => {
@@ -41,13 +43,14 @@ describe('AdminCharactersComponent', () => {
     return { fixture, http, page, tab, field };
   }
 
-  it('has a tab per character, the first one open with its picture, title and personality', async () => {
+  it('has a tab per character, the first one open with its picture, title, bio and personality', async () => {
     const { page, tab, field } = await render();
 
     expect([...page.querySelectorAll('[cdtTab]')].map((t) => t.textContent?.trim())).toEqual(['Tataru', 'Barnaby']);
     expect(tab('Tataru').getAttribute('aria-current')).toBe('true');
     expect((page.querySelector('cdt-avatar img') as HTMLImageElement).alt).toBe("Tataru's picture");
     expect(field('character-title')?.value).toBe('Receptionist');
+    expect(field('character-bio')?.value).toBe('Keeper of the books.');
     expect(field('character-persona')?.value).toBe('You are Tataru.');
     expect(field('character-persona')?.labels?.[0].textContent?.trim()).toBe('Personality');
   });
@@ -70,7 +73,7 @@ describe('AdminCharactersComponent', () => {
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toBe(JSON.stringify({ character: { persona: '' } }));
     request.flush({
-      character: { ...barnaby, persona: barnaby.defaultPersona, edited: { title: false, persona: false } },
+      character: { ...barnaby, persona: barnaby.defaultPersona, edited: { title: false, persona: false, bio: false } },
     });
     await fixture.whenStable();
 
@@ -78,7 +81,7 @@ describe('AdminCharactersComponent', () => {
     expect(page.querySelector('.status')?.textContent?.trim()).toBe("Barnaby's original personality is back.");
   });
 
-  it("saves the open character's title and personality", async () => {
+  it("saves the open character's title, bio and personality", async () => {
     const { fixture, http, page, field } = await render();
     const persona = field('character-persona') as HTMLTextAreaElement;
 
@@ -91,6 +94,7 @@ describe('AdminCharactersComponent', () => {
       character: {
         title: 'Receptionist',
         persona: 'You are Tataru, and you charge for everything.',
+        bio: 'Keeper of the books.',
       },
     });
     request.flush({ character: { ...tataru, persona: 'You are Tataru, and you charge for everything.' } });

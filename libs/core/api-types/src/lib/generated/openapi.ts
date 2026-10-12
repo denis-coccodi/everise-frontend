@@ -1713,7 +1713,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** A member's profile */
+    /** A member's profile, or a Waking Sands character's */
     get: {
       parameters: {
         query?: never;
@@ -2728,6 +2728,7 @@ export interface components {
       character: {
         title?: string | null;
         persona?: string | null;
+        bio?: string | null;
       };
     };
     NewAttachment: {
@@ -2912,10 +2913,12 @@ export interface components {
       title: string;
       persona: string;
       defaultPersona: string;
+      bio: string;
       image?: string;
       edited: {
         title: boolean;
         persona: boolean;
+        bio: boolean;
       };
     };
     AdminCharactersResponse: {
@@ -2923,6 +2926,7 @@ export interface components {
       limits: {
         title: number;
         persona: number;
+        bio: number;
       };
     };
     AdminCharacterResponse: {

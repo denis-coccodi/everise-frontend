@@ -8,8 +8,15 @@
             {{ $username() }}
           </h1>
           <p>{{ $bio() }}</p>
+          @if ($isCharacter()) {
+            <!-- A Waking Sands character: read-only here, changed by admins in their settings. -->
+            <p class="character-note">
+              A Waking Sands character, voiced by an AI. Talk with them in
+              <a routerLink="/waking-sands">the Waking Sands</a>.
+            </p>
+          }
           <div class="profile-ctas">
-            @if (!$isUser()) {
+            @if (!$isUser() && !$isCharacter()) {
               <button
                 [cdtButton]="$following() ? 'secondary' : 'outline-secondary'"
                 size="sm"
@@ -43,15 +50,18 @@
                 >My Articles</a
               >
             </li>
-            <li>
-              <a
-                cdtTab
-                [routerLink]="['/profile', $id(), 'favorites']"
-                routerLinkActive="active"
-                [routerLinkActiveOptions]="{ exact: true }"
-                >Favorited Articles</a
-              >
-            </li>
+            <!-- Characters don't favorite posts. -->
+            @if (!$isCharacter()) {
+              <li>
+                <a
+                  cdtTab
+                  [routerLink]="['/profile', $id(), 'favorites']"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: true }"
+                  >Favorited Articles</a
+                >
+              </li>
+            }
           </ul>
         </nav>
 

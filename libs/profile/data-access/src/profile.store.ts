@@ -15,13 +15,13 @@ export const ProfileStore = signalStore(
     followUser: rxMethod<string>(
       pipe(
         switchMap((id) => actionsService.followUser(id)),
-        tap(({ profile }) => patchState(store, profile)),
+        tap(({ profile }) => patchState(store, { ...profile, character: profile.character ?? null })),
       ),
     ),
     unfollowUser: rxMethod<string>(
       pipe(
         switchMap((id) => actionsService.unfollowUser(id)),
-        tap(({ profile }) => patchState(store, profile)),
+        tap(({ profile }) => patchState(store, { ...profile, character: profile.character ?? null })),
       ),
     ),
     getProfile: rxMethod<string>(
@@ -30,7 +30,7 @@ export const ProfileStore = signalStore(
           profileService.getProfile(id).pipe(
             tapResponse({
               next: (profile) => {
-                patchState(store, { ...profile, ...setLoaded('getProfile') });
+                patchState(store, { ...profile, character: profile.character ?? null, ...setLoaded('getProfile') });
               },
               error: () => {
                 patchState(store, { ...profileInitialState, ...setLoaded('getProfile') });

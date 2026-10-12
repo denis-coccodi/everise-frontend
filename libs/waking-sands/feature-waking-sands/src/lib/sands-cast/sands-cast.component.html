@@ -15,7 +15,8 @@
           [frame]="store.isPresent(character.id) ? 'highlight' : 'line'"
         />
         <span class="who">
-          <span class="name">{{ character.name }}</span>
+          <!-- Each character has a profile, like a member's: character:<id>. -->
+          <a class="name" [routerLink]="['/profile', 'character:' + character.id]">{{ character.name }}</a>
           <span class="title">{{ character.title }}</span>
           <span class="visually-hidden">{{ store.isPresent(character.id) ? '(in the room)' : '' }}</span>
         </span>

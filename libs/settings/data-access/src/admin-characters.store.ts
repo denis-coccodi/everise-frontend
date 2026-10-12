@@ -19,7 +19,8 @@ interface AdminCharactersState {
 }
 
 // For admins: the Waking Sands characters, one open at a time, with their
-// title, personality (which can go back to the original) and picture.
+// title, personality (which can go back to the original), profile bio and
+// picture.
 // Provided by the admin's characters window.
 export const AdminCharactersStore = signalStore(
   withState<AdminCharactersState>({
