@@ -66,7 +66,7 @@
 <text x="70" y="657" font-size="12.5" font-weight="400" fill="#334155">•  Three reels: duty type, duty, party settings</text>
 <text x="70" y="676" font-size="12.5" font-weight="400" fill="#334155">•  Duty Finder Settings: duty types, level range (in the URL)</text>
 <text x="70" y="695" font-size="12.5" font-weight="400" fill="#334155">•  Per-type lists to pick duties one by one</text>
-<text x="70" y="714" font-size="12.5" font-weight="400" fill="#334155">•  Commence spins; "Pause animations" stops the idle reels</text>
+<text x="70" y="714" font-size="12.5" font-weight="400" fill="#334155">•  Commence spins; "Idle animations" switch stops idle reels</text>
 <text x="70" y="733" font-size="12.5" font-weight="400" fill="#334155">•  "Duty Found" window: the result, its wiki guide</text>
 <text x="87" y="752" font-size="12.5" font-weight="400" fill="#334155">Commence posts it to the feeds</text>
 <text x="87" y="771" font-size="12.5" font-weight="400" fill="#334155">signed in: with an optional comment</text>
