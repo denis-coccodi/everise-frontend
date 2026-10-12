@@ -57,6 +57,8 @@
   <div class="footer">
     <!-- The title above already links here, for keyboard and screen readers. -->
     <a [routerLink]="['/article', article().id]" class="read-more" tabindex="-1" aria-hidden="true">Read more...</a>
+    <!-- Its author, or an admin, where sharing to Discord is set up. -->
+    <cdt-share-post-discord [article]="article()" />
     <ul class="tag-list" aria-label="Tags">
       @for (tag of article().tagList; track tag) {
         <li cdtTag="outline">

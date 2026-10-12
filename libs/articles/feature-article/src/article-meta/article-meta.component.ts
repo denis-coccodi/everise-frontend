@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { SharePostDiscordComponent } from '@everise/articles/articles-list';
 import { Article } from '@everise/core/api-types';
 import { ButtonComponent, BylineComponent, IconComponent } from '@everise/ui/components';
 @Component({
   selector: 'cdt-article-meta',
   templateUrl: './article-meta.component.html',
   styleUrl: './article-meta.component.scss',
-  imports: [BylineComponent, ButtonComponent, RouterModule, IconComponent],
+  imports: [BylineComponent, ButtonComponent, RouterModule, IconComponent, SharePostDiscordComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleMetaComponent {

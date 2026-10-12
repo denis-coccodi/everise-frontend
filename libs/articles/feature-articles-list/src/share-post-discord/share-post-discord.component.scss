@@ -1,0 +1,11 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+:host {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+
+.status {
+  font-size: 0.85rem;
+}

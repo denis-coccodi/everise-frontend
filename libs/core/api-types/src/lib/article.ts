@@ -16,5 +16,8 @@ export type EditArticle = Schemas['ArticleUpdate'];
 
 export type ArticleResponse = Schemas['ArticleResponse'];
 
+// A post shared in the Everise Discord after it was posted.
+export type ArticleDiscordShareResponse = Schemas['ArticleDiscordShareResponse'];
+
 // The popular tags, for the home page's tag list.
 export type TagsResponse = Schemas['TagsResponse'];
