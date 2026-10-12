@@ -192,4 +192,23 @@ describe('static and post pages', () => {
       }),
     );
   });
+
+  it('a guest roulette result Tataru posted names her character profile', () => {
+    const page = articlePage(
+      {
+        id: 'post-3',
+        title: 'Duty Found: Sastasha',
+        description: 'Dungeons · Regular',
+        body: "That'll be 500 gil.",
+        author: { id: 'character:tataru', username: 'Tataru Taru', character: 'tataru' },
+      },
+      SITE,
+    );
+
+    expect(page.jsonLd).toContainEqual(
+      expect.objectContaining({
+        author: { '@type': 'Person', name: 'Tataru Taru', url: 'https://everise.dev/profile/character%3Atataru' },
+      }),
+    );
+  });
 });

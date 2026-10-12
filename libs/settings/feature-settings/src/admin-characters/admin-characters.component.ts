@@ -18,8 +18,8 @@ import { PICTURE_HINT, checkChosenFile } from '../profile-picture/profile-pictur
 // For admins: the Waking Sands characters, a tab each (AdminCharactersStore).
 // Each has a picture (the same crop window as anyone's), a title and a
 // personality, the description the AI plays them from, which can go back to
-// the original. Tataru's tab also has her bio: she is the account that posts
-// guests' roulette results too.
+// the original, and their profile's bio. Tataru's also show on the roulette
+// results she posts for guests.
 @Component({
   selector: 'cdt-admin-characters',
   templateUrl: './admin-characters.component.html',
@@ -59,15 +59,13 @@ export class AdminCharactersComponent {
     effect(() => {
       const character = this.store.selected();
       if (character) {
-        this.form.setValue({ title: character.title, persona: character.persona, bio: character.bio ?? '' });
+        this.form.setValue({ title: character.title, persona: character.persona, bio: character.bio });
       }
     });
   }
 
   protected save() {
-    const { title, persona, bio } = this.form.getRawValue();
-    const changes: CharacterChanges = { title, persona };
-    if (this.store.selected()?.bio !== undefined) changes.bio = bio;
+    const changes: CharacterChanges = this.form.getRawValue();
     this.store.save(changes);
   }
 

@@ -208,142 +208,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/admin/tataru': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Tataru's profile
-     * @description Admins only.
-     */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Tataru's profile. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['TataruResponse'];
-          };
-        };
-        /** @description An error; `errors.body` says what went wrong. */
-        default: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['ErrorResponse'];
-          };
-        };
-      };
-    };
-    /**
-     * Change Tataru's bio
-     * @description Admins only.
-     */
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/json': components['schemas']['TataruUpdate'];
-        };
-      };
-      responses: {
-        /** @description Tataru's profile. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['TataruResponse'];
-          };
-        };
-        /** @description An error; `errors.body` says what went wrong. */
-        default: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['ErrorResponse'];
-          };
-        };
-      };
-    };
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/admin/tataru/image': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Upload Tataru's picture (the file as the body)
-     * @description Admins only.
-     */
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'image/*': string;
-        };
-      };
-      responses: {
-        /** @description Tataru's profile. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['TataruResponse'];
-          };
-        };
-        /** @description An error; `errors.body` says what went wrong. */
-        default: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['ErrorResponse'];
-          };
-        };
-      };
-    };
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/api/admin/users': {
     parameters: {
       query?: never;
@@ -1849,7 +1713,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** A member's profile */
+    /** A member's profile, or a Waking Sands character's */
     get: {
       parameters: {
         query?: never;
@@ -2860,11 +2724,6 @@ export interface components {
       /** @enum {string} */
       role: 'user' | 'staging-tester';
     };
-    TataruUpdate: {
-      tataru: {
-        bio?: string | null;
-      };
-    };
     CharacterUpdate: {
       character: {
         title?: string | null;
@@ -3048,24 +2907,18 @@ export interface components {
     StagingAccessResponse: {
       stagingAccess: components['schemas']['StagingAccessSync'];
     };
-    TataruResponse: {
-      tataru: {
-        username: string;
-        bio: string | null;
-        image: string;
-      };
-    };
     AdminCharacter: {
       id: string;
       name: string;
       title: string;
       persona: string;
       defaultPersona: string;
+      bio: string;
       image?: string;
-      bio?: string | null;
       edited: {
         title: boolean;
         persona: boolean;
+        bio: boolean;
       };
     };
     AdminCharactersResponse: {
@@ -3073,6 +2926,7 @@ export interface components {
       limits: {
         title: number;
         persona: number;
+        bio: number;
       };
     };
     AdminCharacterResponse: {
@@ -3084,6 +2938,7 @@ export interface components {
       following: boolean;
       bio: string | null;
       image: string;
+      character?: string;
     };
     ProfileResponse: {
       profile: components['schemas']['Profile'];

@@ -22,7 +22,7 @@ export type MemberDeletedResponse = Schemas['MemberDeletionResponse'];
 export type StagingAccessResponse = Schemas['StagingAccessResponse'];
 
 // A Waking Sands character as admins edit it: the shipped personality
-// (defaultPersona) with the admin's changes. Only Tataru has a bio.
+// (defaultPersona) with the admin's changes.
 export type CharacterSettings = Schemas['AdminCharacter'];
 
 // The characters, and the longest title and personality the forms allow.

@@ -155,10 +155,11 @@
   --color-shade: rgba(4, 7, 15, 0.35);
 
   /* Fonts. Display: titles, window headers, buttons. Body: everything else.
-     Reading: long article text. */
+     Reading: posts, comments and long pages, in Marcellus: carved Roman
+     capitals like Cinzel's, with lowercase that stays easy to read. */
   --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
   --font-body: 'Source Sans Pro', 'Segoe UI', sans-serif;
-  --font-reading: 'Source Serif Pro', Georgia, serif;
+  --font-reading: 'Marcellus', Georgia, serif;
   --letter-spacing-display: 0.1em;
   --letter-spacing-label: 0.12em;
 

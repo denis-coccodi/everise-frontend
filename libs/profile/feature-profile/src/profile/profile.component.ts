@@ -24,6 +24,9 @@ export class ProfileComponent {
   $currentUser = this.authStore.user.id;
 
   $isUser = computed(() => this.$currentUser() === this.$id());
+  // A Waking Sands character's profile: nobody follows them, and only
+  // admins change them.
+  $isCharacter = computed(() => !!this.profileStore.character());
 
   toggleFollowing() {
     if (this.$following()) {
