@@ -249,7 +249,7 @@ page({
     'Three reels: duty type, duty, party settings',
     'Duty Finder Settings: duty types, level range (in the URL)',
     'Per-type lists to pick duties one by one',
-    'Commence spins; "Pause animations" stops the idle reels',
+    'Commence spins; "Idle animations" switch stops idle reels',
     '"Duty Found" window: the result, its wiki guide',
     '  Commence posts it to the feeds',
     '  signed in: with an optional comment',

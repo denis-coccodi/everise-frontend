@@ -106,6 +106,23 @@ describe('RouletteComponent', () => {
     expect(store().isTypeOn('Duty Roulettes')).toBe(false);
   });
 
+  it('has an Idle animations switch, on by default, that stops the idle reels and the crystal', async () => {
+    await load();
+    const page = fixture.nativeElement as HTMLElement;
+    const toggle = page.querySelector('cdt-switch button') as HTMLButtonElement;
+    expect(toggle.getAttribute('role')).toBe('switch');
+    expect(toggle.textContent).toContain('Idle animations');
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(page.querySelector('.hero-crystal')?.classList).not.toContain('paused');
+
+    toggle.click();
+    await fixture.whenStable();
+
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(page.querySelector('.hero-crystal')?.classList).toContain('paused');
+    expect(page.querySelector('.strip.idle.moving')).toBeNull();
+  });
+
   it('reads the duties again once the game day ends, for the next Frontline map', async () => {
     const frontline = (name: string) => ({
       id: 2,
