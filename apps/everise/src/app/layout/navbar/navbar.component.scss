@@ -130,8 +130,11 @@
   font-size: 1.1rem;
 }
 
-.menu .nav-item + .nav-item {
-  border-top: var(--border-width) solid var(--color-border-faint);
+// Lines between the phone panel's links; the bar on wider screens has none.
+@include bp.down(md) {
+  .menu .nav-item + .nav-item {
+    border-top: var(--border-width) solid var(--color-border-faint);
+  }
 }
 
 .sign-out {
@@ -236,9 +239,5 @@
     min-height: 0;
     padding: 0.425rem 0;
     font-size: inherit;
-  }
-
-  .menu .nav-item + .nav-item {
-    border-top: none;
   }
 }
