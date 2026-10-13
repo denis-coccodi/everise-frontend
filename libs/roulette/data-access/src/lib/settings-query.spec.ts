@@ -1,89 +1,89 @@
 import { convertToParamMap } from '@angular/router';
-import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteSettings } from './roulette-engine';
-import { settingsFromQuery, settingsToQuery } from './settings-query';
+import { DutyGroup } from '@everise/core/api-types';
+import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteSettings, defaultSettings } from './roulette-engine';
+import { dutyTypeIds, level, settingsFromQuery, settingsToQuery } from './settings-query';
 
-const defaults: RouletteSettings = {
-  types: ['Dungeons', 'Trials — Normal', ROULETTES_TYPE],
-  picks: {
-    [ROULETTES_TYPE]: ['roulette:1', 'roulette:2'],
-    [PVP_TYPE]: ['roulette:40', 'duty:123'],
-    [GOLD_SAUCER_TYPE]: ['duty:7'],
-  },
-  minLevel: null,
-  maxLevel: null,
-};
+const group = (id: number, name: string): DutyGroup => ({ id, name, order: id, icon: null, duties: [] });
+const types = dutyTypeIds([
+  group(1, 'Dungeons'),
+  group(7, 'Raids — Savage'),
+  group(15, PVP_TYPE),
+  group(16, GOLD_SAUCER_TYPE),
+]);
 
 const query = (params: Record<string, string>) => convertToParamMap(params);
 
+describe('dutyTypeIds', () => {
+  it("lists the groups by the backend's ids, then Duty Roulettes as 0", () => {
+    expect(types.map((t) => [t.id, t.name])).toEqual([
+      [1, 'Dungeons'],
+      [7, 'Raids — Savage'],
+      [15, PVP_TYPE],
+      [16, GOLD_SAUCER_TYPE],
+      [0, ROULETTES_TYPE],
+    ]);
+  });
+});
+
 describe('settingsToQuery', () => {
-  it('writes nothing for the defaults, so the default roulette is plain /roulette', () => {
-    expect(Object.values(settingsToQuery(defaults, defaults)).every((value) => value === null)).toBe(true);
+  it('writes nothing for nothing ticked, so that is plain /roulette', () => {
+    expect(Object.values(settingsToQuery(defaultSettings(), types)).every((value) => value === null)).toBe(true);
   });
 
-  it('writes only what differs, with short keys for the ticked entries', () => {
+  it('names the types by id and the ticked entries by short key', () => {
     const settings: RouletteSettings = {
-      ...defaults,
-      types: ['Dungeons', 'Raids — Savage'],
-      picks: { ...defaults.picks, [PVP_TYPE]: ['duty:123'] },
+      types: ['Dungeons', GOLD_SAUCER_TYPE, ROULETTES_TYPE],
+      picks: { [ROULETTES_TYPE]: ['roulette:1'], [PVP_TYPE]: [], [GOLD_SAUCER_TYPE]: ['roulette:3', 'duty:7'] },
       minLevel: 50,
+      maxLevel: null,
     };
 
-    expect(settingsToQuery(settings, defaults)).toEqual({
-      types: 'Dungeons,Raids — Savage',
-      roulettes: null,
-      pvp: 'd123',
-      goldSaucer: null,
+    expect(settingsToQuery(settings, types)).toEqual({
+      types: '1,16,0',
+      roulettes: 'r1',
+      pvp: null,
+      goldSaucer: 'r3,d7',
       min: '50',
       max: null,
     });
-  });
-
-  it('keeps the same types in another order as the defaults', () => {
-    const reordered = { ...defaults, types: [...defaults.types].reverse() };
-    expect(settingsToQuery(reordered, defaults).types).toBeNull();
-  });
-
-  it('writes an empty list when everything of a kind is unticked', () => {
-    const none = { ...defaults, types: [], picks: { ...defaults.picks, [ROULETTES_TYPE]: [] } };
-    expect(settingsToQuery(none, defaults)).toMatchObject({ types: '', roulettes: '' });
   });
 });
 
 describe('settingsFromQuery', () => {
   it('reads back what settingsToQuery wrote', () => {
     const settings: RouletteSettings = {
-      types: ['Dungeons', 'Raids — Savage'],
-      picks: { ...defaults.picks, [ROULETTES_TYPE]: ['roulette:2'], [GOLD_SAUCER_TYPE]: [] },
+      types: ['Dungeons', PVP_TYPE, ROULETTES_TYPE],
+      picks: { [ROULETTES_TYPE]: ['roulette:2'], [PVP_TYPE]: ['roulette:40', 'duty:123'], [GOLD_SAUCER_TYPE]: [] },
       minLevel: 50,
       maxLevel: 90,
     };
-    const written = settingsToQuery(settings, defaults);
+    const written = settingsToQuery(settings, types);
     const params = Object.fromEntries(
       Object.entries(written).filter((entry): entry is [string, string] => entry[1] !== null),
     );
 
-    expect(settingsFromQuery(query(params), defaults)).toEqual(settings);
+    expect(settingsFromQuery(query(params), types)).toEqual(settings);
   });
 
-  it('uses the defaults for what the query leaves out', () => {
-    expect(settingsFromQuery(query({}), defaults)).toEqual(defaults);
+  it('reads nothing ticked from an empty query', () => {
+    expect(settingsFromQuery(query({}), types)).toEqual(defaultSettings());
   });
 
-  it('ignores what it cannot read: unknown keys, levels that are not numbers, and keeps levels within 1–100', () => {
-    const read = settingsFromQuery(query({ roulettes: 'r2,x9,,d', min: 'abc', max: '250' }), defaults);
+  it('leaves out what it cannot read: unknown ids and keys, levels that are not numbers', () => {
+    const read = settingsFromQuery(query({ types: '1,99,Dungeons', roulettes: 'r2,x9,,d', min: 'abc' }), types);
 
+    expect(read.types).toEqual(['Dungeons']);
     expect(read.picks[ROULETTES_TYPE]).toEqual(['roulette:2']);
     expect(read.minLevel).toBeNull();
-    expect(read.maxLevel).toBe(100);
   });
+});
 
-  it('gives a picked type a link turns on without naming its entries its usual ones', () => {
-    const usual = (type: string) => (type === ROULETTES_TYPE ? ['roulette:9'] : []);
-    const read = settingsFromQuery(query({ types: ROULETTES_TYPE }), defaults, usual);
-
-    expect(read.picks[ROULETTES_TYPE]).toEqual(['roulette:9']);
-    expect(
-      settingsFromQuery(query({ types: ROULETTES_TYPE, roulettes: '' }), defaults, usual).picks[ROULETTES_TYPE],
-    ).toEqual([]);
+describe('level', () => {
+  it('is a whole level from 1 to 100, or none', () => {
+    expect(level('')).toBeNull();
+    expect(level('abc')).toBeNull();
+    expect(level('42.7')).toBe(42);
+    expect(level('0')).toBe(1);
+    expect(level('250')).toBe(100);
   });
 });

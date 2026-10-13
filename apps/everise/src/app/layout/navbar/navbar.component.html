@@ -33,7 +33,14 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/roulette" routerLinkActive="active" ariaCurrentWhenActive="page">
+          <a
+            class="nav-link"
+            routerLink="/roulette"
+            [queryParams]="everydayRoulette"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="anyQuery"
+            ariaCurrentWhenActive="page"
+          >
             <cdt-icon name="shuffle" />Roulette
           </a>
         </li>
