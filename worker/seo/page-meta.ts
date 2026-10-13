@@ -9,7 +9,7 @@ export interface PageMeta {
   // The title link previews show, when not the whole <title> (a post's own).
   previewTitle?: string;
   description: string;
-  // The page's address on the site, e.g. "/party-finder/light": the
+  // The page's address on the site, e.g. "/party-finder?dc=light": the
   // canonical URL, whatever host or query it was opened with.
   path: string;
   type?: 'website' | 'article';

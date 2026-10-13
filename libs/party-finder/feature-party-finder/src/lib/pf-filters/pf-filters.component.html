@@ -18,16 +18,17 @@
       </select>
     </cdt-field>
 
-    <cdt-field label="Your world" for="pf-world">
-      <select #world id="pf-world" cdtInput aria-describedby="pf-world-hint" (change)="setWorld(world.value)">
+    <cdt-field
+      label="Your world"
+      for="pf-world"
+      hint="What you can join from there: the whole data centre, plus that world's own Hunt and FATE parties."
+    >
+      <select #world id="pf-world" cdtInput (change)="setWorld(world.value)">
         <option value="" [selected]="store.filters().world === null">All worlds</option>
         @for (option of store.worlds(); track option.id) {
           <option [value]="option.id" [selected]="option.id === store.filters().world">{{ option.name }}</option>
         }
       </select>
-      <p id="pf-world-hint" class="hint">
-        What you can join from there: the whole data centre, plus that world's own Hunt and FATE parties.
-      </p>
     </cdt-field>
 
     <cdt-field label="Category" for="pf-category">

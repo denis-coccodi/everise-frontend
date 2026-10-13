@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, input } from '@angular/core';
-import { dataCentrePath } from '@everise/party-finder/data-access';
+import { dataCentreQuery } from '@everise/party-finder/data-access';
 import { PfListingComponent } from '@everise/party-finder/feature-pf-listing';
 import { Title } from '@angular/platform-browser';
 import { ArticleStore, NewComment } from '@everise/articles/data-access';
@@ -65,7 +65,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
   // A roulette card's game image.
   // A shared listing's time left, from when the page opened.
   protected readonly now = Date.now();
-  protected readonly pathOf = dataCentrePath;
+  protected readonly queryOf = dataCentreQuery;
 
   protected imageUrl(id: number | null | undefined) {
     return gameImageUrl(this.apiUrl, id);

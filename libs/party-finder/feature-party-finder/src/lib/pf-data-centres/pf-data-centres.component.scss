@@ -1,0 +1,42 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+// Each data centre's listings, by region: links in rows.
+:host {
+  display: block;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.1rem;
+}
+
+.region {
+  margin-top: 0.75rem;
+}
+
+h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  display: inline-block;
+  padding: 0.25rem 0;
+}
+
+a[aria-current='page'] {
+  font-weight: 700;
+  text-decoration: none;
+}

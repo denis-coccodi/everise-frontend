@@ -96,7 +96,7 @@ async function pageMeta(request: Request, env: Env, pathname: string): Promise<P
     const answer = await apiJson<{ article: Article }>(request, env, `/articles/${key}`);
     return answer && articlePage(answer.article, env.SITE_URL);
   }
-  const dataCentre = dataCentreIn(pathname);
+  const dataCentre = dataCentreIn(new URL(request.url));
   if (dataCentre || pathname === '/party-finder' || pathname === '/party-finder/') {
     // The regions come with any data centre's board; Light is Everise's.
     const board = await apiJson<Board>(

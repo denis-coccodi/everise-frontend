@@ -72,18 +72,16 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/waking-sands/feature-waking-sands').then((m) => m.WakingSandsComponent),
         },
         {
+          // Everything the page shows is in its query string (?dc=light&world=odin...),
+          // so the title follows it.
           path: 'party-finder',
-          title: 'Party Finder',
+          title: (route) => {
+            const dataCentre = route.queryParamMap.get('dc');
+            return dataCentre ? `${capitalised(dataCentre)} Party Finder` : 'Party Finder';
+          },
+          runGuardsAndResolvers: 'paramsOrQueryParamsChange',
           canActivate: [discordLinkGuard],
           // Open to everyone: the listings are public in the game and on xivpf.
-          loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
-        },
-        {
-          // A data centre's own page (/party-finder/light), which search
-          // engines list and links share.
-          path: 'party-finder/:dataCentre',
-          canActivate: [discordLinkGuard],
-          title: (route) => `${capitalised(route.paramMap.get('dataCentre') ?? '')} Party Finder`,
           loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
         },
         {

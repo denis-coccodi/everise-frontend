@@ -36,7 +36,9 @@
             <h2 class="visually-hidden">Shared Party Finder listing</h2>
             <cdt-pf-listing class="shared-listing" [listing]="shared.listing" [icons]="shared.icons" [now]="now" />
             <p class="shared-link">
-              <a [routerLink]="pathOf(shared.dataCentre)">{{ shared.dataCentre }} Party Finder, right now</a>
+              <a routerLink="/party-finder" [queryParams]="queryOf(shared.dataCentre)"
+                >{{ shared.dataCentre }} Party Finder, right now</a
+              >
             </p>
           }
           <cdt-rich-text data-testid="article-body" [text]="article.body" />

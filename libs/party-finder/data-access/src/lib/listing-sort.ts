@@ -1,15 +1,16 @@
 import { PartyFinderListing } from '@everise/core/api-types';
 import { HIGH_END, NO_DUTY, kindOf, listingTitle } from './listing-filters';
 
-// The orders the page can list the listings in; 'game' is the default.
-export type SortOrder = 'game' | 'endingSoon' | 'recent' | 'fewestNeeded' | 'itemLevel' | 'name';
+// The orders the page can list the listings in, by their id in the query
+// string; 'game' is the default.
+export type SortOrder = 'game' | 'ending-soon' | 'recent' | 'fewest-needed' | 'item-level' | 'name';
 
 export const SORT_ORDERS: { value: SortOrder; name: string }[] = [
   { value: 'game', name: 'As in the game' },
-  { value: 'endingSoon', name: 'Ending soonest' },
+  { value: 'ending-soon', name: 'Ending soonest' },
   { value: 'recent', name: 'Seen most recently' },
-  { value: 'fewestNeeded', name: 'Fewest players needed' },
-  { value: 'itemLevel', name: 'Highest item level' },
+  { value: 'fewest-needed', name: 'Fewest players needed' },
+  { value: 'item-level', name: 'Highest item level' },
   { value: 'name', name: 'Duty name (A–Z)' },
 ];
 
@@ -70,10 +71,10 @@ const byGame: Compare = (a, b) =>
 
 const COMPARE: Record<SortOrder, Compare> = {
   game: byGame,
-  endingSoon: (a, b) => Date.parse(a.expiresAt) - Date.parse(b.expiresAt),
+  'ending-soon': (a, b) => Date.parse(a.expiresAt) - Date.parse(b.expiresAt),
   recent: (a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt),
-  fewestNeeded: (a, b) => openSlots(a) - openSlots(b) || byGame(a, b),
-  itemLevel: (a, b) => b.minItemLevel - a.minItemLevel || byGame(a, b),
+  'fewest-needed': (a, b) => openSlots(a) - openSlots(b) || byGame(a, b),
+  'item-level': (a, b) => b.minItemLevel - a.minItemLevel || byGame(a, b),
   name: (a, b) => listingTitle(a).localeCompare(listingTitle(b)),
 };
 

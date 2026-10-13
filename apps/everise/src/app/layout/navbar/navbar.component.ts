@@ -40,6 +40,9 @@ export class NavbarComponent {
   // here rather than imported, so the roulette's code stays out of the main
   // bundle. The link stays current whatever is ticked after.
   protected readonly everydayRoulette = { types: '1,3,6' };
+  // The Party Finder opens on Everise's home, Light from Odin
+  // (party-finder/data-access's party-finder-query.ts), the same way.
+  protected readonly homePartyFinder = { dc: 'light', world: 'odin' };
   protected readonly anyQuery: IsActiveMatchOptions = {
     paths: 'exact',
     queryParams: 'ignored',

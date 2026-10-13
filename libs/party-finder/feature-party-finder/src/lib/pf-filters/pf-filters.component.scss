@@ -6,8 +6,8 @@
   display: block;
 }
 
-// Phones: one field a row. Wider: two, then four, the search beside the
-// order.
+// Phones: one field a row. Wider: two, the search beside the order; then
+// four, the search taking three.
 .fields {
   display: grid;
   gap: 0 1rem;
@@ -26,26 +26,19 @@
   }
 }
 
-.search {
-  grid-column: 1 / -1;
-}
-
 @include bp.up(lg) {
   .search {
     grid-column: 1 / 4;
   }
 }
 
-.hint {
-  margin: 0.3rem 0 0;
-  font-size: 0.8rem;
-  color: var(--color-contrast-muted);
-}
-
+// A switch row pads its words for its hover highlight; the rows reach into
+// the panel's padding by as much, so the words line up with the labels.
 .switches {
   display: grid;
-  gap: 0.25rem 1rem;
+  gap: 0.25rem 0.4rem;
   grid-template-columns: minmax(0, 1fr);
+  margin-inline: -0.6rem;
 }
 
 @include bp.up(md) {

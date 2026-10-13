@@ -1,5 +1,7 @@
 // robots.txt and sitemap.xml, for search engines.
 
+import { dataCentrePage } from './party-finder-page';
+
 // What GET /api/sitemap answers.
 export interface SitemapData {
   articles: { id: string; updatedAt: string }[];
@@ -29,7 +31,7 @@ export function robotsTxt(siteUrl: string, production: boolean): string {
 export function sitemapXml(siteUrl: string, data: SitemapData | undefined): string {
   const entries = [
     ...FIXED_PAGES.map((path) => entry(siteUrl + path)),
-    ...(data?.dataCentres ?? []).map((name) => entry(`${siteUrl}/party-finder/${name.toLowerCase()}`)),
+    ...(data?.dataCentres ?? []).map((name) => entry(siteUrl + dataCentrePage(name))),
     ...(data?.articles ?? []).map((article) =>
       entry(`${siteUrl}/article/${encodeURIComponent(article.id)}`, article.updatedAt),
     ),

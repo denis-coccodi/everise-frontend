@@ -85,10 +85,10 @@ describe('sortListings', () => {
     const full = listing('full', { slots: [{ job: 'PLD', icon: 62119, roles: [], accepts: [] }] });
     const listings = [full, fresh, soon];
 
-    expect(ids(sortListings(listings, 'endingSoon'))[0]).toBe('soon');
+    expect(ids(sortListings(listings, 'ending-soon'))[0]).toBe('soon');
     expect(ids(sortListings(listings, 'recent'))[0]).toBe('fresh');
-    expect(ids(sortListings(listings, 'fewestNeeded'))[0]).toBe('full');
-    expect(ids(sortListings(listings, 'itemLevel'))[0]).toBe('fresh');
+    expect(ids(sortListings(listings, 'fewest-needed'))[0]).toBe('full');
+    expect(ids(sortListings(listings, 'item-level'))[0]).toBe('fresh');
     expect(ids(sortListings(listings, 'name'))).toEqual(['fresh', 'full', 'soon']);
   });
 

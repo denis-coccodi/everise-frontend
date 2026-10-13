@@ -120,25 +120,7 @@
     </p>
   }
 
-  <nav class="data-centres" aria-labelledby="pf-data-centres">
-    <h2 id="pf-data-centres">Every data centre</h2>
-    @for (region of store.regions(); track region.name) {
-      <div class="region">
-        @if (region.name) {
-          <h3>{{ region.name }}</h3>
-        }
-        <ul>
-          @for (name of region.dataCentres; track name) {
-            <li>
-              <a [routerLink]="pathOf(name)" [attr.aria-current]="name === store.dataCentre() ? 'page' : null">{{
-                name
-              }}</a>
-            </li>
-          }
-        </ul>
-      </div>
-    }
-  </nav>
+  <cdt-pf-data-centres />
 
   <p class="source">
     Listings from

@@ -55,6 +55,15 @@ describe('NavbarComponent', () => {
     expect(roulette().getAttribute('aria-current')).toBe('page');
   });
 
+  it('opens the Party Finder on Light from Odin, and marks it current whatever is picked', async () => {
+    const partyFinder = () => page().querySelector('a[href^="/party-finder"]') as HTMLAnchorElement;
+    expect(partyFinder().getAttribute('href')).toBe('/party-finder?dc=light&world=odin');
+
+    await TestBed.inject(Router).navigateByUrl('/party-finder?dc=chaos&slot=healer');
+    await fixture.whenStable();
+    expect(partyFinder().getAttribute('aria-current')).toBe('page');
+  });
+
   it('opens and closes the phone menu with its button', async () => {
     expect(toggle().textContent?.trim()).toBe('Menu');
     expect(toggle().getAttribute('aria-controls')).toBe('site-menu');
