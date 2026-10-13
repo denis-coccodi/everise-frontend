@@ -1,0 +1,19 @@
+<nav aria-labelledby="pf-data-centres">
+  <h2 id="pf-data-centres">Every data centre</h2>
+  @for (region of store.regions(); track region.name) {
+    <div class="region">
+      @if (region.name) {
+        <h3>{{ region.name }}</h3>
+      }
+      <ul>
+        @for (name of region.dataCentres; track name) {
+          <li>
+            <a routerLink="/party-finder" [queryParams]="store.queryFor(name)" [attr.aria-current]="current(name)">{{
+              name
+            }}</a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

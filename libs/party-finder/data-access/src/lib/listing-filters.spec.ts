@@ -55,9 +55,9 @@ describe('Party Finder filters', () => {
   it('shows from a world what can be joined from it: everything on the data centre, and its own world-only listings', () => {
     const hunt = listing({ category: 'TheHunt', duty: null, worldOnly: true, world: SHIVA });
 
-    expect(matchesFilters(listing({ world: SHIVA }), { ...none, world: ODIN.id })).toBe(true);
-    expect(matchesFilters(hunt, { ...none, world: ODIN.id })).toBe(false);
-    expect(matchesFilters(hunt, { ...none, world: SHIVA.id })).toBe(true);
+    expect(matchesFilters(listing({ world: SHIVA }), { ...none, world: 'odin' })).toBe(true);
+    expect(matchesFilters(hunt, { ...none, world: 'odin' })).toBe(false);
+    expect(matchesFilters(hunt, { ...none, world: 'shiva' })).toBe(true);
     expect(matchesFilters(hunt, none)).toBe(true);
   });
 

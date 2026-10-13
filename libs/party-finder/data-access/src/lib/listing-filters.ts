@@ -3,8 +3,9 @@ import { PartyFinderListing, PartyRole } from '@everise/core/api-types';
 // What the Party Finder page narrows the listings down to.
 export interface PartyFinderFilters {
   // The world the member plays from: listings joinable from it (every
-  // data-centre-wide one, and world-only ones made there). Null: all.
-  world: number | null;
+  // data-centre-wide one, and world-only ones made there), by its id
+  // (worldId: "odin"). Null: all.
+  world: string | null;
   // An xivpf category ("Trial"), a kind of high-end duty
   // ("HighEndDuty:Ultimate"), "HighEndDuty" for all of those, or '' for all.
   category: string;
@@ -73,8 +74,34 @@ export function listingTitle(listing: PartyFinderListing) {
   return listing.duty ?? categoryName(listing.category);
 }
 
-export function joinableFrom(listing: PartyFinderListing, world: number | null) {
-  return world === null || !listing.worldOnly || listing.world.id === world;
+// A world's id in the page's query string: its name in lower case ("odin");
+// the game's world names are single words, unique across data centres.
+export function worldId(world: { name: string }) {
+  return world.name.toLowerCase();
+}
+
+export function joinableFrom(listing: PartyFinderListing, world: string | null) {
+  return world === null || !listing.worldOnly || worldId(listing.world) === world;
+}
+
+// A category's id in the page's query string: its key in lower case, words
+// joined by dashes ("Trial" → "trial", "HighEndDuty:Ultimate" →
+// "high-end-duty-ultimate", "None" → "none").
+export function categoryId(category: string) {
+  return category
+    .replace(/([a-z])(?=[A-Z][a-z])/g, '$1-')
+    .replace(':', '-')
+    .toLowerCase();
+}
+
+// The category with this id: one the page knows, or, for one xivpf adds
+// later, the id's words joined back up ("new-thing" → "NewThing").
+export function categoryFromId(id: string) {
+  const known = [...Object.keys(CATEGORY_NAMES), ...HIGH_END_KINDS.map((kind) => `${HIGH_END}:${kind}`)];
+  return (
+    known.find((category) => categoryId(category) === id) ??
+    id.replace(/(^|-)([a-z])/g, (_, _dash: string, letter: string) => letter.toUpperCase())
+  );
 }
 
 function searchText(listing: PartyFinderListing) {

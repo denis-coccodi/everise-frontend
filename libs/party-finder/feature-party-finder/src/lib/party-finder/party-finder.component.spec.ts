@@ -102,7 +102,6 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
 describe('PartyFinderComponent', () => {
   // The page as the app routes it: /party-finder, or a data centre's own.
   async function render(url = '/party-finder', { signedIn = false, discord = true } = {}) {
-    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         // Whether the backend can share in the Everise Discord.
@@ -110,13 +109,7 @@ describe('PartyFinderComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: API_URL, useValue: '' },
-        provideRouter(
-          [
-            { path: 'party-finder', component: PartyFinderComponent },
-            { path: 'party-finder/:dataCentre', component: PartyFinderComponent },
-          ],
-          withComponentInputBinding(),
-        ),
+        provideRouter([{ path: 'party-finder', component: PartyFinderComponent }], withComponentInputBinding()),
       ],
     });
     if (signedIn) TestBed.inject(AuthStore).confirmed({ id: 'u1', username: 'alisaie' } as User);
@@ -136,8 +129,6 @@ describe('PartyFinderComponent', () => {
     return { fixture, http, page, titles, select, change };
   }
 
-  afterEach(() => localStorage.clear());
-
   it('starts on Light, from Odin, without listings that have no duty', async () => {
     const { fixture, http, page, titles, select } = await render();
 
@@ -145,7 +136,8 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
 
     expect(select('pf-data-centre').value).toBe('Light');
-    expect(select('pf-world').value).toBe('66');
+    expect(select('pf-world').value).toBe('odin');
+    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=light&world=odin');
     // Shiva's world-only Hunt can't be joined from Odin; the chat has no duty.
     expect(titles()).toEqual(['The Unending Coil of Bahamut (Ultimate)']);
     expect(page.querySelector('.summary')?.textContent).toContain('1 of 3 listings on Light');
@@ -199,14 +191,14 @@ describe('PartyFinderComponent', () => {
     expect(page.querySelector('.notice')?.textContent).toContain('No listings match');
   });
 
-  it("switches to Chaos's listings, and remembers the choice", async () => {
+  it("switches to Chaos's listings, all its worlds, in the query string", async () => {
     const { fixture, http, titles, change } = await render();
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
 
     await change('pf-data-centre', 'Chaos');
     await fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/party-finder/chaos');
+    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=chaos');
     http.expectOne('/party-finder?dataCentre=Chaos').flush(
       board({
         dataCentre: 'Chaos',
@@ -217,17 +209,77 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
 
     expect(titles()).toEqual(['Sastasha']);
-    expect(JSON.parse(localStorage.getItem('partyFinder') ?? '{}').dataCentre).toBe('Chaos');
   });
 
-  it("opens the data centre in the address, without making it the member's choice", async () => {
-    const { fixture, http, page, select } = await render('/party-finder/chaos');
+  it('opens the data centre the query string names, with all its worlds', async () => {
+    const { fixture, http, page, select } = await render('/party-finder?dc=chaos');
     http.expectOne('/party-finder?dataCentre=Chaos').flush(board({ dataCentre: 'Chaos', worlds: [] }));
     await fixture.whenStable();
 
     expect(select('pf-data-centre').value).toBe('Chaos');
-    expect(page.querySelector('.data-centres [aria-current=page]')?.textContent?.trim()).toBe('Chaos');
-    expect(localStorage.getItem('partyFinder')).toBeNull();
+    expect(page.querySelector('cdt-pf-data-centres [aria-current=page]')?.textContent?.trim()).toBe('Chaos');
+    expect(select('pf-world').value).toBe('');
+  });
+
+  it("picking a data centre, Everise's own too, shows all its worlds", async () => {
+    const { fixture, http, page, select } = await render();
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+    expect(select('pf-world').value).toBe('odin');
+
+    const light = [...page.querySelectorAll<HTMLAnchorElement>('cdt-pf-data-centres a')].find(
+      (a) => a.textContent?.trim() === 'Light',
+    ) as HTMLAnchorElement;
+    expect(light.getAttribute('href')).toBe('/party-finder?dc=light');
+    light.click();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=light');
+    expect(select('pf-world').value).toBe('');
+    http.expectNone('/party-finder?dataCentre=Light');
+  });
+
+  it('keeps every choice in the query string, by id', async () => {
+    const { fixture, http, page, change } = await render();
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    await change('pf-world', 'shiva');
+    await change('pf-category', 'HighEndDuty:Ultimate');
+    await change('pf-role', 'healer');
+    await change('pf-sort', 'ending-soon');
+    const search = page.querySelector('#pf-search') as HTMLInputElement;
+    search.value = 'the coil';
+    search.dispatchEvent(new Event('input'));
+    (page.querySelectorAll('cdt-switch button')[1] as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    const query = Object.fromEntries(new URL(TestBed.inject(Router).url, 'https://everise.dev').searchParams);
+    expect(query).toEqual({
+      dc: 'light',
+      world: 'shiva',
+      category: 'high-end-duty-ultimate',
+      slot: 'healer',
+      sort: 'ending-soon',
+      search: 'the coil',
+      beginners: 'only',
+    });
+  });
+
+  it('opens what a link asks for, and drops a world the data centre does not have', async () => {
+    const { fixture, http, select } = await render(
+      '/party-finder?dc=light&world=moogle&category=high-end-duty&slot=tank&sort=name&no-duty=show',
+    );
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    expect(select('pf-category').value).toBe('HighEndDuty');
+    expect(select('pf-role').value).toBe('tank');
+    expect(select('pf-sort').value).toBe('name');
+    expect(select('pf-world').value).toBe('');
+    expect(TestBed.inject(Router).url).toBe(
+      '/party-finder?dc=light&category=high-end-duty&slot=tank&sort=name&no-duty=show',
+    );
   });
 
   it("links to every data centre's page, and invites guests to join", async () => {
@@ -235,9 +287,9 @@ describe('PartyFinderComponent', () => {
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
 
-    const nav = page.querySelector('nav.data-centres') as HTMLElement;
+    const nav = page.querySelector('cdt-pf-data-centres nav') as HTMLElement;
     expect(nav.getAttribute('aria-labelledby')).toBe('pf-data-centres');
-    expect([...nav.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toContain('/party-finder/materia');
+    expect([...nav.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toContain('/party-finder?dc=materia');
     expect(page.querySelector('.join a')?.getAttribute('href')).toBe('/register');
   });
 
@@ -269,7 +321,7 @@ describe('PartyFinderComponent', () => {
 
     await change('pf-sort', 'name');
     expect(titles()).toEqual(['Futures Rewritten (Ultimate)', 'Sastasha', "The Weapon's Refrain (Ultimate)"]);
-    expect(JSON.parse(localStorage.getItem('partyFinder') ?? '{}').sort).toBe('name');
+    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=light&world=odin&sort=name');
   });
 
   it('shows 20 listings a page, and stays on the page through a refresh', async () => {
@@ -430,7 +482,7 @@ describe('PartyFinderComponent', () => {
         );
       await fixture.whenStable();
 
-      expect(TestBed.inject(Router).url).toBe('/party-finder');
+      expect(TestBed.inject(Router).url).toBe('/party-finder?dc=light&world=odin');
       expect(page.querySelector('cdt-pf-share-dialog [role=alert]')?.textContent).toContain('ended or filled up');
       expect((page.querySelector('cdt-pf-share-dialog textarea') as HTMLTextAreaElement).value).toBe(
         'Taking a while to write this…',

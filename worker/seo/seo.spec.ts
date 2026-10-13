@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { articlePage } from './article-page';
 import { robotsTxt, sitemapXml } from './crawling';
 import { headTags, rootContent } from './page-meta';
-import { Board, dataCentreIn, partyFinderPage } from './party-finder-page';
+import { Board, dataCentreIn, oldDataCentrePath, partyFinderPage } from './party-finder-page';
 import { staticPage } from './static-pages';
 
 const SITE = 'https://everise.dev';
@@ -59,31 +59,37 @@ describe('headTags', () => {
 });
 
 describe('Party Finder pages', () => {
-  it('reads the data centre from the address', () => {
-    expect(dataCentreIn('/party-finder/light')).toBe('Light');
-    expect(dataCentreIn('/party-finder/materia/')).toBe('Materia');
-    expect(dataCentreIn('/party-finder')).toBeUndefined();
-    expect(dataCentreIn('/party-finder/light/savage')).toBeUndefined();
+  it('reads the data centre from the query string, and from an old address', () => {
+    const url = (path: string) => new URL(SITE + path);
+    expect(dataCentreIn(url('/party-finder?dc=light&world=odin'))).toBe('Light');
+    expect(dataCentreIn(url('/party-finder/?dc=MATERIA'))).toBe('Materia');
+    expect(dataCentreIn(url('/party-finder'))).toBeUndefined();
+    expect(dataCentreIn(url('/party-finder?dc=<b>'))).toBeUndefined();
+    expect(dataCentreIn(url('/roulette?dc=light'))).toBeUndefined();
+    expect(oldDataCentrePath('/party-finder/light')).toBe('light');
+    expect(oldDataCentrePath('/party-finder/Materia/')).toBe('materia');
+    expect(oldDataCentrePath('/party-finder')).toBeUndefined();
+    expect(oldDataCentrePath('/party-finder/light/savage')).toBeUndefined();
   });
 
   it("a data centre's page names its worlds and what's recruiting now, never who", () => {
     const page = partyFinderPage('Light', board, SITE, NOW);
 
     expect(page.title).toBe('Light Party Finder · live FFXIV listings · Everise');
-    expect(page.path).toBe('/party-finder/light');
+    expect(page.path).toBe('/party-finder?dc=light');
     expect(page.description).toContain('the Light data centre (Europe): Odin, Shiva');
     expect(page.description).toContain('4 parties recruiting right now');
     expect(page.body).toContain('<h1>Light Party Finder</h1>');
     expect(page.body).toContain('<li>The Omega Protocol (Ultimate) (High-end Duty): 2 parties</li>');
     expect(page.body).toContain('<li>Sastasha (Dungeons): 1 party</li>');
     expect(page.body).not.toContain('Gone Already');
-    expect(page.body).toContain('<a href="/party-finder/materia">Materia Party Finder</a>');
+    expect(page.body).toContain('<a href="/party-finder?dc=materia">Materia Party Finder</a>');
     expect(page.jsonLd).toEqual([
       expect.objectContaining({
         '@type': 'BreadcrumbList',
         itemListElement: [
           expect.objectContaining({ position: 1, item: 'https://everise.dev/party-finder' }),
-          expect.objectContaining({ position: 2, name: 'Light', item: 'https://everise.dev/party-finder/light' }),
+          expect.objectContaining({ position: 2, name: 'Light', item: 'https://everise.dev/party-finder?dc=light' }),
         ],
       }),
     ]);
@@ -95,7 +101,7 @@ describe('Party Finder pages', () => {
     expect(page.path).toBe('/party-finder');
     expect(page.description).toContain('Light, Chaos, Materia');
     expect(page.body).not.toContain('Recruiting now');
-    expect(page.body).toContain('<a href="/party-finder/chaos">Chaos Party Finder</a>');
+    expect(page.body).toContain('<a href="/party-finder?dc=chaos">Chaos Party Finder</a>');
   });
 
   it('still says what the page is when the listings could not be read', () => {
@@ -130,7 +136,7 @@ describe('crawling', () => {
 
     expect(xml).toContain('<loc>https://everise.dev/</loc>');
     expect(xml).toContain('<loc>https://everise.dev/party-finder</loc>');
-    expect(xml).toContain('<loc>https://everise.dev/party-finder/chaos</loc>');
+    expect(xml).toContain('<loc>https://everise.dev/party-finder?dc=chaos</loc>');
     expect(xml).toContain(
       '<url><loc>https://everise.dev/article/a%26b</loc><lastmod>2026-10-01T10:00:00.000Z</lastmod></url>',
     );

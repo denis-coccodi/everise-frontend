@@ -30,10 +30,24 @@ const CATEGORY_NAMES: Record<string, string> = {
 // The duties listed by name in the page's words, the most recruited first.
 const TOP_DUTIES = 12;
 
-// "/party-finder/light" → "Light"; undefined for anything else.
-export function dataCentreIn(path: string): string | undefined {
-  const name = /^\/party-finder\/([a-z]+)\/?$/.exec(path)?.[1];
-  return name && name[0].toUpperCase() + name.slice(1);
+// A data centre's page: "Light" → "/party-finder?dc=light". The app keeps
+// everything the page shows in its query string.
+export function dataCentrePage(dataCentre: string) {
+  return `/party-finder?dc=${dataCentre.toLowerCase()}`;
+}
+
+// The data centre a Party Finder address shows: "/party-finder?dc=light"
+// → "Light"; undefined for anything else.
+export function dataCentreIn(url: URL): string | undefined {
+  if (!/^\/party-finder\/?$/.test(url.pathname)) return undefined;
+  const name = url.searchParams.get('dc')?.toLowerCase();
+  return name && /^[a-z]+$/.test(name) ? name[0].toUpperCase() + name.slice(1) : undefined;
+}
+
+// A data centre's address from before the query string: "/party-finder/light"
+// → "light"; undefined for anything else.
+export function oldDataCentrePath(path: string): string | undefined {
+  return /^\/party-finder\/([a-z]+)\/?$/i.exec(path)?.[1].toLowerCase();
 }
 
 // The Party Finder page for everyone (`dataCentre` undefined) or for one
@@ -80,12 +94,12 @@ export function partyFinderPage(
   return {
     title: `${dataCentre} Party Finder · live FFXIV listings · ${SITE_NAME}`,
     description,
-    path: `/party-finder/${dataCentre.toLowerCase()}`,
+    path: dataCentrePage(dataCentre),
     jsonLd: [
       breadcrumbs(
         [
           ['Party Finder', '/party-finder'],
-          [dataCentre, `/party-finder/${dataCentre.toLowerCase()}`],
+          [dataCentre, dataCentrePage(dataCentre)],
         ],
         siteUrl,
       ),
@@ -103,7 +117,7 @@ function body(heading: string, intro: string, live: Board['listings'], regions: 
     parts.push('<h2>Every data centre</h2>');
     for (const region of regions) {
       const links = region.dataCentres.map(
-        (name) => `<li><a href="/party-finder/${name.toLowerCase()}">${text(name)} Party Finder</a></li>`,
+        (name) => `<li><a href="${dataCentrePage(name)}">${text(name)} Party Finder</a></li>`,
       );
       parts.push(`<h3>${text(region.name)}</h3><ul>${links.join('')}</ul>`);
     }

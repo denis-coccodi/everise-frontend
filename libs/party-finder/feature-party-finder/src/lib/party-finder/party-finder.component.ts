@@ -1,34 +1,18 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  computed,
-  effect,
-  inject,
-  input,
-  untracked,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DiscordSharingService } from '@everise/articles/data-access';
 import { AuthStore } from '@everise/auth/data-access';
 import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
-import {
-  PartyFinderStore,
-  PfShareStore,
-  ShareWay,
-  dataCentreName,
-  dataCentrePath,
-  listingTitle,
-} from '@everise/party-finder/data-access';
+import { PartyFinderStore, PfShareStore, ShareWay, listingTitle } from '@everise/party-finder/data-access';
 import { ButtonComponent, IconComponent, MessageComponent, PagerComponent } from '@everise/ui/components';
+import { PfDataCentresComponent } from '../pf-data-centres/pf-data-centres.component';
 import { PfFiltersComponent } from '../pf-filters/pf-filters.component';
 import { PfShareDialogComponent } from '../pf-share-dialog/pf-share-dialog.component';
 import { PfListingComponent, ago } from '@everise/party-finder/feature-pf-listing';
 
-// The Party Finder: the listings up on a data centre (the one in the address,
-// /party-finder/chaos; else the one picked last, or Light, Everise's, from
-// Odin to start), as xivpf.com collects them from players' plugins,
+// The Party Finder: the listings up on a data centre (the one in the query
+// string, ?dc=chaos; else Light, Everise's, from Odin), as xivpf.com
+// collects them from players' plugins,
 // refreshed every 30 seconds while the page is in view (PartyFinderStore),
 // in the game's order or another, a page at a time. Open to everyone.
 @Component({
@@ -37,6 +21,7 @@ import { PfListingComponent, ago } from '@everise/party-finder/feature-pf-listin
   styleUrl: './party-finder.component.scss',
   imports: [
     PfFiltersComponent,
+    PfDataCentresComponent,
     PfListingComponent,
     ButtonComponent,
     IconComponent,
@@ -60,10 +45,6 @@ export class PartyFinderComponent {
     const shared = this.share.shared();
     return shared?.way === 'post' ? shared.articleId : '';
   });
-  protected readonly pathOf = dataCentrePath;
-
-  // The data centre in the address (/party-finder/chaos), from the route.
-  readonly dataCentre = input<string>();
   // A listing shared in the Everise Discord (?listing=<id>), shown first
   // while it's up.
   // (In the template's loops, `listing` is each listing instead.)
@@ -75,14 +56,6 @@ export class PartyFinderComponent {
   protected readonly checked = computed(() => ago(this.store.checkedAt(), this.store.now()));
   private readonly status = viewChild<ElementRef<HTMLElement>>('status');
   private readonly listingsHeading = viewChild<ElementRef<HTMLElement>>('listingsHeading');
-
-  constructor() {
-    // Another data centre's link on this page keeps the page: follow it.
-    effect(() => {
-      const name = this.dataCentre();
-      if (name) untracked(() => this.store.setDataCentre(dataCentreName(name)));
-    });
-  }
 
   protected openShare(listing: PartyFinderListing, way: ShareWay, icons: PartyFinderBoard['icons']) {
     this.share.open(listing, way, this.store.dataCentre(), icons);

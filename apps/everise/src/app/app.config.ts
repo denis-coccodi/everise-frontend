@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
-import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
-import { TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
+import { ApplicationConfig, inject, provideZonelessChangeDetection } from '@angular/core';
+import { Router, TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { AuthGuard, discordLinkGuard } from '@everise/auth/data-access';
 import { errorHandlingInterceptor } from '@everise/core/error-handler';
 import { API_URL } from '@everise/core/http-client';
@@ -72,19 +72,26 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/waking-sands/feature-waking-sands').then((m) => m.WakingSandsComponent),
         },
         {
+          // Everything the page shows is in its query string (?dc=light&world=odin...),
+          // so the title follows it.
           path: 'party-finder',
-          title: 'Party Finder',
+          title: (route) => {
+            const dataCentre = route.queryParamMap.get('dc');
+            return dataCentre ? `${capitalised(dataCentre)} Party Finder` : 'Party Finder';
+          },
+          runGuardsAndResolvers: 'paramsOrQueryParamsChange',
           canActivate: [discordLinkGuard],
           // Open to everyone: the listings are public in the game and on xivpf.
           loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
         },
         {
-          // A data centre's own page (/party-finder/light), which search
-          // engines list and links share.
+          // A data centre's old address (/party-finder/light), from links
+          // shared before: the same page by query, the rest of the query kept.
           path: 'party-finder/:dataCentre',
-          canActivate: [discordLinkGuard],
-          title: (route) => `${capitalised(route.paramMap.get('dataCentre') ?? '')} Party Finder`,
-          loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
+          redirectTo: ({ params, queryParams }) =>
+            inject(Router).createUrlTree(['/party-finder'], {
+              queryParams: { ...queryParams, dc: String(params['dataCentre']).toLowerCase() },
+            }),
         },
         {
           path: 'settings',

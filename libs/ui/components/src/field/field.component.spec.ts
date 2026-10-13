@@ -9,6 +9,7 @@ import { FieldComponent } from './field.component';
     <cdt-field id="optional"><input /></cdt-field>
     <cdt-field id="labelled" label="Email" for="email" required><input id="email" /></cdt-field>
     <cdt-field id="hidden" label="Comment" for="comment" hideLabel><textarea id="comment"></textarea></cdt-field>
+    <cdt-field id="hinted" label="World" for="world" hint="Where you play from"><select id="world"></select></cdt-field>
   `,
 })
 class HostComponent {}
@@ -42,5 +43,19 @@ describe('FieldComponent', () => {
     const hidden = el('hidden').querySelector('label') as HTMLLabelElement;
     expect(hidden.classList).toContain('visually-hidden');
     expect((el('comment') as HTMLTextAreaElement).labels?.[0]).toBe(hidden);
+  });
+
+  it('gives extra detail in a tooltip beside the label, not in it', async () => {
+    const el = await render();
+
+    const label = el('hinted').querySelector('label') as HTMLLabelElement;
+    expect(label.textContent?.trim()).toBe('World');
+    const tip = el('hinted').querySelector('cdt-tooltip') as HTMLElement;
+    expect(label.contains(tip)).toBe(false);
+    const trigger = tip.querySelector('.trigger') as HTMLElement;
+    expect(trigger.getAttribute('tabindex')).toBe('0');
+    expect(trigger.textContent?.trim()).toBe('About World');
+    expect(tip.querySelector('[role=tooltip]')?.textContent).toBe('Where you play from');
+    expect(el('labelled').querySelector('cdt-tooltip')).toBeNull();
   });
 });

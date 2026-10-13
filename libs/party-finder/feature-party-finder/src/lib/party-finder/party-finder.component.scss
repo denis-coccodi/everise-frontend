@@ -80,46 +80,6 @@ h1 {
   text-align: center;
 }
 
-// Each data centre's own page, by region: links in rows.
-.data-centres {
-  margin-top: 2rem;
-  text-align: center;
-
-  h2 {
-    font-size: 1.1rem;
-  }
-
-  .region {
-    margin-top: 0.75rem;
-  }
-
-  h3 {
-    margin: 0 0 0.25rem;
-    font-size: 0.9rem;
-    color: var(--color-contrast-muted);
-  }
-
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.25rem 1rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  a {
-    display: inline-block;
-    padding: 0.25rem 0;
-  }
-
-  a[aria-current='page'] {
-    font-weight: 700;
-    text-decoration: none;
-  }
-}
-
 // A listing's share buttons, in its card's footer.
 .share {
   display: flex;

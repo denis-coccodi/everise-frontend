@@ -5,11 +5,33 @@
   margin-bottom: 1rem;
 }
 
+// The label, and the hint's icon beside it.
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+:host(:not(.labelled)) .head {
+  margin-bottom: 0;
+}
+
 .label {
   display: block;
-  margin-bottom: 0.35rem;
   font-weight: 600;
   color: var(--color-contrast-soft);
+}
+
+.hint {
+  display: inline-flex;
+  color: var(--color-contrast-muted);
+  cursor: help;
+}
+
+.hint:hover,
+.hint:focus-within {
+  color: var(--color-contrast);
 }
 
 .mark {

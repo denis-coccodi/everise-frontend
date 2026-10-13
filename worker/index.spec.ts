@@ -15,4 +15,14 @@ describe('the Worker', () => {
     expect(response.status).toBe(301);
     expect(response.headers.get('location')).toBe('https://everise.dev/?tag=roulette');
   });
+
+  it("moves a data centre's old address to its query string for good, keeping the rest", async () => {
+    const response = await worker.fetch(
+      new Request('https://everise.dev/party-finder/chaos?listing=7&from=discord'),
+      env,
+    );
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe('https://everise.dev/party-finder?dc=chaos&listing=7&from=discord');
+  });
 });
