@@ -158,8 +158,8 @@ h2 {
   overflow-wrap: anywhere;
 }
 
-.who,
-.what {
+// Who did it, and what: the links in the sentence.
+.text a {
   font-weight: 700;
   color: var(--color-contrast);
 }

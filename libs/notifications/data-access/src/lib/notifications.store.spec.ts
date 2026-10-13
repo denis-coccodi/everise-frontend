@@ -21,6 +21,8 @@ const list = (read: boolean): NotificationsResponse => ({
       actorCount: 1,
       article: null,
       comment: null,
+      partyFinder: null,
+      role: null,
     },
   ],
 });
