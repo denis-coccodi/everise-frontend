@@ -3,7 +3,8 @@
 // The site's screen widths, the only ones: a layout changes at one of these,
 // never at a number of its own. A component uses them with
 //   @use '<path to>/libs/ui/components/src/theme/breakpoints' as bp;
-//   @include bp.up(md) { … }
+//   @include bp.up(md) { … }      from md up
+//   @include bp.down(md) { … }    below md: exactly where up(md) doesn't apply
 // (mixins only: this file outputs no CSS, so using it keeps styles local).
 //   sm  576px  large phones in landscape: two-column lists
 //   md  768px  tablets: the navbar's links show, the grid's columns sit side by side
@@ -22,6 +23,17 @@ $widths: (
     @error 'Unknown breakpoint "#{$name}": use sm, md, lg or xl.';
   }
   @media (min-width: map.get($widths, $name)) {
+    @content;
+  }
+}
+
+// Below this width. A style only one side needs goes in up() or down(),
+// rather than being set for both and undone on the other.
+@mixin down($name) {
+  @if not map.has-key($widths, $name) {
+    @error 'Unknown breakpoint "#{$name}": use sm, md, lg or xl.';
+  }
+  @media not all and (min-width: map.get($widths, $name)) {
     @content;
   }
 }
