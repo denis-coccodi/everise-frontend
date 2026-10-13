@@ -1,0 +1,33 @@
+<div class="pf-listing-page">
+  <header class="hero">
+    <h1 class="xiv-title">Party Finder listing</h1>
+    @if (back(); as back) {
+      <p>
+        <a routerLink="/party-finder" [queryParams]="back.query">Every listing on the {{ back.name }}</a>
+      </p>
+    }
+  </header>
+
+  @switch (store.loadState()) {
+    @case ('loading') {
+      <p class="notice" role="status">Finding the listing…</p>
+    }
+    @case ('gone') {
+      <cdt-message tone="warning">{{ store.error() }}</cdt-message>
+    }
+    @case ('error') {
+      <cdt-message tone="error">{{ store.error() }}</cdt-message>
+    }
+    @default {
+      @if (store.found(); as found) {
+        <cdt-pf-listing [listing]="found.listing" [icons]="found.icons" [now]="store.now()" />
+        <p class="checked">
+          On {{ found.dataCentre }} · checked {{ checked() }}
+          @if (store.error()) {
+            · {{ store.error() }}
+          }
+        </p>
+      }
+    }
+  }
+</div>

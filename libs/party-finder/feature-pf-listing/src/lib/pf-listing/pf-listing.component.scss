@@ -12,6 +12,35 @@
   height: 100%;
 }
 
+// A listing with its own page: the title's link covers the whole card, so
+// a click anywhere opens it; the slots (their tooltips) and the footer's
+// buttons stay above it.
+:host(.linked) {
+  position: relative;
+}
+
+.open {
+  color: inherit;
+  text-decoration: none;
+}
+
+.open:hover,
+.open:focus-visible {
+  text-decoration: underline;
+}
+
+.open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+:host(.linked) cdt-pf-party,
+:host(.linked) .footer {
+  position: relative;
+  z-index: 1;
+}
+
 .head {
   display: flex;
   align-items: flex-start;

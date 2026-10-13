@@ -1657,6 +1657,53 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/party-finder/listings/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** One Party Finder listing, while it is up */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The listing. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PartyFinderListingResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/party-finder/posts': {
     parameters: {
       query?: never;
@@ -3091,6 +3138,71 @@ export interface components {
         /** Format: date-time */
         expiresAt: string;
       }[];
+    };
+    PartyFinderListingResponse: {
+      /** @enum {string} */
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
+      /** Format: date-time */
+      fetchedAt: string;
+      icons: {
+        tank: number;
+        healer: number;
+        dps: number;
+        beginner: number;
+      };
+      listing: {
+        id: string;
+        recruiter: string;
+        description: string;
+        world: {
+          id: number;
+          name: string;
+        };
+        homeWorld: {
+          id: number;
+          name: string;
+        };
+        category: string;
+        duty: string | null;
+        dutyIcon: number | null;
+        level: number | null;
+        sortKey: number | null;
+        highEnd: boolean;
+        worldOnly: boolean;
+        onePlayerPerJob: boolean;
+        beginnersWelcome: boolean;
+        minItemLevel: number;
+        objective: ('completion' | 'practice' | 'loot') | null;
+        dutyComplete: boolean;
+        /** @enum {string} */
+        loot: 'normal' | 'greed-only' | 'lootmaster';
+        parties: number;
+        slots: {
+          job: string | null;
+          icon: number | null;
+          roles: ('tank' | 'healer' | 'dps')[];
+          accepts: {
+            /** @enum {string} */
+            role: 'tank' | 'healer' | 'dps';
+            jobs: string[];
+          }[];
+        }[];
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      };
     };
     RouletteCard: {
       type: string;

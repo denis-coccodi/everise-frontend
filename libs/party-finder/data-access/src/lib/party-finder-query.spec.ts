@@ -1,5 +1,11 @@
 import { convertToParamMap } from '@angular/router';
-import { PartyFinderSelection, dataCentreQuery, selectionFromQuery, selectionToQuery } from './party-finder-query';
+import {
+  PartyFinderSelection,
+  dataCentreQuery,
+  listingPage,
+  selectionFromQuery,
+  selectionToQuery,
+} from './party-finder-query';
 
 const query = (params: Record<string, string>) => convertToParamMap(params);
 
@@ -78,5 +84,9 @@ describe('the Party Finder query string', () => {
 
   it("links to a data centre's page by its id", () => {
     expect(dataCentreQuery('Materia')).toEqual({ dc: 'materia' });
+  });
+
+  it("links to a listing's own page by its id", () => {
+    expect(listingPage({ id: 'light-1789630212-1' })).toBe('/party-finder/listings/light-1789630212-1');
   });
 });

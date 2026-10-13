@@ -85,6 +85,15 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/party-finder/feature-party-finder').then((m) => m.PartyFinderComponent),
         },
         {
+          // One listing's own page, which links share (from the Everise
+          // Discord too); open to everyone.
+          path: 'party-finder/listings/:id',
+          title: 'Party Finder listing',
+          canActivate: [discordLinkGuard],
+          loadComponent: () =>
+            import('@everise/party-finder/feature-party-finder').then((m) => m.PfListingPageComponent),
+        },
+        {
           // A data centre's old address (/party-finder/light), from links
           // shared before: the same page by query, the rest of the query kept.
           path: 'party-finder/:dataCentre',

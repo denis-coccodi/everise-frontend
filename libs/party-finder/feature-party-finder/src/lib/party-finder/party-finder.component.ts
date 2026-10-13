@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DiscordSharingService } from '@everise/articles/data-access';
 import { AuthStore } from '@everise/auth/data-access';
 import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
-import { PartyFinderStore, PfShareStore, ShareWay, listingTitle } from '@everise/party-finder/data-access';
+import { PartyFinderStore, PfShareStore, ShareWay, listingPage, listingTitle } from '@everise/party-finder/data-access';
 import { ButtonComponent, IconComponent, MessageComponent, PagerComponent } from '@everise/ui/components';
 import { PfDataCentresComponent } from '../pf-data-centres/pf-data-centres.component';
 import { PfFiltersComponent } from '../pf-filters/pf-filters.component';
@@ -41,6 +41,8 @@ export class PartyFinderComponent {
   protected readonly share = inject(PfShareStore);
   protected readonly discordAvailable = inject(DiscordSharingService).available;
   protected readonly titleOf = listingTitle;
+  // Each listing opens its own page.
+  protected readonly pageOf = listingPage;
   protected readonly sharedPostId = computed(() => {
     const shared = this.share.shared();
     return shared?.way === 'post' ? shared.articleId : '';

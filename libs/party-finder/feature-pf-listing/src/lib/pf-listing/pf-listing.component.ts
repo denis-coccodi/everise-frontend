@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { PartyFinderBoard, PartyFinderListing } from '@everise/core/api-types';
 import { API_URL, gameImageUrl } from '@everise/core/http-client';
 import { categoryName, listingTitle } from '@everise/party-finder/data-access';
@@ -15,13 +16,15 @@ const LOOT = { normal: '', 'greed-only': 'Greed Only', lootmaster: 'Lootmaster' 
 // many players it still needs, and its slots. Content marked
 // cdtPfListingActions (the Party Finder page's share buttons) goes in its
 // footer. Also shows shared listings in the feeds, as they were. `fill`
-// makes it as tall as its grid cell, for the Party Finder's tiles.
+// makes it as tall as its grid cell, for the Party Finder's tiles. `link`
+// makes the title a link to the listing's own page, which the whole card
+// follows.
 @Component({
   selector: 'cdt-pf-listing',
-  host: { '[class.fill]': 'fill()' },
+  host: { '[class.fill]': 'fill()', '[class.linked]': '!!link()' },
   templateUrl: './pf-listing.component.html',
   styleUrl: './pf-listing.component.scss',
-  imports: [CardComponent, PfPartyComponent],
+  imports: [CardComponent, PfPartyComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PfListingComponent {
@@ -30,6 +33,8 @@ export class PfListingComponent {
   readonly now = input.required<number>();
   readonly icons = input.required<PartyFinderBoard['icons']>();
   readonly fill = input(false);
+  // The listing's own page, e.g. /party-finder/listings/light-1789630212-1.
+  readonly link = input<string | null>(null);
 
   private readonly apiUrl = inject(API_URL);
   // The sprout didn't load: words instead, tried again on the next refresh.

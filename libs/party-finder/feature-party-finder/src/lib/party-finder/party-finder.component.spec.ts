@@ -266,6 +266,20 @@ describe('PartyFinderComponent', () => {
     });
   });
 
+  it("opens a listing's own page from its card, the share buttons staying buttons", async () => {
+    const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    const card = page.querySelector('cdt-pf-listing') as HTMLElement;
+    const link = card.querySelector('h3 a') as HTMLAnchorElement;
+    expect(link.textContent?.trim()).toBe('The Unending Coil of Bahamut (Ultimate)');
+    expect(link.getAttribute('href')).toBe('/party-finder/listings/66-1');
+    expect(card.classList).toContain('linked');
+    expect(card.querySelector('.share a')).toBeNull();
+    expect(card.querySelectorAll('.share button')).toHaveLength(2);
+  });
+
   it('opens what a link asks for, and drops a world the data centre does not have', async () => {
     const { fixture, http, select } = await render(
       '/party-finder?dc=light&world=moogle&category=high-end-duty&slot=tank&sort=name&no-duty=show',
