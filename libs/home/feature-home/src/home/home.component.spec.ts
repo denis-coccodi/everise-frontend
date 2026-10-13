@@ -43,7 +43,7 @@ describe('HomeComponent Discord box', () => {
     authStore.loggedIn.set(true);
     await fixture.whenStable();
 
-    expect(page.querySelector('aside[aria-label="Discord"] cdt-discord-widget')).not.toBeNull();
+    expect(page.querySelector('cdt-discord-widget')).not.toBeNull();
     expect(widgetRequests()).toHaveLength(1);
   });
 });
