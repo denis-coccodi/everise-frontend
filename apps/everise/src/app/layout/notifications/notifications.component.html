@@ -37,12 +37,13 @@
             <li class="item" [class.unread]="!notification.read">
               <a
                 class="picture"
-                [routerLink]="linkOf(notification)"
+                [routerLink]="linkOf(notification).path"
+                [queryParams]="linkOf(notification).query"
                 tabindex="-1"
                 aria-hidden="true"
                 (click)="opened(notification)"
               >
-                <cdt-avatar [src]="notification.actors[0]?.image" [size]="44" />
+                <cdt-avatar [src]="notification.actors[0]?.image ?? crest" [size]="44" />
                 <span class="kind" [attr.data-kind]="notification.type"
                   ><cdt-icon [name]="kindIcons[notification.type]"
                 /></span>
@@ -50,13 +51,9 @@
               <div class="body">
                 <p class="text">
                   @for (part of partsOf(notification); track $index) {
-                    @if (part.kind === 'actor') {
-                      <a class="who" [routerLink]="['/profile', part.actor.id]" (click)="opened(notification)">{{
-                        part.actor.username
-                      }}</a>
-                    } @else if (part.kind === 'post') {
-                      <a class="what" [routerLink]="['/article', part.id]" (click)="opened(notification)">{{
-                        part.title
+                    @if (part.kind === 'link') {
+                      <a [routerLink]="part.path" [queryParams]="part.query" (click)="opened(notification)">{{
+                        part.text
                       }}</a>
                     } @else {
                       <span>{{ part.text }}</span>

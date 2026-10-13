@@ -1,14 +1,25 @@
 import { Notification, NotificationActor } from '@everise/core/api-types';
 
-// A notification's sentence, in parts the header links: a member (their
-// profile), the post (the post), or plain words.
-export type NotificationPart =
-  | { kind: 'text'; text: string }
-  | { kind: 'actor'; actor: NotificationActor }
-  | { kind: 'post'; id: string; title: string };
+// Where a link in the header goes: a route, and its query when it has one.
+export interface NotificationTarget {
+  path: string[];
+  query?: Record<string, string>;
+}
+
+// A notification's sentence, in parts: plain words, or a link (a member to
+// their profile, the post, the Party Finder).
+export type NotificationPart = { kind: 'text'; text: string } | ({ kind: 'link'; text: string } & NotificationTarget);
 
 const text = (value: string): NotificationPart => ({ kind: 'text', text: value });
-const actor = (value: NotificationActor): NotificationPart => ({ kind: 'actor', actor: value });
+const link = (value: string, target: NotificationTarget): NotificationPart => ({
+  kind: 'link',
+  text: value,
+  ...target,
+});
+const actor = (value: NotificationActor) => link(value.username, { path: ['/profile', value.id] });
+
+// What an admin made the member, in words.
+const ROLE_NAMES: Record<string, string> = { 'staging-tester': 'a staging tester', user: 'a member' };
 
 // Who did it, as Facebook says it: "Alisaie", "Alisaie and Alphinaud",
 // "Alisaie, Alphinaud and Tataru", "Alisaie, Alphinaud and 3 others".
@@ -21,23 +32,40 @@ function names(actors: NotificationActor[], count: number): NotificationPart[] {
 }
 
 export function notificationParts(notification: Notification): NotificationPart[] {
-  const who = names(notification.actors, notification.actorCount);
   const post = notification.article;
   const onPost = (verb: string): NotificationPart[] =>
-    post ? [text(` ${verb} your post `), { kind: 'post', id: post.id, title: post.title || 'Untitled' }] : [];
+    post ? [text(` ${verb} your post `), link(post.title || 'Untitled', { path: ['/article', post.id] })] : [];
   switch (notification.type) {
     case 'favorite':
-      return [...who, ...onPost('liked')];
+      return [...names(notification.actors, notification.actorCount), ...onPost('liked')];
     case 'comment':
-      return [...who, ...onPost('commented on')];
+      return [...names(notification.actors, notification.actorCount), ...onPost('commented on')];
     case 'follow':
-      return [...who, text(' started following you')];
+      return [...names(notification.actors, notification.actorCount), text(' started following you')];
+    case 'pf-ended': {
+      const listing = notification.partyFinder;
+      if (!listing) return [text('A Party Finder listing you shared is no longer up')];
+      return [
+        text('Your shared listing '),
+        link(listing.title, notificationLink(notification)),
+        text(` on ${listing.dataCentre} is no longer up: it filled up, ended or was taken down`),
+      ];
+    }
+    case 'role':
+      return [text(`An admin made you ${ROLE_NAMES[notification.role ?? ''] ?? notification.role}`)];
   }
 }
 
-// Where opening the notification leads: the post, or the follower's profile.
-export function notificationLink(notification: Notification): string[] {
-  return notification.article ? ['/article', notification.article.id] : ['/profile', notification.actors[0]?.id ?? ''];
+// Where opening the notification leads: the post; a follower's profile; an
+// ended listing's data centre on the Party Finder (or the post it was shared
+// as); for a new role, the settings.
+export function notificationLink(notification: Notification): NotificationTarget {
+  if (notification.article) return { path: ['/article', notification.article.id] };
+  if (notification.partyFinder) {
+    return { path: ['/party-finder'], query: { dc: notification.partyFinder.dataCentre.toLowerCase() } };
+  }
+  if (notification.type === 'role') return { path: ['/settings'] };
+  return { path: ['/profile', notification.actors[0]?.id ?? ''] };
 }
 
 // "just now", "5 min", "3 h", "2 d", then the date: how long ago.

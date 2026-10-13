@@ -11,8 +11,18 @@ import {
 import { AvatarComponent, ButtonComponent, IconComponent, MessageComponent } from '@everise/ui/components';
 import { filter } from 'rxjs';
 
-// What each kind shows on the picture: a heart, a speech bubble, a plus.
-const KIND_ICONS = { favorite: 'heart', comment: 'chat', follow: 'plus' } as const;
+// What each kind shows on the picture: a heart, a speech bubble, a plus,
+// the Party Finder's people, a cog.
+const KIND_ICONS = {
+  favorite: 'heart',
+  comment: 'chat',
+  follow: 'plus',
+  'pf-ended': 'party',
+  role: 'settings',
+} as const;
+
+// The site's own notifications (an ended listing, a new role) show its crest.
+const CREST = 'assets/images/everise-crest.png';
 
 // The header's bell, for signed-in members, as Facebook has it: a badge
 // with how many are new, and a panel (a disclosure) listing them, newest
@@ -43,6 +53,7 @@ export class NotificationsComponent {
     return count > 9 ? '9+' : String(count);
   });
   protected readonly kindIcons = KIND_ICONS;
+  protected readonly crest = CREST;
   protected readonly partsOf = notificationParts;
   protected readonly linkOf = notificationLink;
 

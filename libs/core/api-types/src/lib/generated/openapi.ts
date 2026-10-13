@@ -3739,7 +3739,7 @@ export interface components {
       notifications: {
         id: string;
         /** @enum {string} */
-        type: 'favorite' | 'comment' | 'follow';
+        type: 'favorite' | 'comment' | 'follow' | 'pf-ended' | 'role';
         /** Format: date-time */
         at: string;
         seen: boolean;
@@ -3758,6 +3758,12 @@ export interface components {
           id: string;
           excerpt: string;
         } | null;
+        partyFinder: {
+          listingId: string;
+          dataCentre: string;
+          title: string;
+        } | null;
+        role: string | null;
       }[];
       unseenCount: number;
     };

@@ -26,6 +26,8 @@ function notification(changes: Partial<Notification>): Notification {
     actorCount: 2,
     article: { id: 'post-1', title: 'Coil tonight' },
     comment: null,
+    partyFinder: null,
+    role: null,
     ...changes,
   };
 }
@@ -119,7 +121,7 @@ describe('NotificationsComponent', () => {
     http.expectOne('/notifications/seen').flush(answer([notification({})]));
     await stable();
 
-    (panel().querySelector('a.what') as HTMLAnchorElement).click();
+    (panel().querySelector('.text a[href^="/article"]') as HTMLAnchorElement).click();
     await stable();
 
     expect(TestBed.inject(Router).url).toBe('/article/post-1');
@@ -152,6 +154,32 @@ describe('NotificationsComponent', () => {
     (page.querySelector('#outside') as HTMLElement).click();
     await stable();
     expect(panel().hidden).toBe(true);
+  });
+
+  it("shows the site's own news with its crest: a shared listing that ended, linked to its data centre", async () => {
+    const { http, bell, panel, stable } = await render();
+    bell().click();
+    await stable();
+    http.expectOne('/notifications/seen').flush(
+      answer([
+        notification({
+          id: 'pf-ended:share-1',
+          type: 'pf-ended',
+          actors: [],
+          actorCount: 0,
+          article: null,
+          partyFinder: { listingId: 'light-1-1', dataCentre: 'Light', title: 'The Omega Protocol (Ultimate)' },
+        }),
+      ]),
+    );
+    await stable();
+
+    const item = panel().querySelector('li.item') as HTMLElement;
+    expect(item.querySelector('cdt-avatar img')?.getAttribute('src')).toBe('assets/images/everise-crest.png');
+    expect(item.querySelector('.kind')?.getAttribute('data-kind')).toBe('pf-ended');
+    const link = item.querySelector('.text a') as HTMLAnchorElement;
+    expect(link.textContent?.trim()).toBe('The Omega Protocol (Ultimate)');
+    expect(link.getAttribute('href')).toBe('/party-finder?dc=light');
   });
 
   it('says so when there are none yet', async () => {
