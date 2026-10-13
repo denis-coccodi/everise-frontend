@@ -94,6 +94,13 @@ export const appConfig: ApplicationConfig = {
             import('@everise/party-finder/feature-party-finder').then((m) => m.PfListingPageComponent),
         },
         {
+          // Items' prices over time; what's picked is in the query string
+          // (?items=5111&scope=odin). Open to everyone.
+          path: 'market',
+          title: 'Market Board',
+          loadComponent: () => import('@everise/market/feature-market').then((m) => m.MarketComponent),
+        },
+        {
           path: 'settings',
           title: 'Settings',
           loadComponent: () =>

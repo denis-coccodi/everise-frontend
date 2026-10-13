@@ -1,0 +1,45 @@
+<div class="market-page">
+  <header class="hero">
+    <h1 class="xiv-title">Market Board</h1>
+    <p>
+      Up to three items' prices over time, on your world or a whole data centre: each day's middle price per unit, from
+      the sales players report to Universalis.
+    </p>
+  </header>
+
+  <div class="choices">
+    <cdt-market-item-picker />
+    <cdt-market-controls />
+  </div>
+
+  <cdt-message tone="error">{{ store.error() }}</cdt-message>
+  <cdt-message>{{ status() }}</cdt-message>
+
+  <cdt-panel heading="Price history">
+    @if (!store.items().length) {
+      <p class="notice">Add an item to see its price history.</p>
+    } @else if (store.loadState() === 'loading') {
+      <p class="notice">Reading the market board…</p>
+    } @else if (store.loadState() === 'error') {
+      <p class="notice">The prices couldn't be read. Try again in a minute.</p>
+    } @else {
+      <cdt-line-chart
+        [lines]="lines()"
+        [from]="from()"
+        [to]="to()"
+        [scale]="store.scale()"
+        label="Day shown"
+        unit="gil"
+      />
+      <p class="note">
+        Each point is a day's middle price per unit, with that day's sales and its lowest and highest price. Days
+        without sales have no point.
+      </p>
+    }
+  </cdt-panel>
+
+  <p class="source">
+    Prices from <a href="https://universalis.app" target="_blank" rel="noopener">Universalis</a>, which keeps what
+    players' uploads report, from late October 2022. Item names and icons from XIVAPI.
+  </p>
+</div>

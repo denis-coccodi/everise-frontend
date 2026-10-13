@@ -1,0 +1,161 @@
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChartScale, fullNumber, longDay, timeFraction, timeTicks, valueAxis, valueFraction } from './chart-scales';
+
+export interface ChartPoint {
+  // When (ms; a UTC day's start).
+  at: number;
+  value: number;
+  // More about the point, read after its value ("5 sales").
+  detail?: string;
+}
+
+export interface ChartLine {
+  name: string;
+  points: ChartPoint[];
+}
+
+// The plot's drawing box; the SVG stretches it to the chart's size.
+const WIDTH = 1000;
+const HEIGHT = 400;
+// Lines with this many points or fewer show each point as a dot.
+const DOTS_UP_TO = 40;
+
+// A time series chart: up to three lines over the days from `from` to `to`
+// (ms), told apart by colour and dash, values on a linear or log axis.
+// A cursor marks one day; the pointer or the arrow keys move it (the plot is
+// a slider, Home/End and Page Up/Down too), and the line above the plot says
+// each line's value that day. The legend says each line's latest, lowest
+// and highest value, so the chart reads without seeing it.
+// <cdt-line-chart [lines]="…" [from]="…" [to]="…" label="Day" unit="gil" />
+@Component({
+  selector: 'cdt-line-chart',
+  templateUrl: './line-chart.component.html',
+  styleUrl: './line-chart.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class LineChartComponent {
+  readonly lines = input.required<ChartLine[]>();
+  readonly from = input.required<number>();
+  readonly to = input.required<number>();
+  readonly scale = input<ChartScale>('linear');
+  // The slider's name, e.g. "Day shown".
+  readonly label = input.required<string>();
+  // What the values count, after each one ("gil").
+  readonly unit = input('');
+
+  // The day the cursor is on (an index into `days`); null: the last day.
+  private readonly picked = signal<number | null>(null);
+
+  // Every day some line has a point on, in order.
+  protected readonly days = computed(() =>
+    [...new Set(this.lines().flatMap((line) => line.points.map((point) => point.at)))].sort((a, b) => a - b),
+  );
+  protected readonly index = computed(() => {
+    const last = this.days().length - 1;
+    return Math.min(this.picked() ?? last, last);
+  });
+  protected readonly at = computed(() => this.days()[this.index()] ?? null);
+
+  protected readonly axis = computed(() => {
+    const values = this.lines().flatMap((line) => line.points.map((point) => point.value));
+    return values.length
+      ? valueAxis(Math.min(...values), Math.max(...values), this.scale())
+      : valueAxis(0, 1, this.scale());
+  });
+  protected readonly yTicks = computed(() =>
+    this.axis().ticks.map((tick) => ({ label: tick.label, top: (1 - valueFraction(tick.value, this.axis())) * 100 })),
+  );
+  protected readonly xTicks = computed(() =>
+    timeTicks(this.from(), this.to()).map((tick) => ({ label: tick.label, left: this.left(tick.value) })),
+  );
+  protected readonly paths = computed(() =>
+    this.lines().map((line) =>
+      line.points
+        .map((point) => `${(this.left(point.at) * WIDTH) / 100},${(this.top(point.value) * HEIGHT) / 100}`)
+        .join(' '),
+    ),
+  );
+  // The points of lines with few of them, as dots.
+  protected readonly dots = computed(() =>
+    this.lines().flatMap((line, i) =>
+      line.points.length > DOTS_UP_TO
+        ? []
+        : line.points.map((point) => ({ line: i, left: this.left(point.at), top: this.top(point.value) })),
+    ),
+  );
+
+  // Each line's point on the cursor's day, if it has one.
+  protected readonly cursor = computed(() => {
+    const at = this.at();
+    if (at === null) return null;
+    return {
+      date: longDay.format(at),
+      left: this.left(at),
+      values: this.lines().map((line, i) => {
+        const point = line.points.find((p) => p.at === at);
+        return {
+          line: i,
+          name: line.name,
+          text: point ? this.valueText(point) : 'no sales',
+          top: point ? this.top(point.value) : null,
+        };
+      }),
+    };
+  });
+  protected readonly cursorText = computed(() => {
+    const cursor = this.cursor();
+    return cursor ? `${cursor.date}: ${cursor.values.map((v) => `${v.name} ${v.text}`).join('; ')}` : '';
+  });
+
+  // Each line's latest, lowest and highest value.
+  protected readonly summaries = computed(() =>
+    this.lines().map((line) => {
+      if (!line.points.length) return 'nothing in these days';
+      const values = line.points.map((point) => point.value);
+      return (
+        `latest ${this.amount(line.points[line.points.length - 1].value)}, ` +
+        `low ${this.amount(Math.min(...values))}, high ${this.amount(Math.max(...values))}`
+      );
+    }),
+  );
+
+  protected onKey(event: KeyboardEvent) {
+    const last = this.days().length - 1;
+    const moves: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, PageUp: -30, PageDown: 30 };
+    let next: number;
+    if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = last;
+    else if (event.key in moves) next = this.index() + moves[event.key];
+    else return;
+    event.preventDefault();
+    this.picked.set(Math.max(0, Math.min(last, next)));
+  }
+
+  // The day nearest the pointer.
+  protected onPointer(event: PointerEvent) {
+    const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (!box.width || !this.days().length) return;
+    const at = this.from() + ((event.clientX - box.left) / box.width) * (this.to() - this.from());
+    let nearest = 0;
+    this.days().forEach((day, i) => {
+      if (Math.abs(day - at) < Math.abs(this.days()[nearest] - at)) nearest = i;
+    });
+    this.picked.set(nearest);
+  }
+
+  private left(at: number) {
+    return timeFraction(at, this.from(), this.to()) * 100;
+  }
+
+  private top(value: number) {
+    return (1 - valueFraction(value, this.axis())) * 100;
+  }
+
+  private amount(value: number) {
+    return `${fullNumber.format(value)}${this.unit() ? ` ${this.unit()}` : ''}`;
+  }
+
+  private valueText(point: ChartPoint) {
+    return `${this.amount(point.value)}${point.detail ? ` (${point.detail})` : ''}`;
+  }
+}

@@ -1,0 +1,103 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+// Each picked item in its chart line's colour.
+.line-0 {
+  --line-colour: var(--color-chart-1);
+}
+
+.line-1 {
+  --line-colour: var(--color-chart-2);
+}
+
+.line-2 {
+  --line-colour: var(--color-chart-3);
+}
+
+.picked,
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.picked li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-left: 4px solid var(--line-colour);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-strong);
+}
+
+.icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-contrast);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.picked button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.results {
+  max-height: 22rem;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-border);
+    background: var(--color-hover);
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--color-contrast-muted);
+  }
+}
+
+.category {
+  flex: none;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}
+
+.notice {
+  margin: 0.5rem 0 0;
+  color: var(--color-contrast-muted);
+}

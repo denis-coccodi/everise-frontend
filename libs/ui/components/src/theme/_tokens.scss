@@ -120,6 +120,12 @@
   --color-highlight-strong: var(--palette-magenta-300);
   --color-on-highlight: var(--palette-mist-0);
 
+  /* A chart's lines (the market page), told apart by hue, and by dash too:
+     each at least 4.5:1 on the surfaces in both modes. */
+  --color-chart-1: var(--palette-crystal-300);
+  --color-chart-2: var(--palette-amber-300);
+  --color-chart-3: var(--palette-magenta-300);
+
   /* The crystal motif (icons, the wheel hub): teal in both modes. */
   --color-crystal: var(--palette-crystal-500);
   --color-crystal-bright: var(--palette-crystal-100);
@@ -238,6 +244,10 @@ body.light {
   --color-accent: var(--palette-amber-500);
   --color-accent-strong: var(--palette-amber-700);
   --color-highlight-strong: var(--palette-magenta-600);
+
+  --color-chart-1: var(--palette-royal-700);
+  --color-chart-2: var(--palette-amber-700);
+  --color-chart-3: var(--palette-magenta-600);
 
   --color-avatar: var(--palette-mist-200);
 

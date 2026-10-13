@@ -1,0 +1,69 @@
+<cdt-panel heading="Items">
+  @if (store.items().length) {
+    <ul class="picked" aria-label="Items compared">
+      @for (id of store.items(); track id; let i = $index) {
+        <li [class]="'line-' + i">
+          @if (store.picked()[i]; as item) {
+            <img class="icon" [src]="icon(item)" alt="" width="32" height="32" />
+            <span class="name">{{ item.name }}</span>
+            <button
+              type="button"
+              cdtButton="outline-secondary"
+              size="sm"
+              [attr.aria-label]="'Remove ' + item.name"
+              (click)="store.remove(id)"
+            >
+              <cdt-icon name="close" />
+            </button>
+          } @else {
+            <span class="name">Item {{ id }}</span>
+            <button
+              type="button"
+              cdtButton="outline-secondary"
+              size="sm"
+              [attr.aria-label]="'Remove item ' + id"
+              (click)="store.remove(id)"
+            >
+              <cdt-icon name="close" />
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (store.full()) {
+    <p class="notice">{{ max }} items is the most a chart compares: remove one to add another.</p>
+  } @else {
+    <cdt-field label="Add an item" for="market-search" hint="Type at least 2 letters of its name, then pick it.">
+      <input
+        #search
+        id="market-search"
+        type="search"
+        cdtInput
+        autocomplete="off"
+        placeholder="Iron Ore, Grade 8 Tincture…"
+        (input)="store.search(search.value)"
+      />
+    </cdt-field>
+    <p class="visually-hidden" aria-live="polite">{{ found() }}</p>
+    @if (store.searchState() === 'error') {
+      <p class="notice">{{ store.searchError() }}</p>
+    } @else if (store.results().length) {
+      <ul class="results" aria-label="Items found">
+        @for (item of store.results(); track item.id) {
+          <li>
+            <button type="button" class="result" [disabled]="picked(item)" (click)="add(item)">
+              <img class="icon" [src]="icon(item)" alt="" width="32" height="32" />
+              <span class="name">{{ item.name }}</span
+              >{{ ' ' }}
+              <span class="category">{{ picked(item) ? 'Picked' : item.category }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (store.searchState() === 'done') {
+      <p class="notice">No item the market board sells has that name.</p>
+    }
+  }
+</cdt-panel>

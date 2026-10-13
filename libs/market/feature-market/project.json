@@ -1,0 +1,17 @@
+{
+  "name": "market-feature-market",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/market/feature-market/src",
+  "prefix": "cdt",
+  "tags": ["type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/market/feature-market"
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+# market-feature-market
+
+The market page (`/market`, `MarketComponent`): up to three items' prices over time, on a world or a whole data centre, drawn with `<cdt-line-chart>` from the UI library: each day's middle price per unit, its sales and its lowest and highest price. `cdt-market-item-picker` searches items by name and lists the ones picked, each in its line's colour; `cdt-market-controls` picks the place, the sales (all, NQ, HQ), the days (dates or a quick range, never before the history starts) and a logarithmic price axis. The state is `MarketStore` from `@everise/market/data-access`. `market-page-testing.ts` holds the specs' fixtures and the page as the app routes it.

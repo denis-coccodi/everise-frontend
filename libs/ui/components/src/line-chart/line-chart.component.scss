@@ -1,0 +1,195 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme). The
+// lines are told apart by colour (--color-chart-*) and by dash.
+
+@use '../theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.chart {
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.5rem;
+  }
+}
+
+.swatch {
+  flex: none;
+  width: 28px;
+  height: 8px;
+  align-self: center;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--color-contrast);
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  color: var(--color-contrast-muted);
+  font-size: 0.9rem;
+}
+
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1rem;
+  min-height: 1.5em;
+  margin: 0 0 0.5rem;
+  color: var(--color-contrast-soft);
+  font-size: 0.9rem;
+
+  strong {
+    color: var(--color-contrast);
+  }
+}
+
+// The axis labels sit around the plot: values on the left, dates below.
+.frame {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  grid-template-rows: auto 1.75rem;
+}
+
+.y-ticks,
+.x-ticks {
+  position: relative;
+  color: var(--color-contrast-muted);
+  font-size: 0.75rem;
+
+  span {
+    position: absolute;
+    white-space: nowrap;
+  }
+}
+
+.y-ticks span {
+  right: 0.4rem;
+  transform: translateY(-50%);
+}
+
+.x-ticks {
+  grid-column: 2;
+
+  span {
+    top: 0.3rem;
+    transform: translateX(-50%);
+  }
+}
+
+.plot {
+  position: relative;
+  height: 240px;
+  border-left: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width) solid var(--color-border);
+  border-radius: 0 0 0 var(--radius-sm);
+  cursor: crosshair;
+  // Sideways drags move the cursor; up and down still scroll the page.
+  touch-action: pan-y;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 4px;
+  }
+}
+
+@include bp.up(md) {
+  .plot {
+    height: 320px;
+  }
+}
+
+.lines {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--color-divider);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.swatch line {
+  stroke-width: 3;
+}
+
+// Colour and dash, each line its own.
+.line-0 {
+  --line-colour: var(--color-chart-1);
+}
+
+.line-1 {
+  --line-colour: var(--color-chart-2);
+  --line-dash: 9 5;
+}
+
+.line-2 {
+  --line-colour: var(--color-chart-3);
+  --line-dash: 2 4;
+}
+
+.line,
+.swatch line {
+  stroke: var(--line-colour);
+  stroke-dasharray: var(--line-dash, none);
+}
+
+.value::before {
+  content: '';
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  margin-inline-end: 0.3em;
+  border-radius: var(--radius-pill);
+  background: var(--line-colour);
+}
+
+.dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--line-colour);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.marker {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--color-surface);
+}
+
+.cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: var(--border-width) dashed var(--color-border-strong);
+  pointer-events: none;
+}

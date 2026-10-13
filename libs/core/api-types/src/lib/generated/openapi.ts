@@ -1454,6 +1454,337 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/market/history': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Items' prices a day, in a data centre or on a world */
+    get: {
+      parameters: {
+        query: {
+          scope?:
+            | 'light'
+            | 'alpha'
+            | 'lich'
+            | 'odin'
+            | 'phoenix'
+            | 'raiden'
+            | 'shiva'
+            | 'twintania'
+            | 'zodiark'
+            | 'chaos'
+            | 'cerberus'
+            | 'louisoix'
+            | 'moogle'
+            | 'omega'
+            | 'phantom'
+            | 'ragnarok'
+            | 'sagittarius'
+            | 'spriggan'
+            | 'aether'
+            | 'adamantoise'
+            | 'cactuar'
+            | 'faerie'
+            | 'gilgamesh'
+            | 'jenova'
+            | 'midgardsormr'
+            | 'sargatanas'
+            | 'siren'
+            | 'crystal'
+            | 'balmung'
+            | 'brynhildr'
+            | 'coeurl'
+            | 'diabolos'
+            | 'goblin'
+            | 'malboro'
+            | 'mateus'
+            | 'zalera'
+            | 'dynamis'
+            | 'cuchulainn'
+            | 'golem'
+            | 'halicarnassus'
+            | 'kraken'
+            | 'maduin'
+            | 'marilith'
+            | 'rafflesia'
+            | 'seraph'
+            | 'primal'
+            | 'behemoth'
+            | 'excalibur'
+            | 'exodus'
+            | 'famfrit'
+            | 'hyperion'
+            | 'lamia'
+            | 'leviathan'
+            | 'ultros'
+            | 'elemental'
+            | 'aegis'
+            | 'atomos'
+            | 'carbuncle'
+            | 'garuda'
+            | 'gungnir'
+            | 'kujata'
+            | 'tonberry'
+            | 'typhon'
+            | 'gaia'
+            | 'alexander'
+            | 'bahamut'
+            | 'durandal'
+            | 'fenrir'
+            | 'ifrit'
+            | 'ridill'
+            | 'tiamat'
+            | 'ultima'
+            | 'mana'
+            | 'anima'
+            | 'asura'
+            | 'chocobo'
+            | 'hades'
+            | 'ixion'
+            | 'masamune'
+            | 'pandaemonium'
+            | 'titan'
+            | 'meteor'
+            | 'belias'
+            | 'mandragora'
+            | 'ramuh'
+            | 'shinryu'
+            | 'unicorn'
+            | 'valefor'
+            | 'yojimbo'
+            | 'zeromus'
+            | 'materia'
+            | 'bismarck'
+            | 'ravana'
+            | 'sephirot'
+            | 'sophia'
+            | 'zurvan';
+          items: string;
+          quality?: 'all' | 'nq' | 'hq';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Each item's days. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketHistoryResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/icons/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An item's icon */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The icon. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'image/*': string;
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/items': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Items the market board sells, by name */
+    get: {
+      parameters: {
+        query: {
+          search: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The items found. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketItemsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/items/{ids}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Items the market board sells, by id (1,2,3) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          ids: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The items. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketItemsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/scopes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The data centres and worlds whose prices can be read */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The places. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketScopesResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/media': {
     parameters: {
       query?: never;
@@ -3670,6 +4001,53 @@ export interface components {
       pending: number;
       failed: number[];
       downloaded: number;
+    };
+    MarketItem: {
+      id: number;
+      name: string;
+      icon: number;
+      canBeHq: boolean;
+      category: string;
+    };
+    MarketItemsResponse: {
+      items: components['schemas']['MarketItem'][];
+    };
+    MarketScopesResponse: {
+      regions: {
+        name: string;
+        dataCentres: {
+          id: string;
+          name: string;
+          worlds: {
+            id: string;
+            name: string;
+          }[];
+        }[];
+      }[];
+      defaultScope: string;
+    };
+    MarketHistoryResponse: {
+      scope: {
+        id: string;
+        name: string;
+        /** @enum {string} */
+        kind: 'dataCentre' | 'world';
+      };
+      /** @enum {string} */
+      quality: 'all' | 'nq' | 'hq';
+      items: {
+        id: number;
+        days: {
+          day: string;
+          median: number;
+          min: number;
+          max: number;
+          sales: number;
+          quantity: number;
+        }[];
+        complete: boolean;
+        refreshedAt: string | null;
+      }[];
     };
     PartyFinderDiscordShareResponse: {
       /** @constant */

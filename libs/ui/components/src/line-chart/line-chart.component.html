@@ -1,0 +1,79 @@
+<figure class="chart">
+  <figcaption>
+    <ul class="legend">
+      @for (line of lines(); track $index) {
+        <li>
+          <svg [class]="'swatch line-' + $index" viewBox="0 0 28 8" aria-hidden="true" focusable="false">
+            <line x1="0" y1="4" x2="28" y2="4" />
+          </svg>
+          <span class="name">{{ line.name }}</span
+          >{{ ' ' }}
+          <span class="summary">{{ summaries()[$index] }}</span>
+        </li>
+      }
+    </ul>
+  </figcaption>
+
+  <!-- The cursor's day: each line's value then. -->
+  <p class="readout" aria-hidden="true">
+    @if (cursor(); as shown) {
+      <strong>{{ shown.date }}</strong>
+      @for (value of shown.values; track value.line) {
+        <span [class]="'value line-' + value.line">{{ value.name }}: {{ value.text }}</span>
+      }
+    }
+  </p>
+
+  <div class="frame">
+    <div class="y-ticks" aria-hidden="true">
+      @for (tick of yTicks(); track tick.top) {
+        <span [style.top.%]="tick.top">{{ tick.label }}</span>
+      }
+    </div>
+
+    <div
+      class="plot"
+      role="slider"
+      tabindex="0"
+      [attr.aria-label]="label()"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="days().length - 1"
+      [attr.aria-valuenow]="index()"
+      [attr.aria-valuetext]="cursorText()"
+      [attr.aria-disabled]="days().length ? null : 'true'"
+      (keydown)="onKey($event)"
+      (pointerdown)="onPointer($event)"
+      (pointermove)="onPointer($event)"
+    >
+      <svg class="lines" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        @for (tick of yTicks(); track tick.top) {
+          <line class="grid" x1="0" x2="1000" [attr.y1]="tick.top * 4" [attr.y2]="tick.top * 4" />
+        }
+        @for (path of paths(); track $index) {
+          <polyline [class]="'line line-' + $index" [attr.points]="path" />
+        }
+      </svg>
+      @for (dot of dots(); track $index) {
+        <span [class]="'dot line-' + dot.line" [style.left.%]="dot.left" [style.top.%]="dot.top"></span>
+      }
+      @if (cursor(); as shown) {
+        <span class="cursor" [style.left.%]="shown.left"></span>
+        @for (value of shown.values; track value.line) {
+          @if (value.top !== null) {
+            <span
+              [class]="'dot marker line-' + value.line"
+              [style.left.%]="shown.left"
+              [style.top.%]="value.top"
+            ></span>
+          }
+        }
+      }
+    </div>
+
+    <div class="x-ticks" aria-hidden="true">
+      @for (tick of xTicks(); track tick.left) {
+        <span [style.left.%]="tick.left">{{ tick.label }}</span>
+      }
+    </div>
+  </div>
+</figure>

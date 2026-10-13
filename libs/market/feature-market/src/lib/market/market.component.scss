@@ -1,0 +1,66 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.market-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  margin-bottom: 1.5rem;
+  text-align: center;
+
+  p {
+    max-width: 40rem;
+    margin: 0 auto;
+    color: var(--color-contrast-muted);
+  }
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+// The phone: the items, then where and when. Laptops: side by side.
+.choices {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 1rem;
+}
+
+@include bp.up(lg) {
+  .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.notice,
+.note,
+.source {
+  color: var(--color-contrast-muted);
+}
+
+.notice {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.note {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+}
+
+.source {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  text-align: center;
+}

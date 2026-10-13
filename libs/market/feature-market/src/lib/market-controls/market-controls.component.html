@@ -1,0 +1,72 @@
+<cdt-panel heading="Where and when">
+  <div class="fields">
+    <cdt-field label="World or data centre" for="market-scope">
+      <select #scope id="market-scope" cdtInput (change)="store.setScope(scope.value)">
+        @for (region of store.regions(); track region.name) {
+          @for (dataCentre of region.dataCentres; track dataCentre.id) {
+            <optgroup [label]="dataCentre.name + ' · ' + region.name">
+              <option [value]="dataCentre.id" [selected]="dataCentre.id === store.scope()">
+                All of {{ dataCentre.name }}
+              </option>
+              @for (world of dataCentre.worlds; track world.id) {
+                <option [value]="world.id" [selected]="world.id === store.scope()">{{ world.name }}</option>
+              }
+            </optgroup>
+          }
+        } @empty {
+          <option [value]="store.scope()" selected>{{ store.scope() }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field label="Sales" for="market-quality" hint="High quality items sell for more: compare them on their own.">
+      <select #quality id="market-quality" cdtInput (change)="setQuality(quality.value)">
+        @for (option of qualities; track option.value) {
+          <option [value]="option.value" [selected]="option.value === store.quality()">{{ option.name }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field label="From" for="market-from" hint="The history starts with the first sale Universalis kept.">
+      <input
+        id="market-from"
+        type="date"
+        cdtInput
+        [min]="store.start()"
+        [max]="store.range().to"
+        [value]="store.range().from"
+        (change)="setFrom($event)"
+      />
+    </cdt-field>
+
+    <cdt-field label="To" for="market-to">
+      <input
+        id="market-to"
+        type="date"
+        cdtInput
+        [min]="store.range().from"
+        [max]="store.end()"
+        [value]="store.range().to"
+        (change)="setTo($event)"
+      />
+    </cdt-field>
+  </div>
+
+  <div class="presets" role="group" aria-label="Quick ranges">
+    @for (preset of presets(); track preset.name) {
+      <button
+        type="button"
+        [cdtButton]="preset.pressed ? 'primary' : 'outline-primary'"
+        size="sm"
+        [attr.aria-pressed]="preset.pressed"
+        (click)="store.setRange(preset.start, null)"
+      >
+        {{ preset.name }}
+      </button>
+    }
+  </div>
+
+  <cdt-checkbox [checked]="store.scale() === 'log'" (checkedChange)="store.setScale($event ? 'log' : 'linear')">
+    Logarithmic price scale, for items of very different prices
+  </cdt-checkbox>
+</cdt-panel>
