@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
-import { ApplicationConfig, inject, provideZonelessChangeDetection } from '@angular/core';
-import { Router, TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { AuthGuard, discordLinkGuard } from '@everise/auth/data-access';
 import { errorHandlingInterceptor } from '@everise/core/error-handler';
 import { API_URL } from '@everise/core/http-client';
@@ -92,15 +92,6 @@ export const appConfig: ApplicationConfig = {
           canActivate: [discordLinkGuard],
           loadComponent: () =>
             import('@everise/party-finder/feature-party-finder').then((m) => m.PfListingPageComponent),
-        },
-        {
-          // A data centre's old address (/party-finder/light), from links
-          // shared before: the same page by query, the rest of the query kept.
-          path: 'party-finder/:dataCentre',
-          redirectTo: ({ params, queryParams }) =>
-            inject(Router).createUrlTree(['/party-finder'], {
-              queryParams: { ...queryParams, dc: String(params['dataCentre']).toLowerCase() },
-            }),
         },
         {
           path: 'settings',

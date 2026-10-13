@@ -44,12 +44,6 @@ export function dataCentreIn(url: URL): string | undefined {
   return name && /^[a-z]+$/.test(name) ? name[0].toUpperCase() + name.slice(1) : undefined;
 }
 
-// A data centre's address from before the query string: "/party-finder/light"
-// → "light"; undefined for anything else.
-export function oldDataCentrePath(path: string): string | undefined {
-  return /^\/party-finder\/([a-z]+)\/?$/i.exec(path)?.[1].toLowerCase();
-}
-
 // The Party Finder page for everyone (`dataCentre` undefined) or for one
 // data centre. With the board, the words say what's up right now; without
 // it (xivpf unreachable, an unknown name), they still say what the page is.
