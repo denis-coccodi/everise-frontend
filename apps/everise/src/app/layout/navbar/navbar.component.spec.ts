@@ -41,10 +41,19 @@ describe('NavbarComponent', () => {
       fixture.componentRef.setInput('isLoggedIn', loggedIn);
       await fixture.whenStable();
 
-      const roulette = page().querySelector('a[href="/roulette"]');
+      const roulette = page().querySelector('a[href^="/roulette"]');
       expect(roulette?.textContent).toContain('Roulette');
     },
   );
+
+  it('opens the roulette with Dungeons, Trials — Normal and Raids — Normal ticked, and marks it current whatever is ticked', async () => {
+    const roulette = () => page().querySelector('a[href^="/roulette"]') as HTMLAnchorElement;
+    expect(roulette().getAttribute('href')).toBe('/roulette?types=1,3,6');
+
+    await TestBed.inject(Router).navigateByUrl('/roulette?types=0&roulettes=r1');
+    await fixture.whenStable();
+    expect(roulette().getAttribute('aria-current')).toBe('page');
+  });
 
   it('opens and closes the phone menu with its button', async () => {
     expect(toggle().textContent?.trim()).toBe('Menu');

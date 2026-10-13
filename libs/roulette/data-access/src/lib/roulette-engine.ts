@@ -154,20 +154,25 @@ export function defaultSettings(): RouletteSettings {
   };
 }
 
-// Turning on a picked type (Duty Roulettes, PvP, Gold Saucer) with none of
-// its entries ticked ticks its usual ones, so the reels have something to
-// land on. Only when it's turned on: "None" on its list stays none.
-export function withUsualPicks(
+// The settings as the page shows them: the types it lists (`typeNames`) in
+// its order, and for each picked type that is on, its ticked entries in
+// list order. A picked type that is off has none ticked, so turning off
+// Gold Saucer drops its ticks too.
+export function tidySettings(
   settings: RouletteSettings,
-  before: RouletteSettings,
+  typeNames: string[],
   options: Record<string, PickOption[]>,
 ): RouletteSettings {
-  const picks = { ...settings.picks };
-  for (const type of PICKED_TYPES) {
-    const turnedOn = settings.types.includes(type) && !before.types.includes(type);
-    if (turnedOn && (picks[type] ?? []).length === 0) picks[type] = usualPicks(options, type);
-  }
-  return { ...settings, picks };
+  const types = typeNames.filter((name) => settings.types.includes(name));
+  const ticked = (type: string) =>
+    types.includes(type)
+      ? (options[type] ?? []).map((o) => o.key).filter((key) => settings.picks[type]?.includes(key))
+      : [];
+  return {
+    ...settings,
+    types,
+    picks: Object.fromEntries(PICKED_TYPES.map((type) => [type, ticked(type)])),
+  };
 }
 
 export function inLevelRange(level: number, settings: RouletteSettings) {

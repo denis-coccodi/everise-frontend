@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { IsActiveMatchOptions, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { User } from '@everise/core/api-types';
 import { AvatarComponent, IconComponent, MenuComponent, MenuItemComponent } from '@everise/ui/components';
 import { filter } from 'rxjs';
@@ -33,6 +33,19 @@ export class NavbarComponent {
   readonly isLoggedIn = input.required<boolean>();
   // "Sign out" in the account menu.
   readonly logout = output<void>();
+
+  // The roulette opens with the everyday content ticked: Dungeons, Trials —
+  // Normal and Raids — Normal, by the backend's duty group ids (the query
+  // string is described in roulette/data-access's settings-query.ts). Kept
+  // here rather than imported, so the roulette's code stays out of the main
+  // bundle. The link stays current whatever is ticked after.
+  protected readonly everydayRoulette = { types: '1,3,6' };
+  protected readonly anyQuery: IsActiveMatchOptions = {
+    paths: 'exact',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored',
+  };
 
   protected readonly open = signal(false);
   // The phone panel's account links, folded until the user's name is pressed.
