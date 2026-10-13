@@ -9,7 +9,7 @@ Repo: `denis-coccodi/everise-frontend`, branch `main`. Cloudflare account ID: `b
 
 | Environment | Worker    | URL                         | Build configuration / env file            | `/api` goes to                                        | wrangler                                                       |
 | ----------- | --------- | --------------------------- | ----------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
-| local       | —         | http://localhost:4200       | `development` / `debug`: `environment.ts` | http://localhost:8080/api, called directly (editable) | `npx wrangler dev` (`npm run start-sw`)                        |
+| local       | —         | http://localhost:4200       | `development` / `debug`: `environment.ts` | http://localhost:8080/api, called directly (editable) | `npx wrangler dev` (`npm run start-worker`)                    |
 | staging     | `staging` | https://staging.everise.dev | `staging`: `environment.staging.ts`       | backend Worker `be-staging` (service binding)         | `npx wrangler deploy --env staging` (`npm run deploy:staging`) |
 | production  | `prod`    | https://everise.dev         | `production`: `environment.prod.ts`       | backend Worker `be-prod` (service binding)            | `npx wrangler deploy` (`npm run deploy`)                       |
 
@@ -19,7 +19,7 @@ Repo: `denis-coccodi/everise-frontend`, branch `main`. Cloudflare account ID: `b
 - The browser therefore only talks to the frontend's site: no CORS, and the backend's auth cookie is first-party (set on the frontend host). Staging needs only the frontend's Cloudflare Access login; the binding reaches the backend inside Cloudflare, without passing the backend's own Access lock.
 - Deployed builds (`environment.staging.ts`, `environment.prod.ts`) use `api_url: '/api'`. Which backend answers is decided by the binding of the Worker you deploy to, so **build with the configuration of the environment you deploy to** mainly for the right environment file flags; the smoke test checks the bundle uses `/api`, not a dev URL.
 - The bound backend Worker must exist under that name, or `/api` fails. Renaming a backend Worker needs a change here first.
-- `environment.ts` is the local dev build: it calls a backend directly (default `http://localhost:8080/api`, staging as a comment; staging's CORS allows `localhost:4200`). Its `serviceWorker` flag is off locally; the staging and production files turn it on.
+- `environment.ts` is the local dev build: it calls a backend directly (default `http://localhost:8080/api`, staging as a comment; staging's CORS allows `localhost:4200`).
 - The backend's default avatar URL is built from the backend's `BASE_URL`, which points at this site; the image is `apps/everise/src/assets/images/avatar-profile.png` here.
 
 ## Normal path: merge a PR into main
@@ -69,5 +69,5 @@ Wrangler on this machine is logged in with OAuth (`npx wrangler whoami`). Build 
 - **Staging smoke test gets `302` to `*.cloudflareaccess.com`**: Cloudflare Access rejected CI. The `CI service token` (Service Auth) policy must be on the `staging` Access application; check Zero Trust → Applications → its Policies tab (it can differ from the Worker's Access tab), and the `CF_ACCESS_CLIENT_*` repository secrets.
 - **Smoke test gets `404` / `error code: 1042`**: a brand-new `workers.dev` hostname is not live yet. Only on a Worker's first deploy; re-run the job after a minute.
 - **API calls return 5xx but the shell loads**: the backend is failing; check it with the backend's `smoke-test` skill.
-- **Users see an old version after deploy**: `offline-sw.js` caches responses; a hard reload or unregistering the service worker fixes it.
+- **Users see an old version after deploy**: a hard reload fixes it. A browser that kept the old offline worker (from before October 2026) may still serve a cached copy when a request fails; unregistering it in the browser's site settings (or clearing the site data) removes it.
 - **Free-plan caps**: daily request limits are shared by all Workers on the account.

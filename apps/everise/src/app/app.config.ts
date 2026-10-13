@@ -1,13 +1,11 @@
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
-import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
 import { TitleStrategy, provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
-import { provideServiceWorker } from '@angular/service-worker';
 import { AuthGuard, discordLinkGuard } from '@everise/auth/data-access';
 import { errorHandlingInterceptor } from '@everise/core/error-handler';
 import { API_URL } from '@everise/core/http-client';
 import { TURNSTILE_SITE_KEY } from '@everise/ui/components';
 import { environment } from '../environments/environment';
-import { watchAppUpdates } from './app-updates';
 import { PageTitleStrategy } from './page-title.strategy';
 
 const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
@@ -15,16 +13,6 @@ const capitalised = (name: string) => name.charAt(0).toUpperCase() + name.slice(
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideAppInitializer(() => {
-      caches.open('everise-sw-config').then((cache) =>
-        cache.put(
-          '/sw-config.json',
-          new Response(JSON.stringify({ api_url: environment.api_url }), {
-            headers: { 'Content-Type': 'application/json' },
-          }),
-        ),
-      );
-    }),
     provideRouter(
       [
         {
@@ -127,16 +115,5 @@ export const appConfig: ApplicationConfig = {
     { provide: API_URL, useValue: environment.api_url },
     { provide: TURNSTILE_SITE_KEY, useValue: environment.turnstileSiteKey },
     { provide: TitleStrategy, useClass: PageTitleStrategy },
-    // provideServiceWorker('ngsw-worker.js', {
-    //   enabled: !isDevMode(),
-    //   registrationStrategy: 'registerWhenStable:30000',
-    // }),
-    // A new version of the site replaces the cached one (app-updates.ts).
-    provideAppInitializer(watchAppUpdates),
-    provideServiceWorker('offline-sw.js', {
-      enabled: environment.serviceWorker,
-      registrationStrategy: 'registerWhenStable:30000',
-      // registrationStrategy: 'registerImmediately',
-    }),
   ],
 };

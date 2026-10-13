@@ -8,4 +8,3 @@ export type Attachment = Schemas['Attachment'];
 export type NewAttachment = Schemas['NewAttachment'];
 
 export const MAX_POST_ATTACHMENTS = 4;
-export const MAX_COMMENT_ATTACHMENTS = 1;

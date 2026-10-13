@@ -169,7 +169,7 @@ box({
   strong: true,
   lines: [
     {
-      t: 'app.config.ts: routes + AuthGuard, page titles, HTTP client + error interceptor, offline service worker (offline-sw.js)',
+      t: 'app.config.ts: routes + AuthGuard, page titles, HTTP client + error interceptor',
     },
     {
       t: 'layout: skip link, navbar with account menu, <main>, footer  ·  environments/*.ts: api_url /api deployed, a backend URL locally',

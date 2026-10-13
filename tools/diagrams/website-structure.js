@@ -227,7 +227,6 @@ page({
     'Roulette results as duty cards, with the comment',
     "  or Tataru's AI-written remark for a guest's result",
     'Live: new posts pushed over a WebSocket appear at the top',
-    'Offline: cached feed, favorites synced when back online',
     { head: 'GOES TO' },
     {
       to: [
@@ -278,7 +277,7 @@ page({
     'Banner: title, author, date',
     "A roulette result's duty card, then the comment",
     'Body rendered from Markdown, tag list',
-    'Follow author, favorite ♥ (queued offline)',
+    'Follow author, favorite ♥',
     'Comments: add, delete your own',
     { head: 'GOES TO' },
     {
@@ -456,10 +455,6 @@ const rules = [
     ['httpOnly ', null],
     ['token', 'app'],
     [' cookie set by the backend on sign in / sign up, sent with every API call (withCredentials).', null],
-  ],
-  [
-    ['Offline (offline-sw.js, staging/production): ', null],
-    ['API GETs are cached and replayed offline; favorites made offline are queued and synced later.', null],
   ],
   [
     ['Accessibility (WCAG 2.2 AA): every page has its own title and one ', null],

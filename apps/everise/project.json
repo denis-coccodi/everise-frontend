@@ -18,19 +18,9 @@
         "index": "apps/everise/src/index.html",
         "main": "apps/everise/src/main.ts",
         "tsConfig": "apps/everise/tsconfig.app.json",
-        "assets": [
-          "apps/everise/src/favicon.ico",
-          "apps/everise/src/assets",
-          "apps/everise/src/netlify.toml",
-          "apps/everise/src/offline-sw.js",
-          "apps/everise/src/sw-image-cache.js",
-          "apps/everise/src/sw-idb-cache.js",
-          "apps/everise/src/sw-favorite-posts-sync.js"
-        ],
+        "assets": ["apps/everise/src/favicon.ico", "apps/everise/src/assets"],
         "styles": ["apps/everise/src/styles.scss"],
-        "scripts": [],
-        "serviceWorker": true,
-        "ngswConfigPath": "apps/everise/ngsw-config.json"
+        "scripts": []
       },
       "configurations": {
         "production": {
@@ -94,8 +84,7 @@
           "namedChunks": false,
           "extractLicenses": true,
           "vendorChunk": false,
-          "buildOptimizer": false,
-          "serviceWorker": true
+          "buildOptimizer": false
         },
         "development": {
           "buildOptimizer": false,
