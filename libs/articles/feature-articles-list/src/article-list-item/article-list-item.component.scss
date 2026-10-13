@@ -96,9 +96,10 @@ cdt-duty-card {
   font-weight: 300;
 }
 
-// A shared Party Finder listing, under its title.
+// A shared Party Finder listing, under its title, centred like a roulette
+// result's card.
 .shared-listing {
   display: block;
   max-width: 560px;
-  margin: 0.25rem 0 0.75rem;
+  margin: 0.25rem auto 0.75rem;
 }
