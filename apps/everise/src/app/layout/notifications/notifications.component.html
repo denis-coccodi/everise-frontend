@@ -2,7 +2,7 @@
   #bell
   type="button"
   class="bell"
-  aria-controls="notifications-panel"
+  [attr.aria-controls]="panelId"
   [attr.aria-expanded]="open()"
   (click)="toggle()"
 >
@@ -13,9 +13,9 @@
   }
 </button>
 
-<section id="notifications-panel" class="panel" aria-labelledby="notifications-heading" [hidden]="!open()">
+<section class="panel" [id]="panelId" [attr.aria-labelledby]="panelId + '-heading'" [hidden]="!open()">
   <div class="panel-head">
-    <h2 id="notifications-heading">Notifications</h2>
+    <h2 [id]="panelId + '-heading'">Notifications</h2>
     @if (hasUnread()) {
       <button type="button" cdtButton="chip" (click)="store.markAllRead()">Mark all as read</button>
     }

@@ -119,15 +119,24 @@ describe('NavbarComponent', () => {
     expect(panel().classList).not.toContain('open');
   });
 
-  it('has the notifications bell in the bar for signed-in members only, outside the phone menu', async () => {
+  it('has the notifications bell for signed-in members only: before the account on wide screens, beside Menu on phones', async () => {
     expect(page().querySelector('cdt-notifications')).toBeNull();
 
     fixture.componentRef.setInput('isLoggedIn', true);
     await fixture.whenStable();
 
-    const bell = page().querySelector('cdt-notifications') as HTMLElement;
-    expect(bell).not.toBeNull();
-    expect(panel().contains(bell)).toBe(false);
+    // In the links, just before the account menu (shown from md up).
+    const items = [...panel().querySelectorAll(':scope > ul > li.wide-only')];
+    expect(items.map((item) => item.firstElementChild?.tagName.toLowerCase())).toEqual([
+      'cdt-notifications',
+      'cdt-menu',
+    ]);
+    // In the bar, outside the folding menu (phones only).
+    const phoneBell = page().querySelector('cdt-notifications.narrow-only') as HTMLElement;
+    expect(panel().contains(phoneBell)).toBe(false);
+    // Each bell's own panel.
+    const ids = [...page().querySelectorAll('cdt-notifications section.panel')].map((p) => p.id);
+    expect(new Set(ids).size).toBe(2);
   });
 
   it("lists the account's links in the phone menu once signed in", async () => {

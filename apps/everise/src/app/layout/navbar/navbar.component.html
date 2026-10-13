@@ -76,6 +76,10 @@
               <cdt-icon name="compose" />New Post
             </a>
           </li>
+          <!-- The notifications, before the account (on a phone, in the bar instead). -->
+          <li class="nav-item wide-only">
+            <cdt-notifications />
+          </li>
           <!-- The account menu: the user's own pages and signing out. -->
           <li class="nav-item wide-only">
             <cdt-menu label="Account">
@@ -126,9 +130,9 @@
       </ul>
     </div>
 
-    <!-- The bell stays in the bar on a phone too, beside the Menu button. -->
+    <!-- On a phone the bell stays in the bar, beside the Menu button. -->
     @if (isLoggedIn()) {
-      <cdt-notifications />
+      <cdt-notifications class="narrow-only" />
     }
   </div>
 </nav>
