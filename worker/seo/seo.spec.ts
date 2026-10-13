@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { articlePage } from './article-page';
 import { robotsTxt, sitemapXml } from './crawling';
 import { headTags, rootContent } from './page-meta';
-import { Board, dataCentreIn, oldDataCentrePath, partyFinderPage } from './party-finder-page';
+import { Board, dataCentreIn, partyFinderPage } from './party-finder-page';
 import { staticPage } from './static-pages';
 
 const SITE = 'https://everise.dev';
@@ -59,17 +59,14 @@ describe('headTags', () => {
 });
 
 describe('Party Finder pages', () => {
-  it('reads the data centre from the query string, and from an old address', () => {
+  it('reads the data centre from the query string', () => {
     const url = (path: string) => new URL(SITE + path);
     expect(dataCentreIn(url('/party-finder?dc=light&world=odin'))).toBe('Light');
     expect(dataCentreIn(url('/party-finder/?dc=MATERIA'))).toBe('Materia');
     expect(dataCentreIn(url('/party-finder'))).toBeUndefined();
     expect(dataCentreIn(url('/party-finder?dc=<b>'))).toBeUndefined();
     expect(dataCentreIn(url('/roulette?dc=light'))).toBeUndefined();
-    expect(oldDataCentrePath('/party-finder/light')).toBe('light');
-    expect(oldDataCentrePath('/party-finder/Materia/')).toBe('materia');
-    expect(oldDataCentrePath('/party-finder')).toBeUndefined();
-    expect(oldDataCentrePath('/party-finder/light/savage')).toBeUndefined();
+    expect(dataCentreIn(url('/party-finder/light'))).toBeUndefined();
   });
 
   it("a data centre's page names its worlds and what's recruiting now, never who", () => {

@@ -18,7 +18,7 @@
 import { Article, articlePage } from './seo/article-page';
 import { SitemapData, robotsTxt, sitemapXml } from './seo/crawling';
 import { PageMeta, headTags, rootContent } from './seo/page-meta';
-import { Board, dataCentreIn, oldDataCentrePath, partyFinderPage } from './seo/party-finder-page';
+import { Board, dataCentreIn, partyFinderPage } from './seo/party-finder-page';
 import { staticPage } from './seo/static-pages';
 
 interface Fetcher {
@@ -59,20 +59,11 @@ export default {
     }
 
     const indexable = env.SEARCH_ENGINES === 'allow';
-    const oldDataCentre = oldDataCentrePath(pathname);
     let response: Response;
     if (pathname === '/home' || pathname === '/home/') {
       // The home page's old address: for good at /, its canonical one.
       const url = new URL(request.url);
       response = Response.redirect(`${url.origin}/${url.search}`, 301);
-    } else if (oldDataCentre) {
-      // A data centre's old address (/party-finder/light): for good at
-      // /party-finder?dc=light, keeping the rest of the query (a shared
-      // listing, ?from=discord).
-      const url = new URL(request.url);
-      const query = new URLSearchParams([['dc', oldDataCentre]]);
-      url.searchParams.forEach((value, name) => name !== 'dc' && query.append(name, value));
-      response = Response.redirect(`${url.origin}/party-finder?${query}`, 301);
     } else if (pathname === '/robots.txt') {
       response = textResponse(robotsTxt(env.SITE_URL, indexable), 'text/plain');
     } else if (pathname === '/sitemap.xml') {
