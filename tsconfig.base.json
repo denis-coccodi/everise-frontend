@@ -34,6 +34,7 @@
       "@everise/party-finder/feature-pf-listing": ["./libs/party-finder/feature-pf-listing/src/index.ts"],
       "@everise/profile/data-access": ["./libs/profile/data-access/src/index.ts"],
       "@everise/profile/feature-profile": ["./libs/profile/feature-profile/src/index.ts"],
+      "@everise/notifications/data-access": ["./libs/notifications/data-access/src/index.ts"],
       "@everise/roulette/data-access": ["./libs/roulette/data-access/src/index.ts"],
       "@everise/roulette/feature-roulette": ["./libs/roulette/feature-roulette/src/index.ts"],
       "@everise/waking-sands/data-access": ["./libs/waking-sands/data-access/src/index.ts"],

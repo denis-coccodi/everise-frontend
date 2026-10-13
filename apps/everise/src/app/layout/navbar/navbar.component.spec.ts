@@ -1,6 +1,9 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { API_URL } from '@everise/core/http-client';
 
 import { NavbarComponent } from './navbar.component';
 
@@ -14,7 +17,13 @@ describe('NavbarComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NavbarComponent],
-      providers: [provideRouter([{ path: '**', component: BlankComponent }])],
+      providers: [
+        provideRouter([{ path: '**', component: BlankComponent }]),
+        // The bell's notifications, for a signed-in member.
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_URL, useValue: '' },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(NavbarComponent);
@@ -108,6 +117,17 @@ describe('NavbarComponent', () => {
     await TestBed.inject(Router).navigateByUrl('/roulette');
     await fixture.whenStable();
     expect(panel().classList).not.toContain('open');
+  });
+
+  it('has the notifications bell in the bar for signed-in members only, outside the phone menu', async () => {
+    expect(page().querySelector('cdt-notifications')).toBeNull();
+
+    fixture.componentRef.setInput('isLoggedIn', true);
+    await fixture.whenStable();
+
+    const bell = page().querySelector('cdt-notifications') as HTMLElement;
+    expect(bell).not.toBeNull();
+    expect(panel().contains(bell)).toBe(false);
   });
 
   it("lists the account's links in the phone menu once signed in", async () => {

@@ -125,5 +125,10 @@
         }
       </ul>
     </div>
+
+    <!-- The bell stays in the bar on a phone too, beside the Menu button. -->
+    @if (isLoggedIn()) {
+      <cdt-notifications />
+    }
   </div>
 </nav>

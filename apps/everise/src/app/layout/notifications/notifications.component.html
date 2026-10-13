@@ -1,0 +1,83 @@
+<button
+  #bell
+  type="button"
+  class="bell"
+  aria-controls="notifications-panel"
+  [attr.aria-expanded]="open()"
+  (click)="toggle()"
+>
+  <cdt-icon name="bell" />
+  <span class="visually-hidden">Notifications{{ store.unseenCount() ? ', ' + store.unseenCount() + ' new' : '' }}</span>
+  @if (store.unseenCount() > 0) {
+    <span class="count" aria-hidden="true">{{ badge() }}</span>
+  }
+</button>
+
+<section id="notifications-panel" class="panel" aria-labelledby="notifications-heading" [hidden]="!open()">
+  <div class="panel-head">
+    <h2 id="notifications-heading">Notifications</h2>
+    @if (hasUnread()) {
+      <button type="button" cdtButton="chip" (click)="store.markAllRead()">Mark all as read</button>
+    }
+  </div>
+
+  @switch (store.loadState()) {
+    @case ('loading') {
+      <p class="note" role="status">Checking…</p>
+    }
+    @case ('error') {
+      <cdt-message tone="error">{{ store.error() }}</cdt-message>
+    }
+    @default {
+      @if (store.notifications().length === 0) {
+        <p class="note">Nothing yet. When someone likes or comments on your posts, or follows you, it shows here.</p>
+      } @else {
+        <ul class="list">
+          @for (notification of store.notifications(); track notification.id) {
+            <li class="item" [class.unread]="!notification.read">
+              <a
+                class="picture"
+                [routerLink]="linkOf(notification)"
+                tabindex="-1"
+                aria-hidden="true"
+                (click)="opened(notification)"
+              >
+                <cdt-avatar [src]="notification.actors[0]?.image" [size]="44" />
+                <span class="kind" [attr.data-kind]="notification.type"
+                  ><cdt-icon [name]="kindIcons[notification.type]"
+                /></span>
+              </a>
+              <div class="body">
+                <p class="text">
+                  @for (part of partsOf(notification); track $index) {
+                    @if (part.kind === 'actor') {
+                      <a class="who" [routerLink]="['/profile', part.actor.id]" (click)="opened(notification)">{{
+                        part.actor.username
+                      }}</a>
+                    } @else if (part.kind === 'post') {
+                      <a class="what" [routerLink]="['/article', part.id]" (click)="opened(notification)">{{
+                        part.title
+                      }}</a>
+                    } @else {
+                      <span>{{ part.text }}</span>
+                    }
+                  }
+                  @if (!notification.read) {
+                    <span class="visually-hidden">, unread</span>
+                  }
+                </p>
+                @if (notification.comment; as comment) {
+                  <p class="excerpt">“{{ comment.excerpt }}”</p>
+                }
+                <p class="age">{{ ageOf(notification) }}</p>
+              </div>
+              @if (!notification.read) {
+                <span class="dot" aria-hidden="true"></span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</section>
