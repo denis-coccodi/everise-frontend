@@ -44,9 +44,6 @@ export class AppComponent {
         untracked(() => this.settingsStore.setDarkMode(darkMode));
       }
     });
-    window.addEventListener('online', () => {
-      navigator.serviceWorker.controller?.postMessage('sync-favorites');
-    });
 
     // On a new page, the focus moves to its content, as a page load would
     // start there, so keyboard and screen reader users don't stay on the

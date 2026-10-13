@@ -1,12 +1,9 @@
-// Local development (`npm start`, `nx serve`, `npm run start-sw`).
+// Local development (`npm start`, `nx serve`, `npm run start-worker`).
 // Builds replace this file: `--configuration=staging` with environment.staging.ts,
 // `--configuration=production` with environment.prod.ts (see apps/everise/project.json).
 
 export const environment = {
   production: false,
-  // Register offline-sw.js. Off while developing; turn on to try the offline
-  // features locally (best with `npm run start-sw`, which serves a built copy).
-  serviceWorker: false,
   // Local backend: `npx wrangler dev --port 8080` in ../typescript-cloudflare-backend.
   api_url: 'http://localhost:8080/api',
   // Staging backend: it is behind Cloudflare Access, so first open

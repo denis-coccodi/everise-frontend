@@ -35,7 +35,7 @@
 <rect x="370" y="96" width="960" height="108" rx="10" fill="#f0fdfa" stroke="#0f766e" stroke-width="2.5"/>
 <text x="382" y="114" font-size="10.5" font-weight="700" fill="#0f766e">APPS</text>
 <text x="382" y="132" font-size="14" font-weight="700" fill="#1e293b">everise  —  Angular app shell</text>
-<text x="382" y="153" font-size="12.5" font-weight="400" fill="#334155">app.config.ts: routes + AuthGuard, page titles, HTTP client + error interceptor, offline service worker (offline-sw.js)</text>
+<text x="382" y="153" font-size="12.5" font-weight="400" fill="#334155">app.config.ts: routes + AuthGuard, page titles, HTTP client + error interceptor</text>
 <text x="382" y="170" font-size="12.5" font-weight="400" fill="#334155">layout: skip link, navbar with account menu, &lt;main&gt;, footer  ·  environments/*.ts: api_url /api deployed, a backend URL locally</text>
 <text x="382" y="187" font-size="11" font-weight="400" fill="#64748b" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">uses: auth/data-access, settings/data-access, core/api-types, core/error-handler, core/http-client, ui/components</text>
 <rect x="1400" y="96" width="290" height="108" rx="10" fill="#ffffff" stroke="#334155" stroke-width="1.6" stroke-dasharray="6 4"/>

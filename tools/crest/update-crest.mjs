@@ -4,10 +4,10 @@
 // frame, symbol). This stacks them on a canvas in a headless browser
 // (Playwright, already a dev dependency) and writes:
 // - apps/everise/src/assets/images/everise-crest.png (128 px): the navbar,
-//   footer, home banner, app manifest, link previews and Discord's avatar;
+//   footer, home banner, link previews and Discord's avatar;
 // - apps/everise/src/favicon.ico (16, 32 and 48 px).
 // Kept in the repo rather than linked from the Lodestone: a favicon is one
-// file, and Discord, link previews and the offline cache need a stable
+// file, and Discord and link previews need a stable
 // address on the site. Run it again whenever the crest changes.
 import { writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';

@@ -38,19 +38,10 @@ export default [
     },
   },
   {
-    files: ['**/*-sw.js', '**/sw-*.js'],
+    // offline-sw.js, the kill switch for the old offline worker.
+    files: ['**/*-sw.js'],
     languageOptions: {
-      globals: {
-        ...globals.serviceworker,
-        _IMG_EXT: 'readonly',
-        isImageRequest: 'readonly',
-        handleImageCacheRequest: 'readonly',
-        getArticleFromApiCache: 'readonly',
-        patchArticleInApiCache: 'readonly',
-        handleApiCacheRequest: 'readonly',
-        handleFavoriteRequest: 'readonly',
-        syncFavorites: 'readonly',
-      },
+      globals: globals.serviceworker,
     },
     rules: {
       // Newly enabled by the typescript-eslint v8 presets; not previously enforced.

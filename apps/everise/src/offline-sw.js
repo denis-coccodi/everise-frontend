@@ -4,7 +4,7 @@
 // this file for updates; this one deletes everything it saved, unregisters
 // itself and reloads the open pages, which then come straight from the
 // network. Keep it deployed for a few weeks, until returning visitors have
-// all picked it up; the app no longer registers a worker (environment.*.ts).
+// all picked it up; the app no longer registers a worker.
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {

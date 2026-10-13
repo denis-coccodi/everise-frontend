@@ -4,7 +4,7 @@
 #
 # Usage: scripts/smoke.sh read|create <frontend-url> [cookie-jar]
 #   e.g. scripts/smoke.sh read https://everise.dev
-#   read:   app shell, a deep link (SPA fallback), the service worker, the default
+#   read:   app shell, a deep link (SPA fallback), the old worker's kill switch, the default
 #           avatar, that the deployed bundle calls the relative /api, and that
 #           <frontend-url>/api reaches the backend. Writes nothing.
 #   create: read, then register a random user. When the backend confirms

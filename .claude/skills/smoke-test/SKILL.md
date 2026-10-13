@@ -7,7 +7,7 @@ description: Check that the Everise frontend is served, was built with the right
 
 `scripts/smoke.sh` (also run by CI) checks a running frontend with curl and a cookie jar. The site forwards `/api/*` to its backend Worker over a service binding, so the API is tested through `<frontend-url>/api`. It prints `ok`/`FAIL` per check, masks JWTs, and exits non-zero on any unexpected status or body.
 
-- `read`: app shell (`<cdt-root`), a deep link (SPA fallback), `offline-sw.js`, the default avatar (`/assets/images/avatar-profile.png` is an image); that a script in the deployed bundle sets `api_url` to `/api` (catches a dev build deployed by mistake); and `GET /api/tags` answered by the backend, not by the SPA fallback. Writes nothing.
+- `read`: app shell (`<cdt-root`), a deep link (SPA fallback), `offline-sw.js` (the kill switch that removes the old offline worker), the default avatar (`/assets/images/avatar-profile.png` is an image); that a script in the deployed bundle sets `api_url` to `/api` (catches a dev build deployed by mistake); and `GET /api/tags` answered by the backend, not by the SPA fallback. Writes nothing.
 - `create`: `read`, then registers a random user and reads `/api/user` back with the cookie.
 
 ```
