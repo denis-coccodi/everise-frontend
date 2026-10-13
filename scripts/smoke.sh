@@ -4,7 +4,7 @@
 #
 # Usage: scripts/smoke.sh read|create <frontend-url> [cookie-jar]
 #   e.g. scripts/smoke.sh read https://everise.dev
-#   read:   app shell, a deep link (SPA fallback), the old worker's kill switch, the default
+#   read:   app shell, a deep link (SPA fallback), the default
 #           avatar, that the deployed bundle calls the relative /api, and that
 #           <frontend-url>/api reaches the backend. Writes nothing.
 #   create: read, then register a random user. When the backend confirms
@@ -68,7 +68,6 @@ image() {
 read_checks() {
   req 200 '<cdt-root'        "app shell"       "$FE/"
   req 200 '<cdt-root'        "deep link (SPA)" "$FE/article/some-slug"
-  req 200 'addEventListener' "service worker"  "$FE/offline-sw.js"
 
   # The API URL is baked into the bundle at build time: check the right build was deployed.
   # The minifier may quote it with ", ' or a backtick. Unminified builds keep

@@ -69,5 +69,5 @@ Wrangler on this machine is logged in with OAuth (`npx wrangler whoami`). Build 
 - **Staging smoke test gets `302` to `*.cloudflareaccess.com`**: Cloudflare Access rejected CI. The `CI service token` (Service Auth) policy must be on the `staging` Access application; check Zero Trust → Applications → its Policies tab (it can differ from the Worker's Access tab), and the `CF_ACCESS_CLIENT_*` repository secrets.
 - **Smoke test gets `404` / `error code: 1042`**: a brand-new `workers.dev` hostname is not live yet. Only on a Worker's first deploy; re-run the job after a minute.
 - **API calls return 5xx but the shell loads**: the backend is failing; check it with the backend's `smoke-test` skill.
-- **Users see an old version after deploy**: a browser that still has the old offline worker gets `offline-sw.js`, which unregisters it and reloads the page; until then a hard reload fixes it.
+- **Users see an old version after deploy**: a hard reload fixes it. A browser that kept the old offline worker (from before October 2026) may still serve a cached copy when a request fails; unregistering it in the browser's site settings (or clearing the site data) removes it.
 - **Free-plan caps**: daily request limits are shared by all Workers on the account.
