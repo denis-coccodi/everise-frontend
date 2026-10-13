@@ -47,7 +47,7 @@
       <h2 id="pf-shared-heading">Shared with you</h2>
       @if (sharedListing(); as shared) {
         @if (store.icons(); as icons) {
-          <cdt-pf-listing [listing]="shared" [now]="store.now()" [icons]="icons" />
+          <cdt-pf-listing [listing]="shared" [now]="store.now()" [icons]="icons" [link]="pageOf(shared)" />
         }
       } @else if (store.loadState() !== 'loading') {
         <p class="notice">That listing has ended or filled up. Here's what's up on {{ store.dataCentre() }} now.</p>
@@ -70,7 +70,13 @@
         <ul class="listings">
           @for (listing of store.pageListings(); track listing.id) {
             <li>
-              <cdt-pf-listing [listing]="listing" [now]="store.now()" [icons]="icons" [fill]="true">
+              <cdt-pf-listing
+                [listing]="listing"
+                [now]="store.now()"
+                [icons]="icons"
+                [fill]="true"
+                [link]="pageOf(listing)"
+              >
                 @if (signedIn()) {
                   <div cdtPfListingActions class="share">
                     <button

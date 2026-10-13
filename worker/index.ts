@@ -17,6 +17,7 @@
 
 import { Article, articlePage } from './seo/article-page';
 import { SitemapData, robotsTxt, sitemapXml } from './seo/crawling';
+import { ListingFound, listingIdIn, listingPage } from './seo/listing-page';
 import { PageMeta, headTags, rootContent } from './seo/page-meta';
 import { Board, dataCentreIn, partyFinderPage } from './seo/party-finder-page';
 import { staticPage } from './seo/static-pages';
@@ -95,6 +96,11 @@ async function pageMeta(request: Request, env: Env, pathname: string): Promise<P
     const key = encodeURIComponent(decodeURIComponent(article[1]));
     const answer = await apiJson<{ article: Article }>(request, env, `/articles/${key}`);
     return answer && articlePage(answer.article, env.SITE_URL);
+  }
+  const listingId = listingIdIn(pathname);
+  if (listingId) {
+    const found = await apiJson<ListingFound>(request, env, `/party-finder/listings/${listingId}`, BOARD_WAIT_MS);
+    return listingPage(listingId, found);
   }
   const dataCentre = dataCentreIn(new URL(request.url));
   if (dataCentre || pathname === '/party-finder' || pathname === '/party-finder/') {

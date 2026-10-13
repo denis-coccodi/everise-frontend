@@ -13,3 +13,6 @@ export type PartyRole = PartyFinderListing['slots'][number]['roles'][number];
 export type NewPartyFinderPost = Schemas['NewPartyFinderPost'];
 export type NewPartyFinderDiscordShare = Schemas['NewPartyFinderDiscordShare'];
 export type PartyFinderDiscordShareResponse = Schemas['PartyFinderDiscordShareResponse'];
+
+// One listing's own page: the listing while it's up, with its data centre.
+export type PartyFinderListingPage = Schemas['PartyFinderListingResponse'];

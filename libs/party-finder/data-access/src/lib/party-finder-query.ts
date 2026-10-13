@@ -45,6 +45,13 @@ export function dataCentreQuery(dataCentre: string) {
   return { dc: dataCentreId(dataCentre) };
 }
 
+// A listing's own page, by its id (which names its data centre):
+// /party-finder/listings/light-1789630212-1. Anyone with the link finds it
+// while it's up.
+export function listingPage(listing: { id: string }) {
+  return `/party-finder/listings/${encodeURIComponent(listing.id)}`;
+}
+
 // What a query string asks for; what it leaves out or gets wrong is the
 // default.
 export function selectionFromQuery(query: { get(name: string): string | null }): PartyFinderSelection {

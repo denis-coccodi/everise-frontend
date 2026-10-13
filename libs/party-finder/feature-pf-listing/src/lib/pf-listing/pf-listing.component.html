@@ -25,7 +25,11 @@
             <span class="sprout-words">Beginners welcome:</span>
           }
         }
-        {{ title() }}
+        @if (link(); as href) {
+          <a class="open" [routerLink]="href">{{ title() }}</a>
+        } @else {
+          {{ title() }}
+        }
       </h3>
       <p class="recruiter">
         {{ listing().recruiter }} <span class="home">· {{ listing().homeWorld.name }}</span>

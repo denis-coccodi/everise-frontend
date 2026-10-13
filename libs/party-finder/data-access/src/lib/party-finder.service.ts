@@ -8,6 +8,7 @@ import {
   NewPartyFinderPost,
   PartyFinderBoard,
   PartyFinderDiscordShareResponse,
+  PartyFinderListingPage,
 } from '@everise/core/api-types';
 import { ApiService } from '@everise/core/http-client';
 
@@ -18,6 +19,16 @@ export class PartyFinderService {
   // A data centre's listings, as the backend last read them from xivpf.
   board(dataCentre: DataCentre) {
     return this.api.get<PartyFinderBoard>(`/party-finder?dataCentre=${encodeURIComponent(dataCentre)}`);
+  }
+
+  // One listing by its id, while it's up. A listing that's gone (404) is
+  // the listing's page to explain, not a reason to leave it.
+  listing(id: string) {
+    return this.api.get<PartyFinderListingPage>(
+      `/party-finder/listings/${encodeURIComponent(id)}`,
+      undefined,
+      new HttpContext().set(SKIP_NOT_FOUND_REDIRECT, true),
+    );
   }
 
   // Shares a listing as a post (in the Everise Discord too, when asked).

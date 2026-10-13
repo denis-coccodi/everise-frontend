@@ -1,0 +1,32 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+.pf-listing-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+}
+
+.notice,
+.checked {
+  color: var(--color-contrast-muted);
+  text-align: center;
+}
+
+.checked {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
