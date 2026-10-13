@@ -130,11 +130,9 @@
   font-size: 1.1rem;
 }
 
-// Lines between the phone panel's links; the bar on wider screens has none.
-@include bp.down(md) {
-  .menu .nav-item + .nav-item {
-    border-top: var(--border-width) solid var(--color-border-faint);
-  }
+// Lines between the phone panel's links (the bar on wider screens has none).
+.menu .nav-item + .nav-item {
+  border-top: var(--border-width) solid var(--color-border-faint);
 }
 
 .sign-out {
@@ -204,6 +202,12 @@
 
 // Wider screens: the links in the bar, the account in its own menu.
 @include bp.up(md) {
+  // No lines between the bar's links. Every part of the border is reset, so
+  // nothing that splits the shorthand into its parts can leave a line behind.
+  .menu .nav-item + .nav-item {
+    border-top: 0 none transparent;
+  }
+
   .menu-toggle,
   .narrow-only {
     display: none;

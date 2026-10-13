@@ -26,6 +26,7 @@ jobs:
       - run: npm ci
       - run: node scripts/check-sizes.mjs
       - run: node scripts/check-structure.mjs
+      - run: node scripts/check-mobile-first.mjs
       - run: npx nx run-many -t lint test
       # The Worker in front of the site (worker/): type-check and its tests.
       - run: npx tsc -p worker/tsconfig.json
