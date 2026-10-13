@@ -13,6 +13,7 @@ import { IsActiveMatchOptions, NavigationEnd, Router, RouterModule } from '@angu
 import { User } from '@everise/core/api-types';
 import { AvatarComponent, IconComponent, MenuComponent, MenuItemComponent } from '@everise/ui/components';
 import { filter } from 'rxjs';
+import { NotificationsComponent } from '../notifications/notifications.component';
 
 // The site's top bar. On a phone (under 768 px) the links fold into a panel
 // behind a Menu button (the disclosure pattern): it closes on going to a
@@ -21,7 +22,7 @@ import { filter } from 'rxjs';
   selector: 'cdt-navbar',
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
-  imports: [RouterModule, IconComponent, MenuComponent, MenuItemComponent, AvatarComponent],
+  imports: [RouterModule, IconComponent, MenuComponent, MenuItemComponent, AvatarComponent, NotificationsComponent],
   host: {
     '(document:click)': 'closeOutside($event)',
     '(keydown.escape)': 'closeAndFocus()',

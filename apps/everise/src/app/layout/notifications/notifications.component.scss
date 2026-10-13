@@ -1,0 +1,187 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../../libs/ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+  position: relative;
+  margin-left: 0.5rem;
+}
+
+// The bell: an icon button the size of a fingertip, the badge on its corner.
+.bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-contrast-muted);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.bell:hover,
+.bell[aria-expanded='true'] {
+  color: var(--color-contrast);
+  border-color: var(--color-border);
+}
+
+.count {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-highlight);
+  color: var(--color-on-highlight);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
+}
+
+// The panel: under the bar, full width on a phone; a dropdown under the
+// bell on wider screens.
+.panel {
+  position: fixed;
+  top: 4rem;
+  left: 8px;
+  right: 8px;
+  z-index: 20;
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
+  padding: 0.75rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-base-deep);
+  background-image: var(--gradient-navbar);
+  box-shadow: var(--shadow-panel);
+}
+
+@include bp.up(md) {
+  .panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: auto;
+    right: 0;
+    width: 380px;
+    max-height: 70vh;
+  }
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--color-heading);
+}
+
+.note {
+  margin: 0.5rem 0.25rem;
+  color: var(--color-contrast-muted);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.55rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.item:hover {
+  background: var(--color-surface);
+}
+
+// Unread: a light tint, as Facebook has it.
+.item.unread {
+  background: var(--color-hover);
+}
+
+// The first member's picture, with what happened on its corner.
+.picture {
+  position: relative;
+  flex: none;
+}
+
+.kind {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 0.75rem;
+}
+
+.kind[data-kind='favorite'] {
+  background: var(--color-danger);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.text,
+.excerpt,
+.age {
+  margin: 0;
+}
+
+.text {
+  color: var(--color-contrast-soft);
+  overflow-wrap: anywhere;
+}
+
+.who,
+.what {
+  font-weight: 700;
+  color: var(--color-contrast);
+}
+
+.excerpt {
+  margin-top: 0.15rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+  overflow-wrap: anywhere;
+}
+
+.age {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--color-primary-strong);
+}
+
+.dot {
+  flex: none;
+  align-self: center;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--color-primary-strong);
+}
