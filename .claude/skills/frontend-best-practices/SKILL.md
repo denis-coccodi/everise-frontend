@@ -70,7 +70,7 @@ Angular's style guide and Nx's generators agree; `node scripts/check-structure.m
 
 - Icons: `<cdt-icon name="…" />` only (inline SVG); no icon fonts, no `<i class="ion-…">`. Every page link in the navbar has one; account links don't.
 - Profile pictures: `<cdt-avatar [src] [size] [frame]>`; status, warning and error lines: `<cdt-message [tone]>` (it stays on the page while empty). Never a hand-styled round `<img>` or `<p class="status">`.
-- Layout changes at the theme's breakpoints only (`@include bp.up(md)`).
+- Layout changes at the theme's breakpoints only (`@include bp.up(md)`, `bp.down(md)`).
 
 ## Size limits
 
