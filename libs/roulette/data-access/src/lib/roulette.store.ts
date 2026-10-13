@@ -17,7 +17,6 @@ import {
   dealableJobs,
   defaultSettings,
   eligibleTypes,
-  pickOptions,
   possibleModes,
   todaysFrontline,
   typeCandidates,
@@ -70,8 +69,9 @@ const initialState: RouletteState = {
 // page, so it starts and ends with it.
 export const RouletteStore = signalStore(
   withState<RouletteState>(initialState),
+  withRouletteSettings(),
   withComputed((store, duties = inject(DutiesService)) => {
-    const pickable = computed(() => pickOptions(store.groups(), store.roulettes()));
+    const pickable = store.pickable;
     const frontlineMap = computed(() => todaysFrontline(store.groups()));
     // The daily reset in the reader's time: 17:00 in Italy in summer, 16:00
     // in winter, as the game keeps it on UTC.
@@ -98,7 +98,6 @@ export const RouletteStore = signalStore(
         : '';
     });
     return {
-      pickable,
       frontlineMap,
       frontlineChangesAt,
       dealable,
@@ -128,7 +127,6 @@ export const RouletteStore = signalStore(
       ready: computed(() => store.loadState() === 'ready' && !levelError() && options().length > 0),
     };
   }),
-  withRouletteSettings(),
   withMethods((store, duties = inject(DutiesService)) => {
     return {
       imageUrl: (id: number | null | undefined) => duties.imageUrl(id),
@@ -142,9 +140,15 @@ export const RouletteStore = signalStore(
             duties.getDutyLists().pipe(
               tapResponse({
                 next: ({ groups, roulettes, rouletteIcon, jobs, dayEndsAt }) => {
-                  patchState(store, { groups, roulettes, rouletteIcon, jobs, dayEndsAt });
+                  patchState(store, {
+                    groups,
+                    roulettes,
+                    rouletteIcon,
+                    jobs,
+                    dayEndsAt,
+                    loadState: groups.length > 0 ? 'ready' : 'empty',
+                  });
                   store.readSettings();
-                  patchState(store, { loadState: groups.length > 0 ? 'ready' : 'empty' });
                 },
                 error: () => patchState(store, { loadState: 'error' }),
               }),

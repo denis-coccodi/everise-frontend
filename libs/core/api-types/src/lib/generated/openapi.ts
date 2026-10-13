@@ -3235,6 +3235,7 @@ export interface components {
       /** Format: date-time */
       dayEndsAt: string;
       groups: {
+        id: number;
         name: string;
         order: number;
         icon: number | null;

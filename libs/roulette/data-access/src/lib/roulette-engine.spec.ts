@@ -12,7 +12,7 @@ import {
   dealableJobs,
   defaultSettings,
   usualPicks,
-  withUsualPicks,
+  tidySettings,
   eligibleTypes,
   pickIndex,
   pickOptions,
@@ -83,17 +83,24 @@ const customMatch = duty('Crystalline Conflict (Custom Match - The Palaistra)', 
 const lovm = duty('LoVM: Master Battle', 1);
 
 const groups: DutyGroup[] = [
-  { name: 'Dungeons', order: 0, icon: null, duties: [duty('Sastasha', 15), duty('the Aurum Vale', 47)] },
-  { name: 'Raids — Ultimate', order: 1, icon: null, duties: [duty('the Unending Coil of Bahamut (Ultimate)', 70)] },
+  { id: 1, name: 'Dungeons', order: 0, icon: null, duties: [duty('Sastasha', 15), duty('the Aurum Vale', 47)] },
   {
+    id: 8,
+    name: 'Raids — Ultimate',
+    order: 1,
+    icon: null,
+    duties: [duty('the Unending Coil of Bahamut (Ultimate)', 70)],
+  },
+  {
+    id: 14,
     name: 'Treasure Hunt',
     order: 2,
     icon: null,
     // Not queued through a finder; older data marks Duty Finder settings anyway.
     duties: [duty('the Excitatron 6000', 90, { finder: '', unrestrictedParty: true, minimumIL: true })],
   },
-  { name: PVP_TYPE, order: 3, icon: null, duties: [sealRock, hiddenGorge, customMatch] },
-  { name: GOLD_SAUCER_TYPE, order: 4, icon: null, duties: [lovm] },
+  { id: 15, name: PVP_TYPE, order: 3, icon: null, duties: [sealRock, hiddenGorge, customMatch] },
+  { id: 16, name: GOLD_SAUCER_TYPE, order: 4, icon: null, duties: [lovm] },
 ];
 
 const roulettes = [
@@ -156,21 +163,31 @@ describe('usualPicks', () => {
   });
 });
 
-describe('withUsualPicks', () => {
-  const none = defaultSettings();
+describe('tidySettings', () => {
+  const typeNames = [...groups.map((g) => g.name), ROULETTES_TYPE];
 
-  it('ticks the usual entries of a picked type turned on with none ticked', () => {
-    const on = withUsualPicks({ ...none, types: [ROULETTES_TYPE] }, none, options);
-    expect(on.picks[ROULETTES_TYPE]).toEqual(['roulette:1', 'roulette:2']);
-    expect(on.picks[PVP_TYPE]).toEqual([]);
+  it('keeps the listed types, in list order, and the ticked entries in list order', () => {
+    const tidy = tidySettings(
+      settings({
+        types: [ROULETTES_TYPE, 'Gone', 'Dungeons'],
+        picks: { [ROULETTES_TYPE]: ['roulette:2', 'roulette:99', 'roulette:1'] },
+      }),
+      typeNames,
+      options,
+    );
+
+    expect(tidy.types).toEqual(['Dungeons', ROULETTES_TYPE]);
+    expect(tidy.picks[ROULETTES_TYPE]).toEqual(['roulette:1', 'roulette:2']);
   });
 
-  it('keeps what is ticked, and "None" on a type that was already on', () => {
-    const some = { ...none, types: [ROULETTES_TYPE], picks: { ...none.picks, [ROULETTES_TYPE]: ['roulette:2'] } };
-    expect(withUsualPicks(some, none, options).picks[ROULETTES_TYPE]).toEqual(['roulette:2']);
+  it('drops the ticks of a picked type that is off', () => {
+    const tidy = tidySettings(settings({ types: ['Dungeons'] }), typeNames, options);
 
-    const cleared = { ...some, picks: { ...some.picks, [ROULETTES_TYPE]: [] } };
-    expect(withUsualPicks(cleared, some, options).picks[ROULETTES_TYPE]).toEqual([]);
+    expect(tidy.picks).toEqual({ [ROULETTES_TYPE]: [], [PVP_TYPE]: [], [GOLD_SAUCER_TYPE]: [] });
+  });
+
+  it('keeps nothing ticked as nothing ticked', () => {
+    expect(tidySettings(defaultSettings(), typeNames, options)).toEqual(defaultSettings());
   });
 });
 
