@@ -21,6 +21,10 @@ const KIND_ICONS = {
   role: 'settings',
 } as const;
 
+// Each bell's own panel id: the header has one in the bar on wide screens
+// and one beside the Menu button on phones.
+let nextId = 0;
+
 // The site's own notifications (an ended listing, a new role) show its crest.
 const CREST = 'assets/images/everise-crest.png';
 
@@ -44,6 +48,7 @@ const CREST = 'assets/images/everise-crest.png';
 export class NotificationsComponent {
   protected readonly store = inject(NotificationsStore);
   protected readonly open = signal(false);
+  protected readonly panelId = `notifications-panel-${nextId++}`;
   // The clock for "5 min", taken when the panel opens.
   protected readonly now = signal(Date.now());
   protected readonly hasUnread = computed(() => this.store.notifications().some((n) => !n.read));

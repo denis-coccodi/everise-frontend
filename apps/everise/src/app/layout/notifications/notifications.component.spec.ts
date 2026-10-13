@@ -57,7 +57,7 @@ describe('NotificationsComponent', () => {
     await harness.fixture.whenStable();
     const page = harness.fixture.nativeElement as HTMLElement;
     const bell = () => page.querySelector('button.bell') as HTMLButtonElement;
-    const panel = () => page.querySelector('#notifications-panel') as HTMLElement;
+    const panel = () => page.querySelector('section.panel') as HTMLElement;
     const stable = () => harness.fixture.whenStable();
     return { page, http, bell, panel, stable };
   }
@@ -67,7 +67,9 @@ describe('NotificationsComponent', () => {
 
     expect(bell().querySelector('.count')?.textContent?.trim()).toBe('2');
     expect(bell().textContent?.replace(/\s+/g, ' ').trim()).toContain('Notifications, 2 new');
-    expect(bell().getAttribute('aria-controls')).toBe('notifications-panel');
+    expect(bell().getAttribute('aria-controls')).toBe(panel().id);
+    expect(panel().id).toMatch(/^notifications-panel-\d+$/);
+    expect(panel().getAttribute('aria-labelledby')).toBe(panel().querySelector('h2')?.id);
     expect(bell().getAttribute('aria-expanded')).toBe('false');
     expect(panel().hidden).toBe(true);
   });
