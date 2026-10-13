@@ -1,12 +1,16 @@
 // The site's top bar: a title strip with a silver rule. Uses the theme's
-// role tokens only. Under 768 px the links fold into the Menu button's panel.
+// role tokens only. Mobile first: the base is the phone (the bell and the
+// Menu button at the bar's end, the links in the panel Menu opens); from md
+// up the links sit in the bar, the bell just before the account menu.
 
 @use '../../../../../../libs/ui/components/src/theme/breakpoints' as bp;
 
+// The bar.
 .navbar {
   position: relative;
   z-index: 5;
-  padding: 0.5rem 1rem;
+  // The container gives the sides, in line with the page below.
+  padding: 0.5rem 0;
   border-bottom: var(--border-width) solid var(--color-border);
   background: var(--gradient-navbar);
   box-shadow: var(--shadow-raised);
@@ -15,6 +19,7 @@
 .navbar > .container {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 // The free company's crest, then the name.
@@ -22,7 +27,6 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  margin-right: 2rem;
   padding-bottom: 0.25rem;
   font-family: var(--font-display);
   font-size: 1.5rem;
@@ -32,59 +36,35 @@
   text-shadow: var(--glow-heading);
 }
 
-.crest {
-  flex: none;
-  border-radius: var(--radius-sm);
-}
-
 .navbar-brand:focus,
 .navbar-brand:hover {
   color: var(--color-heading);
   text-decoration: none;
 }
 
-.navbar-nav {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.crest {
+  flex: none;
+  border-radius: var(--radius-sm);
 }
 
-.nav-link {
-  display: block;
-  padding: 0.425rem 0;
-  color: var(--color-contrast-muted);
-  transition: color 0.15s ease;
+// Only on a phone, or only on wider screens (each copy with its own ids).
+.wide-only {
+  display: none;
 }
 
-// A page's icon, a small gap before its name.
-.nav-link cdt-icon {
-  margin-right: 0.35em;
-}
-
-.nav-link:focus,
-.nav-link:hover {
-  color: var(--color-contrast);
-  text-decoration: none;
-}
-
-.nav-link.active {
-  color: var(--color-primary-strong);
-}
-
-// The account menu's button: the user's picture and name.
-.account {
+// The bar's end on a phone: the bell, then the Menu button.
+.bar-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
-// Phone: the Menu button, and the panel it opens under the bar.
 .menu-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   min-height: 44px;
-  margin-left: auto;
   padding: 0.25rem 0.75rem;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
@@ -94,20 +74,17 @@
   cursor: pointer;
 }
 
-.menu-icon {
-  font-size: 1.25rem;
-}
-
 .menu-toggle:hover {
   border-color: var(--color-border-strong);
 }
 
-.menu {
-  display: none;
+.menu-icon {
+  font-size: 1.25rem;
 }
 
-.menu.open {
-  display: block;
+// The links: on a phone, a panel under the bar while Menu is open.
+.menu {
+  display: none;
   position: absolute;
   top: 100%;
   left: 0;
@@ -122,17 +99,44 @@
   box-shadow: var(--shadow-panel);
 }
 
-.menu .nav-link {
+.menu.open {
+  display: block;
+}
+
+.navbar-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Lines between the panel's links.
+.menu .nav-item + .nav-item {
+  border-top: var(--border-width) solid var(--color-border-faint);
+}
+
+.nav-link {
   display: flex;
   align-items: center;
   min-height: 44px;
   padding: 0.5rem 0.25rem;
   font-size: 1.1rem;
+  color: var(--color-contrast-muted);
+  transition: color 0.15s ease;
 }
 
-// Lines between the phone panel's links (the bar on wider screens has none).
-.menu .nav-item + .nav-item {
-  border-top: var(--border-width) solid var(--color-border-faint);
+.nav-link:focus,
+.nav-link:hover {
+  color: var(--color-contrast);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  color: var(--color-primary-strong);
+}
+
+// A page's icon, a small gap before its name.
+.nav-link cdt-icon {
+  margin-right: 0.35em;
 }
 
 .sign-out {
@@ -144,7 +148,7 @@
   cursor: pointer;
 }
 
-// The user's name: pressing it unfolds their own links below.
+// The account in the phone panel: pressing the name unfolds its links.
 .account-heading {
   display: flex;
   align-items: center;
@@ -174,16 +178,14 @@
 
 .chevron {
   transition: transform 0.15s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .account-heading[aria-expanded='true'] .chevron {
   transform: rotate(90deg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chevron {
-    transition: none;
-  }
 }
 
 .account-links {
@@ -196,19 +198,15 @@
   border-top: var(--border-width) solid var(--color-border-faint);
 }
 
-.wide-only {
-  display: none;
+// The account menu's button on wider screens: the user's picture and name.
+.account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-// Wider screens: the links in the bar, the account in its own menu.
+// Wider screens: the links in the bar, then the bell and the account menu.
 @include bp.up(md) {
-  // No lines between the bar's links. Every part of the border is reset, so
-  // nothing that splits the shorthand into its parts can leave a line behind.
-  .menu .nav-item + .nav-item {
-    border-top: 0 none transparent;
-  }
-
-  .menu-toggle,
   .narrow-only {
     display: none;
   }
@@ -217,15 +215,14 @@
     display: list-item;
   }
 
-  .menu,
-  .menu.open {
+  .menu {
     display: block;
     position: static;
     max-height: none;
     overflow: visible;
     margin-left: auto;
     padding: 0;
-    border: none;
+    border-bottom: 0 none transparent;
     background: none;
     box-shadow: none;
   }
@@ -238,7 +235,13 @@
     gap: 0 1rem;
   }
 
-  .menu .nav-link {
+  // No lines between the bar's links. Every part of the border is reset, so
+  // nothing that splits the shorthand into its parts can leave a line behind.
+  .menu .nav-item + .nav-item {
+    border-top: 0 none transparent;
+  }
+
+  .nav-link {
     display: block;
     min-height: 0;
     padding: 0.425rem 0;

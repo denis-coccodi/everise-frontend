@@ -119,7 +119,7 @@ describe('NavbarComponent', () => {
     expect(panel().classList).not.toContain('open');
   });
 
-  it('has the notifications bell for signed-in members only: before the account on wide screens, beside Menu on phones', async () => {
+  it('has the notifications bell for signed-in members only: before the account on wide screens, before Menu on phones', async () => {
     expect(page().querySelector('cdt-notifications')).toBeNull();
 
     fixture.componentRef.setInput('isLoggedIn', true);
@@ -131,9 +131,11 @@ describe('NavbarComponent', () => {
       'cdt-notifications',
       'cdt-menu',
     ]);
-    // In the bar, outside the folding menu (phones only).
-    const phoneBell = page().querySelector('cdt-notifications.narrow-only') as HTMLElement;
-    expect(panel().contains(phoneBell)).toBe(false);
+    // In the bar, just before the Menu button, outside the folding menu (phones only).
+    const actions = page().querySelector('.bar-actions.narrow-only') as HTMLElement;
+    expect([...actions.children].map((child) => child.tagName.toLowerCase())).toEqual(['cdt-notifications', 'button']);
+    expect(actions.lastElementChild).toBe(toggle());
+    expect(panel().contains(actions)).toBe(false);
     // Each bell's own panel.
     const ids = [...page().querySelectorAll('cdt-notifications section.panel')].map((p) => p.id);
     expect(new Set(ids).size).toBe(2);

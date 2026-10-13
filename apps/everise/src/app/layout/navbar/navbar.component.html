@@ -4,20 +4,25 @@
       ><img class="crest" src="assets/images/everise-crest.png" alt="" width="32" height="32" />everise</a
     >
 
-    <!-- On a phone the links fold into this button's panel. The pages have an
-         icon each; the account's links (sign in, sign up, profile, settings)
-         are words only. -->
-    <button
-      #toggle
-      type="button"
-      class="menu-toggle"
-      aria-controls="site-menu"
-      [attr.aria-expanded]="open()"
-      (click)="toggleMenu()"
-    >
-      <cdt-icon class="menu-icon" [name]="open() ? 'close' : 'menu'" />
-      Menu
-    </button>
+    <!-- On a phone, at the bar's end: the bell, then the Menu button whose
+         panel holds the links. The pages have an icon each; the account's
+         links (sign in, sign up, profile, settings) are words only. -->
+    <div class="bar-actions narrow-only">
+      @if (isLoggedIn()) {
+        <cdt-notifications />
+      }
+      <button
+        #toggle
+        type="button"
+        class="menu-toggle"
+        aria-controls="site-menu"
+        [attr.aria-expanded]="open()"
+        (click)="toggleMenu()"
+      >
+        <cdt-icon class="menu-icon" [name]="open() ? 'close' : 'menu'" />
+        Menu
+      </button>
+    </div>
 
     <div id="site-menu" class="menu" [class.open]="open()">
       <ul class="navbar-nav">
@@ -76,7 +81,7 @@
               <cdt-icon name="compose" />New Post
             </a>
           </li>
-          <!-- The notifications, before the account (on a phone, in the bar instead). -->
+          <!-- The notifications, before the account (on a phone, before Menu instead). -->
           <li class="nav-item wide-only">
             <cdt-notifications />
           </li>
@@ -129,10 +134,5 @@
         }
       </ul>
     </div>
-
-    <!-- On a phone the bell stays in the bar, beside the Menu button. -->
-    @if (isLoggedIn()) {
-      <cdt-notifications class="narrow-only" />
-    }
   </div>
 </nav>
