@@ -41,6 +41,7 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
           HOME_DESCRIPTION,
           [
             ['/party-finder', 'Party Finder: live listings on every data centre'],
+            ['/market-history', 'Market History: the best price on every world of your region'],
             ['/roulette', 'Duty Roulette: let three reels pick your next run'],
             ['/waking-sands', 'The Waking Sands: talk with members and the Scions'],
           ],
@@ -57,6 +58,14 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
           "Can't decide what to run in Final Fantasy XIV? Three reels pick the kind of duty, the duty and how you run it, " +
           'from dungeons and trials to raids, with job and party settings. Free, no account needed.',
         path: '/roulette',
+      };
+    case '/market-history':
+      return {
+        title: 'FFXIV Market History · the best price on every world · Everise',
+        description:
+          "Find where a Final Fantasy XIV item sells cheapest: the lowest listing now and each day's price on " +
+          "every world of your region, and Oceania's, back to late 2022. Free for Everise members.",
+        path: '/market-history',
       };
     case '/waking-sands':
       return {

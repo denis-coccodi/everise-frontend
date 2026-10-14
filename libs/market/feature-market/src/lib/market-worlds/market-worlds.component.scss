@@ -1,0 +1,32 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+.label {
+  margin: 0 0 0.4rem;
+  color: var(--color-label);
+  font-weight: 600;
+}
+
+// A data centre's worlds on one row, wrapping on a phone.
+.data-centre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.name {
+  min-width: 5.5rem;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}
+
+.note {
+  margin: 0.25rem 0 0;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}

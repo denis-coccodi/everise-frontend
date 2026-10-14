@@ -1,0 +1,82 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+// The item shown: its icon, name and market category.
+.shown {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 0 0 1rem;
+
+  .name {
+    font-size: 1.2rem;
+  }
+}
+
+.icon {
+  flex: none;
+  border-radius: var(--radius-sm);
+}
+
+.name {
+  min-width: 0;
+  color: var(--color-contrast);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.category {
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  .name {
+    flex: 1;
+    font-weight: 400;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-border);
+    background: var(--color-hover);
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--color-contrast-muted);
+  }
+}
+
+.notice {
+  margin: 0.5rem 0 0;
+  color: var(--color-contrast-muted);
+}

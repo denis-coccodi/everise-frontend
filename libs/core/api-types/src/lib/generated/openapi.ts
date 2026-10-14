@@ -1454,6 +1454,292 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/market/history': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An item's prices a day on each world of a region */
+    get: {
+      parameters: {
+        query: {
+          region?: 'europe' | 'north-america' | 'japan' | 'oceania';
+          item: string;
+          quality?: 'all' | 'nq' | 'hq';
+          from?: string;
+          to?: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Each world's days. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketHistoryResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/icons/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An item's icon */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The icon. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'image/*': string;
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/items': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Items the market board sells, by name */
+    get: {
+      parameters: {
+        query: {
+          search: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The items found. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketItemsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/items/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An item the market board sells, by id */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The item. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketItemResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/listings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An item's cheapest listings now on the worlds of a region */
+    get: {
+      parameters: {
+        query: {
+          region?: 'europe' | 'north-america' | 'japan' | 'oceania';
+          item: string;
+          quality?: 'all' | 'nq' | 'hq';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The listings. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketListingsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/market/regions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The regions, data centres and worlds whose prices are read */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The regions. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketRegionsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/media': {
     parameters: {
       query?: never;
@@ -3670,6 +3956,77 @@ export interface components {
       pending: number;
       failed: number[];
       downloaded: number;
+    };
+    MarketItem: {
+      id: number;
+      name: string;
+      icon: number;
+      canBeHq: boolean;
+      category: string;
+    };
+    MarketItemsResponse: {
+      items: components['schemas']['MarketItem'][];
+    };
+    MarketItemResponse: {
+      item: components['schemas']['MarketItem'];
+    };
+    MarketRegionsResponse: {
+      regions: {
+        id: string;
+        name: string;
+        dataCentres: {
+          name: string;
+          worlds: {
+            id: number;
+            name: string;
+          }[];
+        }[];
+      }[];
+      defaultRegion: string;
+      homeWorld: string;
+      historyStart: string;
+    };
+    MarketListingsResponse: {
+      region: {
+        id: string;
+        name: string;
+      };
+      item: number;
+      /** @enum {string} */
+      quality: 'all' | 'nq' | 'hq';
+      listings: {
+        world: number;
+        price: number;
+        quantity: number;
+        hq: boolean;
+        /** Format: date-time */
+        reviewedAt: string;
+      }[];
+      updatedAt: string | null;
+    };
+    MarketHistoryResponse: {
+      region: {
+        id: string;
+        name: string;
+      };
+      item: number;
+      /** @enum {string} */
+      quality: 'all' | 'nq' | 'hq';
+      from: string;
+      worlds: {
+        id: number;
+        days: {
+          day: string;
+          median: number;
+          min: number;
+          max: number;
+          sales: number;
+          quantity: number;
+        }[];
+      }[];
+      complete: boolean;
+      readBackTo: string | null;
+      refreshedAt: string | null;
     };
     PartyFinderDiscordShareResponse: {
       /** @constant */

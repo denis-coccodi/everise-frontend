@@ -1,0 +1,36 @@
+<div class="market-page">
+  <header class="hero">
+    <h1 class="xiv-title">Market History</h1>
+    <p>
+      An item's price over time on every world of your region, a line per world, and where it sells cheapest right now.
+      See where to buy before you travel.
+    </p>
+  </header>
+
+  @if (auth.loggedIn()) {
+    <cdt-market-tool />
+  } @else if (auth.getUserLoaded()) {
+    <cdt-panel heading="Find the best price in your region" class="pitch">
+      <ul class="features">
+        <li>
+          <strong>Every world at once.</strong> A line per world of your region, and Oceania's too: any world can visit
+          them.
+        </li>
+        <li><strong>The cheapest listing now.</strong> Which world sells it for least today, and how many are up.</li>
+        <li>
+          <strong>History back to 2022.</strong> Each day's middle price, sales and range, from the sales players report
+          to Universalis.
+        </li>
+        <li>
+          <strong>High and normal quality apart</strong>, any dates you like, and a link that shows anyone the same
+          chart.
+        </li>
+      </ul>
+      <p class="join">Market History is free for Everise members. Sign in, or make an account in a minute.</p>
+      <div class="actions">
+        <a cdtButton routerLink="/login">Sign in</a>
+        <a cdtButton="outline-primary" routerLink="/register">Sign up</a>
+      </div>
+    </cdt-panel>
+  }
+</div>

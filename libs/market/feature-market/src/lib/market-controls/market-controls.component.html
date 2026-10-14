@@ -1,0 +1,68 @@
+<cdt-panel heading="Where and when">
+  <div class="fields">
+    <cdt-field label="Region" for="market-region" hint="Every world of a region can be visited from any of them.">
+      <select #region id="market-region" cdtInput (change)="store.setRegion(region.value)">
+        @for (option of store.regions()?.regions ?? []; track option.id) {
+          <option [value]="option.id" [selected]="option.id === store.region()">{{ option.name }}</option>
+        } @empty {
+          <option [value]="store.region()" selected>{{ store.region() }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field label="Sales" for="market-quality" hint="High quality items sell for more: compare them on their own.">
+      <select #quality id="market-quality" cdtInput (change)="setQuality(quality.value)">
+        @for (option of qualities; track option.value) {
+          <option [value]="option.value" [selected]="option.value === store.quality()">{{ option.name }}</option>
+        }
+      </select>
+    </cdt-field>
+
+    <cdt-field label="From" for="market-from" hint="The history starts with the first sale Universalis kept.">
+      <input
+        id="market-from"
+        type="date"
+        cdtInput
+        [min]="store.start()"
+        [max]="store.range().to"
+        [value]="store.range().from"
+        (change)="setFrom($event)"
+      />
+    </cdt-field>
+
+    <cdt-field label="To" for="market-to">
+      <input
+        id="market-to"
+        type="date"
+        cdtInput
+        [min]="store.range().from"
+        [max]="store.end()"
+        [value]="store.range().to"
+        (change)="setTo($event)"
+      />
+    </cdt-field>
+  </div>
+
+  <div class="presets" role="group" aria-label="Quick ranges">
+    @for (preset of presets(); track preset.name) {
+      <button
+        type="button"
+        [cdtButton]="preset.pressed ? 'primary' : 'outline-primary'"
+        size="sm"
+        [attr.aria-pressed]="preset.pressed"
+        (click)="store.setRange(preset.start, null)"
+      >
+        {{ preset.name }}
+      </button>
+    }
+  </div>
+
+  @if (store.region() !== 'oceania') {
+    <cdt-checkbox [checked]="store.oceania()" (checkedChange)="store.setOceania($event)">
+      Oceania's worlds too (any world can visit them)
+    </cdt-checkbox>
+  }
+  <cdt-checkbox [checked]="store.scale() === 'log'" (checkedChange)="store.setScale($event ? 'log' : 'linear')">
+    Logarithmic price scale
+  </cdt-checkbox>
+</cdt-panel>

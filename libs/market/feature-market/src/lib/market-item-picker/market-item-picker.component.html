@@ -1,0 +1,56 @@
+<cdt-panel heading="Item">
+  @if (store.known(); as item) {
+    <p class="shown">
+      <img class="icon" [src]="icon(item)" alt="" width="40" height="40" />
+      <span class="name">{{ item.name }}</span
+      >{{ ' ' }}
+      <span class="category">{{ item.category }}</span>
+    </p>
+  } @else if (store.item() !== null) {
+    <p class="shown">
+      <span class="name">Item {{ store.item() }}</span>
+    </p>
+  }
+
+  <cdt-field
+    [label]="store.item() === null ? 'Find an item' : 'Find another item'"
+    for="market-search"
+    hint="Type at least 2 letters of its name, then pick it."
+  >
+    <input
+      #field
+      #typed="cdtInput"
+      id="market-search"
+      type="search"
+      cdtInput
+      autocomplete="off"
+      placeholder="Iron Ore, Grade 8 Tincture…"
+      (input)="search.search(typed.value)"
+    />
+  </cdt-field>
+  <p class="visually-hidden" aria-live="polite">{{ found() }}</p>
+  @if (search.state() === 'error') {
+    <p class="notice">{{ search.error() }}</p>
+  } @else if (search.results().length) {
+    <ul class="results" aria-label="Items found">
+      @for (result of search.results(); track result.id) {
+        <li>
+          <button
+            type="button"
+            class="result"
+            [disabled]="result.id === store.item()"
+            [attr.aria-current]="result.id === store.item() ? 'true' : null"
+            (click)="pick(result)"
+          >
+            <img class="icon" [src]="icon(result)" alt="" width="32" height="32" />
+            <span class="name">{{ result.name }}</span
+            >{{ ' ' }}
+            <span class="category">{{ result.id === store.item() ? 'Shown' : result.category }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else if (search.state() === 'done') {
+    <p class="notice">{{ nothingFound }}</p>
+  }
+</cdt-panel>

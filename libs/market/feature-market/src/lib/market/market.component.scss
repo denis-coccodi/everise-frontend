@@ -1,0 +1,56 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+.market-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  margin-bottom: 1.5rem;
+  text-align: center;
+
+  p {
+    max-width: 40rem;
+    margin: 0 auto;
+    color: var(--color-contrast-muted);
+  }
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+// What guests are shown: what the page does, and the way in.
+.pitch {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.features {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0 0 0 1.25rem;
+  color: var(--color-contrast-soft);
+
+  strong {
+    color: var(--color-contrast);
+  }
+}
+
+.join {
+  margin: 0 0 1rem;
+  color: var(--color-contrast-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

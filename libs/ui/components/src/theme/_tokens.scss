@@ -120,6 +120,17 @@
   --color-highlight-strong: var(--palette-magenta-300);
   --color-on-highlight: var(--palette-mist-0);
 
+  /* A chart's lines (the market history), told apart by hue and by dash:
+     each at least 3:1 on the surfaces in both modes (1 to 3: 4.5:1). */
+  --color-chart-1: var(--palette-crystal-300);
+  --color-chart-2: var(--palette-amber-300);
+  --color-chart-3: var(--palette-magenta-300);
+  --color-chart-4: var(--palette-royal-300);
+  --color-chart-5: var(--palette-ember-300);
+  --color-chart-6: var(--palette-violet-300);
+  --color-chart-7: var(--palette-mist-300);
+  --color-chart-8: var(--palette-haze-500);
+
   /* The crystal motif (icons, the wheel hub): teal in both modes. */
   --color-crystal: var(--palette-crystal-500);
   --color-crystal-bright: var(--palette-crystal-100);
@@ -238,6 +249,15 @@ body.light {
   --color-accent: var(--palette-amber-500);
   --color-accent-strong: var(--palette-amber-700);
   --color-highlight-strong: var(--palette-magenta-600);
+
+  --color-chart-1: var(--palette-royal-700);
+  --color-chart-2: var(--palette-amber-700);
+  --color-chart-3: var(--palette-magenta-600);
+  --color-chart-4: var(--palette-crystal-800);
+  --color-chart-5: var(--palette-ember-600);
+  --color-chart-6: var(--palette-violet-500);
+  --color-chart-7: var(--palette-slate-600);
+  --color-chart-8: var(--palette-haze-600);
 
   --color-avatar: var(--palette-mist-200);
 

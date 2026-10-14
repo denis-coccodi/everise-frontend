@@ -15,6 +15,8 @@ export * from './image-cropper/crop-geometry';
 export * from './image-cropper/image-cropper.component';
 export * from './input/input.component';
 export * from './avatar/avatar.component';
+export * from './line-chart/line-chart.component';
+export { type ChartScale } from './line-chart/chart-scales';
 export * from './menu-item/menu-item.component';
 export * from './menu/menu.component';
 export * from './message/message.component';
