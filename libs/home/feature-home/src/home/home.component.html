@@ -18,7 +18,7 @@
     <div class="row">
       <div class="col-md-9">
         <div class="feed-toggle">
-          <h2 class="visually-hidden">Posts</h2>
+          <h2 class="visually-hidden">{{ viewHeading() }}</h2>
           @if ({ listConfig: $listConfig() }; as model) {
             <ul cdtTabs>
               <li>
@@ -26,20 +26,47 @@
                   type="button"
                   cdtTab
                   data-testid="global-feed"
-                  [active]="model.listConfig.type === 'ALL' && !model.listConfig.filters.tag"
-                  (click)="setListTo('ALL')"
+                  [active]="view() === 'feed' && model.listConfig.type === 'ALL' && !model.listConfig.filters.tag"
+                  (click)="showFeed('ALL')"
                 >
                   Global Feed
                 </button>
               </li>
               @if (isLoggedIn()) {
                 <li>
-                  <button type="button" cdtTab [active]="model.listConfig.type === 'FEED'" (click)="setListTo('FEED')">
+                  <button
+                    type="button"
+                    cdtTab
+                    [active]="view() === 'feed' && model.listConfig.type === 'FEED'"
+                    (click)="showFeed('FEED')"
+                  >
                     Your Feed
                   </button>
                 </li>
               }
-              <li [hidden]="!model.listConfig.filters.tag">
+              <li>
+                <button
+                  type="button"
+                  cdtTab
+                  data-testid="weekly"
+                  [active]="view() === 'weekly'"
+                  (click)="showView('weekly')"
+                >
+                  Weekly
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  cdtTab
+                  data-testid="hunts"
+                  [active]="view() === 'hunts'"
+                  (click)="showView('hunts')"
+                >
+                  Hunts
+                </button>
+              </li>
+              <li [hidden]="view() !== 'feed' || !model.listConfig.filters.tag">
                 <span cdtTab [active]="true">
                   <cdt-icon name="hash" />
                   <span class="visually-hidden">Tag</span>
@@ -53,7 +80,21 @@
         <!-- Live posts appear at the top of the list; screen readers hear them here. -->
         <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
-        <cdt-article-list></cdt-article-list>
+        @switch (view()) {
+          @case ('weekly') {
+            @defer (on immediate) {
+              <cdt-weekly />
+            }
+          }
+          @case ('hunts') {
+            @defer (on immediate) {
+              <cdt-hunts />
+            }
+          }
+          @default {
+            <cdt-article-list></cdt-article-list>
+          }
+        }
       </div>
 
       <div class="col-md-3">

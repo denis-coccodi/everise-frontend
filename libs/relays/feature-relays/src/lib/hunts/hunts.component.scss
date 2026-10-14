@@ -1,0 +1,52 @@
+// Uses the theme's role tokens only.
+:host {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-contrast-muted);
+}
+
+.empty {
+  padding: 1rem;
+}
+
+.trains {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 1rem;
+  }
+
+  li + li {
+    border-top: var(--border-width) solid var(--color-divider);
+  }
+}
+
+// Where a train is at: a pill, its words saying it (not only its colour).
+.state {
+  display: inline-block;
+  margin: 0 0 0.5rem;
+  padding: 0.125rem 0.625rem;
+  border: var(--border-width-strong) solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--color-surface-strong);
+  color: var(--color-contrast-muted);
+
+  &[data-state='upcoming'] {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  // Running: the text colour in a primary outline, readable in both modes.
+  &[data-state='running'] {
+    border-color: var(--color-primary-bright);
+    color: var(--color-contrast);
+  }
+}

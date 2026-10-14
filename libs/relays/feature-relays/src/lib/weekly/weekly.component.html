@@ -1,0 +1,41 @@
+<cdt-message tone="error">{{ store.error() }}</cdt-message>
+@if (store.loadState() === 'loading') {
+  <p class="note">Loading this week…</p>
+}
+@if (store.weekly(); as weekly) {
+  <cdt-panel heading="Resets">
+    <ul class="resets">
+      @for (reset of resets(); track reset.name) {
+        <li>
+          <span class="name">{{ reset.name }}</span>
+          <span class="in">in {{ reset.in }}</span>
+          <span class="when">{{ reset.when }} · {{ reset.what }}</span>
+        </li>
+      }
+    </ul>
+  </cdt-panel>
+
+  @if (!weekly.available) {
+    <p class="note">The weekly posts aren't relayed here yet.</p>
+  }
+
+  <cdt-panel heading="Fashion Report">
+    <div class="body">
+      <p class="status">{{ fashionStatus() }}</p>
+      @if (weekly.fashionReport; as report) {
+        <cdt-discord-message [message]="report.message" [now]="store.now()" [showSource]="false" />
+        <p class="credit">From {{ report.message.sourceName }}, followed in the Everise Discord.</p>
+      }
+    </div>
+  </cdt-panel>
+
+  <cdt-panel heading="Island Sanctuary">
+    <div class="body">
+      <p class="status">{{ islandStatus() }}</p>
+      @if (weekly.islandSanctuary; as season) {
+        <cdt-discord-message [message]="season.message" [now]="store.now()" [showSource]="false" />
+        <p class="credit">From {{ season.message.sourceName }}, followed in the Everise Discord.</p>
+      }
+    </div>
+  </cdt-panel>
+}
