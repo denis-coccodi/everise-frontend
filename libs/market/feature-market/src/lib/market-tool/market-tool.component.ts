@@ -17,7 +17,7 @@ const gil = new Intl.NumberFormat('en');
 
 // The market history tool, for signed-in members: an item's price over time
 // on each world of a region (and Oceania's, when asked), a line per world,
-// with the cheapest listings now and the lowest middle price today and in
+// with the cheapest listings now and the lowest median sale price today and in
 // the days shown. Everything picked is in the query string
 // (?item=5111&region=europe&worlds=odin,phoenix), so a link shows the same
 // chart.

@@ -73,7 +73,7 @@ describe('the market series', () => {
     });
   });
 
-  it('finds the lowest middle price, the earliest on a tie', () => {
+  it('finds the lowest median sale price, the earliest on a tie', () => {
     const days = worldDays([history], worlds, { from: '2026-09-01', to: '2026-10-13' });
 
     expect(lowest(days)).toMatchObject({ day: '2026-09-02', median: 250, world: { name: 'Phoenix' } });

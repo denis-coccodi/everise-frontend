@@ -23,6 +23,12 @@ describe('MarketToolComponent', () => {
     const lowest = [...page.querySelectorAll('.lowest > div:not(.now) dd')].map(
       (dd) => dd.textContent?.replace(/\s+/g, ' ').trim(),
     );
+    // Medians of sales, said so, apart from the listings.
+    const labels = [...page.querySelectorAll('.lowest dt')].map((dt) => dt.textContent?.trim());
+    expect(labels[0]).toBe('Cheapest listing now');
+    expect(labels[1]).toBe('Lowest median sale price today');
+    expect(labels[2]).toMatch(/^Lowest median sale price, \d+ \w+ \d{4} to \d+ \w+ \d{4}$/);
+    expect(page.querySelector('.note')?.textContent).toContain('built from sales, not listings');
     expect(lowest[0]).toBe('250 gil on Phoenix (Light)');
     expect(lowest[1]).toMatch(/^200 gil on Moogle \(Chaos\), \d+ \w+ \d{4}$/);
     expect(page.querySelector('.shown .name')?.textContent).toBe('Iron Ore');
