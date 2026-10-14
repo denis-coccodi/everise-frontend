@@ -17,13 +17,19 @@ import { HuntsComponent, WeeklyComponent } from '@everise/relays/feature-relays'
 
 import { AuthStore } from '@everise/auth/data-access';
 
-type HomeView = 'feed' | 'weekly' | 'hunts';
+// The home page's tabs, each at its own address: Weekly at /, the others
+// ?view=hunts, ?view=yours (members only) and ?view=global.
+type HomeView = 'weekly' | 'hunts' | 'yours' | 'global';
+
+// The posts each feed tab shows.
+const FEEDS: Partial<Record<HomeView, ListType>> = { yours: 'FEED', global: 'ALL' };
 
 // What screen readers hear before the tabs, per tab.
 const VIEW_HEADINGS: Record<HomeView, string> = {
-  feed: 'Posts',
   weekly: 'This week',
   hunts: 'Hunt trains',
+  yours: 'Your Feed',
+  global: 'Posts',
 };
 
 @Component({
@@ -55,12 +61,13 @@ export class HomeComponent {
 
   $listConfig = this.articlesListStore.listConfig;
 
-  // The tab shown besides the feeds, from the address (?view=weekly or
-  // ?view=hunts), so it can be linked and Back returns to it.
+  // The tab shown, from the address, so it can be linked and Back returns
+  // to it. Your Feed is a member's: a guest gets the Global Feed.
   private readonly query = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
   protected readonly view = computed<HomeView>(() => {
     const view = this.query().get('view');
-    return view === 'weekly' || view === 'hunts' ? view : 'feed';
+    if (view === 'yours') return this.authStore.loggedIn() ? 'yours' : 'global';
+    return view === 'hunts' || view === 'global' ? view : 'weekly';
   });
   protected readonly viewHeading = computed(() => VIEW_HEADINGS[this.view()]);
   protected readonly isLoggedIn = this.authStore.loggedIn;
@@ -69,9 +76,20 @@ export class HomeComponent {
   // Read out by screen readers when a post arrives live.
   protected readonly announcement = signal('');
 
+  // Which posts are loaded (the feed, and whether signed in), if any.
+  private feedLoaded = '';
+
+  // A feed tab's posts load when it's shown (from a tab, a link, Back), and
+  // again when signing in or out while it is (for the favourites).
   readonly loadArticlesOnLogin = effect(() => {
-    this.authStore.loggedIn();
-    untracked(() => this.getArticles());
+    const type = FEEDS[this.view()];
+    const loggedIn = this.authStore.loggedIn();
+    untracked(() => {
+      if (type && this.feedLoaded !== `${type}:${loggedIn}`) {
+        this.feedLoaded = `${type}:${loggedIn}`;
+        this.setListTo(type);
+      }
+    });
   });
 
   // New posts pushed by the backend go straight to the top of the list
@@ -87,17 +105,14 @@ export class HomeComponent {
   }
 
   protected showView(view: HomeView) {
+    // The feed shown again (e.g. after a tag): its posts, unfiltered.
+    const type = FEEDS[view];
+    if (type && view === this.view()) this.setListTo(type);
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { view: view === 'feed' ? null : view },
+      queryParams: { view: view === 'weekly' ? null : view },
       queryParamsHandling: 'merge',
     });
-  }
-
-  // A feed tab shows the feeds again.
-  protected showFeed(type: ListType) {
-    this.showView('feed');
-    this.setListTo(type);
   }
 
   setListTo(type: ListType = 'ALL') {
@@ -106,14 +121,10 @@ export class HomeComponent {
     this.articlesListStore.loadArticles(this.$listConfig());
   }
 
-  // Everyone starts on the Global Feed: "Your Feed" only shows people you
-  // follow, which is empty until you follow someone. Signing in or out
-  // reloads it, for the favourites.
-  getArticles() {
-    this.setListTo('ALL');
-  }
-
+  // A tag from the sidebar: the posts with it, in the feeds.
   setListTag(tag: string) {
+    this.feedLoaded = `ALL:${this.authStore.loggedIn()}`;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { view: 'global' } });
     this.articlesListStore.setListConfig({
       ...articlesListInitialState.listConfig,
       filters: {

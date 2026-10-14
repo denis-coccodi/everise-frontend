@@ -57,10 +57,10 @@ describe('HomeComponent Discord box', () => {
 });
 
 describe('HomeComponent tabs', () => {
-  async function render() {
+  async function render(loggedIn = false, address = '/') {
     TestBed.configureTestingModule({
       providers: [
-        { provide: AuthStore, useValue: { loggedIn: signal(false) } },
+        { provide: AuthStore, useValue: { loggedIn: signal(loggedIn) } },
         { provide: LiveUpdates, useValue: { events$: NEVER } },
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -68,36 +68,81 @@ describe('HomeComponent tabs', () => {
         { provide: API_URL, useValue: '' },
       ],
     });
-    const harness = await RouterTestingHarness.create('/');
-    const page = harness.routeNativeElement as HTMLElement;
-    const tab = (name: string) =>
-      [...page.querySelectorAll<HTMLButtonElement>('[cdtTab]')].find((t) => t.textContent?.trim() === name);
-    return { harness, page, tab, http: TestBed.inject(HttpTestingController), router: TestBed.inject(Router) };
+    const harness = await RouterTestingHarness.create(address);
+    await harness.fixture.whenStable();
+    const page = () => harness.fixture.nativeElement as HTMLElement;
+    const tabs = () =>
+      [...page().querySelectorAll<HTMLButtonElement>('[cdtTab]')].filter((t) => !t.closest('[hidden]'));
+    const tab = (name: string) => tabs().find((t) => t.textContent?.trim() === name);
+    async function click(name: string) {
+      tab(name)?.click();
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+    const http = TestBed.inject(HttpTestingController);
+    // The feeds' requests since the last look (the Global Feed's /articles, Your
+    // Feed's /articles/feed), answered as the backend would.
+    const postRequests = () =>
+      http
+        .match((request) => request.url.startsWith('/articles'))
+        .map((request) => {
+          request.flush({ articles: [], articlesCount: 0 });
+          return request.request.url;
+        });
+    return { page, tabs, tab, click, http, postRequests, router: TestBed.inject(Router) };
   }
 
-  it('shows the Weekly and Hunts tabs to guests too, each in the address, and the feeds again', async () => {
-    const { harness, page, tab, http, router } = await render();
+  it('opens on Weekly, then Hunts and the Global Feed, each at its own address; posts load only for a feed', async () => {
+    const { page, tabs, tab, click, http, postRequests, router } = await render();
 
-    tab('Weekly')?.click();
-    await harness.fixture.whenStable();
-    expect(router.url).toBe('/?view=weekly');
-    expect(tab('Weekly')?.getAttribute('aria-current') ?? tab('Weekly')?.className).toMatch(/true|active/);
-    expect(page.querySelector('cdt-weekly')).not.toBeNull();
-    expect(page.querySelector('cdt-article-list')).toBeNull();
-    expect(http.match('/weekly')).toHaveLength(1);
-
-    tab('Hunts')?.click();
-    await harness.fixture.whenStable();
-    expect(router.url).toBe('/?view=hunts');
-    expect(page.querySelector('cdt-hunts')).not.toBeNull();
-    expect(page.querySelector('h2.visually-hidden')?.textContent).toBe('Hunt trains');
-
-    tab('Global Feed')?.click();
-    await harness.fixture.whenStable();
-    harness.detectChanges();
+    // Guests: no Your Feed.
+    expect(tabs().map((t) => t.textContent?.trim())).toEqual(['Weekly', 'Hunts', 'Global Feed']);
     expect(router.url).toBe('/');
-    const root = harness.fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('cdt-article-list')).not.toBeNull();
-    expect(root.querySelector('cdt-hunts')).toBeNull();
+    expect(tab('Weekly')?.className).toMatch(/active/);
+    expect(page().querySelector('cdt-weekly')).not.toBeNull();
+    expect(http.match('/weekly')).toHaveLength(1);
+    expect(postRequests()).toEqual([]);
+
+    await click('Hunts');
+    expect(router.url).toBe('/?view=hunts');
+    expect(page().querySelector('cdt-hunts')).not.toBeNull();
+    expect(page().querySelector('h2.visually-hidden')?.textContent).toBe('Hunt trains');
+
+    await click('Global Feed');
+    expect(router.url).toBe('/?view=global');
+    expect(page().querySelector('cdt-article-list')).not.toBeNull();
+    expect(page().querySelector('cdt-hunts')).toBeNull();
+    expect(postRequests()).toEqual(['/articles']);
+
+    await click('Weekly');
+    expect(router.url).toBe('/');
+    expect(page().querySelector('cdt-weekly')).not.toBeNull();
+  });
+
+  it('gives members Your Feed, after Hunts, at its own address', async () => {
+    const { tabs, tab, click, postRequests, router } = await render(true);
+
+    expect(tabs().map((t) => t.textContent?.trim())).toEqual(['Weekly', 'Hunts', 'Your Feed', 'Global Feed']);
+
+    await click('Your Feed');
+    expect(router.url).toBe('/?view=yours');
+    expect(tab('Your Feed')?.className).toMatch(/active/);
+    expect(tab('Global Feed')?.className).not.toMatch(/active/);
+    expect(postRequests()).toEqual(['/articles/feed']);
+
+    await click('Global Feed');
+    expect(router.url).toBe('/?view=global');
+    expect(postRequests()).toEqual(['/articles']);
+  });
+
+  it('opens a link to Your Feed on it for a member, and on the Global Feed for a guest', async () => {
+    const member = await render(true, '/?view=yours');
+    expect(member.tab('Your Feed')?.className).toMatch(/active/);
+    expect(member.postRequests()).toEqual(['/articles/feed']);
+    TestBed.resetTestingModule();
+
+    const guest = await render(false, '/?view=yours');
+    expect(guest.tab('Global Feed')?.className).toMatch(/active/);
+    expect(guest.postRequests()).toEqual(['/articles']);
   });
 });

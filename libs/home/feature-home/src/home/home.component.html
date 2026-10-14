@@ -25,29 +25,6 @@
                 <button
                   type="button"
                   cdtTab
-                  data-testid="global-feed"
-                  [active]="view() === 'feed' && model.listConfig.type === 'ALL' && !model.listConfig.filters.tag"
-                  (click)="showFeed('ALL')"
-                >
-                  Global Feed
-                </button>
-              </li>
-              @if (isLoggedIn()) {
-                <li>
-                  <button
-                    type="button"
-                    cdtTab
-                    [active]="view() === 'feed' && model.listConfig.type === 'FEED'"
-                    (click)="showFeed('FEED')"
-                  >
-                    Your Feed
-                  </button>
-                </li>
-              }
-              <li>
-                <button
-                  type="button"
-                  cdtTab
                   data-testid="weekly"
                   [active]="view() === 'weekly'"
                   (click)="showView('weekly')"
@@ -66,7 +43,26 @@
                   Hunts
                 </button>
               </li>
-              <li [hidden]="view() !== 'feed' || !model.listConfig.filters.tag">
+              <!-- Your Feed is the people a member follows: members only. -->
+              @if (isLoggedIn()) {
+                <li>
+                  <button type="button" cdtTab [active]="view() === 'yours'" (click)="showView('yours')">
+                    Your Feed
+                  </button>
+                </li>
+              }
+              <li>
+                <button
+                  type="button"
+                  cdtTab
+                  data-testid="global-feed"
+                  [active]="view() === 'global' && !model.listConfig.filters.tag"
+                  (click)="showView('global')"
+                >
+                  Global Feed
+                </button>
+              </li>
+              <li [hidden]="view() !== 'global' || !model.listConfig.filters.tag">
                 <span cdtTab [active]="true">
                   <cdt-icon name="hash" />
                   <span class="visually-hidden">Tag</span>
@@ -81,10 +77,11 @@
         <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
         @switch (view()) {
-          @case ('weekly') {
-            @defer (on immediate) {
-              <cdt-weekly />
-            }
+          @case ('yours') {
+            <cdt-article-list></cdt-article-list>
+          }
+          @case ('global') {
+            <cdt-article-list></cdt-article-list>
           }
           @case ('hunts') {
             @defer (on immediate) {
@@ -92,7 +89,8 @@
             }
           }
           @default {
-            <cdt-article-list></cdt-article-list>
+            <!-- What / opens on: with the page, not after it. -->
+            <cdt-weekly />
           }
         }
       </div>
