@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { IconComponent } from '@everise/ui/components';
 
 // A GIF that plays straight away, as on Discord, with a pause button: moving
@@ -8,17 +18,18 @@ import { IconComponent } from '@everise/ui/components';
 @Component({
   selector: 'cdt-gif',
   template: `
-    <img
-      #image
-      [src]="src()"
-      [alt]="alt()"
-      [hidden]="paused()"
-      loading="lazy"
-      decoding="async"
-      (load)="loaded()"
-      (click)="opened.emit()"
-    />
-    <canvas #still [hidden]="!paused()" role="img" [attr.aria-label]="alt() || null" (click)="opened.emit()"></canvas>
+    <ng-template #picture>
+      <img #image [src]="src()" [alt]="alt()" [hidden]="paused()" loading="lazy" decoding="async" (load)="loaded()" />
+      <canvas #still [hidden]="!paused()" role="img" [attr.aria-label]="alt() || null"></canvas>
+    </ng-template>
+    <!-- In a grid it opens larger, from the keyboard too; in the viewer it already is. -->
+    @if (contain()) {
+      <ng-container *ngTemplateOutlet="picture" />
+    } @else {
+      <button type="button" class="open" [attr.aria-label]="openLabel()" (click)="opened.emit()">
+        <ng-container *ngTemplateOutlet="picture" />
+      </button>
+    }
     <button type="button" class="toggle" [attr.aria-pressed]="paused()" (click)="toggle()">
       <cdt-icon [name]="paused() ? 'play' : 'pause'" />
       <span class="visually-hidden">{{ paused() ? 'Play GIF' : 'Pause GIF' }}</span>
@@ -26,7 +37,7 @@ import { IconComponent } from '@everise/ui/components';
     <span class="badge" aria-hidden="true">GIF</span>
   `,
   styleUrl: './gif.component.scss',
-  imports: [IconComponent],
+  imports: [IconComponent, NgTemplateOutlet],
   host: { '[class.contain]': 'contain()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -35,8 +46,11 @@ export class GifComponent {
   readonly alt = input('');
   // Whole, at its own shape (the viewer); otherwise it fills its tile.
   readonly contain = input(false);
-  // A click on the picture (not the button): to open it larger.
+  // The picture clicked or its button pressed (not the pause button): to
+  // open it larger.
   readonly opened = output<void>();
+
+  protected readonly openLabel = computed(() => (this.alt() ? `Open GIF: ${this.alt()}` : 'Open GIF'));
 
   protected readonly paused = signal(
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches,

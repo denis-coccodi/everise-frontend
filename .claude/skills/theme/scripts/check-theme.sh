@@ -20,6 +20,11 @@ report "Raw colours, gradients or font families outside the theme (use role toke
     grep -vE 'href="#|routerLink="#' | grep -v 'name="theme-color"'
 )"
 
+report "Raw shadows outside the theme (use --shadow-* or --glow-*)" "$(
+  grep -rnE "(box|text)-shadow:[[:space:]]*[^v;[:space:]]" apps libs --include=*.scss |
+    grep -v "libs/ui/components/src/theme/" | grep -vE "shadow:[[:space:]]*(none|var[(])"
+)"
+
 report "Palette tokens outside the theme (use a role)" "$(
   grep -rn -- "--palette-" apps libs | grep -v "libs/ui/components/src/theme/"
 )"

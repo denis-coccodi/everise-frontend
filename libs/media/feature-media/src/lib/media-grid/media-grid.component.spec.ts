@@ -45,7 +45,9 @@ describe('MediaGridComponent', () => {
     expect(grid.dataset['count']).toBe('3');
     expect(page.querySelectorAll('.tile')).toHaveLength(3);
     expect(page.querySelector('cdt-gif img')?.getAttribute('src')).toBe('https://x/dance.gif');
-    expect(page.querySelector('cdt-gif button')?.textContent?.trim()).toBe('Pause GIF');
+    expect(page.querySelector('cdt-gif button.toggle')?.textContent?.trim()).toBe('Pause GIF');
+    // The GIF opens larger from the keyboard, like the images.
+    expect(page.querySelector('cdt-gif button.open')?.getAttribute('aria-label')).toMatch(/^Open GIF/);
     expect(page.querySelector('cdt-youtube-embed button.poster')?.textContent?.trim()).toBe('Play YouTube video');
     expect(page.querySelector('cdt-youtube-embed a.watch')).toBeNull();
   });

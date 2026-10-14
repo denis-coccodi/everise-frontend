@@ -48,4 +48,22 @@ describe('GifComponent', () => {
 
     expect(button.textContent?.trim()).toBe('Play GIF');
   });
+
+  it('opens larger from a button the keyboard reaches, but not in the viewer', async () => {
+    prefersReducedMotion(false);
+    const { fixture, page } = await render();
+    let opened = 0;
+    fixture.componentInstance.opened.subscribe(() => opened++);
+
+    const open = page.querySelector('button.open') as HTMLButtonElement;
+    expect(open.getAttribute('aria-label')).toBe('Open GIF: Dancing');
+    expect(open.querySelector('img')).not.toBeNull();
+    open.click();
+    expect(opened).toBe(1);
+
+    fixture.componentRef.setInput('contain', true);
+    await fixture.whenStable();
+    expect(page.querySelector('button.open')).toBeNull();
+    expect(page.querySelector('img')).not.toBeNull();
+  });
 });
