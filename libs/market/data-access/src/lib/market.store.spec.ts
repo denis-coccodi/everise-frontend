@@ -154,13 +154,32 @@ describe('MarketStore', () => {
     expect(histories()).toEqual([]);
   });
 
-  it("says when the history can't be read", () => {
+  const failed = () => ({
+    body: { errors: { body: ["The market board's history can't be read right now. Try again in a minute."] } },
+    status: { status: 502, statusText: 'Bad Gateway' },
+  });
+
+  it('tries again when the history fails, and shows it once read', () => {
+    vi.useFakeTimers();
     const { store, histories } = setUp();
     store.pick(ORE);
-    histories()[0].flush(
-      { errors: { body: ["The market board's history can't be read right now. Try again in a minute."] } },
-      { status: 502, statusText: 'Bad Gateway' },
-    );
+    histories()[0].flush(failed().body, failed().status);
+    expect(store.error()).toBe('');
+
+    vi.advanceTimersByTime(MARKET_POLL_MS);
+    histories()[0].flush(history());
+    expect(store.loadState()).toBe('ready');
+    expect(store.series()).toHaveLength(2);
+  });
+
+  it("says when the history can't be read, after trying twice more", () => {
+    vi.useFakeTimers();
+    const { store, histories } = setUp();
+    store.pick(ORE);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      histories()[0].flush(failed().body, failed().status);
+      vi.advanceTimersByTime(MARKET_POLL_MS);
+    }
 
     expect(store.error()).toBe("The market board's history can't be read right now. Try again in a minute.");
     expect(store.loadState()).toBe('error');

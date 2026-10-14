@@ -2,15 +2,16 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, viewC
 import { MarketItem } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
 import { MarketSearchStore, MarketStore, iconUrl } from '@everise/market/data-access';
-import { FieldComponent, InputComponent, PanelComponent } from '@everise/ui/components';
+import { FieldComponent, InputComponent } from '@everise/ui/components';
 
-// The item shown, and a search to pick another. Reads the page's
+// The item shown, and a search to pick another (the page puts them in a
+// panel). Reads the page's
 // MarketStore and MarketSearchStore.
 @Component({
   selector: 'cdt-market-item-picker',
   templateUrl: './market-item-picker.component.html',
   styleUrl: './market-item-picker.component.scss',
-  imports: [FieldComponent, InputComponent, PanelComponent],
+  imports: [FieldComponent, InputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketItemPickerComponent {

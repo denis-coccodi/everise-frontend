@@ -63,7 +63,7 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
       return {
         title: 'FFXIV Market History · the best price on every world · Everise',
         description:
-          "Find where a Final Fantasy XIV item sells cheapest: the lowest listing now and each day's price on " +
+          "Find where a Final Fantasy XIV item sells cheapest: the lowest listing now and each day's median sale price on " +
           "every world of your region, and Oceania's, back to late 2022. Free with an account, open to anyone.",
         path: '/market-history',
       };

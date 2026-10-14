@@ -1,13 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MarketQuality } from '@everise/core/api-types';
 import { DEFAULT_DAYS, MarketStore, daysBefore } from '@everise/market/data-access';
-import {
-  ButtonComponent,
-  CheckboxComponent,
-  FieldComponent,
-  InputComponent,
-  PanelComponent,
-} from '@everise/ui/components';
+import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@everise/ui/components';
 
 // The quick ranges, in days back from today (0: the whole history). A
 // longer range reads more of the history the first time.
@@ -26,7 +20,7 @@ const PRESETS = [
   selector: 'cdt-market-controls',
   templateUrl: './market-controls.component.html',
   styleUrl: './market-controls.component.scss',
-  imports: [ButtonComponent, CheckboxComponent, FieldComponent, InputComponent, PanelComponent],
+  imports: [ButtonComponent, CheckboxComponent, FieldComponent, InputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketControlsComponent {

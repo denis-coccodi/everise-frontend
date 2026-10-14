@@ -14,11 +14,10 @@ import { MarketWorldsComponent } from '../market-worlds/market-worlds.component'
 
 const longDay = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const gil = new Intl.NumberFormat('en');
-const DAY_MS = 86_400_000;
 
 // The market history tool, for signed-in members: an item's price over time
 // on each world of a region (and Oceania's, when asked), a line per world,
-// with the cheapest listings now and the lowest middle price today and in
+// with the cheapest listings now and the lowest median sale price today and in
 // the days shown. Everything picked is in the query string
 // (?item=5111&region=europe&worlds=odin,phoenix), so a link shows the same
 // chart.
@@ -40,7 +39,6 @@ const DAY_MS = 86_400_000;
 export class MarketToolComponent {
   protected readonly store = inject(MarketStore);
   protected readonly listings = inject(MarketListingsStore);
-  protected readonly dayMs = DAY_MS;
 
   protected readonly lines = computed<ChartLine[]>(() =>
     this.store.series().map((series) => ({

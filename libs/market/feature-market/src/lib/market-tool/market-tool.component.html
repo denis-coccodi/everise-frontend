@@ -1,7 +1,8 @@
-<div class="choices">
+<!-- The item, then where and when: one panel, full width. -->
+<cdt-panel heading="Item, place and days" class="choices">
   <cdt-market-item-picker />
   <cdt-market-controls />
-</div>
+</cdt-panel>
 
 <cdt-message tone="error">{{ store.error() }}</cdt-message>
 <cdt-message>{{ status() }}</cdt-message>
@@ -43,7 +44,7 @@
       </div>
       @if (store.loadState() === 'ready') {
         <div>
-          <dt>Lowest middle price today</dt>
+          <dt>Lowest median sale price today</dt>
           <dd>
             @if (store.lowestToday(); as low) {
               <strong>{{ price(low) }}</strong> on {{ low.world.name }} ({{ low.world.dataCentre }})
@@ -53,7 +54,7 @@
           </dd>
         </div>
         <div>
-          <dt>Lowest from {{ shown() }}</dt>
+          <dt>Lowest median sale price, {{ shown() }}</dt>
           <dd>
             @if (store.lowestShown(); as low) {
               <strong>{{ price(low) }}</strong> on {{ low.world.name }} ({{ low.world.dataCentre }}),
@@ -81,14 +82,15 @@
           [from]="from()"
           [to]="to()"
           [scale]="store.scale()"
-          [gap]="dayMs"
           label="Day shown"
           unit="gil"
           missing="no sales"
         />
         <p class="note">
-          Each point is a world's middle price per unit that day, with its sales and lowest and highest price. A line
-          breaks on days without sales.
+          The chart is built from <strong>sales</strong>, not listings: each point is the
+          <strong>median price per unit</strong> of everything a world sold that day, with how many sales there were and
+          their lowest and highest price. A day without sales has no point: the line joins the days around it. The
+          cheapest listing above is what's for sale now.
         </p>
       }
     }

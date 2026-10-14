@@ -117,7 +117,7 @@ export function readBackTo(histories: MarketHistory[]): string | null {
   );
 }
 
-// The lowest middle price among these days (the earliest, on a tie).
+// The lowest median sale price among these days (the earliest, on a tie).
 export function lowest(days: WorldDay[]): WorldDay | null {
   return days.reduce<WorldDay | null>(
     (best, day) =>
