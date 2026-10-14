@@ -3689,16 +3689,28 @@ export interface components {
     AdminCharacterResponse: {
       character: components['schemas']['AdminCharacter'];
     };
-    Profile: {
-      id: string;
-      username: string;
-      following: boolean;
-      bio: string | null;
-      image: string;
-      character?: string;
+    MediaResponse: {
+      media: {
+        id: string;
+        url: string;
+        contentType: string;
+        width: number;
+        height: number;
+      };
     };
-    ProfileResponse: {
-      profile: components['schemas']['Profile'];
+    GifsAvailableResponse: {
+      available: boolean;
+    };
+    GifsResponse: {
+      gifs: {
+        id: string;
+        title: string;
+        previewUrl: string;
+        url: string;
+        width: number;
+        height: number;
+      }[];
+      next: number | null;
     };
     Attachment:
       | {
@@ -3717,6 +3729,17 @@ export interface components {
           start?: number;
           alt?: string;
         };
+    Profile: {
+      id: string;
+      username: string;
+      following: boolean;
+      bio: string | null;
+      image: string;
+      character?: string;
+    };
+    ProfileResponse: {
+      profile: components['schemas']['Profile'];
+    };
     PartyFinderResponse: {
       /** @enum {string} */
       dataCentre:
@@ -4318,29 +4341,6 @@ export interface components {
     };
     ProvidersResponse: {
       providers: ('google' | 'facebook' | 'microsoft' | 'discord')[];
-    };
-    MediaResponse: {
-      media: {
-        id: string;
-        url: string;
-        contentType: string;
-        width: number;
-        height: number;
-      };
-    };
-    GifsAvailableResponse: {
-      available: boolean;
-    };
-    GifsResponse: {
-      gifs: {
-        id: string;
-        title: string;
-        previewUrl: string;
-        url: string;
-        width: number;
-        height: number;
-      }[];
-      next: number | null;
     };
     DiscordWidgetResponse: {
       widget: {
