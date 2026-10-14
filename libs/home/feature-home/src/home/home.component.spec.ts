@@ -57,10 +57,10 @@ describe('HomeComponent Discord box', () => {
 });
 
 describe('HomeComponent tabs', () => {
-  async function render() {
+  async function render(loggedIn = false) {
     TestBed.configureTestingModule({
       providers: [
-        { provide: AuthStore, useValue: { loggedIn: signal(false) } },
+        { provide: AuthStore, useValue: { loggedIn: signal(loggedIn) } },
         { provide: LiveUpdates, useValue: { events$: NEVER } },
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -69,35 +69,50 @@ describe('HomeComponent tabs', () => {
       ],
     });
     const harness = await RouterTestingHarness.create('/');
-    const page = harness.routeNativeElement as HTMLElement;
-    const tab = (name: string) =>
-      [...page.querySelectorAll<HTMLButtonElement>('[cdtTab]')].find((t) => t.textContent?.trim() === name);
-    return { harness, page, tab, http: TestBed.inject(HttpTestingController), router: TestBed.inject(Router) };
+    const page = () => harness.fixture.nativeElement as HTMLElement;
+    const tabs = () =>
+      [...page().querySelectorAll<HTMLButtonElement>('[cdtTab]')].filter((t) => !t.closest('[hidden]'));
+    const tab = (name: string) => tabs().find((t) => t.textContent?.trim() === name);
+    async function click(name: string) {
+      tab(name)?.click();
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+    const http = TestBed.inject(HttpTestingController);
+    const postRequests = () => http.match((request) => request.url.startsWith('/articles'));
+    return { page, tabs, tab, click, http, postRequests, router: TestBed.inject(Router) };
   }
 
-  it('shows the Weekly and Hunts tabs to guests too, each in the address, and the feeds again', async () => {
-    const { harness, page, tab, http, router } = await render();
+  it('opens on Weekly, then Hunts and the Global Feed, each in the address; posts load only for the feed', async () => {
+    const { page, tabs, tab, click, http, postRequests, router } = await render();
 
-    tab('Weekly')?.click();
-    await harness.fixture.whenStable();
-    expect(router.url).toBe('/?view=weekly');
-    expect(tab('Weekly')?.getAttribute('aria-current') ?? tab('Weekly')?.className).toMatch(/true|active/);
-    expect(page.querySelector('cdt-weekly')).not.toBeNull();
-    expect(page.querySelector('cdt-article-list')).toBeNull();
-    expect(http.match('/weekly')).toHaveLength(1);
-
-    tab('Hunts')?.click();
-    await harness.fixture.whenStable();
-    expect(router.url).toBe('/?view=hunts');
-    expect(page.querySelector('cdt-hunts')).not.toBeNull();
-    expect(page.querySelector('h2.visually-hidden')?.textContent).toBe('Hunt trains');
-
-    tab('Global Feed')?.click();
-    await harness.fixture.whenStable();
-    harness.detectChanges();
+    // Guests: no Your Feed.
+    expect(tabs().map((t) => t.textContent?.trim())).toEqual(['Weekly', 'Hunts', 'Global Feed']);
     expect(router.url).toBe('/');
-    const root = harness.fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('cdt-article-list')).not.toBeNull();
-    expect(root.querySelector('cdt-hunts')).toBeNull();
+    expect(tab('Weekly')?.className).toMatch(/active/);
+    expect(page().querySelector('cdt-weekly')).not.toBeNull();
+    expect(http.match('/weekly')).toHaveLength(1);
+    expect(postRequests()).toHaveLength(0);
+
+    await click('Hunts');
+    expect(router.url).toBe('/?view=hunts');
+    expect(page().querySelector('cdt-hunts')).not.toBeNull();
+    expect(page().querySelector('h2.visually-hidden')?.textContent).toBe('Hunt trains');
+
+    await click('Global Feed');
+    expect(router.url).toBe('/?view=feed');
+    expect(page().querySelector('cdt-article-list')).not.toBeNull();
+    expect(page().querySelector('cdt-hunts')).toBeNull();
+    expect(postRequests()).toHaveLength(1);
+
+    await click('Weekly');
+    expect(router.url).toBe('/');
+    expect(page().querySelector('cdt-weekly')).not.toBeNull();
+  });
+
+  it('gives members Your Feed, after Hunts', async () => {
+    const { tabs } = await render(true);
+
+    expect(tabs().map((t) => t.textContent?.trim())).toEqual(['Weekly', 'Hunts', 'Your Feed', 'Global Feed']);
   });
 });

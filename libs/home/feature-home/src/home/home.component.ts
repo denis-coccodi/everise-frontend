@@ -17,7 +17,7 @@ import { HuntsComponent, WeeklyComponent } from '@everise/relays/feature-relays'
 
 import { AuthStore } from '@everise/auth/data-access';
 
-type HomeView = 'feed' | 'weekly' | 'hunts';
+type HomeView = 'weekly' | 'hunts' | 'feed';
 
 // What screen readers hear before the tabs, per tab.
 const VIEW_HEADINGS: Record<HomeView, string> = {
@@ -55,12 +55,12 @@ export class HomeComponent {
 
   $listConfig = this.articlesListStore.listConfig;
 
-  // The tab shown besides the feeds, from the address (?view=weekly or
-  // ?view=hunts), so it can be linked and Back returns to it.
+  // The tab shown, from the address, so it can be linked and Back returns
+  // to it: Weekly at /, the others ?view=hunts and ?view=feed.
   private readonly query = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
   protected readonly view = computed<HomeView>(() => {
     const view = this.query().get('view');
-    return view === 'weekly' || view === 'hunts' ? view : 'feed';
+    return view === 'hunts' || view === 'feed' ? view : 'weekly';
   });
   protected readonly viewHeading = computed(() => VIEW_HEADINGS[this.view()]);
   protected readonly isLoggedIn = this.authStore.loggedIn;
@@ -69,9 +69,20 @@ export class HomeComponent {
   // Read out by screen readers when a post arrives live.
   protected readonly announcement = signal('');
 
+  // Whether the posts shown were loaded signed in, or not yet loaded.
+  private feedLoadedFor?: boolean;
+
+  // The posts load once a feed is shown, and again when signing in or out
+  // while it is (for the favourites).
   readonly loadArticlesOnLogin = effect(() => {
-    this.authStore.loggedIn();
-    untracked(() => this.getArticles());
+    const loggedIn = this.authStore.loggedIn();
+    const inFeed = this.view() === 'feed';
+    untracked(() => {
+      if (inFeed && this.feedLoadedFor !== loggedIn) {
+        this.feedLoadedFor = loggedIn;
+        this.getArticles();
+      }
+    });
   });
 
   // New posts pushed by the backend go straight to the top of the list
@@ -89,13 +100,14 @@ export class HomeComponent {
   protected showView(view: HomeView) {
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { view: view === 'feed' ? null : view },
+      queryParams: { view: view === 'weekly' ? null : view },
       queryParamsHandling: 'merge',
     });
   }
 
-  // A feed tab shows the feeds again.
+  // A feed tab shows that feed.
   protected showFeed(type: ListType) {
+    this.feedLoadedFor = this.authStore.loggedIn();
     this.showView('feed');
     this.setListTo(type);
   }
@@ -106,14 +118,16 @@ export class HomeComponent {
     this.articlesListStore.loadArticles(this.$listConfig());
   }
 
-  // Everyone starts on the Global Feed: "Your Feed" only shows people you
-  // follow, which is empty until you follow someone. Signing in or out
-  // reloads it, for the favourites.
+  // The feeds open on the Global Feed: "Your Feed" only shows people you
+  // follow, which is empty until you follow someone.
   getArticles() {
     this.setListTo('ALL');
   }
 
+  // A tag from the sidebar: the posts with it, in the feeds.
   setListTag(tag: string) {
+    this.feedLoadedFor = this.authStore.loggedIn();
+    this.showView('feed');
     this.articlesListStore.setListConfig({
       ...articlesListInitialState.listConfig,
       filters: {
