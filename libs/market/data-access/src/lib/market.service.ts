@@ -4,6 +4,7 @@ import {
   MarketHistory,
   MarketItemResponse,
   MarketItemsResponse,
+  MarketListings,
   MarketQuality,
   MarketRegions,
 } from '@everise/core/api-types';
@@ -33,6 +34,14 @@ export class MarketService {
     return this.api.get<MarketHistory>(
       '/market/history',
       new HttpParams().set('region', region).set('item', item).set('quality', quality).set('from', from),
+    );
+  }
+
+  // The item's cheapest listings now on the worlds of a region.
+  listings(region: string, item: number, quality: MarketQuality) {
+    return this.api.get<MarketListings>(
+      '/market/listings',
+      new HttpParams().set('region', region).set('item', item).set('quality', quality),
     );
   }
 }

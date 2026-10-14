@@ -1645,6 +1645,55 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/market/listings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An item's cheapest listings now on the worlds of a region */
+    get: {
+      parameters: {
+        query: {
+          region?: 'europe' | 'north-america' | 'japan' | 'oceania';
+          item: string;
+          quality?: 'all' | 'nq' | 'hq';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The listings. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['MarketListingsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/market/regions': {
     parameters: {
       query?: never;
@@ -3935,6 +3984,24 @@ export interface components {
       defaultRegion: string;
       homeWorld: string;
       historyStart: string;
+    };
+    MarketListingsResponse: {
+      region: {
+        id: string;
+        name: string;
+      };
+      item: number;
+      /** @enum {string} */
+      quality: 'all' | 'nq' | 'hq';
+      listings: {
+        world: number;
+        price: number;
+        quantity: number;
+        hq: boolean;
+        /** Format: date-time */
+        reviewedAt: string;
+      }[];
+      updatedAt: string | null;
     };
     MarketHistoryResponse: {
       region: {

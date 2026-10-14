@@ -21,11 +21,15 @@ describe('MarketControlsComponent', () => {
       'Oceania',
     ]);
     await change('market-region', 'north-america');
-    expect(http.expectOne((r) => r.params.get('region') === 'north-america').request.params.get('item')).toBe('5111');
+    expect(
+      http
+        .expectOne((r) => r.url === '/market/history' && r.params.get('region') === 'north-america')
+        .request.params.get('item'),
+    ).toBe('5111');
     expect(query()['region']).toBe('north-america');
 
     await change('market-region', 'europe');
-    http.expectOne((r) => r.params.get('region') === 'europe').flush(history());
+    http.expectOne((r) => r.url === '/market/history' && r.params.get('region') === 'europe').flush(history());
     (page.querySelector('cdt-checkbox input') as HTMLInputElement).click();
     await fixture.whenStable();
     const read = http.match((r) => r.url === '/market/history').map((r) => r.request.params.get('region'));
@@ -37,7 +41,7 @@ describe('MarketControlsComponent', () => {
     const { http, change, query } = await shown();
 
     await change('market-quality', 'hq');
-    http.expectOne((r) => r.params.get('quality') === 'hq');
+    http.expectOne((r) => r.url === '/market/history' && r.params.get('quality') === 'hq');
     expect(query()['quality']).toBe('hq');
   });
 

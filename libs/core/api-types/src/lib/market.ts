@@ -14,3 +14,7 @@ export type MarketHistory = Schemas['MarketHistoryResponse'];
 export type MarketWorldHistory = MarketHistory['worlds'][number];
 export type MarketDay = MarketWorldHistory['days'][number];
 export type MarketQuality = MarketHistory['quality'];
+
+// An item's cheapest listings now on the worlds of a region.
+export type MarketListings = Schemas['MarketListingsResponse'];
+export type MarketListing = MarketListings['listings'][number];

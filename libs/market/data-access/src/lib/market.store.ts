@@ -70,6 +70,11 @@ export const MarketStore = signalStore(
       start,
       end,
       range,
+      // The regions read: the one picked, and Oceania when asked for.
+      readRegions: computed(() => [
+        store.region(),
+        ...(store.oceania() && store.region() !== 'oceania' ? ['oceania'] : []),
+      ]),
       shownRegions,
       // Every world drawable (`worlds` is the state: those picked, by key).
       allWorlds: worlds,
@@ -97,11 +102,6 @@ export const MarketStore = signalStore(
         to: store.to(),
         scale: store.scale(),
       });
-      // The regions read: the one picked, and Oceania when asked for.
-      const regionsRead = () => [
-        store.region(),
-        ...(store.oceania() && store.region() !== 'oceania' ? ['oceania'] : []),
-      ];
       const loadHistories = rxMethod<void>(
         pipe(
           switchMap(() => {
@@ -112,7 +112,7 @@ export const MarketStore = signalStore(
             }
             patchState(store, { loadState: store.histories().length ? 'ready' : 'loading' });
             return forkJoin(
-              regionsRead().map((region) => service.history(region, item, store.quality(), store.range().from)),
+              store.readRegions().map((region) => service.history(region, item, store.quality(), store.range().from)),
             ).pipe(
               tapResponse({
                 next: (histories) => patchState(store, { histories, loadState: 'ready', error: '' }),

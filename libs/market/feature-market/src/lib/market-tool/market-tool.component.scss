@@ -1,0 +1,94 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+// The phone: the item, then where and when. Laptops: side by side.
+.choices {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 1rem;
+}
+
+@include bp.up(lg) {
+  .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.notice,
+.note,
+.source {
+  color: var(--color-contrast-muted);
+}
+
+.notice {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.note {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+}
+
+.source {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+// The cheapest listing now and the lowest prices, above the chart: one
+// under the other on a phone, side by side on wider screens.
+.lowest {
+  display: grid;
+  gap: 0.75rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0 0 1.25rem;
+
+  dt {
+    color: var(--color-label);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0.15rem 0 0;
+    color: var(--color-contrast-soft);
+  }
+
+  strong {
+    color: var(--color-contrast);
+    font-size: 1.15rem;
+  }
+}
+
+@include bp.up(md) {
+  .lowest {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.seen {
+  display: block;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}
+
+// The next cheapest listings, small, under the cheapest.
+.next {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}
+
+cdt-market-worlds {
+  margin-bottom: 1rem;
+}

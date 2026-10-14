@@ -1,7 +1,5 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
 
-@use '../../../../../ui/components/src/theme/breakpoints' as bp;
-
 :host {
   display: block;
 }
@@ -28,73 +26,31 @@ h1 {
   font-size: clamp(1.8rem, 5vw, 2.8rem);
 }
 
-// The phone: the items, then where and when. Laptops: side by side.
-.choices {
+// What guests are shown: what the page does, and the way in.
+.pitch {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.features {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr);
-  margin-bottom: 1rem;
-}
-
-@include bp.up(lg) {
-  .choices {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-}
-
-.notice,
-.note,
-.source {
-  color: var(--color-contrast-muted);
-}
-
-.notice {
-  margin: 1rem 0;
-  text-align: center;
-}
-
-.note {
-  margin: 1rem 0 0;
-  font-size: 0.85rem;
-}
-
-.source {
-  margin-top: 2rem;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-// The lowest prices, above the chart: side by side from tablets up.
-.lowest {
-  display: grid;
-  gap: 0.75rem 1.5rem;
-  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
   margin: 0 0 1.25rem;
-
-  dt {
-    color: var(--color-label);
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
-
-  dd {
-    margin: 0.15rem 0 0;
-    color: var(--color-contrast-soft);
-  }
+  padding: 0 0 0 1.25rem;
+  color: var(--color-contrast-soft);
 
   strong {
     color: var(--color-contrast);
-    font-size: 1.15rem;
   }
 }
 
-@include bp.up(sm) {
-  .lowest {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.join {
+  margin: 0 0 1rem;
+  color: var(--color-contrast-soft);
 }
 
-cdt-market-worlds {
-  margin-bottom: 1rem;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }

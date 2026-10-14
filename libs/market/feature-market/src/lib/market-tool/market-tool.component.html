@@ -1,0 +1,101 @@
+<div class="choices">
+  <cdt-market-item-picker />
+  <cdt-market-controls />
+</div>
+
+<cdt-message tone="error">{{ store.error() }}</cdt-message>
+<cdt-message>{{ status() }}</cdt-message>
+
+<cdt-panel heading="Price history">
+  @if (store.item() === null) {
+    <p class="notice">Find an item to see its price history.</p>
+  } @else {
+    <dl class="lowest">
+      <div class="now">
+        <dt>Cheapest listing now</dt>
+        <dd>
+          @switch (listings.state()) {
+            @case ('loading') {
+              Reading the market boards…
+            }
+            @case ('error') {
+              {{ listings.error() }}
+            }
+            @default {
+              @if (listings.cheapest()[0]; as best) {
+                <strong>{{ price(best) }}</strong> on {{ best.place.name }} ({{ best.place.dataCentre }})
+                <span class="seen">{{ listed(best) }}</span>
+              } @else {
+                Nobody is selling it here right now.
+              }
+            }
+          }
+        </dd>
+        @if (listings.cheapest().length > 1) {
+          <dd>
+            <ul class="next" aria-label="The next cheapest">
+              @for (next of listings.cheapest().slice(1); track $index) {
+                <li>{{ price(next) }} on {{ next.place.name }} ({{ listed(next) }})</li>
+              }
+            </ul>
+          </dd>
+        }
+      </div>
+      @if (store.loadState() === 'ready') {
+        <div>
+          <dt>Lowest middle price today</dt>
+          <dd>
+            @if (store.lowestToday(); as low) {
+              <strong>{{ price(low) }}</strong> on {{ low.world.name }} ({{ low.world.dataCentre }})
+            } @else {
+              No sales yet today.
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Lowest from {{ shown() }}</dt>
+          <dd>
+            @if (store.lowestShown(); as low) {
+              <strong>{{ price(low) }}</strong> on {{ low.world.name }} ({{ low.world.dataCentre }}),
+              {{ date(low) }}
+            } @else {
+              No sales in these days.
+            }
+          </dd>
+        </div>
+      }
+    </dl>
+
+    @switch (store.loadState()) {
+      @case ('loading') {
+        <p class="notice">Reading the market history…</p>
+      }
+      @case ('error') {
+        <p class="notice">The prices couldn't be read. Try again in a minute.</p>
+      }
+      @default {
+        <cdt-market-worlds />
+
+        <cdt-line-chart
+          [lines]="lines()"
+          [from]="from()"
+          [to]="to()"
+          [scale]="store.scale()"
+          [gap]="dayMs"
+          label="Day shown"
+          unit="gil"
+          missing="no sales"
+        />
+        <p class="note">
+          Each point is a world's middle price per unit that day, with its sales and lowest and highest price. A line
+          breaks on days without sales.
+        </p>
+      }
+    }
+  }
+</cdt-panel>
+
+<p class="source">
+  Prices and listings from <a href="https://universalis.app" target="_blank" rel="noopener">Universalis</a>, which keeps
+  what players' uploads report, from late October 2022. Item names and icons from XIVAPI.
+</p>

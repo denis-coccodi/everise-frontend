@@ -5,7 +5,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { MarketHistory, MarketItem, MarketRegions } from '@everise/core/api-types';
+import { AuthStore } from '@everise/auth/data-access';
+import { MarketHistory, MarketItem, MarketRegions, User } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
 import { daysBefore, today } from '@everise/market/data-access';
 import { MarketComponent } from './market/market.component';
@@ -79,8 +80,9 @@ export function history(region = 'europe', complete = true): MarketHistory {
   };
 }
 
-// The page as the app routes it, at `url`, with the regions read.
-export async function renderMarket(url = '/market-history') {
+// The page as the app routes it, at `url`, for a signed-in member (the
+// tool, with the regions read) or a guest.
+export async function renderMarket(url = '/market-history', { signedIn = true } = {}) {
   TestBed.configureTestingModule({
     providers: [
       provideHttpClient(),
@@ -89,11 +91,18 @@ export async function renderMarket(url = '/market-history') {
       provideRouter([{ path: 'market-history', component: MarketComponent }]),
     ],
   });
+  if (signedIn) TestBed.inject(AuthStore).confirmed({ id: 'u1', username: 'Tataru' } as User);
   const harness = await RouterTestingHarness.create();
   await harness.navigateByUrl(url);
   const fixture = harness.fixture;
   const http = TestBed.inject(HttpTestingController);
-  http.expectOne('/market/regions').flush(REGIONS);
+  if (signedIn) {
+    http.expectOne('/market/regions').flush(REGIONS);
+  } else {
+    // A guest: the app asks who's signed in, and nobody is.
+    TestBed.inject(AuthStore).getUser();
+    http.expectOne('/user').flush({ errors: { body: ['Sign in'] } }, { status: 401, statusText: 'Unauthorized' });
+  }
   await fixture.whenStable();
   const page = fixture.nativeElement as HTMLElement;
   const query = () => TestBed.inject(Router).parseUrl(TestBed.inject(Router).url).queryParams;
