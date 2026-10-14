@@ -1,6 +1,6 @@
 ---
 name: feature-branch
-description: The required way to make any change in this repo (code, tests, docs, config, skills) - work on a feature/<name> branch, push it freely, open a pull request to main, and merge only once the required test check passes. Use before the first edit of every change, and whenever asked to commit, push, open a PR, merge, or ship something to staging.
+description: Describes the required way to make any change in this repo (code, tests, docs, config, skills): a feature/<name> branch, pull requests to main, merging once the required test check passes, and the Windows line-ending traps of the pre-commit format check. Use before the first edit of every change, and whenever asked to commit, push, open a PR, merge, or ship something to staging.
 ---
 
 # Feature branch → pull request → main
@@ -36,6 +36,16 @@ git push -u origin feature/<feature-name>             # later pushes: git push
 ```
 
 The husky pre-commit hook runs `npm run format` (prettier check on affected files); fix with `npm run format:write`. Pushing to a feature branch deploys nothing. End commit messages with the attribution line from the current session's instructions.
+
+### Line endings and the pre-commit format check
+
+The husky hook runs `nx format:check --affected`: Prettier on every file the commit touches. On a Windows checkout some files have CRLF line endings that Prettier rewrites, which leads to three traps:
+
+- **Format only the files you changed** (`npx prettier --write <files>`), never a whole folder. A folder run rewrites untouched files' line endings; they then show as modified with an empty diff (`git diff --ignore-cr-at-eol --stat` prints nothing). Restore them with `git checkout -- <file>`.
+- **A touched file that was already unformatted on `main`** (the README has been) fails the hook. Format it as part of the change; its diff stays your own lines.
+- **A file restored from `main`** (`git checkout origin/main -- <file>`) still counts as touched. Run Prettier on it before committing.
+
+Undo a commit already pushed with `git revert`: force pushes are refused.
 
 ## 3. Open a pull request to main
 
