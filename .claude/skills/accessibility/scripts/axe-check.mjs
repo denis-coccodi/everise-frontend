@@ -1,6 +1,6 @@
 // Runs axe-core (WCAG 2.0/2.1/2.2 A and AA, plus best practices) on pages of a
 // running Everise site, in dark and light mode, and prints the violations.
-// Usage: node .claude/skills/accessibility/axe-check.mjs <base-url> <path>...
+// Usage: node .claude/skills/accessibility/scripts/axe-check.mjs <base-url> <path>...
 // Needs axe-core (`npm i --no-save axe-core`). Signs in first when
 // EVERISE_EMAIL and EVERISE_PASSWORD are set. Exit code 1 on any violation.
 import { createRequire } from 'node:module';

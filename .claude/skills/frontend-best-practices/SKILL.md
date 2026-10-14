@@ -1,6 +1,6 @@
 ---
 name: frontend-best-practices
-description: How Everise's Angular code is organised and written - which library a piece of code belongs in (feature, widget, data-access, ui, util, testing, enforced by tags), one component per folder with stores and services only in data-access (scripts/check-structure.mjs), imports by library entry point only, NgRx signal store practices, no `any`, typed templates, API types in api-types, serverMessage() for errors, cdt-icon/avatar/message, specs, and the size limits that force a long component to be split. Use before writing or changing any TypeScript, component, template, store, service or library in this repo, when adding a page or feature, when a component or file is getting long, and when reviewing a frontend change.
+description: Describes how Everise's Angular code is organised and written: which library code belongs in (feature, widget, data-access, ui, util, testing, enforced by tags), one component per folder, stores and services only in data-access, entry-point imports, NgRx signal stores, no any, typed templates, generated API types, serverMessage() for errors, specs, and the size limits that force a long component to be split. Use before writing or changing any TypeScript, component, template, store, service or library, when adding a page or library, and when reviewing a frontend change.
 ---
 
 # Frontend best practices
@@ -98,7 +98,7 @@ Never raise a limit to make a file pass.
 - The test environment (`@everise/core/testing`) fails a test on an unknown element or property: a component missing from `imports` breaks its spec.
 - Specs don't type-check templates; **the production build does**, so it's part of the check before pushing.
 - Fixtures are realistic: lists have unique ids (duplicate `track` keys are a bug Angular warns about).
-- Before a PR: the size check, lint, tests and both builds (CLAUDE.md), plus the `theme` and `accessibility` skills' checks for template or style changes.
+- Before a PR: the size check, lint, tests and both builds (CLAUDE.md), plus the `theme` and `accessibility` skills' checks for template or style changes, and the `ui-check` skill for a page whose looks changed.
 
 ## Before finishing
 

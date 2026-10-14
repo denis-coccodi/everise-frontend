@@ -1,6 +1,6 @@
 ---
 name: mobile-first
-description: Everise's styles are mobile first - a rule outside any breakpoint is the phone's, and wider screens add to it or change it from a width up with the theme's bp.up(sm | md | lg | xl), never down (no max-width, no "below a width" query, no down() mixin; scripts/check-mobile-first.mjs fails CI otherwise). How to lay out a component that way, how to hide or show something per width, the widths to check (320, 390, 768, 1024, 1280 px), and the patterns to avoid. Use before writing or changing any CSS/SCSS, inline style, layout, grid, flex, width, media query or breakpoint in this repo, when adding a page or component, when something looks wrong on a phone or on a wide screen, and when reviewing a change that touches styles.
+description: Keeps Everise's styles mobile first: a rule outside any breakpoint is the phone's, and wider screens change it from a width up with the theme's bp.up(sm | md | lg | xl), never down (scripts/check-mobile-first.mjs fails CI otherwise). Covers laying a component out that way, hiding or showing something per width, and the widths to check. Use before writing or changing any CSS/SCSS, inline style, layout, grid, flex, width or media query, when adding a page or component, when something looks wrong on a phone or a wide screen, and when reviewing a change that touches styles.
 ---
 
 # Mobile first
@@ -47,7 +47,7 @@ The widths: `sm` 576 px (large phones in landscape), `md` 768 px (tablets: the n
 
 - `node scripts/check-mobile-first.mjs` must print "Mobile first: …" and exit 0 (it's part of CLAUDE.md's pre-push command and the CI `test` job).
 - Look at the page at **320 px** and **390 px** (phones), **768 px** (the `md` switch), **1024 px** and **1280 px**. Nothing scrolls sideways at 320 px (WCAG 1.4.10, see the `accessibility` skill), and each width shows what its breakpoint says.
-- Headless Chromium through Playwright (a dev dependency) takes these quickly: serve `dist/apps/everise` (`npx serve -s dist/apps/everise`), stub `/api/**` with `page.route`, and screenshot each width.
+- The `ui-check` skill takes these screenshots in both modes against a local backend, and reports any width that scrolls sideways (`WIDTHS=320,390,768,1024,1280` for all five).
 
 ## Patterns to avoid
 

@@ -147,7 +147,20 @@ Feature libraries reuse the building blocks and don't define colours, fonts, sha
 
 ## Code conventions
 
-The rules the code follows are written down for people and AI assistants alike, as skills in [`.claude/skills`](.claude/skills): [`frontend-best-practices`](.claude/skills/frontend-best-practices/SKILL.md) (code and structure), [`theme`](.claude/skills/theme/SKILL.md) (looks) and [`accessibility`](.claude/skills/accessibility/SKILL.md) (WCAG). In short:
+How work is done here is written down for people and AI assistants alike, as skills in [`.claude/skills`](.claude/skills). Each `SKILL.md` says what it covers and when to use it; longer reference material and scripts sit next to it:
+
+| Skill                     | For                                                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `feature-branch`          | Every change: a `feature/<name>` branch, a pull request, merging once `test` passes; line-ending traps     |
+| `frontend-best-practices` | Code and structure: libraries, components, stores, types, specs, size limits                               |
+| `theme`                   | Looks: tokens, the UI building blocks (`building-blocks.md`), where styles live (`scripts/check-theme.sh`) |
+| `mobile-first`            | Styles written for phones first, wider screens from a width up                                             |
+| `accessibility`           | WCAG 2.2 AA rules and checks (`scripts/axe-check.mjs`)                                                     |
+| `ui-check`                | A page in a real browser against a local backend: screenshots, reflow, axe (`scripts/ui-check.mjs`)        |
+| `deploy`                  | Staging and production, failing pipelines (`troubleshooting.md`)                                           |
+| `smoke-test`              | The deployed shell and its `/api` wiring                                                                   |
+
+The code rules, in short:
 
 - **Libraries by type, enforced by lint.** Every project is tagged (app, feature, widget, data-access, ui, util, testing) and `@nx/enforce-module-boundaries` fails an import that breaks the layering. A page never imports another page; what two pages share becomes a widget, a data-access library or a UI building block.
 - **One component per folder, named after it** (`settings/settings.component.ts`), pages included; directives and pipes likewise. Stores and API services live only in data-access libraries, never next to a component, and folders are named after what they hold, not by kind of file (no `components/`, `services/`, `models/`). Libraries are imported by their `@everise/…` entry point only, never by a path into their `src/`. `scripts/check-structure.mjs` (part of the `test` check) enforces it.

@@ -1,6 +1,6 @@
 ---
 name: accessibility
-description: The Everise frontend must stay WCAG 2.2 AA compliant - the rules every template, style and component follows (landmarks, headings, page titles, keyboard, focus, labels, names, live regions, contrast, motion, reflow) and how to check a change with axe, the keyboard and a 320 px viewport. Use before writing or changing any template, component, style, route or UI library building block, when adding a page, form, dialog, control or animation, and when reviewing a frontend change. Also use when asked about accessibility, WCAG, a11y, screen readers or keyboard support.
+description: Keeps the Everise frontend WCAG 2.2 AA compliant: the rules every template, style and component follows (landmarks, headings, page titles, keyboard, focus, labels, names, live regions, contrast, motion, reflow) and how to check a change with axe, the keyboard and a 320 px viewport. Use before writing or changing any template, component, style, route or UI building block, when adding a page, form, dialog, control or animation, when reviewing a frontend change, and when asked about accessibility, WCAG, a11y, screen readers or keyboard support.
 ---
 
 # Accessibility: WCAG 2.2 AA, always
@@ -55,13 +55,15 @@ The UI library already does most of this; use it rather than rebuilding: `cdtBut
 All four, before pushing a change that touches the UI:
 
 1. **Specs**: building blocks and pages assert their roles, names, `aria-*` states and keyboard behaviour (see the dialog, tabs, pager and field specs).
-2. **axe** on every page you touched, guest and signed in, dark and light. With the app running (`npm start` and a local backend):
-   ```
-   npm i --no-save axe-core
-   node .claude/skills/accessibility/axe-check.mjs http://localhost:4200 / /roulette /login
-   ```
-   It signs in when `EVERISE_EMAIL` and `EVERISE_PASSWORD` are set, checks each page in both modes and prints the violations (exit code 1 if any). It must report none. axe can't measure text on gradients ("incomplete"); check those by eye against the token contrast, or sample the pixels.
+2. **axe** on every page you touched, guest and signed in, dark and light. It must report none.
+   - Guest pages: the `ui-check` skill runs axe with its screenshots and the reflow check, against a local backend with real data.
+   - Signed-in pages: with the app running (`npm start` and a local backend), [scripts/axe-check.mjs](scripts/axe-check.mjs) signs in when `EVERISE_EMAIL` and `EVERISE_PASSWORD` are set, checks each page in both modes and prints the violations (exit code 1 if any):
+     ```
+     npm i --no-save axe-core
+     MSYS_NO_PATHCONV=1 node .claude/skills/accessibility/scripts/axe-check.mjs http://localhost:4200 / /roulette /login
+     ```
+   - axe can't measure text on gradients ("incomplete"); check those by eye against the token contrast, or sample the pixels.
 3. **Keyboard**: tab through the page; everything is reachable, in order, visibly focused, and works with Enter/Space; dialogs and menus behave as above.
-4. **Small screen**: at 320 px wide nothing scrolls sideways; at 390 px the page still reads well.
+4. **Small screen**: at 320 px wide nothing scrolls sideways; at 390 px the page still reads well (the `ui-check` skill reports sideways scrolling and takes the screenshots).
 
 Say in the PR what was checked and how.

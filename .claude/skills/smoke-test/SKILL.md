@@ -1,6 +1,6 @@
 ---
 name: smoke-test
-description: Check that the Everise frontend is served, was built with the right configuration, and that its /api reaches the backend through the service binding (cookie auth included), locally (wrangler dev), on staging, or on production. Use when asked whether the site is up, whether a deploy worked, or to verify a change in the running app rather than in unit tests.
+description: Checks that the Everise frontend is served, was built with the right configuration, and that its /api reaches the backend through the service binding (cookie auth included), locally (wrangler dev), on staging or on production. Use when asked whether the site is up or a deploy worked, or to check the deployed shell and API wiring rather than a page's looks (that is the ui-check skill).
 ---
 
 # Smoke-test the Everise frontend
@@ -29,7 +29,7 @@ sh scripts/smoke.sh create <frontend-url> <scratchpad>/jar.txt
 
 The service binding works locally too: `wrangler dev` connects to another `wrangler dev` session of the bound Worker on the same machine.
 
-1. Start the backend from `../typescript-cloudflare-backend`: `npx wrangler dev --port 8080` (needs its `.dev.vars`). Wait until `curl -s http://localhost:8080/api/tags` answers.
+1. Start the backend from `../everise-backend`: `npx wrangler dev --port 8080` (needs its `.dev.vars`). Wait until `curl -s http://localhost:8080/api/tags` answers.
 2. Build and serve the frontend: `npx nx run everise:build --configuration=production`, then `npx wrangler dev` (port 4200). Its `/api` goes to the local backend (binding `API` → `be-prod`).
    - A staging build with `npx wrangler dev --env staging` binds to `be-staging`, so start the backend with `npx wrangler dev --env staging --port 8080` instead.
 3. `sh scripts/smoke.sh create http://localhost:4200 <scratchpad>/jar.txt`.
