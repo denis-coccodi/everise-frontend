@@ -79,11 +79,12 @@ describe('HomeComponent tabs', () => {
       harness.detectChanges();
     }
     const http = TestBed.inject(HttpTestingController);
-    return { page, tabs, tab, click, http, router: TestBed.inject(Router) };
+    const postRequests = () => http.match((request) => request.url.startsWith('/articles'));
+    return { page, tabs, tab, click, http, postRequests, router: TestBed.inject(Router) };
   }
 
-  it('opens on Weekly, then Hunts and the Global Feed, each in the address', async () => {
-    const { page, tabs, tab, click, http, router } = await render();
+  it('opens on Weekly, then Hunts and the Global Feed, each in the address; posts load only for the feed', async () => {
+    const { page, tabs, tab, click, http, postRequests, router } = await render();
 
     // Guests: no Your Feed.
     expect(tabs().map((t) => t.textContent?.trim())).toEqual(['Weekly', 'Hunts', 'Global Feed']);
@@ -91,6 +92,7 @@ describe('HomeComponent tabs', () => {
     expect(tab('Weekly')?.className).toMatch(/active/);
     expect(page().querySelector('cdt-weekly')).not.toBeNull();
     expect(http.match('/weekly')).toHaveLength(1);
+    expect(postRequests()).toHaveLength(0);
 
     await click('Hunts');
     expect(router.url).toBe('/?view=hunts');
@@ -101,6 +103,7 @@ describe('HomeComponent tabs', () => {
     expect(router.url).toBe('/?view=feed');
     expect(page().querySelector('cdt-article-list')).not.toBeNull();
     expect(page().querySelector('cdt-hunts')).toBeNull();
+    expect(postRequests()).toHaveLength(1);
 
     await click('Weekly');
     expect(router.url).toBe('/');

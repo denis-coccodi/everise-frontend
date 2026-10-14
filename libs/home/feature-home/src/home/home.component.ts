@@ -69,9 +69,20 @@ export class HomeComponent {
   // Read out by screen readers when a post arrives live.
   protected readonly announcement = signal('');
 
+  // Whether the posts shown were loaded signed in, or not yet loaded.
+  private feedLoadedFor?: boolean;
+
+  // The posts load once a feed is shown, and again when signing in or out
+  // while it is (for the favourites).
   readonly loadArticlesOnLogin = effect(() => {
-    this.authStore.loggedIn();
-    untracked(() => this.getArticles());
+    const loggedIn = this.authStore.loggedIn();
+    const inFeed = this.view() === 'feed';
+    untracked(() => {
+      if (inFeed && this.feedLoadedFor !== loggedIn) {
+        this.feedLoadedFor = loggedIn;
+        this.getArticles();
+      }
+    });
   });
 
   // New posts pushed by the backend go straight to the top of the list
@@ -96,6 +107,7 @@ export class HomeComponent {
 
   // A feed tab shows that feed.
   protected showFeed(type: ListType) {
+    this.feedLoadedFor = this.authStore.loggedIn();
     this.showView('feed');
     this.setListTo(type);
   }
@@ -106,15 +118,15 @@ export class HomeComponent {
     this.articlesListStore.loadArticles(this.$listConfig());
   }
 
-  // The feeds start on the Global Feed: "Your Feed" only shows people you
-  // follow, which is empty until you follow someone. Signing in or out
-  // reloads it, for the favourites.
+  // The feeds open on the Global Feed: "Your Feed" only shows people you
+  // follow, which is empty until you follow someone.
   getArticles() {
     this.setListTo('ALL');
   }
 
   // A tag from the sidebar: the posts with it, in the feeds.
   setListTag(tag: string) {
+    this.feedLoadedFor = this.authStore.loggedIn();
     this.showView('feed');
     this.articlesListStore.setListConfig({
       ...articlesListInitialState.listConfig,
