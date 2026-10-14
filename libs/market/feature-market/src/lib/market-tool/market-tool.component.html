@@ -1,7 +1,8 @@
-<div class="choices">
+<!-- The item, then where and when: one panel, full width. -->
+<cdt-panel heading="Item, place and days" class="choices">
   <cdt-market-item-picker />
   <cdt-market-controls />
-</div>
+</cdt-panel>
 
 <cdt-message tone="error">{{ store.error() }}</cdt-message>
 <cdt-message>{{ status() }}</cdt-message>
@@ -81,14 +82,13 @@
           [from]="from()"
           [to]="to()"
           [scale]="store.scale()"
-          [gap]="dayMs"
           label="Day shown"
           unit="gil"
           missing="no sales"
         />
         <p class="note">
-          Each point is a world's middle price per unit that day, with its sales and lowest and highest price. A line
-          breaks on days without sales.
+          Each point is a world's middle price per unit that day, with its sales and lowest and highest price. A day
+          without sales has no point: the line joins the days around it.
         </p>
       }
     }

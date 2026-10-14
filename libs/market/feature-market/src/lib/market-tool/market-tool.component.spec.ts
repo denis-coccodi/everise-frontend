@@ -46,21 +46,29 @@ describe('MarketToolComponent', () => {
     }
   });
 
-  it("says when the prices can't be read", async () => {
-    const { fixture, http, page } = await renderMarket(`/market-history?item=${ORE.id}`);
-    http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
-    http
-      .expectOne((r) => r.url === '/market/history')
-      .flush(
-        { errors: { body: ["The market board's history can't be read right now. Try again in a minute."] } },
-        { status: 502, statusText: 'Bad Gateway' },
-      );
-    await fixture.whenStable();
+  it("says when the prices can't be read, after trying twice more", async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
+    try {
+      const { fixture, http, page } = await renderMarket(`/market-history?item=${ORE.id}`);
+      http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
+      for (let attempt = 0; attempt < 3; attempt++) {
+        http
+          .expectOne((r) => r.url === '/market/history')
+          .flush(
+            { errors: { body: ["The market board's history can't be read right now. Try again in a minute."] } },
+            { status: 502, statusText: 'Bad Gateway' },
+          );
+        vi.advanceTimersByTime(2000);
+      }
+      await fixture.whenStable();
 
-    expect(page.querySelector('cdt-message[tone="error"]')?.textContent).toContain(
-      "The market board's history can't be read right now.",
-    );
-    expect(page.textContent).toContain("The prices couldn't be read. Try again in a minute.");
+      expect(page.querySelector('cdt-message[tone="error"]')?.textContent).toContain(
+        "The market board's history can't be read right now.",
+      );
+      expect(page.textContent).toContain("The prices couldn't be read. Try again in a minute.");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('shows the cheapest listing now on any world of the region, and the next ones', async () => {
@@ -87,11 +95,10 @@ describe('MarketToolComponent', () => {
     expect(text('.now .next li')).toEqual(['10 gil on Odin (1 for sale, HQ, seen 3 h ago)']);
   });
 
-  it('breaks a line over days without sales', async () => {
+  it('joins a line across days without sales', async () => {
     const { page } = await renderOre();
 
-    // Odin sold ten days ago and today: two points apart, so two dots, no line.
-    expect(page.querySelectorAll('cdt-line-chart polyline')).toHaveLength(0);
-    expect(page.querySelectorAll('cdt-line-chart .dot.line-0:not(.marker)')).toHaveLength(2);
+    // Odin sold ten days ago and today, nothing between: still one line.
+    expect(page.querySelectorAll('cdt-line-chart polyline.line-0')).toHaveLength(1);
   });
 });

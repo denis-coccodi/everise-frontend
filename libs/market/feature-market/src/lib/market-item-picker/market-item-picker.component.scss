@@ -1,7 +1,28 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
 
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
 :host {
   display: block;
+}
+
+// The phone: the item, then the search. From tablets up: side by side.
+.row {
+  display: grid;
+  gap: 0 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+
+@include bp.up(md) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  // No item yet: the search alone, full width.
+  .row.alone {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 // The item shown: its icon, name and market category.

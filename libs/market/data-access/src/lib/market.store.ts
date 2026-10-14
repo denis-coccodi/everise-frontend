@@ -5,7 +5,7 @@ import { patchState, signalStore, withComputed, withHooks, withMethods, withStat
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { MarketHistory, MarketItem, MarketRegions } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
-import { EMPTY, forkJoin, pipe, switchMap, tap, timer } from 'rxjs';
+import { EMPTY, forkJoin, pipe, retry, switchMap, tap, timer } from 'rxjs';
 import { MAX_WORLDS, MarketSelection, selectionFromQuery, selectionToQuery } from './market-query';
 import {
   chosenWorlds,
@@ -126,9 +126,12 @@ export const MarketStore = signalStore(
             const shown = more ? store.histories() : [];
             const upTo = store.readRegions().map((_, i) => shown[i]?.readBackTo ?? null);
             return forkJoin(
-              store
-                .readRegions()
-                .map((region, i) => service.history(region, item, store.quality(), store.range().from, upTo[i])),
+              store.readRegions().map((region, i) =>
+                service
+                  .history(region, item, store.quality(), store.range().from, upTo[i])
+                  // Universalis fails now and then: try twice more before saying so.
+                  .pipe(retry({ count: 2, delay: MARKET_POLL_MS })),
+              ),
             ).pipe(
               tapResponse({
                 next: (answers) => {

@@ -6,7 +6,7 @@
   display: block;
 }
 
-// The phone: one field a row. From tablets up: two.
+// The phone: one field a row. Tablets: two. Laptops: all four.
 .fields {
   display: grid;
   gap: 0 1rem;
@@ -19,9 +19,22 @@
   }
 }
 
+@include bp.up(lg) {
+  .fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+// The quick ranges, then the options: one line when there's room.
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+
 .presets {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: 0.25rem 0 1rem;
 }
