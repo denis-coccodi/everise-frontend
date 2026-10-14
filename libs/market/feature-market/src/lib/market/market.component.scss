@@ -54,3 +54,12 @@ h1 {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+// The thanks to Universalis and XIVAPI, under everything.
+.credits {
+  max-width: 44rem;
+  margin: 2rem auto 0;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}

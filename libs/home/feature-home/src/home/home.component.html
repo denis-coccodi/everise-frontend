@@ -4,6 +4,13 @@
       <img class="crest" src="assets/images/everise-crest.png" alt="" width="64" height="64" />everise
     </h1>
     <p>A laid-back, friendly free company. Everyone is welcome.</p>
+    @if (!isLoggedIn()) {
+      <!-- What guests can use, and why a few things ask them to sign in. -->
+      <p class="free">
+        Everything on Everise is free. A few features ask you to sign in: the ones that post for you, remember things
+        for you, or do heavy lifting we keep away from bots. Anyone can sign up, in the free company or not.
+      </p>
+    }
     <cdt-community-links look="buttons" />
   </cdt-banner>
 

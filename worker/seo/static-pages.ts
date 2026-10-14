@@ -64,7 +64,7 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
         title: 'FFXIV Market History · the best price on every world · Everise',
         description:
           "Find where a Final Fantasy XIV item sells cheapest: the lowest listing now and each day's price on " +
-          "every world of your region, and Oceania's, back to late 2022. Free for Everise members.",
+          "every world of your region, and Oceania's, back to late 2022. Free with an account, open to anyone.",
         path: '/market-history',
       };
     case '/waking-sands':

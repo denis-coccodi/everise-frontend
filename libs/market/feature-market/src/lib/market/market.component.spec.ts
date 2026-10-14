@@ -21,4 +21,15 @@ describe('MarketComponent', () => {
     expect(page.querySelector('cdt-market-tool')).not.toBeNull();
     expect(page.querySelector('.pitch')).toBeNull();
   });
+
+  it.each([true, false])('thanks Universalis and XIVAPI, for everyone (signed in: %s)', async (signedIn) => {
+    const { page } = await renderMarket('/market-history', { signedIn });
+
+    const credits = page.querySelector('.credits');
+    expect(credits?.textContent).toContain('thank you to it and to everyone who uploads');
+    expect([...(credits?.querySelectorAll('a') ?? [])].map((a) => a.getAttribute('href'))).toEqual([
+      'https://universalis.app',
+      'https://v2.xivapi.com',
+    ]);
+  });
 });
