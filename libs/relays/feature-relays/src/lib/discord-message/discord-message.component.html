@@ -1,0 +1,20 @@
+@if (message(); as post) {
+  @if (showSource()) {
+    <p class="source">
+      <span class="name">{{ post.sourceName }}</span>
+      <time [attr.datetime]="post.postedAt">{{ postedAt() }}</time>
+      @if (post.editedAt) {
+        <span class="edited">(edited)</span>
+      }
+    </p>
+  }
+  @if (post.content) {
+    <cdt-discord-text [text]="post.content" [now]="now()" />
+  }
+  @for (card of cards(); track $index) {
+    <cdt-discord-embed [embed]="card" [now]="now()" />
+  }
+  @if (pictures().length) {
+    <cdt-media-grid class="pictures" [items]="pictures()" [compact]="true" />
+  }
+}

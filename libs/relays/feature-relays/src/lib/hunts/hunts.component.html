@@ -1,0 +1,25 @@
+<cdt-message tone="error">{{ store.error() }}</cdt-message>
+@if (store.loadState() === 'loading') {
+  <p class="note">Loading the hunt trains…</p>
+}
+@if (store.hunts(); as hunts) {
+  @if (!hunts.available) {
+    <p class="note">The hunt trains aren't relayed here yet.</p>
+  }
+  @for (section of sections(); track section.dataCentre) {
+    <cdt-panel [heading]="section.dataCentre">
+      @if (section.trains.length) {
+        <ol class="trains">
+          @for (train of section.trains; track train.message.id) {
+            <li>
+              <p class="state" [attr.data-state]="train.status.state">{{ train.status.label }}</p>
+              <cdt-discord-message [message]="train.message" [now]="store.now()" />
+            </li>
+          }
+        </ol>
+      } @else {
+        <p class="note empty">No hunt trains announced on {{ section.dataCentre }} right now.</p>
+      }
+    </cdt-panel>
+  }
+}

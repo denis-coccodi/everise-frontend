@@ -1,0 +1,53 @@
+@if (embed(); as card) {
+  @if (card.author) {
+    <p class="author">
+      @if (card.author.iconUrl) {
+        <img [src]="card.author.iconUrl" alt="" width="24" height="24" loading="lazy" />
+      }
+      {{ card.author.name }}
+    </p>
+  }
+  @if (thumbnail(); as thumbnail) {
+    <img class="thumbnail" [src]="thumbnail" alt="" width="80" height="80" loading="lazy" />
+  }
+  @if (card.title) {
+    <p class="title">
+      @if (card.url) {
+        <a [href]="card.url" target="_blank" rel="noopener noreferrer"
+          ><cdt-discord-text [text]="card.title" [inline]="true" [now]="now()"
+        /></a>
+      } @else {
+        <cdt-discord-text [text]="card.title" [inline]="true" [now]="now()" />
+      }
+    </p>
+  }
+  @if (card.description) {
+    <cdt-discord-text class="description" [text]="card.description" [now]="now()" />
+  }
+  @if (fields().length) {
+    <dl class="fields">
+      @for (field of fields(); track $index) {
+        @if (field.spacer) {
+          <div class="break" aria-hidden="true"></div>
+        } @else {
+          <div class="field" [class.inline]="field.inline">
+            <dt><cdt-discord-text [text]="field.name" [inline]="true" [now]="now()" /></dt>
+            <dd><cdt-discord-text [text]="field.value" [now]="now()" /></dd>
+          </div>
+        }
+      }
+    </dl>
+  }
+  @if (picture().length) {
+    <cdt-media-grid class="picture" [items]="picture()" />
+  }
+  @if (card.footer || footerTime()) {
+    <p class="footer">
+      {{ card.footer }}
+      @if (card.footer && footerTime()) {
+        ·
+      }
+      {{ footerTime() }}
+    </p>
+  }
+}

@@ -31,6 +31,8 @@
       "@everise/home/feature-home": ["./libs/home/feature-home/src/index.ts"],
       "@everise/market/data-access": ["./libs/market/data-access/src/index.ts"],
       "@everise/market/feature-market": ["./libs/market/feature-market/src/index.ts"],
+      "@everise/relays/data-access": ["./libs/relays/data-access/src/index.ts"],
+      "@everise/relays/feature-relays": ["./libs/relays/feature-relays/src/index.ts"],
       "@everise/party-finder/data-access": ["./libs/party-finder/data-access/src/index.ts"],
       "@everise/party-finder/feature-party-finder": ["./libs/party-finder/feature-party-finder/src/index.ts"],
       "@everise/party-finder/feature-pf-listing": ["./libs/party-finder/feature-pf-listing/src/index.ts"],

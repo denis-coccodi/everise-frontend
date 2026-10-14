@@ -1,0 +1,76 @@
+<ng-template #inlineNodes let-nodes>
+  @for (node of nodes; track $index) {
+    @switch (node.kind) {
+      @case ('text') {
+        <!-- In an element of its own: the line breaks around it aren't text. -->
+        <ng-container>{{ node.text }}</ng-container>
+      }
+      @case ('strong') {
+        <strong><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: node.children }" /></strong>
+      }
+      @case ('em') {
+        <em><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: node.children }" /></em>
+      }
+      @case ('u') {
+        <u><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: node.children }" /></u>
+      }
+      @case ('s') {
+        <s><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: node.children }" /></s>
+      }
+      @case ('spoiler') {
+        <!-- Hidden until hovered or focused, as on Discord; read out all the same. -->
+        <span class="spoiler" tabindex="0"
+          ><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: node.children }"
+        /></span>
+      }
+      @case ('code') {
+        <code>{{ node.text }}</code>
+      }
+      @case ('link') {
+        <a [href]="node.href" target="_blank" rel="noopener noreferrer"
+          ><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: node.children }"
+        /></a>
+      }
+      @case ('emoji') {
+        <img class="emoji" [src]="node.src" [alt]="':' + node.name + ':'" width="22" height="22" loading="lazy" />
+      }
+      @case ('time') {
+        <time [attr.datetime]="iso(node.at)">{{ time(node) }}</time>
+      }
+    }
+  }
+</ng-template>
+
+<ng-template #blockNodes let-blocks>
+  @for (block of blocks; track $index) {
+    @switch (block.kind) {
+      @case ('heading') {
+        <!-- Big text, not a heading of the page's outline. -->
+        <p class="big" [attr.data-level]="block.level">
+          <ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: block.children }" />
+        </p>
+      }
+      @case ('subtext') {
+        <p class="subtext"><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: block.children }" /></p>
+      }
+      @case ('item') {
+        <p class="item"><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: block.children }" /></p>
+      }
+      @case ('codeblock') {
+        <pre><code>{{ block.text }}</code></pre>
+      }
+      @case ('quote') {
+        <blockquote><ng-container *ngTemplateOutlet="blockNodes; context: { $implicit: block.blocks }" /></blockquote>
+      }
+      @default {
+        <p><ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: block.children }" /></p>
+      }
+    }
+  }
+</ng-template>
+
+@if (inline()) {
+  <ng-container *ngTemplateOutlet="inlineNodes; context: { $implicit: line() }" />
+} @else {
+  <ng-container *ngTemplateOutlet="blockNodes; context: { $implicit: blocks() }" />
+}

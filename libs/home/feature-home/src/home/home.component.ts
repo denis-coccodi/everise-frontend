@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, effect, signal, untracked } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, ChangeDetectionStrategy, computed, inject, effect, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ArticlesListStore, ListType, TagsStore, articlesListInitialState } from '@everise/articles/data-access';
 import { LiveUpdates } from '@everise/core/http-client';
 import {
@@ -12,8 +13,18 @@ import {
 import { DiscordWidgetComponent } from '../discord-widget/discord-widget.component';
 import { TagsListComponent } from '../tags-list/tags-list.component';
 import { ArticleListComponent } from '@everise/articles/articles-list';
+import { HuntsComponent, WeeklyComponent } from '@everise/relays/feature-relays';
 
 import { AuthStore } from '@everise/auth/data-access';
+
+type HomeView = 'feed' | 'weekly' | 'hunts';
+
+// What screen readers hear before the tabs, per tab.
+const VIEW_HEADINGS: Record<HomeView, string> = {
+  feed: 'Posts',
+  weekly: 'This week',
+  hunts: 'Hunt trains',
+};
 
 @Component({
   selector: 'cdt-home',
@@ -28,6 +39,8 @@ import { AuthStore } from '@everise/auth/data-access';
     TagsListComponent,
     ArticleListComponent,
     IconComponent,
+    WeeklyComponent,
+    HuntsComponent,
   ],
   providers: [TagsStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,7 +50,19 @@ export class HomeComponent {
   private readonly authStore = inject(AuthStore);
   private readonly tagsStore = inject(TagsStore);
 
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
   $listConfig = this.articlesListStore.listConfig;
+
+  // The tab shown besides the feeds, from the address (?view=weekly or
+  // ?view=hunts), so it can be linked and Back returns to it.
+  private readonly query = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
+  protected readonly view = computed<HomeView>(() => {
+    const view = this.query().get('view');
+    return view === 'weekly' || view === 'hunts' ? view : 'feed';
+  });
+  protected readonly viewHeading = computed(() => VIEW_HEADINGS[this.view()]);
   protected readonly isLoggedIn = this.authStore.loggedIn;
   $tags = this.tagsStore.tags;
 
@@ -59,6 +84,20 @@ export class HomeComponent {
           this.announcement.set(`New post by ${article.author.username}: ${article.title}`);
         }
       });
+  }
+
+  protected showView(view: HomeView) {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { view: view === 'feed' ? null : view },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  // A feed tab shows the feeds again.
+  protected showFeed(type: ListType) {
+    this.showView('feed');
+    this.setListTo(type);
   }
 
   setListTo(type: ListType = 'ALL') {

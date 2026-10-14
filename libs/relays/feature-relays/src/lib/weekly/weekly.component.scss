@@ -1,0 +1,67 @@
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+// Uses the theme's role tokens only.
+:host {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-contrast-muted);
+}
+
+.body {
+  padding: 1rem;
+}
+
+.status {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: var(--color-contrast);
+}
+
+.credit {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-contrast-muted);
+  overflow-wrap: anywhere;
+}
+
+// The phone: one reset a row. Wider: side by side.
+.resets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+
+  li {
+    display: grid;
+    gap: 0.125rem;
+  }
+}
+
+@include bp.up(md) {
+  .resets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.name {
+  font-family: var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+  color: var(--color-heading);
+}
+
+.in {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary-bright);
+}
+
+.when {
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}

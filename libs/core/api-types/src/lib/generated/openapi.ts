@@ -1362,6 +1362,64 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/hunts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Hunt trains announced by the hunt groups */
+    get: {
+      parameters: {
+        query?: {
+          dataCentre?:
+            | 'Light'
+            | 'Chaos'
+            | 'Aether'
+            | 'Crystal'
+            | 'Dynamis'
+            | 'Primal'
+            | 'Elemental'
+            | 'Gaia'
+            | 'Mana'
+            | 'Meteor'
+            | 'Materia';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The hunt trains. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['HuntsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/images/{id}': {
     parameters: {
       query?: never;
@@ -2438,6 +2496,53 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/relays/images/{file}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** A picture from a relayed message */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          file: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The file. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'image/*': string;
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/resets': {
     parameters: {
       query?: never;
@@ -3281,6 +3386,51 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/weekly': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** This week's Fashion Report and Island Sanctuary, and resets */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The week. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['WeeklyResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4031,6 +4181,120 @@ export interface components {
     PartyFinderDiscordShareResponse: {
       /** @constant */
       shared: true;
+    };
+    RelayImage: {
+      url: string;
+      file?: string;
+      width?: number;
+      height?: number;
+    };
+    RelayEmbed: {
+      type: string;
+      title?: string;
+      url?: string;
+      description?: string;
+      color?: number;
+      author?: {
+        name: string;
+        url?: string;
+        iconUrl?: string;
+      };
+      fields: {
+        name: string;
+        value: string;
+        inline: boolean;
+      }[];
+      image?: components['schemas']['RelayImage'];
+      thumbnail?: components['schemas']['RelayImage'];
+      video?: {
+        url: string;
+        width?: number;
+        height?: number;
+      };
+      footer?: string;
+      /** Format: date-time */
+      timestamp?: string;
+    };
+    RelayMessage: {
+      id: string;
+      /** Format: date-time */
+      postedAt: string;
+      /** Format: date-time */
+      editedAt?: string;
+      sourceGuildId?: string;
+      sourceChannelId?: string;
+      sourceName: string;
+      content: string;
+      embeds: components['schemas']['RelayEmbed'][];
+      attachments: {
+        url: string;
+        file?: string;
+        width?: number;
+        height?: number;
+        name: string;
+        contentType?: string;
+      }[];
+    };
+    WeeklyResponse: {
+      available: boolean;
+      resets: {
+        /** Format: date-time */
+        daily: string;
+        /** Format: date-time */
+        weekly: string;
+        /** Format: date-time */
+        grandCompany: string;
+      };
+      fashionReport: {
+        message: components['schemas']['RelayMessage'];
+        /** Format: date-time */
+        validFrom: string;
+        /** Format: date-time */
+        validUntil: string;
+      } | null;
+      /** Format: date-time */
+      nextJudgingAt: string;
+      islandSanctuary: {
+        message: components['schemas']['RelayMessage'];
+        /** Format: date-time */
+        validFrom: string;
+        /** Format: date-time */
+        validUntil: string;
+      } | null;
+    };
+    HuntsResponse: {
+      available: boolean;
+      dataCentres: (
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia'
+      )[];
+      posts: {
+        /** @enum {string} */
+        dataCentre:
+          | 'Light'
+          | 'Chaos'
+          | 'Aether'
+          | 'Crystal'
+          | 'Dynamis'
+          | 'Primal'
+          | 'Elemental'
+          | 'Gaia'
+          | 'Mana'
+          | 'Meteor'
+          | 'Materia';
+        /** Format: date-time */
+        startsAt: string;
+        message: components['schemas']['RelayMessage'];
+      }[];
     };
     SitemapResponse: {
       articles: {
