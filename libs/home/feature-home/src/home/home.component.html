@@ -46,12 +46,7 @@
               <!-- Your Feed is the people a member follows: members only. -->
               @if (isLoggedIn()) {
                 <li>
-                  <button
-                    type="button"
-                    cdtTab
-                    [active]="view() === 'feed' && model.listConfig.type === 'FEED'"
-                    (click)="showFeed('FEED')"
-                  >
+                  <button type="button" cdtTab [active]="view() === 'yours'" (click)="showView('yours')">
                     Your Feed
                   </button>
                 </li>
@@ -61,13 +56,13 @@
                   type="button"
                   cdtTab
                   data-testid="global-feed"
-                  [active]="view() === 'feed' && model.listConfig.type === 'ALL' && !model.listConfig.filters.tag"
-                  (click)="showFeed('ALL')"
+                  [active]="view() === 'global' && !model.listConfig.filters.tag"
+                  (click)="showView('global')"
                 >
                   Global Feed
                 </button>
               </li>
-              <li [hidden]="view() !== 'feed' || !model.listConfig.filters.tag">
+              <li [hidden]="view() !== 'global' || !model.listConfig.filters.tag">
                 <span cdtTab [active]="true">
                   <cdt-icon name="hash" />
                   <span class="visually-hidden">Tag</span>
@@ -82,7 +77,10 @@
         <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
 
         @switch (view()) {
-          @case ('feed') {
+          @case ('yours') {
+            <cdt-article-list></cdt-article-list>
+          }
+          @case ('global') {
             <cdt-article-list></cdt-article-list>
           }
           @case ('hunts') {

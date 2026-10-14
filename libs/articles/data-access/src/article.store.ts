@@ -118,7 +118,7 @@ export const ArticleStore = signalStore(
             articlesService.deleteArticle(articleId).pipe(
               tapResponse({
                 // Back to the posts (the home page opens on Weekly).
-                next: () => router.navigate(['/'], { queryParams: { view: 'feed' } }),
+                next: () => router.navigate(['/'], { queryParams: { view: 'global' } }),
                 error: () => patchState(store, articleInitialState),
               }),
             ),
