@@ -7,7 +7,8 @@
 }
 
 // The phone: the item, then the search. From tablets up: side by side.
-.row {
+// (Not `.row`: the theme's grid has a `.row` with negative side margins.)
+.picker {
   display: grid;
   gap: 0 1.5rem;
   grid-template-columns: minmax(0, 1fr);
@@ -15,12 +16,12 @@
 }
 
 @include bp.up(md) {
-  .row {
+  .picker {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   }
 
   // No item yet: the search alone, full width.
-  .row.alone {
+  .picker.alone {
     grid-template-columns: minmax(0, 1fr);
   }
 }
