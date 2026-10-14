@@ -72,7 +72,7 @@ Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`,
      - `--font-reading` (Marcellus: post and comment text, long pages such as the privacy policy);
      - letter spacing: `--letter-spacing-display`, `--letter-spacing-label`.
    - Shapes: `--radius-sm/md/lg/xl/pill`, `--border-width`, `--border-width-strong`.
-   - Depth: `--shadow-raised`, `--shadow-panel`, `--shadow-inset`, `--glow-primary(-strong)`, `--glow-crystal`, `--glow-heading`.
+   - Depth: `--shadow-raised`, `--shadow-panel`, `--shadow-inset`, `--shadow-focus` (a field's focus ring), `--glow-primary(-strong)`, `--glow-crystal`, `--glow-heading`.
    - Gradients: `--gradient-page`, `-panel`, `-window`, `-title-bar`, `-primary`, `-primary-flat`, `-secondary-button`, `-well`, `-navbar`, `-result-bar`, `-edge-shade`.
 
 ## Rules
@@ -109,6 +109,6 @@ Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`/`cdtTab`,
 
 ## Before finishing a change that touches templates or styles
 
-1. Run [scripts/check-theme.sh](scripts/check-theme.sh) from the repo root. It greps for what the rules forbid (raw colours, palette tokens, hand-made controls, global styles, `ng-deep`, raw media queries, hand-styled avatars) and must print `Theme: ok`. Anything it prints needs a token, a building block, a component stylesheet, or a marked exception.
+1. Run [scripts/check-theme.sh](scripts/check-theme.sh) from the repo root. It greps for what the rules forbid (raw colours and shadows, palette tokens, hand-made controls, global styles, `ng-deep`, raw media queries, hand-styled avatars) and must print `Theme: ok`. Anything it prints needs a token, a building block, a component stylesheet, or a marked exception.
 2. Check the page in **both modes** (Settings → Dark Mode on and off; or set `localStorage.darkMode` to `"false"` for light) on a desktop and a 390 px wide viewport, with the keyboard alone, and with axe: the `ui-check` skill does all of it against a local backend.
 3. Component styles must stay under the 6 kB `anyComponentStyle` budget (the production build fails otherwise).

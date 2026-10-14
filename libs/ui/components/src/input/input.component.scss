@@ -17,7 +17,7 @@
 
 :host(:focus) {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-focus);
+  box-shadow: var(--shadow-focus);
   outline: none;
 }
 

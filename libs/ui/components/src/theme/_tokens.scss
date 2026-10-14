@@ -187,6 +187,8 @@
   --shadow-raised: 0 6px 18px rgba(0, 0, 0, 0.5);
   --shadow-panel: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.45);
   --shadow-inset: inset 0 0 22px rgba(0, 0, 0, 0.75);
+  // A field's focus ring (set in both modes: it takes --color-focus where it's defined).
+  --shadow-focus: 0 0 0 2px var(--color-focus);
   --glow-primary: 0 0 16px rgba(0, 169, 176, 0.45);
   --glow-primary-strong: 0 0 24px rgba(95, 211, 216, 0.65);
   --glow-crystal: 0 0 8px rgba(95, 211, 216, 0.85);
@@ -284,6 +286,8 @@ body.light {
   --shadow-raised: 0 4px 14px rgba(16, 24, 43, 0.12);
   --shadow-panel: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(16, 24, 43, 0.12);
   --shadow-inset: inset 0 1px 6px rgba(16, 24, 43, 0.12);
+  // A field's focus ring (set in both modes: it takes --color-focus where it's defined).
+  --shadow-focus: 0 0 0 2px var(--color-focus);
   --glow-primary: 0 0 14px rgba(7, 58, 140, 0.25);
   --glow-primary-strong: 0 0 20px rgba(7, 58, 140, 0.35);
   --glow-crystal: 0 0 6px rgba(0, 169, 176, 0.6);
