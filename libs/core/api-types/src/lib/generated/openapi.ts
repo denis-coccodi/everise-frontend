@@ -1469,6 +1469,7 @@ export interface paths {
           item: string;
           quality?: 'all' | 'nq' | 'hq';
           from?: string;
+          to?: string;
         };
         header?: never;
         path?: never;

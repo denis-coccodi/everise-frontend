@@ -3,7 +3,7 @@
 The Market History page's data: `MarketService` (`GET /api/market/regions`, `/market/items?search=`, `/market/items/:id` and `/market/history`, the backend's reading of Universalis), `MarketSearchStore` (the item search, 300 ms after the last key) and `MarketStore`, the page's state:
 
 - the item, the region, and Oceania's worlds when asked for (any world can visit them);
-- each world's days, read again every 4 seconds while older days are still coming in;
+- each world's days, asked for again every 2 seconds while older days are still coming in (only the days not yet received: `to` is how far back every world was read);
 - the worlds drawn (at most 8; by default the home world, Odin, and today's cheapest);
 - the lowest middle price today and in the days shown.
 

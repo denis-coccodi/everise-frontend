@@ -84,6 +84,39 @@ export function worldDays(histories: MarketHistory[], worlds: MarketWorld[], ran
   );
 }
 
+// A history read again up to `to` (YYYY-MM-DD) over the one shown: its days
+// up to `to`, and the shown history's after it.
+export function mergeHistory(shown: MarketHistory, next: MarketHistory, to: string): MarketHistory {
+  const ids = [...new Set([...shown.worlds, ...next.worlds].map((world) => world.id))];
+  return {
+    ...next,
+    worlds: ids.map((id) => ({
+      id,
+      days: [
+        ...(next.worlds.find((world) => world.id === id)?.days ?? []),
+        ...(shown.worlds.find((world) => world.id === id)?.days.filter((day) => day.day > to) ?? []),
+      ],
+    })),
+  };
+}
+
+// The worlds drawn: those picked (by key), or else the defaults.
+export function chosenWorlds(picked: string[], defaults: (string | undefined)[], worlds: MarketWorld[]) {
+  const keys = picked.length ? picked : defaults;
+  return [...new Set(keys)].flatMap((key) => worlds.find((world) => world.key === key) ?? []);
+}
+
+// While older days are still being read: the oldest day read on every
+// world of every history so far.
+export function readBackTo(histories: MarketHistory[]): string | null {
+  return (
+    histories
+      .flatMap((history) => history.readBackTo ?? [])
+      .sort()
+      .at(-1) ?? null
+  );
+}
+
 // The lowest middle price among these days (the earliest, on a tie).
 export function lowest(days: WorldDay[]): WorldDay | null {
   return days.reduce<WorldDay | null>(

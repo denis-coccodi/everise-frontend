@@ -143,8 +143,12 @@ describe('MarketStore', () => {
     expect(store.reading()).toBe(true);
 
     vi.advanceTimersByTime(MARKET_POLL_MS);
-    histories()[0].flush(history('europe', true));
+    // Only the days it doesn't have yet: up to how far back it was read.
+    const [again] = histories();
+    expect(again.request.params.get('to')).toBe(TODAY);
+    again.flush(history('europe', true));
     expect(store.reading()).toBe(false);
+    expect(store.series().map((s) => s.world.name)).toEqual(['Odin', 'Phoenix']);
 
     vi.advanceTimersByTime(MARKET_POLL_MS * 3);
     expect(histories()).toEqual([]);

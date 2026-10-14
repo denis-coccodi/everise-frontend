@@ -7,11 +7,23 @@ import { MarketHistory, MarketItem, MarketRegions } from '@everise/core/api-type
 import { serverMessage } from '@everise/core/forms';
 import { EMPTY, forkJoin, pipe, switchMap, tap, timer } from 'rxjs';
 import { MAX_WORLDS, MarketSelection, selectionFromQuery, selectionToQuery } from './market-query';
-import { daysBefore, lowest, priceSeries, regionWorlds, shownRange, today, worldDays } from './market-series';
+import {
+  chosenWorlds,
+  daysBefore,
+  lowest,
+  mergeHistory,
+  priceSeries,
+  readBackTo,
+  regionWorlds,
+  shownRange,
+  today,
+  worldDays,
+} from './market-series';
 import { MarketService } from './market.service';
 
-// While older days are still being read, the page asks again this often.
-export const MARKET_POLL_MS = 4000;
+// While older days are still being read, the page asks again this often,
+// for the days it doesn't have yet only.
+export const MARKET_POLL_MS = 2000;
 // The days shown when none are picked: light on a first look.
 export const DEFAULT_DAYS = 30;
 // Before the regions are known: the first day of Universalis' history.
@@ -60,12 +72,9 @@ export const MarketStore = signalStore(
     const days = computed(() => worldDays(store.histories(), worlds(), range()));
     const lowestToday = computed(() => lowest(days().filter((day) => day.day === end())));
     // The worlds drawn: those picked, or the home world and today's cheapest.
-    const chosen = computed(() => {
-      const keys = store.worlds().length
-        ? store.worlds()
-        : [store.regions()?.homeWorld.toLowerCase(), lowestToday()?.world.key];
-      return [...new Set(keys)].flatMap((key) => worlds().find((world) => world.key === key) ?? []);
-    });
+    const chosen = computed(() =>
+      chosenWorlds(store.worlds(), [store.regions()?.homeWorld.toLowerCase(), lowestToday()?.world.key], worlds()),
+    );
     return {
       start,
       end,
@@ -83,15 +92,7 @@ export const MarketStore = signalStore(
       lowestShown: computed(() => lowest(days())),
       series: computed(() => priceSeries(days(), chosen())),
       reading: computed(() => store.histories().some((history) => !history.complete)),
-      // While reading: the oldest day read on every world so far.
-      readBackTo: computed(
-        () =>
-          store
-            .histories()
-            .flatMap((history) => history.readBackTo ?? [])
-            .sort()
-            .at(-1) ?? null,
-      ),
+      readBackTo: computed(() => readBackTo(store.histories())),
     };
   }),
   withMethods(
@@ -111,20 +112,31 @@ export const MarketStore = signalStore(
         to: store.to(),
         scale: store.scale(),
       });
-      const loadHistories = rxMethod<void>(
+      // `more`: asking again while older days come in, for those only (up
+      // to how far back each region was read on every world).
+      const loadHistories = rxMethod<boolean>(
         pipe(
-          switchMap(() => {
+          switchMap((more) => {
             const item = store.item();
             if (item === null) {
               patchState(store, { histories: [], loadState: 'idle', error: '' });
               return EMPTY;
             }
             patchState(store, { loadState: store.histories().length ? 'ready' : 'loading' });
+            const shown = more ? store.histories() : [];
+            const upTo = store.readRegions().map((_, i) => shown[i]?.readBackTo ?? null);
             return forkJoin(
-              store.readRegions().map((region) => service.history(region, item, store.quality(), store.range().from)),
+              store
+                .readRegions()
+                .map((region, i) => service.history(region, item, store.quality(), store.range().from, upTo[i])),
             ).pipe(
               tapResponse({
-                next: (histories) => patchState(store, { histories, loadState: 'ready', error: '' }),
+                next: (answers) => {
+                  const histories = answers.map((answer, i) =>
+                    upTo[i] ? mergeHistory(shown[i], answer, upTo[i]) : answer,
+                  );
+                  patchState(store, { histories, loadState: 'ready', error: '' });
+                },
                 error: (error: unknown) =>
                   patchState(store, {
                     loadState: store.histories().length ? 'ready' : 'error',
@@ -135,7 +147,7 @@ export const MarketStore = signalStore(
               switchMap((histories) =>
                 histories.some((history) => !history.complete) ? timer(MARKET_POLL_MS) : EMPTY,
               ),
-              tap(() => loadHistories()),
+              tap(() => loadHistories(true)),
             );
           }),
         ),
@@ -176,7 +188,7 @@ export const MarketStore = signalStore(
         if (read) {
           if (next.item !== before.item || next.region !== before.region) patchState(store, { histories: [] });
           loadItem(next.item);
-          loadHistories();
+          loadHistories(false);
         }
         if (route) {
           void router.navigate([], {
@@ -192,7 +204,7 @@ export const MarketStore = signalStore(
         load() {
           loadRegions();
           loadItem(store.item());
-          loadHistories();
+          loadHistories(false);
         },
         pick(item: MarketItem) {
           patchState(store, { known: item });

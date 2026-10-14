@@ -1,5 +1,15 @@
 import { MarketDay, MarketHistory, MarketRegion } from '@everise/core/api-types';
-import { daysBefore, lowest, priceSeries, regionWorlds, shownRange, today, worldDays } from './market-series';
+import {
+  daysBefore,
+  lowest,
+  mergeHistory,
+  priceSeries,
+  readBackTo,
+  regionWorlds,
+  shownRange,
+  today,
+  worldDays,
+} from './market-series';
 
 const day = (date: string, median: number): MarketDay => ({
   day: date,
@@ -83,6 +93,31 @@ describe('the market series', () => {
       ['Odin', ['2026-09-03', '2026-10-13']],
       ['Moogle', []],
     ]);
+  });
+
+  it('keeps the days after `to` and takes the rest from the history read again', () => {
+    const shown = { ...history, complete: false, readBackTo: '2026-09-03' };
+    const next: MarketHistory = {
+      ...history,
+      complete: true,
+      readBackTo: null,
+      worlds: [
+        { id: 66, days: [day('2026-08-20', 290), day('2026-09-03', 251)] },
+        { id: 71, days: [day('2026-08-25', 199)] },
+      ],
+    };
+
+    const merged = mergeHistory(shown, next, '2026-09-03');
+
+    expect(merged.complete).toBe(true);
+    expect(merged.worlds.map((w) => [w.id, w.days.map((d) => `${d.day}:${d.median}`)])).toEqual([
+      [66, ['2026-08-20:290', '2026-09-03:251', '2026-10-13:280']],
+      [56, ['2026-10-13:260']],
+      [999, ['2026-10-13:1']],
+      [71, ['2026-08-25:199']],
+    ]);
+    expect(readBackTo([shown, { ...history, readBackTo: '2026-01-01' }])).toBe('2026-09-03');
+    expect(readBackTo([history])).toBeNull();
   });
 
   it('counts days in UTC', () => {

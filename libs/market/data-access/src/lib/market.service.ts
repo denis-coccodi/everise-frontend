@@ -29,12 +29,11 @@ export class MarketService {
     return this.api.get<MarketItemResponse>(`/market/items/${id}`);
   }
 
-  // The item's prices a day on each world of a region, from `from` (YYYY-MM-DD).
-  history(region: string, item: number, quality: MarketQuality, from: string) {
-    return this.api.get<MarketHistory>(
-      '/market/history',
-      new HttpParams().set('region', region).set('item', item).set('quality', quality).set('from', from),
-    );
+  // The item's prices a day on each world of a region, from `from` to `to`
+  // (YYYY-MM-DD; none: to today).
+  history(region: string, item: number, quality: MarketQuality, from: string, to: string | null = null) {
+    const params = new HttpParams().set('region', region).set('item', item).set('quality', quality).set('from', from);
+    return this.api.get<MarketHistory>('/market/history', to ? params.set('to', to) : params);
   }
 
   // The item's cheapest listings now on the worlds of a region.
