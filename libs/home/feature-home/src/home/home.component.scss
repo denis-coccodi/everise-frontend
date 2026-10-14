@@ -32,6 +32,13 @@ cdt-banner p {
   color: var(--color-contrast-muted);
 }
 
+// Guests: what's free, and why a few things need signing in.
+cdt-banner .free {
+  max-width: 36rem;
+  margin: 0.5rem auto 0;
+  font-size: 0.9rem;
+}
+
 .feed-toggle {
   margin-bottom: -1px;
 }
