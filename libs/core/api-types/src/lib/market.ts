@@ -3,12 +3,14 @@ import { Schemas } from './schemas';
 // An item the market board sells, from XIVAPI (its icon: GET /api/market/icons/:id).
 export type MarketItem = Schemas['MarketItem'];
 export type MarketItemsResponse = Schemas['MarketItemsResponse'];
+export type MarketItemResponse = Schemas['MarketItemResponse'];
 
-// The data centres and worlds whose prices can be read, by region.
-export type MarketScopes = Schemas['MarketScopesResponse'];
+// The regions, their data centres and worlds, and where the page starts.
+export type MarketRegions = Schemas['MarketRegionsResponse'];
+export type MarketRegion = MarketRegions['regions'][number];
 
-// Up to 3 items' prices a day in a data centre or on a world (Universalis).
+// An item's prices a day on each world of a region (Universalis).
 export type MarketHistory = Schemas['MarketHistoryResponse'];
-export type MarketItemHistory = MarketHistory['items'][number];
-export type MarketDay = MarketItemHistory['days'][number];
+export type MarketWorldHistory = MarketHistory['worlds'][number];
+export type MarketDay = MarketWorldHistory['days'][number];
 export type MarketQuality = MarketHistory['quality'];

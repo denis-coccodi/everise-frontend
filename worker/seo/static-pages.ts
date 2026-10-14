@@ -41,7 +41,6 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
           HOME_DESCRIPTION,
           [
             ['/party-finder', 'Party Finder: live listings on every data centre'],
-            ['/market', 'Market Board: price history of any item'],
             ['/roulette', 'Duty Roulette: let three reels pick your next run'],
             ['/waking-sands', 'The Waking Sands: talk with members and the Scions'],
           ],
@@ -58,14 +57,6 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
           "Can't decide what to run in Final Fantasy XIV? Three reels pick the kind of duty, the duty and how you run it, " +
           'from dungeons and trials to raids, with job and party settings. Free, no account needed.',
         path: '/roulette',
-      };
-    case '/market':
-      return {
-        title: 'FFXIV Market Board price history · Everise',
-        description:
-          "Compare up to three Final Fantasy XIV items' prices over time, on any world or data centre: " +
-          "each day's middle price, sales and range, back to late 2022, from Universalis.",
-        path: '/market',
       };
     case '/waking-sands':
       return {

@@ -1,9 +1,9 @@
 <div class="market-page">
   <header class="hero">
-    <h1 class="xiv-title">Market Board</h1>
+    <h1 class="xiv-title">Market History</h1>
     <p>
-      Up to three items' prices over time, on your world or a whole data centre: each day's middle price per unit, from
-      the sales players report to Universalis.
+      An item's price over time on every world of your region, a line per world: each day's middle price per unit, from
+      the sales players report to Universalis. See where it sells for least before you travel.
     </p>
   </header>
 
@@ -16,24 +16,52 @@
   <cdt-message>{{ status() }}</cdt-message>
 
   <cdt-panel heading="Price history">
-    @if (!store.items().length) {
-      <p class="notice">Add an item to see its price history.</p>
+    @if (store.item() === null) {
+      <p class="notice">Find an item to see its price history.</p>
     } @else if (store.loadState() === 'loading') {
-      <p class="notice">Reading the market board…</p>
+      <p class="notice">Reading the market history…</p>
     } @else if (store.loadState() === 'error') {
       <p class="notice">The prices couldn't be read. Try again in a minute.</p>
     } @else {
+      <dl class="lowest">
+        <div>
+          <dt>Lowest today</dt>
+          <dd>
+            @if (store.lowestToday(); as low) {
+              <strong>{{ price(low) }}</strong> on {{ low.world.name }} ({{ low.world.dataCentre }})
+            } @else {
+              No sales yet today.
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Lowest from {{ shown() }}</dt>
+          <dd>
+            @if (store.lowestShown(); as low) {
+              <strong>{{ price(low) }}</strong> on {{ low.world.name }} ({{ low.world.dataCentre }}),
+              {{ date(low) }}
+            } @else {
+              No sales in these days.
+            }
+          </dd>
+        </div>
+      </dl>
+
+      <cdt-market-worlds />
+
       <cdt-line-chart
         [lines]="lines()"
         [from]="from()"
         [to]="to()"
         [scale]="store.scale()"
+        [gap]="dayMs"
         label="Day shown"
         unit="gil"
+        missing="no sales"
       />
       <p class="note">
-        Each point is a day's middle price per unit, with that day's sales and its lowest and highest price. Days
-        without sales have no point.
+        Each point is a world's middle price per unit that day, with its sales and lowest and highest price. A line
+        breaks on days without sales.
       </p>
     }
   </cdt-panel>

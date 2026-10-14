@@ -1,4 +1,5 @@
 export * from './lib/market-query';
 export * from './lib/market-series';
-export { MARKET_POLL_MS, MarketStore, SEARCH_DELAY_MS } from './lib/market.store';
+export { DEFAULT_DAYS, MARKET_POLL_MS, MarketStore } from './lib/market.store';
+export { MarketSearchStore, SEARCH_DELAY_MS } from './lib/market-search.store';
 export { MarketService, iconUrl } from './lib/market.service';

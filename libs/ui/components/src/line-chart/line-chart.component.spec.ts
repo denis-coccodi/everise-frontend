@@ -24,6 +24,7 @@ describe('LineChartComponent', () => {
     fixture.componentRef.setInput('to', day('2026-10-03'));
     fixture.componentRef.setInput('label', 'Day shown');
     fixture.componentRef.setInput('unit', 'gil');
+    fixture.componentRef.setInput('missing', 'no sales');
     await fixture.whenStable();
     const page = fixture.nativeElement as HTMLElement;
     return { fixture, page, plot: page.querySelector('[role="slider"]') as HTMLElement };
@@ -40,7 +41,9 @@ describe('LineChartComponent', () => {
       'Iron Ore latest 250 gil, low 200 gil, high 300 gil',
       'Iron Ingot latest 1,200 gil, low 1,200 gil, high 1,200 gil',
     ]);
-    expect(page.querySelectorAll('polyline')).toHaveLength(2);
+    // Iron Ingot's one point is a dot, not a line.
+    expect(page.querySelectorAll('polyline')).toHaveLength(1);
+    expect(page.querySelectorAll('.dot.line-1')).toHaveLength(1);
   });
 
   it("is a slider over the days, starting on the last, that reads each line's value", async () => {
@@ -63,6 +66,25 @@ describe('LineChartComponent', () => {
     key(plot, 'End');
     await fixture.whenStable();
     expect(plot.getAttribute('aria-valuenow')).toBe('2');
+  });
+
+  it('breaks a line over a day without a point, and shows a point alone as a dot', async () => {
+    const { fixture, page } = await render([
+      {
+        name: 'Odin',
+        points: [
+          { at: day('2026-10-01'), value: 200 },
+          { at: day('2026-10-02'), value: 300 },
+          { at: day('2026-10-04'), value: 250 },
+        ],
+      },
+    ]);
+    fixture.componentRef.setInput('to', day('2026-10-04'));
+    fixture.componentRef.setInput('gap', 86_400_000);
+    await fixture.whenStable();
+
+    expect(page.querySelectorAll('polyline')).toHaveLength(1);
+    expect(page.querySelectorAll('polyline')[0].getAttribute('points')?.split(' ')).toHaveLength(2);
   });
 
   it('says when a line has nothing in the range', async () => {

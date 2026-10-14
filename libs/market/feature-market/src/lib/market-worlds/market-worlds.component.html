@@ -1,0 +1,23 @@
+<div class="worlds" role="group" aria-labelledby="market-worlds-label">
+  <p id="market-worlds-label" class="label">Worlds drawn</p>
+  @for (dataCentre of dataCentres(); track dataCentre.name) {
+    <div class="data-centre" role="group" [attr.aria-label]="dataCentre.name">
+      <span class="name" aria-hidden="true">{{ dataCentre.name }}</span>
+      @for (world of dataCentre.worlds; track world.key) {
+        <button
+          type="button"
+          [cdtButton]="drawn().has(world.key) ? 'primary' : 'outline-secondary'"
+          size="sm"
+          [attr.aria-pressed]="drawn().has(world.key)"
+          [disabled]="full() && !drawn().has(world.key)"
+          (click)="store.toggleWorld(world.key)"
+        >
+          {{ world.name }}
+        </button>
+      }
+    </div>
+  }
+  @if (full()) {
+    <p class="note">{{ max }} lines is the most a chart draws: take one off to add another.</p>
+  }
+</div>

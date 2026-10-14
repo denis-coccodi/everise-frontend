@@ -1461,109 +1461,14 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Items' prices a day, in a data centre or on a world */
+    /** An item's prices a day on each world of a region */
     get: {
       parameters: {
         query: {
-          scope?:
-            | 'light'
-            | 'alpha'
-            | 'lich'
-            | 'odin'
-            | 'phoenix'
-            | 'raiden'
-            | 'shiva'
-            | 'twintania'
-            | 'zodiark'
-            | 'chaos'
-            | 'cerberus'
-            | 'louisoix'
-            | 'moogle'
-            | 'omega'
-            | 'phantom'
-            | 'ragnarok'
-            | 'sagittarius'
-            | 'spriggan'
-            | 'aether'
-            | 'adamantoise'
-            | 'cactuar'
-            | 'faerie'
-            | 'gilgamesh'
-            | 'jenova'
-            | 'midgardsormr'
-            | 'sargatanas'
-            | 'siren'
-            | 'crystal'
-            | 'balmung'
-            | 'brynhildr'
-            | 'coeurl'
-            | 'diabolos'
-            | 'goblin'
-            | 'malboro'
-            | 'mateus'
-            | 'zalera'
-            | 'dynamis'
-            | 'cuchulainn'
-            | 'golem'
-            | 'halicarnassus'
-            | 'kraken'
-            | 'maduin'
-            | 'marilith'
-            | 'rafflesia'
-            | 'seraph'
-            | 'primal'
-            | 'behemoth'
-            | 'excalibur'
-            | 'exodus'
-            | 'famfrit'
-            | 'hyperion'
-            | 'lamia'
-            | 'leviathan'
-            | 'ultros'
-            | 'elemental'
-            | 'aegis'
-            | 'atomos'
-            | 'carbuncle'
-            | 'garuda'
-            | 'gungnir'
-            | 'kujata'
-            | 'tonberry'
-            | 'typhon'
-            | 'gaia'
-            | 'alexander'
-            | 'bahamut'
-            | 'durandal'
-            | 'fenrir'
-            | 'ifrit'
-            | 'ridill'
-            | 'tiamat'
-            | 'ultima'
-            | 'mana'
-            | 'anima'
-            | 'asura'
-            | 'chocobo'
-            | 'hades'
-            | 'ixion'
-            | 'masamune'
-            | 'pandaemonium'
-            | 'titan'
-            | 'meteor'
-            | 'belias'
-            | 'mandragora'
-            | 'ramuh'
-            | 'shinryu'
-            | 'unicorn'
-            | 'valefor'
-            | 'yojimbo'
-            | 'zeromus'
-            | 'materia'
-            | 'bismarck'
-            | 'ravana'
-            | 'sephirot'
-            | 'sophia'
-            | 'zurvan';
-          items: string;
+          region?: 'europe' | 'north-america' | 'japan' | 'oceania';
+          item: string;
           quality?: 'all' | 'nq' | 'hq';
+          from?: string;
         };
         header?: never;
         path?: never;
@@ -1571,7 +1476,7 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description Each item's days. */
+        /** @description Each world's days. */
         200: {
           headers: {
             [name: string]: unknown;
@@ -1693,32 +1598,32 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/market/items/{ids}': {
+  '/api/market/items/{id}': {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    /** Items the market board sells, by id (1,2,3) */
+    /** An item the market board sells, by id */
     get: {
       parameters: {
         query?: never;
         header?: never;
         path: {
-          ids: string;
+          id: string;
         };
         cookie?: never;
       };
       requestBody?: never;
       responses: {
-        /** @description The items. */
+        /** @description The item. */
         200: {
           headers: {
             [name: string]: unknown;
           };
           content: {
-            'application/json': components['schemas']['MarketItemsResponse'];
+            'application/json': components['schemas']['MarketItemResponse'];
           };
         };
         /** @description An error; `errors.body` says what went wrong. */
@@ -1740,14 +1645,14 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/api/market/scopes': {
+  '/api/market/regions': {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    /** The data centres and worlds whose prices can be read */
+    /** The regions, data centres and worlds whose prices are read */
     get: {
       parameters: {
         query?: never;
@@ -1757,13 +1662,13 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description The places. */
+        /** @description The regions. */
         200: {
           headers: {
             [name: string]: unknown;
           };
           content: {
-            'application/json': components['schemas']['MarketScopesResponse'];
+            'application/json': components['schemas']['MarketRegionsResponse'];
           };
         };
         /** @description An error; `errors.body` says what went wrong. */
@@ -4012,30 +3917,35 @@ export interface components {
     MarketItemsResponse: {
       items: components['schemas']['MarketItem'][];
     };
-    MarketScopesResponse: {
+    MarketItemResponse: {
+      item: components['schemas']['MarketItem'];
+    };
+    MarketRegionsResponse: {
       regions: {
+        id: string;
         name: string;
         dataCentres: {
-          id: string;
           name: string;
           worlds: {
-            id: string;
+            id: number;
             name: string;
           }[];
         }[];
       }[];
-      defaultScope: string;
+      defaultRegion: string;
+      homeWorld: string;
+      historyStart: string;
     };
     MarketHistoryResponse: {
-      scope: {
+      region: {
         id: string;
         name: string;
-        /** @enum {string} */
-        kind: 'dataCentre' | 'world';
       };
+      item: number;
       /** @enum {string} */
       quality: 'all' | 'nq' | 'hq';
-      items: {
+      from: string;
+      worlds: {
         id: number;
         days: {
           day: string;
@@ -4045,9 +3955,9 @@ export interface components {
           sales: number;
           quantity: number;
         }[];
-        complete: boolean;
-        refreshedAt: string | null;
       }[];
+      complete: boolean;
+      refreshedAt: string | null;
     };
     PartyFinderDiscordShareResponse: {
       /** @constant */

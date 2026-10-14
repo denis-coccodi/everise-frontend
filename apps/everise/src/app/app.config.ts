@@ -94,11 +94,13 @@ export const appConfig: ApplicationConfig = {
             import('@everise/party-finder/feature-party-finder').then((m) => m.PfListingPageComponent),
         },
         {
-          // Items' prices over time; what's picked is in the query string
-          // (?items=5111&scope=odin). Open to everyone.
-          path: 'market',
-          title: 'Market Board',
+          // An item's prices over time on each world of a region; what's
+          // picked is in the query string (?item=5111&region=europe). For
+          // members: each look reads Universalis and stores days.
+          path: 'market-history',
+          title: 'Market History',
           loadComponent: () => import('@everise/market/feature-market').then((m) => m.MarketComponent),
+          canActivate: [AuthGuard],
         },
         {
           path: 'settings',

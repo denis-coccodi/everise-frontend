@@ -50,7 +50,7 @@
           <line class="grid" x1="0" x2="1000" [attr.y1]="tick.top * 4" [attr.y2]="tick.top * 4" />
         }
         @for (path of paths(); track $index) {
-          <polyline [class]="'line line-' + $index" [attr.points]="path" />
+          <polyline [class]="'line line-' + path.line" [attr.points]="path.points" />
         }
       </svg>
       @for (dot of dots(); track $index) {

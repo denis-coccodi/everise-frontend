@@ -1,27 +1,35 @@
 import { MarketQuality } from '@everise/core/api-types';
 
-// Everything the market page shows lives in its query string, so a link
-// (or a bookmark, or Back) brings it along:
-//   items=5111,5057     the items compared, by their game ids (up to 3)
-//   scope=odin          the world or data centre, its name in lower case
-//   quality=hq          only high (or normal, nq) quality sales
-//   from=2024-01-01     the days shown, from and to (none: the whole
-//   to=2026-10-01       history, up to today)
-//   scale=log           a logarithmic price axis
-// What is at its default is left out, except the place.
+// Everything the market history page shows lives in its query string, so a
+// link (or a bookmark, or Back) brings it along:
+//   item=5111            the item, by its game id
+//   region=europe        the region whose worlds are drawn (lower case,
+//                        words joined by dashes)
+//   oceania=show         Oceania's worlds too (any world can visit them)
+//   worlds=odin,phoenix  the worlds whose lines are drawn (none: the home
+//                        world and today's cheapest)
+//   quality=hq           only high (or normal, nq) quality sales
+//   from=2024-01-01      the days shown, from and to (none: the last
+//   to=2026-10-01        month, up to today)
+//   scale=log            a logarithmic price axis
+// What is at its default is left out, except the region.
 
-export const MAX_ITEMS = 3;
+// Lines one chart draws at most.
+export const MAX_WORLDS = 8;
 
-// Everise's home world: where the page starts.
-export const HOME_SCOPE = 'odin';
+// Everise's region: where the page starts.
+export const HOME_REGION = 'europe';
 
 export type PriceScale = 'linear' | 'log';
 
 export interface MarketSelection {
-  items: number[];
-  scope: string;
+  item: number | null;
+  region: string;
+  oceania: boolean;
+  // World names in lower case.
+  worlds: string[];
   quality: MarketQuality;
-  // The first and last day shown (YYYY-MM-DD); null: as far as there's data.
+  // The first and last day shown (YYYY-MM-DD); null: a month ago, today.
   from: string | null;
   to: string | null;
   scale: PriceScale;
@@ -37,17 +45,20 @@ export function isDay(value: string | null | undefined): value is string {
 // What a query string asks for; what it leaves out or gets wrong is the
 // default.
 export function selectionFromQuery(query: { get(name: string): string | null }): MarketSelection {
-  const ids = (query.get('items') ?? '')
+  const item = Number(query.get('item'));
+  const region = query.get('region')?.trim().toLowerCase() ?? '';
+  const worlds = (query.get('worlds') ?? '')
+    .toLowerCase()
     .split(',')
-    .map(Number)
-    .filter((id) => Number.isInteger(id) && id > 0);
-  const scope = query.get('scope')?.trim().toLowerCase() ?? '';
+    .filter((world) => /^[a-z]+$/.test(world));
   const quality = query.get('quality') as MarketQuality;
   const from = query.get('from');
   const to = query.get('to');
   return {
-    items: [...new Set(ids)].slice(0, MAX_ITEMS),
-    scope: /^[a-z]+$/.test(scope) ? scope : HOME_SCOPE,
+    item: Number.isInteger(item) && item > 0 ? item : null,
+    region: /^[a-z]+(-[a-z]+)*$/.test(region) ? region : HOME_REGION,
+    oceania: query.get('oceania') === 'show',
+    worlds: [...new Set(worlds)].slice(0, MAX_WORLDS),
     quality: QUALITIES.includes(quality) ? quality : 'all',
     from: isDay(from) ? from : null,
     to: isDay(to) ? to : null,
@@ -58,8 +69,10 @@ export function selectionFromQuery(query: { get(name: string): string | null }):
 // The query string for a selection; null leaves a parameter out.
 export function selectionToQuery(selection: MarketSelection): Record<string, string | null> {
   return {
-    items: selection.items.length ? selection.items.join(',') : null,
-    scope: selection.scope,
+    item: selection.item === null ? null : String(selection.item),
+    region: selection.region,
+    oceania: selection.oceania ? 'show' : null,
+    worlds: selection.worlds.length ? selection.worlds.join(',') : null,
     quality: selection.quality === 'all' ? null : selection.quality,
     from: selection.from,
     to: selection.to,

@@ -1,68 +1,110 @@
-// The market page in tests: its fixtures, and the page as the app routes it.
+// The market history page in tests: its fixtures, and the page as the app
+// routes it.
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { MarketHistory, MarketItem } from '@everise/core/api-types';
+import { MarketHistory, MarketItem, MarketRegions } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
+import { daysBefore, today } from '@everise/market/data-access';
 import { MarketComponent } from './market/market.component';
 
 export const ORE: MarketItem = { id: 5111, name: 'Iron Ore', icon: 21202, canBeHq: false, category: 'Stone' };
 export const INGOT: MarketItem = { id: 5057, name: 'Iron Ingot', icon: 20801, canBeHq: true, category: 'Metal' };
 
-export const SCOPES = {
-  defaultScope: 'odin',
+export const ODIN = 66;
+export const PHOENIX = 56;
+export const MOOGLE = 71;
+export const BISMARCK = 22;
+
+export const REGIONS: MarketRegions = {
+  defaultRegion: 'europe',
+  homeWorld: 'Odin',
+  historyStart: '2022-10-01',
   regions: [
     {
+      id: 'europe',
       name: 'Europe',
       dataCentres: [
         {
-          id: 'light',
           name: 'Light',
           worlds: [
-            { id: 'odin', name: 'Odin' },
-            { id: 'shiva', name: 'Shiva' },
+            { id: ODIN, name: 'Odin' },
+            { id: PHOENIX, name: 'Phoenix' },
+            { id: 67, name: 'Shiva' },
           ],
         },
+        { name: 'Chaos', worlds: [{ id: MOOGLE, name: 'Moogle' }] },
       ],
+    },
+    { id: 'north-america', name: 'North America', dataCentres: [] },
+    {
+      id: 'oceania',
+      name: 'Oceania',
+      dataCentres: [{ name: 'Materia', worlds: [{ id: BISMARCK, name: 'Bismarck' }] }],
     },
   ],
 };
 
-export function history(ids: number[], complete = true): MarketHistory {
+export const TODAY = today();
+export const day = (days: number) => daysBefore(TODAY, days);
+
+// The item's history: Odin and Phoenix sold today (Phoenix for less) and
+// ten days ago; Moogle sold twenty days ago, for least.
+export function history(region = 'europe', complete = true): MarketHistory {
+  const sold = (date: string, median: number, sales = 1) => ({
+    day: date,
+    median,
+    min: median - 10,
+    max: median + 10,
+    sales,
+    quantity: sales,
+  });
   return {
-    scope: { id: 'odin', name: 'Odin', kind: 'world' },
+    region: { id: region, name: region },
+    item: ORE.id,
     quality: 'all',
-    items: ids.map((id) => ({
-      id,
-      complete,
-      refreshedAt: null,
-      days: [
-        { day: '2023-01-02', median: id, min: id - 10, max: id + 10, sales: 4, quantity: 9 },
-        { day: '2026-01-02', median: id * 2, min: id, max: id * 3, sales: 1, quantity: 1 },
-      ],
-    })),
+    from: day(30),
+    complete,
+    refreshedAt: null,
+    worlds:
+      region === 'oceania'
+        ? [{ id: BISMARCK, days: [sold(TODAY, 100)] }]
+        : [
+            { id: ODIN, days: [sold(day(10), 320), sold(TODAY, 300, 4)] },
+            { id: PHOENIX, days: [sold(day(10), 280), sold(TODAY, 250, 2)] },
+            { id: MOOGLE, days: [sold(day(20), 200)] },
+          ],
   };
 }
 
-// The page as the app routes it, at `url`.
-export async function renderMarket(url = '/market') {
+// The page as the app routes it, at `url`, with the regions read.
+export async function renderMarket(url = '/market-history') {
   TestBed.configureTestingModule({
     providers: [
       provideHttpClient(),
       provideHttpClientTesting(),
       { provide: API_URL, useValue: '' },
-      provideRouter([{ path: 'market', component: MarketComponent }]),
+      provideRouter([{ path: 'market-history', component: MarketComponent }]),
     ],
   });
   const harness = await RouterTestingHarness.create();
   await harness.navigateByUrl(url);
   const fixture = harness.fixture;
   const http = TestBed.inject(HttpTestingController);
-  http.expectOne('/market/scopes').flush(SCOPES);
+  http.expectOne('/market/regions').flush(REGIONS);
   await fixture.whenStable();
   const page = fixture.nativeElement as HTMLElement;
   const query = () => TestBed.inject(Router).parseUrl(TestBed.inject(Router).url).queryParams;
   return { fixture, http, page, query };
+}
+
+// The page showing ORE from a link: its item and history read.
+export async function renderOre(url = `/market-history?item=${ORE.id}`) {
+  const rendered = await renderMarket(url);
+  rendered.http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
+  rendered.http.expectOne((r) => r.url === '/market/history').flush(history());
+  await rendered.fixture.whenStable();
+  return rendered;
 }

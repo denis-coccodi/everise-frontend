@@ -20,8 +20,10 @@ const HEIGHT = 400;
 // Lines with this many points or fewer show each point as a dot.
 const DOTS_UP_TO = 40;
 
-// A time series chart: up to three lines over the days from `from` to `to`
-// (ms), told apart by colour and dash, values on a linear or log axis.
+// A time series chart: up to eight lines over the days from `from` to `to`
+// (ms), told apart by colour and dash, values on a linear or log axis. A
+// line breaks where two of its points are more than `gap` (ms) apart (a
+// day without sales), and a point alone between breaks shows as a dot.
 // A cursor marks one day; the pointer or the arrow keys move it (the plot is
 // a slider, Home/End and Page Up/Down too), and the line above the plot says
 // each line's value that day. The legend says each line's latest, lowest
@@ -42,6 +44,10 @@ export class LineChartComponent {
   readonly label = input.required<string>();
   // What the values count, after each one ("gil").
   readonly unit = input('');
+  // Points further apart than this (ms) break the line; by default none do.
+  readonly gap = input(Infinity);
+  // What the cursor says for a line without a point that day.
+  readonly missing = input('no value');
 
   // The day the cursor is on (an index into `days`); null: the last day.
   private readonly picked = signal<number | null>(null);
@@ -68,19 +74,36 @@ export class LineChartComponent {
   protected readonly xTicks = computed(() =>
     timeTicks(this.from(), this.to()).map((tick) => ({ label: tick.label, left: this.left(tick.value) })),
   );
+  // Each line's unbroken runs of points.
+  private readonly runs = computed(() =>
+    this.lines().map((line) => {
+      const runs: ChartPoint[][] = [];
+      line.points.forEach((point, i) => {
+        if (i === 0 || point.at - line.points[i - 1].at > this.gap()) runs.push([point]);
+        else runs[runs.length - 1].push(point);
+      });
+      return runs;
+    }),
+  );
   protected readonly paths = computed(() =>
-    this.lines().map((line) =>
-      line.points
-        .map((point) => `${(this.left(point.at) * WIDTH) / 100},${(this.top(point.value) * HEIGHT) / 100}`)
-        .join(' '),
+    this.runs().flatMap((runs, line) =>
+      runs
+        .filter((run) => run.length > 1)
+        .map((run) => ({
+          line,
+          points: run
+            .map((point) => `${(this.left(point.at) * WIDTH) / 100},${(this.top(point.value) * HEIGHT) / 100}`)
+            .join(' '),
+        })),
     ),
   );
-  // The points of lines with few of them, as dots.
+  // The points of lines with few of them, and points alone, as dots.
   protected readonly dots = computed(() =>
-    this.lines().flatMap((line, i) =>
-      line.points.length > DOTS_UP_TO
-        ? []
-        : line.points.map((point) => ({ line: i, left: this.left(point.at), top: this.top(point.value) })),
+    this.runs().flatMap((runs, line) =>
+      runs
+        .filter((run) => run.length === 1 || this.lines()[line].points.length <= DOTS_UP_TO)
+        .flat()
+        .map((point) => ({ line, left: this.left(point.at), top: this.top(point.value) })),
     ),
   );
 
@@ -96,7 +119,7 @@ export class LineChartComponent {
         return {
           line: i,
           name: line.name,
-          text: point ? this.valueText(point) : 'no sales',
+          text: point ? this.valueText(point) : this.missing(),
           top: point ? this.top(point.value) : null,
         };
       }),

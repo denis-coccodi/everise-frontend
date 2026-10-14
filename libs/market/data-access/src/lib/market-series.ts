@@ -1,10 +1,26 @@
-import { MarketDay, MarketHistory, MarketItem } from '@everise/core/api-types';
+import { MarketDay, MarketHistory, MarketRegion } from '@everise/core/api-types';
 
-// An item's line on the chart: its days within the range, each at its date.
-export interface PriceSeries {
+const DAY_MS = 86_400_000;
+
+// A world the page can draw: its game id, its name and its id in links
+// (the name in lower case), and where it is.
+export interface MarketWorld {
   id: number;
   name: string;
+  key: string;
+  dataCentre: string;
+  region: string;
+}
+
+// A world's line on the chart: its days within the range, each at its date.
+export interface PriceSeries {
+  world: MarketWorld;
   points: { at: number; value: number; day: MarketDay }[];
+}
+
+// A world's day with its world, for the lowest prices.
+export interface WorldDay extends MarketDay {
+  world: MarketWorld;
 }
 
 // The days shown: both ends included, as YYYY-MM-DD.
@@ -20,32 +36,70 @@ export function today(now = Date.now()) {
 
 // The day `days` before `day`.
 export function daysBefore(day: string, days: number) {
-  return today(Date.parse(`${day}T00:00:00Z`) - days * 86_400_000);
+  return today(Date.parse(`${day}T00:00:00Z`) - days * DAY_MS);
 }
 
-// The first day with sales among the items: the history starts there, and
-// no range starts earlier. Null before anything has sold.
-export function historyStart(history: MarketHistory | null): string | null {
-  const firsts = (history?.items ?? []).flatMap((item) => item.days[0]?.day ?? []);
-  return firsts.length ? firsts.reduce((a, b) => (a < b ? a : b)) : null;
+// A day's start (ms).
+export function dayStart(day: string) {
+  return Date.parse(`${day}T00:00:00Z`);
 }
 
-// The range shown: the one picked, kept within the history (from its start
-// to today); a missing end is the history's.
-export function shownRange(picked: { from: string | null; to: string | null }, start: string, end: string): DayRange {
+// The range shown: the one picked, or the last `days` days, kept between
+// the history's start and today.
+export function shownRange(
+  picked: { from: string | null; to: string | null },
+  start: string,
+  end: string,
+  days: number,
+): DayRange {
   const within = (day: string) => (day < start ? start : day > end ? end : day);
   const to = within(picked.to ?? end);
-  const from = within(picked.from ?? start);
+  const from = within(picked.from ?? daysBefore(end, days));
   return { from: from > to ? to : from, to };
 }
 
-// Each item's line, in the order picked: its days within `range`.
-export function priceSeries(history: MarketHistory | null, items: MarketItem[], range: DayRange): PriceSeries[] {
-  return (history?.items ?? []).map((item) => ({
-    id: item.id,
-    name: items.find((known) => known.id === item.id)?.name ?? `Item ${item.id}`,
-    points: item.days
-      .filter((day) => day.day >= range.from && day.day <= range.to)
-      .map((day) => ({ at: Date.parse(`${day.day}T00:00:00Z`), value: day.median, day })),
+// Every world of these regions, by data centre.
+export function regionWorlds(regions: MarketRegion[]): MarketWorld[] {
+  return regions.flatMap((region) =>
+    region.dataCentres.flatMap((dataCentre) =>
+      dataCentre.worlds.map((world) => ({
+        ...world,
+        key: world.name.toLowerCase(),
+        dataCentre: dataCentre.name,
+        region: region.name,
+      })),
+    ),
+  );
+}
+
+// Every world's days in these histories, within the range.
+export function worldDays(histories: MarketHistory[], worlds: MarketWorld[], range: DayRange): WorldDay[] {
+  return histories.flatMap((history) =>
+    history.worlds.flatMap((sold) => {
+      const world = worlds.find((known) => known.id === sold.id);
+      return world
+        ? sold.days.filter((day) => day.day >= range.from && day.day <= range.to).map((day) => ({ ...day, world }))
+        : [];
+    }),
+  );
+}
+
+// The lowest middle price among these days (the earliest, on a tie).
+export function lowest(days: WorldDay[]): WorldDay | null {
+  return days.reduce<WorldDay | null>(
+    (best, day) =>
+      !best || day.median < best.median || (day.median === best.median && day.day < best.day) ? day : best,
+    null,
+  );
+}
+
+// The chosen worlds' lines, in the order chosen.
+export function priceSeries(days: WorldDay[], chosen: MarketWorld[]): PriceSeries[] {
+  return chosen.map((world) => ({
+    world,
+    points: days
+      .filter((day) => day.world.id === world.id)
+      .sort((a, b) => a.day.localeCompare(b.day))
+      .map((day) => ({ at: dayStart(day.day), value: day.median, day })),
   }));
 }

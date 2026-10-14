@@ -1,44 +1,42 @@
-import { INGOT, ORE, history, renderMarket } from '../market-page-testing';
+import { ORE, day, history, renderMarket, renderOre } from '../market-page-testing';
 
 describe('MarketComponent', () => {
   it('asks for an item before there is anything to draw', async () => {
     const { page, http } = await renderMarket();
 
-    expect(page.querySelector('h1')?.textContent).toBe('Market Board');
-    expect(page.textContent).toContain('Add an item to see its price history.');
+    expect(page.querySelector('h1')?.textContent).toBe('Market History');
+    expect(page.textContent).toContain('Find an item to see its price history.');
     http.expectNone((r) => r.url === '/market/history');
   });
 
-  it('draws the items and place a link names, from the start of their history', async () => {
-    const { fixture, http, page } = await renderMarket('/market?items=5111,5057&scope=odin');
-
-    http.expectOne('/market/items/5111,5057').flush({ items: [ORE, INGOT] });
+  it("draws the home world and today's cheapest over the last month, with the lowest prices", async () => {
+    const { page, http } = await renderMarket(`/market-history?item=${ORE.id}`);
+    http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
     const req = http.expectOne((r) => r.url === '/market/history');
-    expect(req.request.params.get('items')).toBe('5111,5057');
-    expect(req.request.params.get('scope')).toBe('odin');
-    req.flush(history([5111, 5057]));
-    await fixture.whenStable();
+    expect(req.request.params.get('region')).toBe('europe');
+    expect(req.request.params.get('from')).toBe(day(30));
+    req.flush(history());
+    await new Promise((resolve) => setTimeout(resolve));
 
     const legend = [...page.querySelectorAll('cdt-line-chart .legend li .name')].map((n) => n.textContent);
-    expect(legend).toEqual(['Iron Ore', 'Iron Ingot']);
-    expect((page.querySelector('#market-from') as HTMLInputElement).value).toBe('2023-01-02');
-    expect((page.querySelector('#market-from') as HTMLInputElement).min).toBe('2023-01-02');
-    expect(page.querySelector('[role="slider"]')?.getAttribute('aria-valuetext')).toBe(
-      '2 January 2026: Iron Ore 10,222 gil (1 sale, 5,111–15,333); Iron Ingot 10,114 gil (1 sale, 5,057–15,171)',
-    );
+    expect(legend).toEqual(['Odin', 'Phoenix']);
+    const lowest = [...page.querySelectorAll('.lowest dd')].map((dd) => dd.textContent?.replace(/\s+/g, ' ').trim());
+    expect(lowest[0]).toBe('250 gil on Phoenix (Light)');
+    expect(lowest[1]).toMatch(/^200 gil on Moogle \(Chaos\), \d+ \w+ \d{4}$/);
+    expect(page.querySelector('.shown .name')?.textContent).toBe('Iron Ore');
   });
 
   it('says so while older sales are still coming in, and asks again', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
     try {
-      const { fixture, http, page } = await renderMarket('/market?items=5111');
-      http.expectOne('/market/items/5111').flush({ items: [ORE] });
-      http.expectOne((r) => r.url === '/market/history').flush(history([5111], false));
+      const { fixture, http, page } = await renderMarket(`/market-history?item=${ORE.id}`);
+      http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
+      http.expectOne((r) => r.url === '/market/history').flush(history('europe', false));
       await fixture.whenStable();
-      expect(page.textContent).toContain('Reading older sales from Universalis… back to 2 January 2023 so far.');
+      expect(page.textContent).toContain('Reading older sales from Universalis');
 
       vi.advanceTimersByTime(4000);
-      http.expectOne((r) => r.url === '/market/history').flush(history([5111], true));
+      http.expectOne((r) => r.url === '/market/history').flush(history());
       await fixture.whenStable();
       expect(page.textContent).not.toContain('Reading older sales');
     } finally {
@@ -47,8 +45,8 @@ describe('MarketComponent', () => {
   });
 
   it("says when the prices can't be read", async () => {
-    const { fixture, http, page } = await renderMarket('/market?items=5111');
-    http.expectOne('/market/items/5111').flush({ items: [ORE] });
+    const { fixture, http, page } = await renderMarket(`/market-history?item=${ORE.id}`);
+    http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
     http
       .expectOne((r) => r.url === '/market/history')
       .flush(
@@ -61,5 +59,13 @@ describe('MarketComponent', () => {
       "The market board's history can't be read right now.",
     );
     expect(page.textContent).toContain("The prices couldn't be read. Try again in a minute.");
+  });
+
+  it('breaks a line over days without sales', async () => {
+    const { page } = await renderOre();
+
+    // Odin sold ten days ago and today: two points apart, so two dots, no line.
+    expect(page.querySelectorAll('cdt-line-chart polyline')).toHaveLength(0);
+    expect(page.querySelectorAll('cdt-line-chart .dot.line-0:not(.marker)')).toHaveLength(2);
   });
 });

@@ -10,18 +10,29 @@ function written(selection: MarketSelection) {
   );
 }
 
-describe('the market query string', () => {
-  it('starts on Odin, with nothing picked and the whole history', () => {
+describe('the market history query string', () => {
+  it('starts on Europe, with no item, the default worlds and the last month', () => {
     const home = selectionFromQuery(query({}));
 
-    expect(home).toEqual({ items: [], scope: 'odin', quality: 'all', from: null, to: null, scale: 'linear' });
-    expect(written(home)).toEqual({ scope: 'odin' });
+    expect(home).toEqual({
+      item: null,
+      region: 'europe',
+      oceania: false,
+      worlds: [],
+      quality: 'all',
+      from: null,
+      to: null,
+      scale: 'linear',
+    });
+    expect(written(home)).toEqual({ region: 'europe' });
   });
 
   it('names every choice by id, and reads it back', () => {
     const params = {
-      items: '5111,5057',
-      scope: 'light',
+      item: '5111',
+      region: 'north-america',
+      oceania: 'show',
+      worlds: 'gilgamesh,bismarck',
       quality: 'hq',
       from: '2024-01-01',
       to: '2026-10-01',
@@ -30,8 +41,10 @@ describe('the market query string', () => {
     const selection = selectionFromQuery(query(params));
 
     expect(selection).toEqual({
-      items: [5111, 5057],
-      scope: 'light',
+      item: 5111,
+      region: 'north-america',
+      oceania: true,
+      worlds: ['gilgamesh', 'bismarck'],
       quality: 'hq',
       from: '2024-01-01',
       to: '2026-10-01',
@@ -40,11 +53,19 @@ describe('the market query string', () => {
     expect(written(selection)).toEqual(params);
   });
 
-  it('keeps at most 3 items, each once, and leaves out what it cannot read', () => {
+  it('keeps at most 8 worlds, each once, and leaves out what it cannot read', () => {
     const read = selectionFromQuery(
-      query({ items: '1,x,2,1,3,4', scope: 'Odin!', quality: 'best', from: '2024-13-45', to: 'today', scale: 'big' }),
+      query({
+        item: 'x',
+        region: 'Europe!',
+        worlds: 'odin,ODIN,a,b,c,d,e,f,g,h,9',
+        quality: 'best',
+        from: '2024-13-45',
+        scale: 'big',
+      }),
     );
 
-    expect(read).toEqual({ items: [1, 2, 3], scope: 'odin', quality: 'all', from: null, to: null, scale: 'linear' });
+    expect(read).toMatchObject({ item: null, region: 'europe', quality: 'all', from: null, scale: 'linear' });
+    expect(read.worlds).toEqual(['odin', 'a', 'b', 'c', 'd', 'e', 'f', 'g']);
   });
 });

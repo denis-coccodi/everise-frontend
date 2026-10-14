@@ -66,11 +66,6 @@
             <cdt-icon name="chat" />The Waking Sands
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/market" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <cdt-icon name="chart" />Market Board
-          </a>
-        </li>
         @if (!isLoggedIn()) {
           <li class="nav-item">
             <a class="nav-link" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Sign in</a>
@@ -81,6 +76,11 @@
             >
           </li>
         } @else {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/market-history" routerLinkActive="active" ariaCurrentWhenActive="page">
+              <cdt-icon name="chart" />Market History
+            </a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
               <cdt-icon name="compose" />New Post

@@ -1,9 +1,10 @@
-import { history, INGOT, ORE, renderMarket } from '../market-page-testing';
+import { INGOT, ORE, history, renderMarket, renderOre } from '../market-page-testing';
 
 describe('MarketItemPickerComponent', () => {
-  it('searches as you type, adds the item picked to the link, and removes it', async () => {
+  it('searches as you type, and shows the item picked, in the link', async () => {
     const { fixture, http, page, query } = await renderMarket();
     const search = page.querySelector('#market-search') as HTMLInputElement;
+    expect(page.querySelector('label[for="market-search"]')?.textContent).toContain('Find an item');
 
     // The search waits for the typing to stop.
     vi.useFakeTimers();
@@ -27,28 +28,29 @@ describe('MarketItemPickerComponent', () => {
     ]);
 
     results[0].click();
-    http.expectOne((r) => r.url === '/market/history').flush(history([5111]));
+    http.expectOne((r) => r.url === '/market/history' && r.params.get('item') === '5111').flush(history());
     await fixture.whenStable();
-    expect(query()['items']).toBe('5111');
+    expect(query()['item']).toBe('5111');
     expect(search.value).toBe('');
     expect(document.activeElement).toBe(search);
-    expect(page.querySelector('.picked')?.textContent).toContain('Iron Ore');
-
-    (page.querySelector('.picked button') as HTMLButtonElement).click();
-    await fixture.whenStable();
-    expect(query()['items']).toBeUndefined();
-    expect(page.querySelector('.picked')).toBeNull();
+    expect(page.querySelector('.shown')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Iron Ore Stone');
   });
 
-  it('takes no more than 3 items', async () => {
-    const { fixture, http, page } = await renderMarket('/market?items=5111,5057,2');
-    http.expectOne('/market/items/5111,5057,2').flush({ items: [ORE, INGOT] });
-    http.expectOne((r) => r.url === '/market/history').flush(history([5111, 5057, 2]));
-    await fixture.whenStable();
+  it("names the item a link shows, and says when nothing's found", async () => {
+    const { fixture, http, page } = await renderOre();
+    expect(page.querySelector('label[for="market-search"]')?.textContent).toContain('Find another item');
 
-    expect(page.querySelector('#market-search')).toBeNull();
-    expect(page.textContent).toContain('3 items is the most a chart compares: remove one to add another.');
-    const removes = [...page.querySelectorAll('.picked button')].map((b) => b.getAttribute('aria-label'));
-    expect(removes).toEqual(['Remove Iron Ore', 'Remove Iron Ingot', 'Remove item 2']);
+    const search = page.querySelector('#market-search') as HTMLInputElement;
+    vi.useFakeTimers();
+    try {
+      search.value = 'zzz';
+      search.dispatchEvent(new Event('input'));
+      vi.advanceTimersByTime(300);
+    } finally {
+      vi.useRealTimers();
+    }
+    http.expectOne((r) => r.url === '/market/items').flush({ items: [] });
+    await fixture.whenStable();
+    expect(page.querySelector('.notice')?.textContent).toBe('No item the market board sells has that name.');
   });
 });

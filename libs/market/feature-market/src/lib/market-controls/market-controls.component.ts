@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MarketQuality } from '@everise/core/api-types';
-import { MarketStore, daysBefore } from '@everise/market/data-access';
+import { DEFAULT_DAYS, MarketStore, daysBefore } from '@everise/market/data-access';
 import {
   ButtonComponent,
   CheckboxComponent,
@@ -9,9 +9,11 @@ import {
   PanelComponent,
 } from '@everise/ui/components';
 
-// The quick ranges, in days back from today (0: the whole history).
+// The quick ranges, in days back from today (0: the whole history). A
+// longer range reads more of the history the first time.
 const PRESETS = [
-  { name: 'Month', days: 30 },
+  { name: 'Week', days: 7 },
+  { name: 'Month', days: DEFAULT_DAYS },
   { name: '3 months', days: 91 },
   { name: 'Year', days: 365 },
   { name: 'All', days: 0 },
@@ -40,8 +42,8 @@ export class MarketControlsComponent {
   protected readonly presets = computed(() => {
     const { from, to } = this.store.range();
     return PRESETS.map((preset) => {
-      const start = preset.days ? daysBefore(this.store.end(), preset.days) : null;
-      const shownFrom = start && start > this.store.start() ? start : this.store.start();
+      const start = preset.days ? daysBefore(this.store.end(), preset.days) : this.store.start();
+      const shownFrom = start > this.store.start() ? start : this.store.start();
       return { ...preset, start, pressed: to === this.store.end() && from === shownFrom };
     });
   });

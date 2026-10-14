@@ -1,5 +1,5 @@
-import { MarketDay, MarketHistory, MarketItem } from '@everise/core/api-types';
-import { daysBefore, historyStart, priceSeries, shownRange, today } from './market-series';
+import { MarketDay, MarketHistory, MarketRegion } from '@everise/core/api-types';
+import { daysBefore, lowest, priceSeries, regionWorlds, shownRange, today, worldDays } from './market-series';
 
 const day = (date: string, median: number): MarketDay => ({
   day: date,
@@ -10,51 +10,78 @@ const day = (date: string, median: number): MarketDay => ({
   quantity: 1,
 });
 
-const history: MarketHistory = {
-  scope: { id: 'odin', name: 'Odin', kind: 'world' },
-  quality: 'all',
-  items: [
-    { id: 5111, complete: true, refreshedAt: null, days: [day('2023-03-01', 10), day('2024-01-01', 20)] },
-    { id: 5057, complete: false, refreshedAt: null, days: [day('2022-11-02', 300), day('2024-06-01', 400)] },
-    { id: 19953, complete: true, refreshedAt: null, days: [] },
+const EUROPE: MarketRegion = {
+  id: 'europe',
+  name: 'Europe',
+  dataCentres: [
+    {
+      name: 'Light',
+      worlds: [
+        { id: 66, name: 'Odin' },
+        { id: 56, name: 'Phoenix' },
+      ],
+    },
+    { name: 'Chaos', worlds: [{ id: 71, name: 'Moogle' }] },
   ],
 };
 
-const item = (id: number, name: string): MarketItem => ({ id, name, icon: 1, canBeHq: false, category: 'Stone' });
+const history: MarketHistory = {
+  region: { id: 'europe', name: 'Europe' },
+  item: 5111,
+  quality: 'all',
+  from: '2026-09-01',
+  complete: true,
+  refreshedAt: null,
+  worlds: [
+    { id: 66, days: [day('2026-09-01', 300), day('2026-09-03', 250), day('2026-10-13', 280)] },
+    { id: 56, days: [day('2026-09-02', 250), day('2026-10-13', 260)] },
+    // A world the regions don't list: left out.
+    { id: 999, days: [day('2026-10-13', 1)] },
+  ],
+};
 
 describe('the market series', () => {
-  it('starts the history on the first day any item sold', () => {
-    expect(historyStart(history)).toBe('2022-11-02');
-    expect(historyStart(null)).toBeNull();
+  const worlds = regionWorlds([EUROPE]);
+
+  it('lists the worlds by data centre, with their ids in links', () => {
+    expect(worlds.map((w) => `${w.dataCentre}/${w.key}`)).toEqual(['Light/odin', 'Light/phoenix', 'Chaos/moogle']);
   });
 
-  it('keeps the range within the history, a missing end being its own', () => {
-    expect(shownRange({ from: null, to: null }, '2022-11-02', '2026-10-13')).toEqual({
-      from: '2022-11-02',
+  it('shows the last month by default, kept between the history start and today', () => {
+    expect(shownRange({ from: null, to: null }, '2022-10-01', '2026-10-13', 30)).toEqual({
+      from: '2026-09-13',
       to: '2026-10-13',
     });
-    expect(shownRange({ from: '2020-01-01', to: '2030-01-01' }, '2022-11-02', '2026-10-13')).toEqual({
-      from: '2022-11-02',
+    expect(shownRange({ from: '2020-01-01', to: '2030-01-01' }, '2022-10-01', '2026-10-13', 30)).toEqual({
+      from: '2022-10-01',
       to: '2026-10-13',
     });
-    expect(shownRange({ from: '2025-05-05', to: '2024-01-01' }, '2022-11-02', '2026-10-13')).toEqual({
+    expect(shownRange({ from: '2025-05-05', to: '2024-01-01' }, '2022-10-01', '2026-10-13', 30)).toEqual({
       from: '2024-01-01',
       to: '2024-01-01',
     });
   });
 
-  it("draws each item's middle prices within the range, in the order picked", () => {
-    const series = priceSeries(history, [item(5057, 'Iron Ingot'), item(5111, 'Iron Ore')], {
-      from: '2023-01-01',
-      to: '2024-03-01',
-    });
+  it('finds the lowest middle price, the earliest on a tie', () => {
+    const days = worldDays([history], worlds, { from: '2026-09-01', to: '2026-10-13' });
 
-    expect(series.map((s) => s.name)).toEqual(['Iron Ore', 'Iron Ingot', 'Item 19953']);
-    expect(series[0].points.map((p) => [new Date(p.at).toISOString().slice(0, 10), p.value])).toEqual([
-      ['2023-03-01', 10],
-      ['2024-01-01', 20],
+    expect(lowest(days)).toMatchObject({ day: '2026-09-02', median: 250, world: { name: 'Phoenix' } });
+    expect(lowest(days.filter((d) => d.day === '2026-10-13'))).toMatchObject({
+      median: 260,
+      world: { name: 'Phoenix' },
+    });
+    expect(lowest([])).toBeNull();
+  });
+
+  it("draws the chosen worlds' days within the range, in the order chosen", () => {
+    const days = worldDays([history], worlds, { from: '2026-09-02', to: '2026-10-13' });
+    const series = priceSeries(days, [worlds[1], worlds[0], worlds[2]]);
+
+    expect(series.map((s) => [s.world.name, s.points.map((p) => p.day.day)])).toEqual([
+      ['Phoenix', ['2026-09-02', '2026-10-13']],
+      ['Odin', ['2026-09-03', '2026-10-13']],
+      ['Moogle', []],
     ]);
-    expect(series[1].points).toEqual([]);
   });
 
   it('counts days in UTC', () => {

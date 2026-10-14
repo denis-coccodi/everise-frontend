@@ -9,7 +9,7 @@ export interface SitemapData {
 }
 
 // The pages every sitemap lists, besides posts and data centres.
-const FIXED_PAGES = ['/', '/party-finder', '/market', '/roulette', '/waking-sands', '/privacy'];
+const FIXED_PAGES = ['/', '/party-finder', '/roulette', '/waking-sands', '/privacy'];
 
 // Production welcomes crawlers to everything but the API and the members'
 // own pages; any other host (staging, a preview) asks them to stay away.

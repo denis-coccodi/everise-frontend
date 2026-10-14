@@ -1,20 +1,11 @@
 <cdt-panel heading="Where and when">
   <div class="fields">
-    <cdt-field label="World or data centre" for="market-scope">
-      <select #scope id="market-scope" cdtInput (change)="store.setScope(scope.value)">
-        @for (region of store.regions(); track region.name) {
-          @for (dataCentre of region.dataCentres; track dataCentre.id) {
-            <optgroup [label]="dataCentre.name + ' · ' + region.name">
-              <option [value]="dataCentre.id" [selected]="dataCentre.id === store.scope()">
-                All of {{ dataCentre.name }}
-              </option>
-              @for (world of dataCentre.worlds; track world.id) {
-                <option [value]="world.id" [selected]="world.id === store.scope()">{{ world.name }}</option>
-              }
-            </optgroup>
-          }
+    <cdt-field label="Region" for="market-region" hint="Every world of a region can be visited from any of them.">
+      <select #region id="market-region" cdtInput (change)="store.setRegion(region.value)">
+        @for (option of store.regions()?.regions ?? []; track option.id) {
+          <option [value]="option.id" [selected]="option.id === store.region()">{{ option.name }}</option>
         } @empty {
-          <option [value]="store.scope()" selected>{{ store.scope() }}</option>
+          <option [value]="store.region()" selected>{{ store.region() }}</option>
         }
       </select>
     </cdt-field>
@@ -66,7 +57,12 @@
     }
   </div>
 
+  @if (store.region() !== 'oceania') {
+    <cdt-checkbox [checked]="store.oceania()" (checkedChange)="store.setOceania($event)">
+      Oceania's worlds too (any world can visit them)
+    </cdt-checkbox>
+  }
   <cdt-checkbox [checked]="store.scale() === 'log'" (checkedChange)="store.setScale($event ? 'log' : 'linear')">
-    Logarithmic price scale, for items of very different prices
+    Logarithmic price scale
   </cdt-checkbox>
 </cdt-panel>
