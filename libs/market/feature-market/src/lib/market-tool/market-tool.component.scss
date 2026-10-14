@@ -22,8 +22,7 @@
 }
 
 .notice,
-.note,
-.source {
+.note {
   color: var(--color-contrast-muted);
 }
 
@@ -35,12 +34,6 @@
 .note {
   margin: 1rem 0 0;
   font-size: 0.85rem;
-}
-
-.source {
-  margin-top: 2rem;
-  font-size: 0.85rem;
-  text-align: center;
 }
 
 // The cheapest listing now and the lowest prices, above the chart: one
