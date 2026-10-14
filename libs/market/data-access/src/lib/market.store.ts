@@ -83,6 +83,15 @@ export const MarketStore = signalStore(
       lowestShown: computed(() => lowest(days())),
       series: computed(() => priceSeries(days(), chosen())),
       reading: computed(() => store.histories().some((history) => !history.complete)),
+      // While reading: the oldest day read on every world so far.
+      readBackTo: computed(
+        () =>
+          store
+            .histories()
+            .flatMap((history) => history.readBackTo ?? [])
+            .sort()
+            .at(-1) ?? null,
+      ),
     };
   }),
   withMethods(

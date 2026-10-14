@@ -53,9 +53,13 @@ export class MarketToolComponent {
   protected readonly shown = computed(() => `${longDay.format(this.from())} to ${longDay.format(this.to())}`);
 
   // Where the history has got to while older days are still coming in.
-  protected readonly status = computed(() =>
-    this.store.reading() ? 'Reading older sales from Universalis… the chart fills in as they come.' : '',
-  );
+  protected readonly status = computed(() => {
+    if (!this.store.reading()) return '';
+    const back = this.store.readBackTo();
+    return `Reading older sales from Universalis… ${
+      back ? `every world back to ${longDay.format(dayStart(back))} so far; ` : ''
+    }the chart fills in as they come.`;
+  });
 
   protected price(day: WorldDay | WorldListing) {
     return `${gil.format('median' in day ? day.median : day.price)} gil`;

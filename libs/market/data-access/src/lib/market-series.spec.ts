@@ -31,6 +31,7 @@ const history: MarketHistory = {
   quality: 'all',
   from: '2026-09-01',
   complete: true,
+  readBackTo: null,
   refreshedAt: null,
   worlds: [
     { id: 66, days: [day('2026-09-01', 300), day('2026-09-03', 250), day('2026-10-13', 280)] },

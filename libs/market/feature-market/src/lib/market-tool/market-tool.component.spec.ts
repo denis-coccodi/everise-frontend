@@ -35,7 +35,7 @@ describe('MarketToolComponent', () => {
       http.expectOne(`/market/items/${ORE.id}`).flush({ item: ORE });
       http.expectOne((r) => r.url === '/market/history').flush(history('europe', false));
       await fixture.whenStable();
-      expect(page.textContent).toContain('Reading older sales from Universalis');
+      expect(page.textContent).toContain('Reading older sales from Universalis… every world back to');
 
       vi.advanceTimersByTime(4000);
       http.expectOne((r) => r.url === '/market/history').flush(history());

@@ -42,6 +42,7 @@ function history(region = 'europe', complete = true): MarketHistory {
     quality: 'all',
     from: daysBefore(TODAY, 30),
     complete,
+    readBackTo: complete ? null : TODAY,
     refreshedAt: null,
     worlds:
       region === 'oceania'

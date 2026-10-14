@@ -4024,6 +4024,7 @@ export interface components {
         }[];
       }[];
       complete: boolean;
+      readBackTo: string | null;
       refreshedAt: string | null;
     };
     PartyFinderDiscordShareResponse: {
