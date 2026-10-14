@@ -1,4 +1,4 @@
-<div class="row" [class.alone]="store.item() === null">
+<div class="picker" [class.alone]="store.item() === null">
   @if (store.known(); as item) {
     <p class="shown">
       <img class="icon" [src]="icon(item)" alt="" width="40" height="40" />
