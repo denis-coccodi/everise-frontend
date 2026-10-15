@@ -47,14 +47,16 @@ The widths: `sm` 576 px (large phones in landscape), `md` 768 px (tablets: the n
 
 - `node scripts/check-mobile-first.mjs` must print "Mobile first: …" and exit 0 (it's part of CLAUDE.md's pre-push command and the CI `test` job).
 - Look at the page at **320 px** and **390 px** (phones), **768 px** (the `md` switch), **1024 px** and **1280 px**. Nothing scrolls sideways at 320 px (WCAG 1.4.10, see the `accessibility` skill), and each width shows what its breakpoint says.
+- Look at the **spacing** at each of those widths too, signed in and out (the `ui-check` skill's spacing pass): aligned edges, gaps between stacked boxes, nothing cut off in narrow columns, nothing below the footer. Spacing written for side-by-side columns is the usual culprit on phones.
 - The `ui-check` skill takes these screenshots in both modes against a local backend, and reports any width that scrolls sideways (`WIDTHS=320,390,768,1024,1280` for all five).
 
 ## Patterns to avoid
 
-| Instead of                                                               | Write                                                                                     |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `@media (max-width: 767px) { .x { display: none; } }` (hidden on phones) | `.x { display: none; }` at the base, `bp.up(md) { .x { display: block; } }`               |
-| `.grid { grid-template-columns: repeat(4, 1fr); }` then fewer for phones | one column at the base, more in `bp.up(sm)` / `bp.up(lg)`                                 |
-| `.panel { width: 380px; }`                                               | `.panel { left: 8px; right: 8px; }` at the base, `bp.up(md) { .panel { width: 380px; } }` |
-| `@media (min-width: 900px)`                                              | `@include bp.up(lg)` (the theme's widths only)                                            |
-| a `down()` mixin, `not all and (min-width: …)`                           | the phone's rule at the base, the change in `up()`                                        |
+| Instead of                                                               | Write                                                                                                                            |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `@media (max-width: 767px) { .x { display: none; } }` (hidden on phones) | `.x { display: none; }` at the base, `bp.up(md) { .x { display: block; } }`                                                      |
+| `.grid { grid-template-columns: repeat(4, 1fr); }` then fewer for phones | one column at the base, more in `bp.up(sm)` / `bp.up(lg)`                                                                        |
+| `.panel { width: 380px; }`                                               | `.panel { left: 8px; right: 8px; }` at the base, `bp.up(md) { .panel { width: 380px; } }`                                        |
+| `@media (min-width: 900px)`                                              | `@include bp.up(lg)` (the theme's widths only)                                                                                   |
+| `.sidebar { margin-left: 10px; }` (a gap from the column beside it)      | no side margin at the base, `bp.up(md) { .sidebar { margin-left: 10px; } }`; a stacked column gets a top gap at the base instead |
+| a `down()` mixin, `not all and (min-width: …)`                           | the phone's rule at the base, the change in `up()`                                                                               |

@@ -1,4 +1,6 @@
 // Uses the theme's role tokens only.
+@use '../../../../ui/components/src/theme/breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -7,11 +9,17 @@
 // other sidebar boxes are).
 .discord {
   margin-bottom: 1rem;
-  margin-left: 10px;
   padding: 0.75rem 1rem;
   border: var(--border-width) solid var(--color-border-soft);
   border-radius: var(--radius-lg);
   background: var(--gradient-panel);
+}
+
+// Beside the feed (md and up): as far from it as the other sidebar boxes.
+@include bp.up(md) {
+  .discord {
+    margin-left: 10px;
+  }
 }
 
 .heading {
@@ -91,6 +99,9 @@
   white-space: nowrap;
 }
 
+// The sidebar is narrow on tablets: the label wraps rather than spilling out.
 .join {
   display: block;
+  white-space: normal;
+  text-align: center;
 }

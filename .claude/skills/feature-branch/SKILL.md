@@ -53,7 +53,8 @@ Undo a commit already pushed with `git revert`: force pushes are refused.
 gh pr create --base main --head feature/<feature-name> --title "<what changed>" --body "<why, what, how it was tested>"
 ```
 
-- The body says what changed and why, how it was verified, and anything the reviewer should check on staging after merge. End it with the PR attribution line from the session's instructions.
+- **A change to anything on screen** (a template, a style, a new UI item) gets the `ui-check` skill's spacing pass first: every breakpoint (320, 390, 768, 1024, 1280), signed in and out, looking at edges, gaps between stacked boxes, overflow and the space below the footer. Don't open the PR until each width looks right.
+- The body says what changed and why, how it was verified (for UI: the widths and states looked at), and anything the reviewer should check on staging after merge. End it with the PR attribution line from the session's instructions.
 - Every later push to the branch updates the PR and re-runs `test`.
 
 ## 4. Wait for the required check
