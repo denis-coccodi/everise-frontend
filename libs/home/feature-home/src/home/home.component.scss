@@ -1,4 +1,6 @@
 // Uses the theme's role tokens only.
+@use '../../../../ui/components/src/theme/breakpoints' as bp;
+
 // The free company's crest beside the name.
 cdt-banner h1 {
   display: flex;
@@ -43,9 +45,24 @@ cdt-banner .free {
   margin-bottom: -1px;
 }
 
+// Phones: the sidebar stacks under the feed, a panel's gap below it.
+// Wider: beside the feed, a little further from it than the grid's gutter.
+.col-md-3 {
+  margin-top: 1.5rem;
+}
+
+@include bp.up(md) {
+  .col-md-3 {
+    margin-top: 0;
+  }
+
+  .sidebar {
+    margin-left: 10px;
+  }
+}
+
 .sidebar {
   margin-bottom: 1rem;
-  margin-left: 10px;
   padding: 0.75rem 1rem;
   border: var(--border-width) solid var(--color-border-soft);
   border-radius: var(--radius-lg);
