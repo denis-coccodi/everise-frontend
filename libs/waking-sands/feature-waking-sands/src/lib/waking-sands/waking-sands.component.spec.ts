@@ -105,6 +105,7 @@ describe('WakingSandsComponent', () => {
     });
 
     expect(text(page.querySelector('h1'))).toBe('The Waking Sands');
+    expect(text(page.querySelector('.spoilers'))).toContain('Spoiler warning: the characters know their whole story');
     expect(script()).toEqual([
       '(Thancred invited Tataru in.)',
       'Thancred: Morning!',
