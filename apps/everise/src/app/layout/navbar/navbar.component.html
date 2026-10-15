@@ -37,40 +37,12 @@
             <cdt-icon name="home" />Home
           </a>
         </li>
-        <li class="nav-item">
-          <a
-            class="nav-link"
-            routerLink="/roulette"
-            [queryParams]="everydayRoulette"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="anyQuery"
-            ariaCurrentWhenActive="page"
-          >
-            <cdt-icon name="shuffle" />Roulette
-          </a>
-        </li>
-        <li class="nav-item">
-          <a
-            class="nav-link"
-            routerLink="/party-finder"
-            [queryParams]="homePartyFinder"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="anyQuery"
-            ariaCurrentWhenActive="page"
-          >
-            <cdt-icon name="party" />Party Finder
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/waking-sands" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <cdt-icon name="chat" />The Waking Sands
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/market-history" routerLinkActive="active" ariaCurrentWhenActive="page">
-            <cdt-icon name="chart" />Market History
-          </a>
-        </li>
+        <!-- The other pages, by group (nav-groups.ts): a menu each in the
+             bar, the group's name over its links in the phone panel. -->
+        @for (group of groups; track group.label) {
+          <li class="nav-item wide-only"><cdt-nav-group [group]="group" /></li>
+          <li class="nav-item narrow-only"><cdt-nav-group [group]="group" variant="list" /></li>
+        }
         @if (!isLoggedIn()) {
           <li class="nav-item">
             <a class="nav-link" routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Sign in</a>
@@ -81,7 +53,19 @@
             >
           </li>
         } @else {
-          <li class="nav-item">
+          <!-- Writing a post: a button in the bar, set apart from the pages. -->
+          <li class="nav-item wide-only">
+            <a
+              cdtButton="outline-primary"
+              size="sm"
+              routerLink="/editor"
+              routerLinkActive="current"
+              ariaCurrentWhenActive="page"
+            >
+              <cdt-icon name="compose" />New Post
+            </a>
+          </li>
+          <li class="nav-item narrow-only">
             <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
               <cdt-icon name="compose" />New Post
             </a>
@@ -90,51 +74,10 @@
           <li class="nav-item wide-only">
             <cdt-notifications />
           </li>
-          <!-- The account menu: the user's own pages and signing out. -->
-          <li class="nav-item wide-only">
-            <cdt-menu label="Account">
-              <span cdtMenuTrigger class="account" data-testid="loggedin-user">
-                <cdt-avatar [src]="user().image" [size]="28" />
-                {{ user().username }}
-              </span>
-              <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
-              <a cdtMenuItem routerLink="/settings">Settings</a>
-              <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
-            </cdt-menu>
-          </li>
-          <!-- In the phone panel the same links, folded under the user's name
-               (a disclosure that starts closed each time the panel opens). -->
+          <!-- The account: a menu in the bar; in the phone panel, folded under the name. -->
+          <li class="nav-item wide-only"><cdt-account-nav [user]="user()" (logout)="logout.emit()" /></li>
           <li class="nav-item narrow-only">
-            <button
-              type="button"
-              class="account-heading"
-              aria-controls="account-links"
-              [attr.aria-expanded]="accountOpen()"
-              (click)="accountOpen.set(!accountOpen())"
-            >
-              <cdt-avatar [src]="user().image" [size]="28" />
-              <span class="name">{{ user().username }}</span>
-              <cdt-icon class="chevron" name="chevron-right" />
-            </button>
-            <ul id="account-links" class="account-links" [hidden]="!accountOpen()">
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  [routerLink]="['/profile', user().id]"
-                  routerLinkActive="active"
-                  ariaCurrentWhenActive="page"
-                  >Your profile</a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" routerLink="/settings" routerLinkActive="active" ariaCurrentWhenActive="page"
-                  >Settings</a
-                >
-              </li>
-              <li class="nav-item">
-                <button type="button" class="nav-link sign-out" (click)="logout.emit()">Sign out</button>
-              </li>
-            </ul>
+            <cdt-account-nav #phoneAccount [user]="user()" variant="list" (logout)="logout.emit()" />
           </li>
         }
       </ul>

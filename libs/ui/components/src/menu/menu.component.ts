@@ -21,6 +21,9 @@ let nextId = 0;
 //     <button cdtMenuItem type="button" (click)="…">Sign out</button>
 //   </cdt-menu>
 //
+// `active` marks the button (a group holding the current page); `align="start"`
+// opens the panel from the button's start edge instead of its end.
+//
 // Keyboard: Enter, Space or Down opens it on the first item, Up on the last;
 // Up, Down, Home and End move between items; Escape closes it and returns to
 // the button. Choosing an item, clicking outside or tabbing away closes it.
@@ -38,6 +41,12 @@ let nextId = 0;
 export class MenuComponent {
   // Names the menu for screen readers, e.g. "Account".
   readonly label = input.required<string>();
+  // Marks the button as the current place, as a page link is (a group of
+  // pages holding the one shown).
+  readonly active = input(false);
+  // Which edge of the button the panel lines up with: its end (the panel
+  // opens towards the start, for a menu at the bar's end) or its start.
+  readonly align = input<'start' | 'end'>('end');
 
   readonly open = signal(false);
   protected readonly panelId = `cdt-menu-${nextId++}`;
