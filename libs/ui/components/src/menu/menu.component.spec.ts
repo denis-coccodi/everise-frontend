@@ -6,7 +6,7 @@ import { MenuItemComponent } from '../menu-item/menu-item.component';
 @Component({
   imports: [MenuComponent, MenuItemComponent],
   template: `
-    <cdt-menu label="Account">
+    <cdt-menu label="Account" [active]="active()" [align]="align()">
       <span cdtMenuTrigger>denis</span>
       <a cdtMenuItem href="/profile">Your profile</a>
       <a cdtMenuItem href="/settings">Settings</a>
@@ -17,6 +17,8 @@ import { MenuItemComponent } from '../menu-item/menu-item.component';
 })
 class HostComponent {
   readonly signedOut = signal(false);
+  readonly active = signal(false);
+  readonly align = signal<'start' | 'end'>('end');
 }
 
 describe('MenuComponent', () => {
@@ -107,5 +109,17 @@ describe('MenuComponent', () => {
   it('sets apart a divided item', () => {
     expect(items()[2].classList).toContain('divided');
     expect(items()[0].classList).not.toContain('divided');
+  });
+
+  it('marks its button active, and opens from either edge', async () => {
+    expect(trigger().classList).not.toContain('active');
+    expect(panel().classList).not.toContain('start');
+
+    fixture.componentInstance.active.set(true);
+    fixture.componentInstance.align.set('start');
+    await fixture.whenStable();
+
+    expect(trigger().classList).toContain('active');
+    expect(panel().classList).toContain('start');
   });
 });

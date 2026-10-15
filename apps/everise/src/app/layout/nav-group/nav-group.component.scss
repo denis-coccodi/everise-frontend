@@ -1,0 +1,56 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+// A page's icon, a small gap before its name.
+cdt-icon {
+  margin-right: 0.5em;
+}
+
+// In the bar's menu, each page on one line.
+a[cdtMenuItem] {
+  white-space: nowrap;
+}
+
+// The page shown, in the current page's colour.
+a.current {
+  color: var(--color-primary-strong);
+}
+
+// In the phone's panel: the group's name, then its links, as the panel's.
+.heading {
+  margin: 0;
+  padding: 0.75rem 0.25rem 0.25rem;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li + li {
+  border-top: var(--border-width) solid var(--color-border-faint);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  font-size: 1.1rem;
+  color: var(--color-contrast-muted);
+  transition: color 0.15s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.link:focus,
+.link:hover {
+  color: var(--color-contrast);
+  text-decoration: none;
+}

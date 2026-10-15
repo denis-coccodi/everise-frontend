@@ -1,0 +1,35 @@
+@if (variant() === 'menu') {
+  <cdt-menu [label]="group().label" align="start" [active]="active()">
+    <span cdtMenuTrigger>{{ group().label }}</span>
+    @for (page of group().pages; track page.path) {
+      <a
+        cdtMenuItem
+        [routerLink]="page.path"
+        [queryParams]="page.query"
+        routerLinkActive="current"
+        [routerLinkActiveOptions]="match"
+        ariaCurrentWhenActive="page"
+      >
+        <cdt-icon [name]="page.icon" />{{ page.label }}
+      </a>
+    }
+  </cdt-menu>
+} @else {
+  <p class="heading xiv-label" [id]="headingId()">{{ group().label }}</p>
+  <ul [attr.aria-labelledby]="headingId()">
+    @for (page of group().pages; track page.path) {
+      <li>
+        <a
+          class="link"
+          [routerLink]="page.path"
+          [queryParams]="page.query"
+          routerLinkActive="current"
+          [routerLinkActiveOptions]="match"
+          ariaCurrentWhenActive="page"
+        >
+          <cdt-icon [name]="page.icon" />{{ page.label }}
+        </a>
+      </li>
+    }
+  </ul>
+}

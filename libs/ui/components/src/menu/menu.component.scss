@@ -23,6 +23,11 @@
   color: var(--color-contrast);
 }
 
+// Holding the current page: the colour of the current page's link.
+.trigger.active {
+  color: var(--color-primary-strong);
+}
+
 .trigger:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
@@ -55,6 +60,11 @@
   border-radius: var(--radius-md);
   background: var(--gradient-window);
   box-shadow: var(--shadow-panel);
+}
+
+.panel.start {
+  right: auto;
+  left: 0;
 }
 
 .panel[hidden] {
