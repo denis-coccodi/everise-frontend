@@ -6,8 +6,21 @@
       The room is full: {{ store.limits()?.maxPresent }} characters at most. Send someone out to invite another.
     </p>
   }
+  <cdt-field class="search" label="Find a character" for="sands-cast-search">
+    <input
+      #search
+      id="sands-cast-search"
+      type="search"
+      cdtInput="sm"
+      autocomplete="off"
+      placeholder="Alphinaud, Scion, Ascian…"
+      [value]="store.search()"
+      (input)="store.setSearch(search.value)"
+    />
+  </cdt-field>
+  <p class="visually-hidden" role="status">{{ found() }}</p>
   <ul class="cast">
-    @for (character of store.characters(); track character.id) {
+    @for (character of store.cast(); track character.id) {
       <li class="person" [class.present]="store.isPresent(character.id)">
         <cdt-avatar
           class="avatar"
@@ -41,6 +54,9 @@
       </li>
     }
   </ul>
+  @if (store.search().trim() && store.cast().length === store.present().length) {
+    <p class="hint">Nobody else matches "{{ store.search().trim() }}".</p>
+  }
   <p class="fan-note">
     Everyone on this page shares the room. FINAL FANTASY XIV's characters and the free company's own are voiced by an AI
     as fan work: they can get things wrong, and some of them swear.

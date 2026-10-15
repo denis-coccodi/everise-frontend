@@ -119,6 +119,30 @@ describe('WakingSandsComponent', () => {
     expect(text(button('Invite'))).toBe('Invite Barnaby Bollocksworth');
   });
 
+  it("lists who's in first, and finds the others by name or title, apostrophes and case aside", async () => {
+    await render({ present: ['urianger'], characters: [TATARU, BARNABY, URIANGER, YSHTOLA] });
+    const names = () => [...page.querySelectorAll('.cast .name')].map(text);
+    async function search(value: string) {
+      const field = page.querySelector('input[type="search"]') as HTMLInputElement;
+      field.value = value;
+      field.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+    }
+
+    expect(names()).toEqual(['Urianger', 'Tataru', 'Barnaby Bollocksworth', "Y'shtola"]);
+
+    await search('YSHTOLA');
+    expect(names()).toEqual(['Urianger', "Y'shtola"]);
+    expect(text(page.querySelector('[role="status"]'))).toBe('2 characters shown');
+
+    await search('braggart');
+    expect(names()).toEqual(['Urianger', 'Barnaby Bollocksworth']);
+
+    await search('moogle');
+    expect(names()).toEqual(['Urianger']);
+    expect(text(page.querySelector('.cast + .hint'))).toBe('Nobody else matches "moogle".');
+  });
+
   it("links each character's name to their profile", async () => {
     await render();
 
@@ -241,8 +265,8 @@ describe('WakingSandsComponent', () => {
 
     expect([...page.querySelectorAll('.cast button')].map((b) => text(b))).toEqual([
       'Send out Tataru',
-      'Invite Urianger',
       "Send out Y'shtola",
+      'Invite Urianger',
       'Invite Barnaby Bollocksworth',
     ]);
   });

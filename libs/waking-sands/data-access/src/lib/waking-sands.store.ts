@@ -24,6 +24,8 @@ interface WakingSandsState {
   sending: boolean;
   // The backend's words when something was refused (a limit, a full room).
   error: string;
+  // What the member typed to find a character in the cast.
+  search: string;
 }
 
 const initialState: WakingSandsState = {
@@ -37,7 +39,15 @@ const initialState: WakingSandsState = {
   draft: '',
   sending: false,
   error: '',
+  search: '',
 };
+
+// Lower case without accents or apostrophes, so "yshtola" finds Y'shtola.
+const normalized = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[\p{M}'\u2019]/gu, '')
+    .toLowerCase();
 
 // The Waking Sands room, shared by everyone on the page: the characters,
 // who's in, the day's lines and who's writing. It loads the room, then
@@ -51,6 +61,20 @@ export const WakingSandsStore = signalStore(
       return !!limits && store.present().length >= limits.maxPresent;
     }),
     canSend: computed(() => auth.loggedIn() && !store.sending() && !!store.draft().trim()),
+    // The cast as listed: who's in the room first, then everyone else whose
+    // name or title matches the search. Those present are always shown.
+    cast: computed(() => {
+      const present = store.present();
+      const term = normalized(store.search().trim());
+      const inRoom = present
+        .map((id) => store.characters().find((c) => c.id === id))
+        .filter((c): c is SandsCharacter => !!c);
+      const others = store
+        .characters()
+        .filter((c) => !present.includes(c.id))
+        .filter((c) => !term || normalized(`${c.name} ${c.title}`).includes(term));
+      return [...inRoom, ...others];
+    }),
     writingName: computed(() => {
       const id = store.writing();
       return id ? store.characters().find((c) => c.id === id)?.name ?? null : null;
@@ -109,6 +133,7 @@ export const WakingSandsStore = signalStore(
       // A member's line of the one signed in.
       isMine: (line: SandsLine) => line.from === 'member' && !!line.memberId && line.memberId === auth.user().id,
       setDraft: (draft: string) => patchState(store, { draft }),
+      setSearch: (search: string) => patchState(store, { search }),
       invite: changePresence((id) => service.invite(id)),
       dismiss: changePresence((id) => service.dismiss(id)),
       // Sends the draft. The characters' answers arrive live; once the
