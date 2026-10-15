@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
 import { VenuesStore } from '@everise/venues/data-access';
-import { MessageComponent } from '@everise/ui/components';
+import { ButtonComponent, CardComponent, IconComponent, MessageComponent } from '@everise/ui/components';
 import { VenueCardComponent } from '../venue-card/venue-card.component';
 import { VenueDataCentresComponent } from '../venue-data-centres/venue-data-centres.component';
 
@@ -14,7 +14,15 @@ import { VenueDataCentresComponent } from '../venue-data-centres/venue-data-cent
   selector: 'cdt-venues',
   templateUrl: './venues.component.html',
   styleUrl: './venues.component.scss',
-  imports: [MessageComponent, RouterLink, VenueCardComponent, VenueDataCentresComponent],
+  imports: [
+    ButtonComponent,
+    CardComponent,
+    IconComponent,
+    MessageComponent,
+    RouterLink,
+    VenueCardComponent,
+    VenueDataCentresComponent,
+  ],
   providers: [VenuesStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

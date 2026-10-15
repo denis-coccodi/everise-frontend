@@ -33,6 +33,40 @@ h1 {
   margin-top: 1.5rem;
 }
 
+// The backend's words when a load failed, under the data centres.
+.status {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+// No venues to show, or they didn't load: a window saying why and what
+// to do, in the middle of the page.
+.state {
+  display: block;
+  max-width: 34rem;
+  margin: 2rem auto 0;
+  text-align: center;
+
+  h2 {
+    margin: 0.5rem 0;
+  }
+
+  p {
+    margin: 0 0 1rem;
+    color: var(--color-contrast-soft);
+  }
+
+  button cdt-icon {
+    margin-inline-end: 0.35em;
+  }
+}
+
+.state-icon {
+  font-size: 2.5rem;
+  color: var(--color-crystal);
+}
+
 section {
   margin-top: 2rem;
 }

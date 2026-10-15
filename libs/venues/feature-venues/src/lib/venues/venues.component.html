@@ -6,18 +6,36 @@
 
   <cdt-venue-data-centres />
 
-  <cdt-message tone="error">{{ store.error() }}</cdt-message>
+  <!-- Why the last load failed, in the backend's words. -->
+  <cdt-message class="status" tone="error">{{ store.error() }}</cdt-message>
 
   @switch (store.loadState()) {
     @case ('loading') {
-      <p class="notice">Finding venues on {{ store.dataCentre() }}…</p>
+      <p class="notice" role="status">Finding venues on {{ store.dataCentre() }}…</p>
     }
     @case ('error') {
-      <p class="notice">The venues couldn't be loaded. Try again in a few minutes.</p>
+      <cdt-card class="state">
+        <cdt-icon class="state-icon" name="venue" />
+        <h2>The venues didn't load</h2>
+        <p>FFXIV Venues, where they come from, may be busy for a moment.</p>
+        <button type="button" cdtButton="outline-primary" (click)="store.retry()">
+          <cdt-icon name="refresh" />Try again
+        </button>
+      </cdt-card>
     }
     @default {
       @if (store.total() === 0) {
-        <p class="notice">No venues on {{ store.dataCentre() }} open this week yet. Try another data centre.</p>
+        <cdt-card class="state">
+          <cdt-icon class="state-icon" name="venue" />
+          <h2>No venues on {{ store.dataCentre() }} this week yet</h2>
+          <p>
+            Try another data centre above. Run a venue on {{ store.dataCentre() }}?
+            <a href="https://ffxivvenues.com" target="_blank" rel="noopener noreferrer"
+              >List it on FFXIV Venues<span class="visually-hidden"> (opens in a new tab)</span></a
+            >
+            and it shows here.
+          </p>
+        </cdt-card>
       }
       @if (store.openNow().length) {
         <section aria-labelledby="venues-open">

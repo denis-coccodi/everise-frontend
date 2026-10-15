@@ -54,10 +54,12 @@ describe('VenuesComponent', () => {
     http.expectOne('/venues?dataCentre=Materia').flush(list({ dataCentre: 'Materia', venues: [] }));
     await fixture.whenStable();
 
-    expect(page.querySelector('.notice')?.textContent).toContain('No venues on Materia open this week yet');
+    const empty = page.querySelector('.state') as HTMLElement;
+    expect(empty.querySelector('h2')?.textContent?.trim()).toBe('No venues on Materia this week yet');
+    expect(empty.querySelector('a')?.getAttribute('href')).toBe('https://ffxivvenues.com');
   });
 
-  it("says when the venues couldn't be loaded", async () => {
+  it("says why the venues didn't load, once, and loads them again on Try again", async () => {
     const { fixture, http, page } = await render();
     http
       .expectOne('/venues?dataCentre=Light')
@@ -67,7 +69,19 @@ describe('VenuesComponent', () => {
       );
     await fixture.whenStable();
 
-    expect(page.querySelector('.notice')?.textContent).toContain("The venues couldn't be loaded");
+    const failed = page.querySelector('.state') as HTMLElement;
+    expect(failed.querySelector('h2')?.textContent?.trim()).toBe("The venues didn't load");
+    expect(page.querySelectorAll('cdt-message')).toHaveLength(1);
     expect(page.querySelector('cdt-message')?.textContent).toContain("can't be reached right now");
+
+    (failed.querySelector('button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(page.querySelector('[role=status]')?.textContent).toContain('Finding venues on Light');
+    expect(page.querySelector('cdt-message')?.textContent?.trim()).toBe('');
+    http.expectOne('/venues?dataCentre=Light').flush(list());
+    await fixture.whenStable();
+
+    expect(page.querySelector('.state')).toBeNull();
+    expect(page.querySelectorAll('cdt-venue-card')).toHaveLength(3);
   });
 });

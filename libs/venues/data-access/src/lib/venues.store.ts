@@ -89,6 +89,11 @@ export const VenuesStore = signalStore(
     );
     return {
       refresh: () => load(store.dataCentre()),
+      // Asked for again after a failed load: the page shows it loading.
+      retry: () => {
+        patchState(store, { loadState: store.list() ? 'ready' : 'loading', error: '' });
+        load(store.dataCentre());
+      },
       // The query string changed (a data centre's link, Back, Forward).
       followQuery: rxMethod<ParamMap>(
         pipe(
