@@ -25,6 +25,7 @@ export const NAV_GROUPS: NavGroup[] = [
       // The Party Finder opens on Everise's home, Light from Odin
       // (party-finder/data-access's party-finder-query.ts).
       { label: 'Party Finder', icon: 'party', path: '/party-finder', query: { dc: 'light', world: 'odin' } },
+      { label: 'Venues', icon: 'venue', path: '/venues' },
       { label: 'The Waking Sands', icon: 'chat', path: '/waking-sands' },
     ],
   },

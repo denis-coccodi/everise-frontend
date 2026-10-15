@@ -32,6 +32,7 @@ export const ICON_NAMES = [
   'bell',
   'chart',
   'search',
+  'venue',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -147,6 +148,9 @@ export type IconName = (typeof ICON_NAMES)[number];
         @case ('search') {
           <circle cx="11" cy="11" r="7" />
           <path d="M21 21l-5-5" />
+        }
+        @case ('venue') {
+          <path d="M7 3h10v4a5 5 0 0 1-10 0zM12 12v8M8 21h8" />
         }
         @case ('info') {
           <circle cx="12" cy="12" r="9" />

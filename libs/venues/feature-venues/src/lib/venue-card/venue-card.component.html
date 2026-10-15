@@ -1,0 +1,51 @@
+<cdt-card [flush]="true" [stretch]="true">
+  <article class="venue" [attr.aria-labelledby]="headingId()">
+    <!-- Decorative: the name below says what it is. A venue without a
+         banner (or whose banner doesn't load) gets the site's own. -->
+    @if (venue().banner && !bannerFailed()) {
+      <img class="cover" [src]="venue().banner" alt="" loading="lazy" (error)="bannerFailed.set(true)" />
+    } @else {
+      <div class="cover no-banner" aria-hidden="true"><cdt-icon name="venue" /></div>
+    }
+    <div class="content">
+      <h3 [id]="headingId()">
+        <a [routerLink]="page()">{{ venue().name }}</a>
+      </h3>
+      <p class="opening" [class.open]="open()">{{ opening() }}</p>
+      <p class="where">
+        @if (venue().world) {
+          <span class="world">{{ venue().world }}</span
+          >{{ venue().address ? ', ' : '' }}
+        }
+        {{ venue().address }}
+      </p>
+      @for (notice of venue().notices; track $index) {
+        <p class="notice"><span class="visually-hidden">Notice from the owners: </span>{{ notice }}</p>
+      }
+      @if (summary()) {
+        <p class="summary">{{ summary() }}</p>
+      }
+      @if (tags().length) {
+        <ul class="tags" aria-label="What it offers">
+          @for (tag of tags(); track tag) {
+            <li cdtTag="outline">{{ tag }}</li>
+          }
+        </ul>
+      }
+    </div>
+  </article>
+  <div cdtCardFooter class="links">
+    <!-- The name above already links here, for keyboard and screen readers. -->
+    <a [routerLink]="page()" tabindex="-1" aria-hidden="true">More</a>
+    @if (venue().discord) {
+      <a [href]="venue().discord" target="_blank" rel="noopener noreferrer"
+        >Discord<span class="visually-hidden"> of {{ venue().name }} (opens in a new tab)</span></a
+      >
+    }
+    @if (venue().website) {
+      <a [href]="venue().website" target="_blank" rel="noopener noreferrer"
+        >Website<span class="visually-hidden"> of {{ venue().name }} (opens in a new tab)</span></a
+      >
+    }
+  </div>
+</cdt-card>

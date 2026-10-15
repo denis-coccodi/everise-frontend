@@ -1,0 +1,110 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.venues-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+.hero p,
+.notice,
+.source {
+  color: var(--color-contrast-muted);
+  text-align: center;
+}
+
+.notice {
+  margin-top: 1.5rem;
+}
+
+// The backend's words when a load failed, under the data centres.
+.status {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+// No venues to show, or they didn't load: a window saying why and what
+// to do, in the middle of the page.
+.state {
+  display: block;
+  max-width: 34rem;
+  margin: 2rem auto 0;
+  text-align: center;
+
+  h2 {
+    margin: 0.5rem 0;
+  }
+
+  p {
+    margin: 0 0 1rem;
+    color: var(--color-contrast-soft);
+  }
+
+  button cdt-icon {
+    margin-inline-end: 0.35em;
+  }
+}
+
+.state-icon {
+  font-size: 2.5rem;
+  color: var(--color-crystal);
+}
+
+section {
+  margin-top: 2rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.3rem;
+}
+
+// Phones: one venue a row; tablets: two; wide screens: three.
+.venues {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@include bp.up(md) {
+  .venues {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@include bp.up(lg) {
+  .venues {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.join {
+  margin: 2rem auto 0;
+  max-width: 40rem;
+  text-align: center;
+}
+
+.source {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+}

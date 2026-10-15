@@ -1,0 +1,49 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+// The data centres by region: on phones one region a row, from tablets up
+// side by side.
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 2rem;
+  text-align: center;
+}
+
+.region {
+  flex: 1 1 100%;
+}
+
+@include bp.up(sm) {
+  .region {
+    flex: 0 1 auto;
+  }
+}
+
+h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  display: inline-block;
+  padding: 0.25rem 0;
+}
+
+a[aria-current='page'] {
+  font-weight: 700;
+  text-decoration: none;
+}

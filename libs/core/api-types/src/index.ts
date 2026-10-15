@@ -6,6 +6,7 @@ export * from './lib/comment';
 export * from './lib/discord';
 export * from './lib/party-finder';
 export * from './lib/relays';
+export * from './lib/venues';
 export * from './lib/market';
 export * from './lib/auth';
 export * from './lib/admin';
