@@ -46,19 +46,21 @@ describe('VenueCardComponent', () => {
       venue('bare', 2, { banner: null, website: null, discord: null, tags: [], description: [] }),
     );
 
-    expect(card.querySelector('.cover')).toBeNull();
+    expect(card.querySelector('img.cover')).toBeNull();
+    expect(card.querySelector('.no-banner')?.getAttribute('aria-hidden')).toBe('true');
     expect(card.querySelector('.tags')).toBeNull();
     expect(card.querySelector('.summary')).toBeNull();
     expect(card.querySelector('.opening')?.classList).not.toContain('open');
     expect(card.querySelectorAll('.links a')).toHaveLength(1);
   });
 
-  it("drops a banner that doesn't load", () => {
+  it("puts the site's own banner in place of one that doesn't load", () => {
     const { fixture, card } = render(venue('broken', 2));
 
-    card.querySelector('.cover')?.dispatchEvent(new Event('error'));
+    card.querySelector('img.cover')?.dispatchEvent(new Event('error'));
     fixture.detectChanges();
 
-    expect(card.querySelector('.cover')).toBeNull();
+    expect(card.querySelector('img.cover')).toBeNull();
+    expect(card.querySelector('.no-banner')).not.toBeNull();
   });
 });

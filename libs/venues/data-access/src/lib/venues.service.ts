@@ -6,6 +6,7 @@ import {
   VenueDiscordShareResponse,
   VenueList,
   VenuePage,
+  VenueRegions,
 } from '@everise/core/api-types';
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
@@ -18,6 +19,12 @@ export class VenuesService {
   // from FFXIV Venues.
   venues(dataCentre: VenueDataCentre) {
     return this.api.get<VenueList>(`/venues?dataCentre=${encodeURIComponent(dataCentre)}`);
+  }
+
+  // The data centres with venues, by region: known even when FFXIV
+  // Venues can't be reached.
+  regions() {
+    return this.api.get<VenueRegions>('/venues/regions');
   }
 
   // One venue, with its regular openings. A venue that isn't listed (404)

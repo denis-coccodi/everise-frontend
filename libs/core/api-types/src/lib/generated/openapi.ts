@@ -3344,6 +3344,51 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/venues/regions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The data centres with venues, by region */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The regions. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['VenueRegionsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/waking-sands/characters/{id}/picture': {
     parameters: {
       query?: never;
@@ -4520,6 +4565,12 @@ export interface components {
         | 'Meteor'
         | 'Materia'
       )[];
+    };
+    VenueRegionsResponse: {
+      regions: {
+        name: string;
+        dataCentres: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia')[];
+      }[];
     };
     VenuesResponse: {
       /** @enum {string} */

@@ -20,6 +20,17 @@
   background: var(--color-surface-strong);
 }
 
+// The site's own banner, for a venue without one: the goblet in the well.
+.no-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-well);
+  box-shadow: var(--shadow-inset);
+  color: var(--color-crystal);
+  font-size: 2.5rem;
+}
+
 .content {
   padding: 0.9rem 1rem 0.5rem;
 }

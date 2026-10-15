@@ -106,10 +106,23 @@ export const VenuesStore = signalStore(
         ),
       ),
       tick: () => patchState(store, { now: Date.now() }),
+      // The data centres with venues, on their own: the list offers them
+      // even when the venues don't load. A failure leaves the list's own.
+      loadRegions: rxMethod<void>(
+        switchMap(() =>
+          service.regions().pipe(
+            tapResponse({
+              next: ({ regions }) => patchState(store, { knownRegions: regions }),
+              error: () => undefined,
+            }),
+          ),
+        ),
+      ),
     };
   }),
   withHooks((store, route = inject(ActivatedRoute, { optional: true })) => ({
     onInit() {
+      store.loadRegions();
       if (route) store.followQuery(route.queryParamMap);
       else store.refresh();
       rxMethod<number>(tap(() => document.visibilityState === 'visible' && store.refresh()))(interval(VENUES_POLL_MS));

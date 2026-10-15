@@ -8,6 +8,9 @@ export type Venue = VenueList['venues'][number];
 
 export type VenueDataCentre = VenueList['dataCentre'];
 
+// The data centres with venues, by region.
+export type VenueRegions = Schemas['VenueRegionsResponse'];
+
 // A venue's own page: what its card shows, its data centre, its next
 // opening (null when none is set) and its regular openings.
 export type VenuePage = Schemas['VenuePageResponse'];

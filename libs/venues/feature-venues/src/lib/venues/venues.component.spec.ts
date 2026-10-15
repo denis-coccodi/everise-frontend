@@ -67,7 +67,10 @@ describe('VenuesComponent', () => {
         { errors: { body: ["The venues can't be reached right now. Try again in a few minutes."] } },
         { status: 502, statusText: 'Bad Gateway' },
       );
+    // The data centres come on their own, so they're offered anyway.
+    http.expectOne('/venues/regions').flush({ regions: list().regions });
     await fixture.whenStable();
+    expect(page.querySelectorAll('cdt-venue-data-centres a')).toHaveLength(7);
 
     const failed = page.querySelector('.state') as HTMLElement;
     expect(failed.querySelector('h2')?.textContent?.trim()).toBe("The venues didn't load");

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 import { RouterLink } from '@angular/router';
 import { Venue } from '@everise/core/api-types';
 import { isOpen, openingText } from '@everise/venues/data-access';
-import { CardComponent, TagComponent } from '@everise/ui/components';
+import { CardComponent, IconComponent, TagComponent } from '@everise/ui/components';
 
 // The tags shown on a card; the venue's page has the rest.
 const SHOWN_TAGS = 6;
@@ -13,7 +13,7 @@ const SHOWN_TAGS = 6;
   selector: 'cdt-venue-card',
   templateUrl: './venue-card.component.html',
   styleUrl: './venue-card.component.scss',
-  imports: [CardComponent, RouterLink, TagComponent],
+  imports: [CardComponent, IconComponent, RouterLink, TagComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VenueCardComponent {

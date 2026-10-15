@@ -22,9 +22,12 @@
     }
     @default {
       @if (store.venue(); as venue) {
+        <!-- Decorative: the name below says what it is. A venue without a
+             banner (or whose banner doesn't load) gets the site's own. -->
         @if (venue.banner && !bannerFailed()) {
-          <!-- Decorative: the name below says what it is. -->
           <img class="cover" [src]="venue.banner" alt="" (error)="bannerFailed.set(true)" />
+        } @else {
+          <div class="cover no-banner" aria-hidden="true"><cdt-icon name="venue" /></div>
         }
         <header class="heading">
           <h1>{{ venue.name }}</h1>
