@@ -7,3 +7,15 @@ export type VenueList = Schemas['VenuesResponse'];
 export type Venue = VenueList['venues'][number];
 
 export type VenueDataCentre = VenueList['dataCentre'];
+
+// A venue's own page: what its card shows, its data centre, its next
+// opening (null when none is set) and its regular openings.
+export type VenuePage = Schemas['VenuePageResponse'];
+
+export type VenueDetail = VenuePage['venue'];
+
+export type ScheduledOpening = VenueDetail['schedule'][number];
+
+// Sharing a venue in the Everise Discord.
+export type NewVenueDiscordShare = Schemas['NewVenueDiscordShare'];
+export type VenueDiscordShareResponse = Schemas['VenueDiscordShareResponse'];

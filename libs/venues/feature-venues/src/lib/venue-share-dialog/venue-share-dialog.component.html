@@ -1,0 +1,32 @@
+<cdt-dialog heading="Share to Discord" (dismissed)="store.close()">
+  <p class="what">
+    <strong>{{ venue().name }}</strong> goes to the Everise Discord, with when it opens and a link to its page here.
+  </p>
+  <form (submit)="$event.preventDefault(); send()">
+    <fieldset [disabled]="store.sending()">
+      <cdt-field label="Your message for the Discord" for="venue-share-message">
+        <textarea
+          #messageBox="cdtInput"
+          id="venue-share-message"
+          cdtInput
+          rows="3"
+          [attr.maxlength]="maxMessage"
+          aria-describedby="venue-share-count"
+          placeholder="Who's coming tonight? (optional)"
+          [value]="message()"
+          (input)="message.set(messageBox.value)"
+        ></textarea>
+        <span id="venue-share-count" class="count" aria-live="polite">{{ message().length }} / {{ maxMessage }}</span>
+      </cdt-field>
+
+      <cdt-message tone="error">{{ store.error() }}</cdt-message>
+
+      <div class="actions">
+        <button type="submit" cdtButton [attr.aria-busy]="store.sending()">
+          {{ store.sending() ? 'Sharing…' : 'Send to Discord' }}
+        </button>
+        <button type="button" cdtButton="secondary" (click)="store.close()">Cancel</button>
+      </div>
+    </fieldset>
+  </form>
+</cdt-dialog>

@@ -106,6 +106,15 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/venues/feature-venues').then((m) => m.VenuesComponent),
         },
         {
+          // One venue's own page, which venue cards and shares in the Everise
+          // Discord open (the page names the venue once loaded); open to
+          // everyone.
+          path: 'venues/:id',
+          title: 'Venue',
+          canActivate: [discordLinkGuard],
+          loadComponent: () => import('@everise/venues/feature-venues').then((m) => m.VenuePageComponent),
+        },
+        {
           // An item's prices over time on each world of a region; what's
           // picked is in the query string (?item=5111&region=europe). Open to
           // everyone, who can read what it does; the tool itself, and the API

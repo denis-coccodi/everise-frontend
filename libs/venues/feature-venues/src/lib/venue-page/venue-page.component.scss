@@ -1,0 +1,175 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.venue-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem 16px 3rem;
+}
+
+.back {
+  margin: 0 0 1rem;
+}
+
+.back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+}
+
+.notice,
+.source,
+.hint {
+  color: var(--color-contrast-muted);
+}
+
+// FFXIV Venues' banners are wide strips.
+.cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-strong);
+}
+
+.heading {
+  margin-top: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+.heading p {
+  margin: 0.35rem 0 0;
+}
+
+.opening {
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.opening.open {
+  color: var(--color-primary-bright);
+}
+
+.where {
+  color: var(--color-contrast-muted);
+  overflow-wrap: anywhere;
+}
+
+.world {
+  font-weight: 600;
+}
+
+.notice-box {
+  margin: 1rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-inline-start: var(--border-width-strong) solid var(--color-accent);
+  background: var(--color-surface-strong);
+  overflow-wrap: anywhere;
+}
+
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+}
+
+.share cdt-icon {
+  margin-inline-end: 0.35em;
+}
+
+// Phones: the description, then when and where to find them. Wide
+// screens: those beside the description.
+.columns {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 1.5rem;
+}
+
+@include bp.up(lg) {
+  .columns {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.about p {
+  margin: 0 0 0.75rem;
+  color: var(--color-contrast-soft);
+  overflow-wrap: anywhere;
+}
+
+.tags,
+.schedule,
+.links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.tags li {
+  font-weight: 300;
+}
+
+.side section + section {
+  margin-top: 1.5rem;
+}
+
+.schedule li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 1rem;
+  padding: 0.4rem 0;
+  border-bottom: var(--border-width) solid var(--color-border-faint);
+}
+
+.repeat {
+  font-weight: 600;
+}
+
+.hours {
+  color: var(--color-contrast-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+}
+
+.links a {
+  display: inline-block;
+  padding: 0.3rem 0;
+}
+
+.source {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  text-align: center;
+}

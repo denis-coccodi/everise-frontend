@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Venue } from '@everise/core/api-types';
 import { venue } from '../venue-fixtures';
 import { VenueCardComponent } from './venue-card.component';
 
 describe('VenueCardComponent', () => {
   function render(shown: Venue) {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(VenueCardComponent);
     fixture.componentRef.setInput('venue', shown);
     fixture.componentRef.setInput('now', Date.now());
@@ -15,7 +17,9 @@ describe('VenueCardComponent', () => {
   it('shows where and when, the first paragraph, the tags and the links', () => {
     const { card } = render(venue('abc', -1, { notices: ['Closed next week.'] }));
 
-    expect(card.querySelector('h3')?.textContent).toBe('Venue abc');
+    expect(card.querySelector('h3')?.textContent?.trim()).toBe('Venue abc');
+    // The name opens the venue's page here.
+    expect(card.querySelector('h3 a')?.getAttribute('href')).toBe('/venues/abc');
     expect(card.querySelector('.opening')?.textContent).toContain('Open now, until');
     expect(card.querySelector('.opening')?.classList).toContain('open');
     expect(card.querySelector('.where')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
@@ -27,14 +31,14 @@ describe('VenueCardComponent', () => {
     expect(card.querySelector('.cover')?.getAttribute('alt')).toBe('');
     const links = [...card.querySelectorAll('.links a')] as HTMLAnchorElement[];
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      'https://ffxivvenues.com/venue/abc',
+      '/venues/abc',
       'https://discord.gg/example',
       'https://example.com/',
     ]);
-    expect(links[0].textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'More about Venue abc on FFXIV Venues (opens in a new tab)',
-    );
-    expect(links.every((a) => a.target === '_blank' && a.rel === 'noopener noreferrer')).toBe(true);
+    // "More" repeats the name's link: out of the tab order and hidden from screen readers.
+    expect(links[0].getAttribute('aria-hidden')).toBe('true');
+    expect(links[0].getAttribute('tabindex')).toBe('-1');
+    expect(links.slice(1).every((a) => a.target === '_blank' && a.rel === 'noopener noreferrer')).toBe(true);
   });
 
   it('leaves out what the venue has none of', () => {

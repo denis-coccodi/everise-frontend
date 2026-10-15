@@ -5,7 +5,9 @@
       <img class="cover" [src]="venue().banner" alt="" loading="lazy" (error)="bannerFailed.set(true)" />
     }
     <div class="content">
-      <h3 [id]="headingId()">{{ venue().name }}</h3>
+      <h3 [id]="headingId()">
+        <a [routerLink]="page()">{{ venue().name }}</a>
+      </h3>
       <p class="opening" [class.open]="open()">{{ opening() }}</p>
       <p class="where">
         @if (venue().world) {
@@ -30,11 +32,8 @@
     </div>
   </article>
   <div cdtCardFooter class="links">
-    <a [href]="venue().url" target="_blank" rel="noopener noreferrer"
-      >More<span class="visually-hidden"> about {{ venue().name }}</span> on FFXIV Venues<span class="visually-hidden">
-        (opens in a new tab)</span
-      ></a
-    >
+    <!-- The name above already links here, for keyboard and screen readers. -->
+    <a [routerLink]="page()" tabindex="-1" aria-hidden="true">More</a>
     @if (venue().discord) {
       <a [href]="venue().discord" target="_blank" rel="noopener noreferrer"
         >Discord<span class="visually-hidden"> of {{ venue().name }} (opens in a new tab)</span></a

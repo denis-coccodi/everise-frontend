@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Venue } from '@everise/core/api-types';
 import { isOpen, openingText } from '@everise/venues/data-access';
 import { CardComponent, TagComponent } from '@everise/ui/components';
@@ -7,12 +8,12 @@ import { CardComponent, TagComponent } from '@everise/ui/components';
 const SHOWN_TAGS = 6;
 
 // One venue: its banner, name, where and when, what the owners say, its
-// tags, and links to its page, Discord and website (in new tabs).
+// tags, and links to its page here, its Discord and website (in new tabs).
 @Component({
   selector: 'cdt-venue-card',
   templateUrl: './venue-card.component.html',
   styleUrl: './venue-card.component.scss',
-  imports: [CardComponent, TagComponent],
+  imports: [CardComponent, RouterLink, TagComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VenueCardComponent {
@@ -27,4 +28,6 @@ export class VenueCardComponent {
   // A banner that fails to load leaves no broken picture behind.
   protected readonly bannerFailed = signal(false);
   protected readonly headingId = computed(() => `venue-${this.venue().id}`);
+  // Its page here.
+  protected readonly page = computed(() => ['/venues', this.venue().id]);
 }

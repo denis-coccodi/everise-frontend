@@ -30,6 +30,11 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+// The name links to the venue's page, in the heading's colour.
+h3 a {
+  color: inherit;
+}
+
 p {
   margin: 0.35rem 0 0;
 }

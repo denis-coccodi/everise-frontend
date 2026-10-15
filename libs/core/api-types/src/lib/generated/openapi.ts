@@ -3248,6 +3248,102 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/venues/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** One venue, with its regular openings */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The venue. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['VenuePageResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/venues/discord': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Share a venue in the Everise Discord */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['NewVenueDiscordShare'];
+        };
+      };
+      responses: {
+        /** @description Sent to the channel. */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['VenueDiscordShareResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/waking-sands/characters/{id}/picture': {
     parameters: {
       query?: never;
@@ -3639,6 +3735,10 @@ export interface components {
       listingId: string;
       comment?: string;
       pictureId?: string;
+    };
+    NewVenueDiscordShare: {
+      venueId: string;
+      comment?: string;
     };
     NewRouletteResult: {
       result: {
@@ -4448,6 +4548,50 @@ export interface components {
         closesAt: string;
         openNow: boolean;
       }[];
+    };
+    VenuePageResponse: {
+      venue: {
+        id: string;
+        name: string;
+        description: string[];
+        banner: string | null;
+        world: string | null;
+        address: string | null;
+        tags: string[];
+        website: string | null;
+        discord: string | null;
+        url: string;
+        notices: string[];
+        dataCentre: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia') | null;
+        nextOpening: {
+          /** Format: date-time */
+          opensAt: string;
+          /** Format: date-time */
+          closesAt: string;
+          openNow: boolean;
+        } | null;
+        schedule: {
+          /** Format: date-time */
+          opensAt: string;
+          /** Format: date-time */
+          closesAt: string;
+          repeat:
+            | {
+                /** @constant */
+                every: 'weeks';
+                weeks: number;
+              }
+            | {
+                /** @constant */
+                every: 'month';
+                week: number;
+              };
+        }[];
+      };
+    };
+    VenueDiscordShareResponse: {
+      /** @constant */
+      shared: true;
     };
     ProvidersResponse: {
       providers: ('google' | 'facebook' | 'microsoft' | 'discord')[];
