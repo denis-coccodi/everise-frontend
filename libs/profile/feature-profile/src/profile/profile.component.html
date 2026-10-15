@@ -26,9 +26,12 @@
                 {{ $username() }}
               </button>
             }
-            <a [routerLink]="['/settings']" [hidden]="$isUser() === false" cdtButton="outline-secondary" size="sm">
-              <cdt-icon name="settings" /> Edit Profile Settings
-            </a>
+            <!-- Only on your own profile. (A [hidden] would lose to the button's display.) -->
+            @if ($isUser()) {
+              <a [routerLink]="['/settings']" cdtButton="outline-secondary" size="sm">
+                <cdt-icon name="settings" /> Edit Profile Settings
+              </a>
+            }
           </div>
         </div>
       </div>
