@@ -12,10 +12,30 @@ import { API_URL, LiveUpdates } from '@everise/core/http-client';
 import { Subject } from 'rxjs';
 import { WakingSandsComponent } from './waking-sands.component';
 
-const TATARU = { id: 'tataru', name: 'Tataru', title: 'Receptionist', image: '/tataru.png' };
-const BARNABY = { id: 'barnaby', name: 'Barnaby Bollocksworth', title: 'Braggart', image: '/barnaby.png' };
-const URIANGER = { id: 'urianger', name: 'Urianger', title: 'Astrologian', image: '/urianger.png' };
-const YSHTOLA = { id: 'yshtola', name: "Y'shtola", title: 'Sorceress', image: '/yshtola.png' };
+const TATARU = {
+  id: 'tataru',
+  name: 'Tataru Taru',
+  title: 'Receptionist of the Scions of the Seventh Dawn',
+  image: '/tataru.png',
+};
+const BARNABY = {
+  id: 'barnaby',
+  name: 'Barnaby Rostnsthalsyn',
+  title: 'Self-proclaimed primal slayer and a right bad influence',
+  image: '/barnaby.png',
+};
+const URIANGER = {
+  id: 'urianger',
+  name: 'Urianger Augurelt',
+  title: 'Astrologian and scholar of Sharlayan',
+  image: '/urianger.png',
+};
+const YSHTOLA = {
+  id: 'yshtola',
+  name: "Y'shtola Rhul",
+  title: 'Sorceress of the Scions of the Seventh Dawn',
+  image: '/yshtola.png',
+};
 
 const line = (id: string, from: string, name: string, text: string, extra: Partial<SandsLine> = {}): SandsLine => ({
   id,
@@ -97,26 +117,51 @@ describe('WakingSandsComponent', () => {
     await render({
       present: ['tataru'],
       lines: [
-        line('1', 'note', '', 'Thancred invited Tataru in.'),
-        line('2', 'member', 'Thancred', 'Morning!', { memberId: 'm2' }),
-        line('3', 'tataru', 'Tataru', 'Good morning!', { image: '/tataru.png' }),
+        line('1', 'note', '', 'Lyse invited Tataru Taru in.'),
+        line('2', 'member', 'Lyse', 'Morning!', { memberId: 'm2' }),
+        line('3', 'tataru', 'Tataru Taru', 'Good morning!', { image: '/tataru.png' }),
         line('4', 'member', 'Minfilia', 'Hello all.', { memberId: 'm1', image: '/minfilia.png' }),
       ],
     });
 
     expect(text(page.querySelector('h1'))).toBe('The Waking Sands');
+    expect(text(page.querySelector('.spoilers'))).toContain('Spoiler warning: the characters know their whole story');
     expect(script()).toEqual([
-      '(Thancred invited Tataru in.)',
-      'Thancred: Morning!',
-      'Tataru: Good morning!',
+      '(Lyse invited Tataru Taru in.)',
+      'Lyse: Morning!',
+      'Tataru Taru: Good morning!',
       'Minfilia: Hello all.',
     ]);
     const lines = page.querySelectorAll('.line');
     expect(lines[2].classList).toContain('mine');
     expect(lines[0].classList).not.toContain('mine');
     expect(lines[0].querySelector('img')?.getAttribute('src')).toBe('/assets/images/avatar-profile.png');
-    expect(text(button('Send out'))).toBe('Send out Tataru');
-    expect(text(button('Invite'))).toBe('Invite Barnaby Bollocksworth');
+    expect(text(button('Send out'))).toBe('Send out Tataru Taru');
+    expect(text(button('Invite'))).toBe('Invite Barnaby Rostnsthalsyn');
+  });
+
+  it("lists who's in first, and finds the others by name or title, apostrophes and case aside", async () => {
+    await render({ present: ['urianger'], characters: [TATARU, BARNABY, URIANGER, YSHTOLA] });
+    const names = () => [...page.querySelectorAll('.cast .name')].map(text);
+    async function search(value: string) {
+      const field = page.querySelector('input[type="search"]') as HTMLInputElement;
+      field.value = value;
+      field.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+    }
+
+    expect(names()).toEqual(['Urianger Augurelt', 'Tataru Taru', 'Barnaby Rostnsthalsyn', "Y'shtola Rhul"]);
+
+    await search('YSHTOLA');
+    expect(names()).toEqual(['Urianger Augurelt', "Y'shtola Rhul"]);
+    expect(text(page.querySelector('[role="status"]'))).toBe('2 characters shown');
+
+    await search('primal slayer');
+    expect(names()).toEqual(['Urianger Augurelt', 'Barnaby Rostnsthalsyn']);
+
+    await search('moogle');
+    expect(names()).toEqual(['Urianger Augurelt']);
+    expect(text(page.querySelector('.cast + .hint'))).toBe('Nobody else matches "moogle".');
   });
 
   it("links each character's name to their profile", async () => {
@@ -124,8 +169,8 @@ describe('WakingSandsComponent', () => {
 
     const names = [...page.querySelectorAll<HTMLAnchorElement>('.cast a.name')];
     expect(names.map((a) => [text(a), a.getAttribute('href')])).toEqual([
-      ['Tataru', '/profile/character:tataru'],
-      ['Barnaby Bollocksworth', '/profile/character:barnaby'],
+      ['Tataru Taru', '/profile/character:tataru'],
+      ['Barnaby Rostnsthalsyn', '/profile/character:barnaby'],
     ]);
   });
 
@@ -138,28 +183,28 @@ describe('WakingSandsComponent', () => {
     request.flush({ present: ['barnaby'] });
     await fixture.whenStable();
 
-    expect(text(button('Send out'))).toBe('Send out Barnaby Bollocksworth');
+    expect(text(button('Send out'))).toBe('Send out Barnaby Rostnsthalsyn');
   });
 
   it("follows the room live: new lines, who's in, who's writing", async () => {
     await render();
 
     live.next({ type: 'sands-presence', present: ['tataru'] });
-    live.next({ type: 'sands-line', line: line('1', 'member', 'Thancred', 'Anyone in?', { memberId: 'm2' }) });
+    live.next({ type: 'sands-line', line: line('1', 'member', 'Lyse', 'Anyone in?', { memberId: 'm2' }) });
     live.next({ type: 'sands-writing', character: 'tataru' });
     await fixture.whenStable();
 
-    expect(script()).toEqual(['Thancred: Anyone in?']);
-    expect(text(page.querySelector('.status'))).toBe('Tataru is writing…');
-    expect(text(button('Send out'))).toBe('Send out Tataru');
+    expect(script()).toEqual(['Lyse: Anyone in?']);
+    expect(text(page.querySelector('.status'))).toBe('Tataru Taru is writing…');
+    expect(text(button('Send out'))).toBe('Send out Tataru Taru');
 
-    live.next({ type: 'sands-line', line: line('2', 'tataru', 'Tataru', 'Welcome!') });
+    live.next({ type: 'sands-line', line: line('2', 'tataru', 'Tataru Taru', 'Welcome!') });
     live.next({ type: 'sands-writing', character: null });
     // The same line twice (live, then loaded) shows once.
-    live.next({ type: 'sands-line', line: line('2', 'tataru', 'Tataru', 'Welcome!') });
+    live.next({ type: 'sands-line', line: line('2', 'tataru', 'Tataru Taru', 'Welcome!') });
     await fixture.whenStable();
 
-    expect(script()).toEqual(['Thancred: Anyone in?', 'Tataru: Welcome!']);
+    expect(script()).toEqual(['Lyse: Anyone in?', 'Tataru Taru: Welcome!']);
     expect(text(page.querySelector('.status'))).toBe('');
   });
 
@@ -179,12 +224,12 @@ describe('WakingSandsComponent', () => {
       available: true,
       characters: [TATARU, BARNABY],
       present: ['tataru'],
-      lines: [mine, line('2', 'tataru', 'Tataru', 'Oh! Hello!')],
+      lines: [mine, line('2', 'tataru', 'Tataru Taru', 'Oh! Hello!')],
       limits,
     } satisfies SandsRoom);
     await fixture.whenStable();
 
-    expect(script()).toEqual(['Minfilia: Hello, Tataru!', 'Tataru: Oh! Hello!']);
+    expect(script()).toEqual(['Minfilia: Hello, Tataru!', 'Tataru Taru: Oh! Hello!']);
     expect((page.querySelector('textarea') as HTMLTextAreaElement).value).toBe('');
   });
 
@@ -196,13 +241,13 @@ describe('WakingSandsComponent', () => {
       available: true,
       characters: [TATARU, BARNABY],
       present: ['tataru'],
-      lines: [line('1', 'note', '', 'Thancred invited Tataru in.')],
+      lines: [line('1', 'note', '', 'Lyse invited Tataru Taru in.')],
       limits,
     } satisfies SandsRoom);
     await fixture.whenStable();
 
-    expect(script()).toEqual(['(Thancred invited Tataru in.)']);
-    expect(text(button('Send out'))).toBe('Send out Tataru');
+    expect(script()).toEqual(['(Lyse invited Tataru Taru in.)']);
+    expect(text(button('Send out'))).toBe('Send out Tataru Taru');
   });
 
   it("shows the backend's message when the day's limit is reached", async () => {
@@ -240,10 +285,10 @@ describe('WakingSandsComponent', () => {
     await fixture.whenStable();
 
     expect([...page.querySelectorAll('.cast button')].map((b) => text(b))).toEqual([
-      'Send out Tataru',
-      'Invite Urianger',
-      "Send out Y'shtola",
-      'Invite Barnaby Bollocksworth',
+      'Send out Tataru Taru',
+      "Send out Y'shtola Rhul",
+      'Invite Urianger Augurelt',
+      'Invite Barnaby Rostnsthalsyn',
     ]);
   });
 

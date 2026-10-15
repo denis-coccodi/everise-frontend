@@ -7,7 +7,7 @@ import { AdminCharactersComponent } from './admin-characters.component';
 
 const tataru: CharacterSettings = {
   id: 'tataru',
-  name: 'Tataru',
+  name: 'Tataru Taru',
   title: 'Receptionist',
   persona: 'You are Tataru.',
   defaultPersona: 'You are Tataru.',
@@ -17,7 +17,7 @@ const tataru: CharacterSettings = {
 };
 const barnaby: CharacterSettings = {
   id: 'barnaby',
-  name: 'Barnaby Bollocksworth',
+  name: 'Barnaby Rostnsthalsyn',
   title: 'Primal hunter',
   persona: 'You are Barnaby, and you swear.',
   defaultPersona: 'You are Barnaby.',
@@ -48,7 +48,7 @@ describe('AdminCharactersComponent', () => {
 
     expect([...page.querySelectorAll('[cdtTab]')].map((t) => t.textContent?.trim())).toEqual(['Tataru', 'Barnaby']);
     expect(tab('Tataru').getAttribute('aria-current')).toBe('true');
-    expect((page.querySelector('cdt-avatar img') as HTMLImageElement).alt).toBe("Tataru's picture");
+    expect((page.querySelector('cdt-avatar img') as HTMLImageElement).alt).toBe("Tataru Taru's picture");
     expect(field('character-title')?.value).toBe('Receptionist');
     expect(field('character-bio')?.value).toBe('Keeper of the books.');
     expect(field('character-persona')?.value).toBe('You are Tataru.');
@@ -61,7 +61,7 @@ describe('AdminCharactersComponent', () => {
     tab('Barnaby').click();
     await fixture.whenStable();
 
-    expect(page.querySelector('h3')?.textContent).toBe('Barnaby Bollocksworth');
+    expect(page.querySelector('h3')?.textContent).toBe('Barnaby Rostnsthalsyn');
     expect(field('character-persona')?.value).toBe('You are Barnaby, and you swear.');
     const restore = [...page.querySelectorAll('button')].find(
       (b) => b.textContent?.includes('Restore the original'),

@@ -28,6 +28,20 @@ h1 {
   text-align: center;
 }
 
+// Above the room, before anyone reads a word of it.
+.hero .spoilers {
+  max-width: 40rem;
+  margin: 1rem auto 0;
+  padding: 0.6rem 1rem;
+  border: var(--border-width) solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-contrast);
+}
+
+.spoilers strong {
+  color: var(--color-danger);
+}
+
 // Phones: who's here above the conversation. Wide screens: side by side.
 .layout {
   display: grid;
