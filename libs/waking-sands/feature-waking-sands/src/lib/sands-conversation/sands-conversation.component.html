@@ -1,4 +1,4 @@
-<cdt-panel heading="Conversation">
+<cdt-panel class="panel" heading="Conversation">
   <div #logBox class="log" role="log" aria-label="Conversation" tabindex="0">
     @for (line of store.lines(); track line.id) {
       @if (line.from === 'note') {

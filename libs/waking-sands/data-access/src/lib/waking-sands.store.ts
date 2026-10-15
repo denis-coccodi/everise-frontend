@@ -61,19 +61,20 @@ export const WakingSandsStore = signalStore(
       return !!limits && store.present().length >= limits.maxPresent;
     }),
     canSend: computed(() => auth.loggedIn() && !store.sending() && !!store.draft().trim()),
-    // The cast as listed: who's in the room first, then everyone else whose
-    // name or title matches the search. Those present are always shown.
-    cast: computed(() => {
-      const present = store.present();
-      const term = normalized(store.search().trim());
-      const inRoom = present
+    // The characters in the room, in the order they came in.
+    inRoom: computed(() =>
+      store
+        .present()
         .map((id) => store.characters().find((c) => c.id === id))
-        .filter((c): c is SandsCharacter => !!c);
-      const others = store
+        .filter((c): c is SandsCharacter => !!c),
+    ),
+    // Everyone else whose name or title matches the search.
+    others: computed(() => {
+      const term = normalized(store.search().trim());
+      return store
         .characters()
-        .filter((c) => !present.includes(c.id))
+        .filter((c) => !store.present().includes(c.id))
         .filter((c) => !term || normalized(`${c.name} ${c.title}`).includes(term));
-      return [...inRoom, ...others];
     }),
     writingName: computed(() => {
       const id = store.writing();

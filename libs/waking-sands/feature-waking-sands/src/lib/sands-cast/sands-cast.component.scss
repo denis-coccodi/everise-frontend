@@ -1,32 +1,68 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
 :host {
   display: block;
 }
 
-.search {
-  display: block;
-  margin-bottom: 0.25rem;
+// "In the room" and "Everyone else".
+.section {
+  margin: 0 0 0.25rem;
+  color: var(--color-label);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-// Who's here: each character with a button to invite or let go.
+.section ~ .section {
+  margin-top: 1rem;
+}
+
+.search {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+// Everyone else scrolls inside its own box, a few rows high on phones so
+// the conversation stays near.
+.others {
+  max-height: 18rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 0.5rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-field);
+}
+
+.others:focus-visible {
+  outline: var(--border-width-strong) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.others .hint {
+  margin: 0.6rem 0;
+}
+
+// Each character with a button to invite or let go.
 .cast {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-// The name has the whole width beside the picture, so a long one stays on
-// one line; the title and the button share the line under it.
+// The button beside the name; the title has the whole width under them.
 .person {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'avatar name name'
-    'avatar title action';
+    'avatar name action'
+    'avatar title title';
   align-items: center;
   column-gap: 0.75rem;
   row-gap: 0.2rem;
-  padding: 0.6rem 0;
+  padding: 0.5rem 0;
 }
 
 .avatar {
@@ -61,8 +97,7 @@
 }
 
 .title,
-.hint,
-.fan-note {
+.hint {
   color: var(--color-contrast-muted);
   font-size: 0.85rem;
 }
@@ -71,10 +106,27 @@
   margin: 0 0 0.5rem;
 }
 
-.fan-note {
-  margin: 1rem 0 0;
-}
+// Wide screens: the panel fills its column, exactly as tall as the
+// conversation beside it, and the list takes whatever height is left.
+@include bp.up(lg) {
+  // Tall enough for a full room and a few rows of everyone else; the
+  // conversation grows to match when the window is short.
+  :host {
+    position: relative;
+    min-height: 42rem;
+  }
 
-.fan-note + .fan-note {
-  margin-top: 0.5rem;
+  .panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Never squeezed shut: room for a few rows at least.
+  .others {
+    flex: 1 1 auto;
+    min-height: 10rem;
+    max-height: none;
+  }
 }
