@@ -2,6 +2,7 @@
   #trigger
   type="button"
   class="trigger"
+  [class.active]="active()"
   aria-haspopup="menu"
   [attr.aria-expanded]="open()"
   [attr.aria-controls]="panelId"
@@ -15,6 +16,7 @@
 <div
   #panel
   class="panel"
+  [class.start]="align() === 'start'"
   role="menu"
   [id]="panelId"
   [attr.aria-label]="label()"

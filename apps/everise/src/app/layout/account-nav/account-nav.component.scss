@@ -1,0 +1,114 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../../libs/ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+// The menu's button in the bar: the member's picture, and from lg up their
+// name. Below lg the name stays for screen readers only.
+.account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@include bp.up(lg) {
+  .name {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+// In the phone's panel: pressing the name unfolds its links.
+.account-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  border: none;
+  background: none;
+  color: var(--color-contrast);
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-heading:hover .heading-name {
+  text-decoration: underline;
+}
+
+.heading-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chevron {
+  transition: transform 0.15s ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.account-heading[aria-expanded='true'] .chevron {
+  transform: rotate(90deg);
+}
+
+.account-links {
+  margin: 0;
+  padding: 0 0 0 2.35rem;
+  list-style: none;
+}
+
+.account-links li {
+  border-top: var(--border-width) solid var(--color-border-faint);
+}
+
+// The panel's links, as the navbar's.
+.nav-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.25rem;
+  font-size: 1.1rem;
+  color: var(--color-contrast-muted);
+}
+
+.nav-link:focus,
+.nav-link:hover {
+  color: var(--color-contrast);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  color: var(--color-primary-strong);
+}
+
+.sign-out {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 1.1rem;
+  text-align: left;
+  cursor: pointer;
+}

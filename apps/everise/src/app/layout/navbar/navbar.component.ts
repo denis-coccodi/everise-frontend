@@ -9,10 +9,13 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { IsActiveMatchOptions, NavigationEnd, Router, RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { User } from '@everise/core/api-types';
-import { AvatarComponent, IconComponent, MenuComponent, MenuItemComponent } from '@everise/ui/components';
+import { ButtonComponent, IconComponent } from '@everise/ui/components';
 import { filter } from 'rxjs';
+import { AccountNavComponent } from '../account-nav/account-nav.component';
+import { NavGroupComponent } from '../nav-group/nav-group.component';
+import { NAV_GROUPS } from '../nav-group/nav-groups';
 import { NotificationsComponent } from '../notifications/notifications.component';
 
 // The site's top bar. On a phone (under 768 px) the links fold into a panel
@@ -22,7 +25,14 @@ import { NotificationsComponent } from '../notifications/notifications.component
   selector: 'cdt-navbar',
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
-  imports: [RouterModule, IconComponent, MenuComponent, MenuItemComponent, AvatarComponent, NotificationsComponent],
+  imports: [
+    RouterModule,
+    IconComponent,
+    ButtonComponent,
+    AccountNavComponent,
+    NavGroupComponent,
+    NotificationsComponent,
+  ],
   host: {
     '(document:click)': 'closeOutside($event)',
     '(keydown.escape)': 'closeAndFocus()',
@@ -35,25 +45,12 @@ export class NavbarComponent {
   // "Sign out" in the account menu.
   readonly logout = output<void>();
 
-  // The roulette opens with the everyday content ticked: Dungeons, Trials —
-  // Normal and Raids — Normal, by the backend's duty group ids (the query
-  // string is described in roulette/data-access's settings-query.ts). Kept
-  // here rather than imported, so the roulette's code stays out of the main
-  // bundle. The link stays current whatever is ticked after.
-  protected readonly everydayRoulette = { types: '1,3,6' };
-  // The Party Finder opens on Everise's home, Light from Odin
-  // (party-finder/data-access's party-finder-query.ts), the same way.
-  protected readonly homePartyFinder = { dc: 'light', world: 'odin' };
-  protected readonly anyQuery: IsActiveMatchOptions = {
-    paths: 'exact',
-    queryParams: 'ignored',
-    matrixParams: 'ignored',
-    fragment: 'ignored',
-  };
+  // The pages after Home, by group.
+  protected readonly groups = NAV_GROUPS;
 
   protected readonly open = signal(false);
-  // The phone panel's account links, folded until the user's name is pressed.
-  protected readonly accountOpen = signal(false);
+  // The phone panel's account links, folded each time the panel opens.
+  private readonly phoneAccount = viewChild<AccountNavComponent>('phoneAccount');
   private readonly toggle = viewChild.required<ElementRef<HTMLButtonElement>>('toggle');
   private readonly host = inject(ElementRef).nativeElement as HTMLElement;
 
@@ -68,7 +65,7 @@ export class NavbarComponent {
 
   // Every time the panel opens, the account links start folded.
   protected toggleMenu() {
-    if (!this.open()) this.accountOpen.set(false);
+    if (!this.open()) this.phoneAccount()?.fold();
     this.open.set(!this.open());
   }
 

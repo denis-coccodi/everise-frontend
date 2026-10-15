@@ -1,0 +1,36 @@
+@if (variant() === 'menu') {
+  <cdt-menu label="Account">
+    <span cdtMenuTrigger class="account" data-testid="loggedin-user">
+      <cdt-avatar [src]="user().image" [size]="28" />
+      <span class="name">{{ user().username }}</span>
+    </span>
+    <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
+    <a cdtMenuItem routerLink="/settings">Settings</a>
+    <button cdtMenuItem type="button" [divided]="true" (click)="logout.emit()">Sign out</button>
+  </cdt-menu>
+} @else {
+  <button
+    type="button"
+    class="account-heading"
+    aria-controls="account-links"
+    [attr.aria-expanded]="unfolded()"
+    (click)="unfolded.set(!unfolded())"
+  >
+    <cdt-avatar [src]="user().image" [size]="28" />
+    <span class="heading-name">{{ user().username }}</span>
+    <cdt-icon class="chevron" name="chevron-right" />
+  </button>
+  <ul id="account-links" class="account-links" [hidden]="!unfolded()">
+    <li>
+      <a class="nav-link" [routerLink]="['/profile', user().id]" routerLinkActive="active" ariaCurrentWhenActive="page"
+        >Your profile</a
+      >
+    </li>
+    <li>
+      <a class="nav-link" routerLink="/settings" routerLinkActive="active" ariaCurrentWhenActive="page">Settings</a>
+    </li>
+    <li>
+      <button type="button" class="nav-link sign-out" (click)="logout.emit()">Sign out</button>
+    </li>
+  </ul>
+}

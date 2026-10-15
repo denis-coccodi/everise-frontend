@@ -134,75 +134,9 @@
   color: var(--color-primary-strong);
 }
 
-// A page's icon, a small gap before its name.
-.nav-link cdt-icon {
+// A page's icon (or New Post's), a small gap before its name.
+.nav-item > a cdt-icon {
   margin-right: 0.35em;
-}
-
-.sign-out {
-  width: 100%;
-  border: none;
-  background: none;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-// The account in the phone panel: pressing the name unfolds its links.
-.account-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  width: 100%;
-  min-height: 44px;
-  padding: 0.5rem 0.25rem;
-  border: none;
-  background: none;
-  color: var(--color-contrast);
-  font: inherit;
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-}
-
-.account-heading:hover .name {
-  text-decoration: underline;
-}
-
-.account-heading .name {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.chevron {
-  transition: transform 0.15s ease;
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-}
-
-.account-heading[aria-expanded='true'] .chevron {
-  transform: rotate(90deg);
-}
-
-.account-links {
-  margin: 0;
-  padding: 0 0 0 2.35rem;
-  list-style: none;
-}
-
-.account-links .nav-item {
-  border-top: var(--border-width) solid var(--color-border-faint);
-}
-
-// The account menu's button on wider screens: the user's picture and name.
-.account {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 // Wider screens: the links in the bar, then the bell and the account menu.
