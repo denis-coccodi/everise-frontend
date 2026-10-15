@@ -3201,6 +3201,53 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/venues': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** A data centre's venues opening this week */
+    get: {
+      parameters: {
+        query?: {
+          dataCentre?: 'Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia';
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The venues. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['VenuesResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/waking-sands/characters/{id}/picture': {
     parameters: {
       query?: never;
@@ -4373,6 +4420,34 @@ export interface components {
         | 'Meteor'
         | 'Materia'
       )[];
+    };
+    VenuesResponse: {
+      /** @enum {string} */
+      dataCentre: 'Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia';
+      regions: {
+        name: string;
+        dataCentres: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia')[];
+      }[];
+      /** Format: date-time */
+      fetchedAt: string;
+      venues: {
+        id: string;
+        name: string;
+        description: string[];
+        banner: string | null;
+        world: string | null;
+        address: string | null;
+        tags: string[];
+        website: string | null;
+        discord: string | null;
+        url: string;
+        notices: string[];
+        /** Format: date-time */
+        opensAt: string;
+        /** Format: date-time */
+        closesAt: string;
+        openNow: boolean;
+      }[];
     };
     ProvidersResponse: {
       providers: ('google' | 'facebook' | 'microsoft' | 'discord')[];

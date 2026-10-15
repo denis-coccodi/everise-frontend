@@ -1,0 +1,49 @@
+<cdt-card [flush]="true" [stretch]="true">
+  <article class="venue" [attr.aria-labelledby]="headingId()">
+    @if (venue().banner && !bannerFailed()) {
+      <!-- Decorative: the name below says what it is. -->
+      <img class="cover" [src]="venue().banner" alt="" loading="lazy" (error)="bannerFailed.set(true)" />
+    }
+    <div class="content">
+      <h3 [id]="headingId()">{{ venue().name }}</h3>
+      <p class="opening" [class.open]="open()">{{ opening() }}</p>
+      <p class="where">
+        @if (venue().world) {
+          <span class="world">{{ venue().world }}</span
+          >{{ venue().address ? ', ' : '' }}
+        }
+        {{ venue().address }}
+      </p>
+      @for (notice of venue().notices; track $index) {
+        <p class="notice"><span class="visually-hidden">Notice from the owners: </span>{{ notice }}</p>
+      }
+      @if (summary()) {
+        <p class="summary">{{ summary() }}</p>
+      }
+      @if (tags().length) {
+        <ul class="tags" aria-label="What it offers">
+          @for (tag of tags(); track tag) {
+            <li cdtTag="outline">{{ tag }}</li>
+          }
+        </ul>
+      }
+    </div>
+  </article>
+  <div cdtCardFooter class="links">
+    <a [href]="venue().url" target="_blank" rel="noopener noreferrer"
+      >More<span class="visually-hidden"> about {{ venue().name }}</span> on FFXIV Venues<span class="visually-hidden">
+        (opens in a new tab)</span
+      ></a
+    >
+    @if (venue().discord) {
+      <a [href]="venue().discord" target="_blank" rel="noopener noreferrer"
+        >Discord<span class="visually-hidden"> of {{ venue().name }} (opens in a new tab)</span></a
+      >
+    }
+    @if (venue().website) {
+      <a [href]="venue().website" target="_blank" rel="noopener noreferrer"
+        >Website<span class="visually-hidden"> of {{ venue().name }} (opens in a new tab)</span></a
+      >
+    }
+  </div>
+</cdt-card>

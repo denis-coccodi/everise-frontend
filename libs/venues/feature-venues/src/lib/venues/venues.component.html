@@ -1,0 +1,58 @@
+<div class="venues-page">
+  <header class="hero">
+    <h1 class="xiv-title">Venues</h1>
+    <p>Taverns, cafés, clubs and more, run by players in their houses. Drop by: everyone's welcome.</p>
+  </header>
+
+  <cdt-venue-data-centres />
+
+  <cdt-message tone="error">{{ store.error() }}</cdt-message>
+
+  @switch (store.loadState()) {
+    @case ('loading') {
+      <p class="notice">Finding venues on {{ store.dataCentre() }}…</p>
+    }
+    @case ('error') {
+      <p class="notice">The venues couldn't be loaded. Try again in a few minutes.</p>
+    }
+    @default {
+      @if (store.total() === 0) {
+        <p class="notice">No venues on {{ store.dataCentre() }} open this week yet. Try another data centre.</p>
+      }
+      @if (store.openNow().length) {
+        <section aria-labelledby="venues-open">
+          <h2 id="venues-open">Open now on {{ store.dataCentre() }}</h2>
+          <ul class="venues">
+            @for (venue of store.openNow(); track venue.id) {
+              <li><cdt-venue-card [venue]="venue" [now]="store.now()" /></li>
+            }
+          </ul>
+        </section>
+      }
+      @if (store.later().length) {
+        <section aria-labelledby="venues-later">
+          <h2 id="venues-later">Later this week</h2>
+          <ul class="venues">
+            @for (venue of store.later(); track venue.id) {
+              <li><cdt-venue-card [venue]="venue" [now]="store.now()" /></li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  }
+
+  @if (!signedIn()) {
+    <p class="join">
+      Everise is a laid-back free company on Odin (Light).
+      <a routerLink="/register">Sign up</a> to post in the feed and talk in the Waking Sands.
+    </p>
+  }
+
+  <p class="source">
+    Venues from
+    <a href="https://ffxivvenues.com" target="_blank" rel="noopener noreferrer"
+      >FFXIV Venues<span class="visually-hidden"> (opens in a new tab)</span></a
+    >, where owners list them. Times are in your time zone.
+  </p>
+</div>

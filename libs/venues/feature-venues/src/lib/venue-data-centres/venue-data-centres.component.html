@@ -1,0 +1,17 @@
+<nav aria-labelledby="venue-data-centres">
+  <h2 id="venue-data-centres" class="visually-hidden">Data centres</h2>
+  @for (region of store.regions(); track region.name) {
+    <div class="region">
+      @if (region.name) {
+        <h3>{{ region.name }}</h3>
+      }
+      <ul>
+        @for (name of region.dataCentres; track name) {
+          <li>
+            <a routerLink="/venues" [queryParams]="queryFor(name)" [attr.aria-current]="current(name)">{{ name }}</a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

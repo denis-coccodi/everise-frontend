@@ -94,6 +94,18 @@ export const appConfig: ApplicationConfig = {
             import('@everise/party-finder/feature-party-finder').then((m) => m.PfListingPageComponent),
         },
         {
+          // The community's player-run venues on a data centre (?dc=chaos),
+          // from FFXIV Venues; the title follows the data centre. Open to
+          // everyone.
+          path: 'venues',
+          title: (route) => {
+            const dataCentre = route.queryParamMap.get('dc');
+            return dataCentre ? `${capitalised(dataCentre)} Venues` : 'Venues';
+          },
+          runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+          loadComponent: () => import('@everise/venues/feature-venues').then((m) => m.VenuesComponent),
+        },
+        {
           // An item's prices over time on each world of a region; what's
           // picked is in the query string (?item=5111&region=europe). Open to
           // everyone, who can read what it does; the tool itself, and the API

@@ -1,0 +1,97 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.venue {
+  display: flex;
+  flex-direction: column;
+}
+
+// FFXIV Venues' banners are wide strips; a fixed ratio keeps cards level.
+.cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--color-surface-strong);
+}
+
+.content {
+  padding: 0.9rem 1rem 0.5rem;
+}
+
+h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+p {
+  margin: 0.35rem 0 0;
+}
+
+.opening {
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.opening.open {
+  color: var(--color-primary-bright);
+}
+
+.where {
+  color: var(--color-contrast-muted);
+  overflow-wrap: anywhere;
+}
+
+.world {
+  font-weight: 600;
+}
+
+.notice {
+  padding: 0.35rem 0.6rem;
+  border-inline-start: var(--border-width-strong) solid var(--color-accent);
+  background: var(--color-surface-strong);
+  color: var(--color-contrast);
+  overflow-wrap: anywhere;
+}
+
+// The owners' first paragraph, kept to a few lines.
+.summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+  color: var(--color-contrast-soft);
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags li {
+  font-weight: 300;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+// Comfortable targets in the footer strip.
+.links a {
+  display: inline-block;
+  padding: 0.35rem 0;
+}

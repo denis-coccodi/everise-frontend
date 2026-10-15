@@ -1,0 +1,3 @@
+# venues-feature-venues
+
+The Venues page (`/venues`, open to everyone): the community's player-run venues (taverns, cafés, clubs, bathhouses...) on a data centre (`?dc=chaos`; Light by default), as FFXIV Venues lists them, only the safe-for-work ones its team approved. Those open now come first, then the rest of the week, each a `cdt-venue-card` (banner, name, when it opens in the visitor's time, world and address, the owners' notices, the first paragraph of its description, its tags, and links to its FFXIV Venues page, Discord and website). `cdt-venue-data-centres` links to each data centre's venues, by region. The state is `VenuesStore` in `@everise/venues/data-access`.
