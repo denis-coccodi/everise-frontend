@@ -58,7 +58,10 @@
   padding: 0.35rem 0;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--gradient-window);
+  // A solid colour under the gradient: the page never shows through, even
+  // where the gradient isn't drawn (an extension that rewrites colours).
+  background-color: var(--color-surface);
+  background-image: var(--gradient-window);
   box-shadow: var(--shadow-panel);
 }
 
