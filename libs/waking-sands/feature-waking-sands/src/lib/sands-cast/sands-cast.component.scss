@@ -26,7 +26,11 @@
 
 // Everyone else scrolls inside its own box, a few rows high on phones so
 // the conversation stays near.
+// Positioned, so the buttons' visually hidden labels (absolutely positioned)
+// are clipped with their rows; otherwise those scrolled out of the box still
+// stretch the page below the footer.
 .others {
+  position: relative;
   max-height: 18rem;
   overflow-y: auto;
   overscroll-behavior: contain;
