@@ -154,7 +154,41 @@ export interface paths {
       };
     };
     post?: never;
-    delete?: never;
+    /**
+     * Go back to a character's default picture
+     * @description Admins only.
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The character. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['AdminCharacterResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
     options?: never;
     head?: never;
     patch?: never;
@@ -3676,6 +3710,7 @@ export interface components {
         title: boolean;
         persona: boolean;
         bio: boolean;
+        image: boolean;
       };
     };
     AdminCharactersResponse: {

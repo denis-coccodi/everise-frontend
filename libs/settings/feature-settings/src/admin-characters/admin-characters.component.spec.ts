@@ -13,7 +13,7 @@ const tataru: CharacterSettings = {
   defaultPersona: 'You are Tataru.',
   bio: 'Keeper of the books.',
   image: '/api/profile-images/1',
-  edited: { title: false, persona: false, bio: false },
+  edited: { title: false, persona: false, bio: false, image: true },
 };
 const barnaby: CharacterSettings = {
   id: 'barnaby',
@@ -23,7 +23,7 @@ const barnaby: CharacterSettings = {
   defaultPersona: 'You are Barnaby.',
   bio: 'Slayer of primals.',
   image: '/api/waking-sands/characters/barnaby/picture',
-  edited: { title: false, persona: true, bio: false },
+  edited: { title: false, persona: true, bio: false, image: false },
 };
 
 describe('AdminCharactersComponent', () => {
@@ -55,6 +55,36 @@ describe('AdminCharactersComponent', () => {
     expect(field('character-persona')?.labels?.[0].textContent?.trim()).toBe('Personality');
   });
 
+  it('puts back the default portrait once a picture was uploaded, keeping the focus on the picture buttons', async () => {
+    const { fixture, http, page, tab } = await render();
+    const buttonNamed = (name: string) =>
+      [...page.querySelectorAll('button')].find((b) => b.textContent?.trim() === name) as HTMLButtonElement | undefined;
+
+    buttonNamed('Use the default portrait')?.click();
+    const request = http.expectOne('/admin/characters/tataru/image');
+    expect(request.request.method).toBe('DELETE');
+    expect(document.activeElement).toBe(buttonNamed('Change the picture'));
+    request.flush({
+      character: {
+        ...tataru,
+        image: '/api/waking-sands/characters/tataru/picture',
+        edited: { ...tataru.edited, image: false },
+      },
+    });
+    await fixture.whenStable();
+
+    expect((page.querySelector('cdt-avatar img') as HTMLImageElement).getAttribute('src')).toBe(
+      '/api/waking-sands/characters/tataru/picture',
+    );
+    expect(buttonNamed('Use the default portrait')).toBeUndefined();
+    expect(page.querySelector('.status')?.textContent?.trim()).toBe("Tataru's default portrait is back.");
+
+    // Barnaby still has the portrait he ships with: nothing to go back to.
+    tab('Barnaby').click();
+    await fixture.whenStable();
+    expect(buttonNamed('Use the default portrait')).toBeUndefined();
+  });
+
   it('switches to another character, and can restore their original personality', async () => {
     const { fixture, http, page, tab, field } = await render();
 
@@ -73,7 +103,11 @@ describe('AdminCharactersComponent', () => {
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toBe(JSON.stringify({ character: { persona: '' } }));
     request.flush({
-      character: { ...barnaby, persona: barnaby.defaultPersona, edited: { title: false, persona: false, bio: false } },
+      character: {
+        ...barnaby,
+        persona: barnaby.defaultPersona,
+        edited: { title: false, persona: false, bio: false, image: false },
+      },
     });
     await fixture.whenStable();
 
