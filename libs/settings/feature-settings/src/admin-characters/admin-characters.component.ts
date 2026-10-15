@@ -16,7 +16,8 @@ import { PictureCropDialogComponent } from '../picture-crop-dialog/picture-crop-
 import { PICTURE_HINT, checkChosenFile } from '../profile-picture/profile-picture';
 
 // For admins: the Waking Sands characters, a tab each (AdminCharactersStore).
-// Each has a picture (the same crop window as anyone's), a title and a
+// Each has a picture (the same crop window as anyone's, or back to their
+// default portrait), a title and a
 // personality, the description the AI plays them from, which can go back to
 // the original, and their profile's bio. Tataru's also show on the roulette
 // results she posts for guests.
@@ -85,6 +86,12 @@ export class AdminCharactersComponent {
   protected onCropped(picture: Blob) {
     this.closeCropDialog();
     this.store.uploadPicture(picture);
+  }
+
+  // The button goes once it's done: the focus waits on "Change the picture".
+  protected useDefaultPicture() {
+    this.chooseButton()?.nativeElement.focus();
+    this.store.resetPicture();
   }
 
   protected closeCropDialog() {

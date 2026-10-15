@@ -35,16 +35,30 @@
             accept="image/*"
             (change)="onPictureChosen(pictureInput)"
           />
-          <button
-            #chooseButton
-            type="button"
-            cdtButton="outline-primary"
-            size="sm"
-            [disabled]="store.busy()"
-            (click)="pictureInput.click()"
-          >
-            Change the picture
-          </button>
+          <div class="picture-actions">
+            <button
+              #chooseButton
+              type="button"
+              cdtButton="outline-primary"
+              size="sm"
+              [disabled]="store.busy()"
+              (click)="pictureInput.click()"
+            >
+              Change the picture
+            </button>
+            <!-- Only once an upload replaces the portrait they ship with. -->
+            @if (character.edited.image) {
+              <button
+                type="button"
+                cdtButton="outline-secondary"
+                size="sm"
+                [disabled]="store.busy()"
+                (click)="useDefaultPicture()"
+              >
+                Use the default portrait
+              </button>
+            }
+          </div>
           <p class="hint">{{ pictureHint }}</p>
         </div>
       </div>

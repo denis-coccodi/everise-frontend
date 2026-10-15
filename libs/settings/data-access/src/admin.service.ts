@@ -54,4 +54,9 @@ export class AdminService {
   uploadCharacterPicture(id: string, picture: Blob) {
     return this.api.putFile<CharacterResponse>(`/admin/characters/${encodeURIComponent(id)}/image`, picture);
   }
+
+  // Back to the picture the character ships with; the upload is deleted.
+  resetCharacterPicture(id: string) {
+    return this.api.delete<CharacterResponse>(`/admin/characters/${encodeURIComponent(id)}/image`);
+  }
 }

@@ -20,7 +20,7 @@ interface AdminCharactersState {
 
 // For admins: the Waking Sands characters, one open at a time, with their
 // title, personality (which can go back to the original), profile bio and
-// picture.
+// picture (which can go back to the default portrait).
 // Provided by the admin's characters window.
 export const AdminCharactersStore = signalStore(
   withState<AdminCharactersState>({
@@ -101,6 +101,16 @@ export const AdminCharactersStore = signalStore(
           run({
             request: admin.uploadCharacterPicture(character.id, picture),
             done: `${nameOf(character)}'s new picture is saved.`,
+          });
+        }
+      },
+      // Back to the portrait the site ships with.
+      resetPicture: () => {
+        const character = store.selected();
+        if (character) {
+          run({
+            request: admin.resetCharacterPicture(character.id),
+            done: `${nameOf(character)}'s default portrait is back.`,
           });
         }
       },
