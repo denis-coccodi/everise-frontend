@@ -1,11 +1,21 @@
-<cdt-panel heading="Who's here">
-  @if (store.present().length === 0) {
+<cdt-panel class="panel" heading="Who's here">
+  <h3 class="section">In the room</h3>
+  @if (store.inRoom().length === 0) {
     <p class="hint">No characters are in. Members can still talk, or invite someone.</p>
-  } @else if (store.full()) {
-    <p class="hint">
-      The room is full: {{ store.limits()?.maxPresent }} characters at most. Send someone out to invite another.
-    </p>
+  } @else {
+    <ul class="cast">
+      @for (character of store.inRoom(); track character.id) {
+        <ng-container *ngTemplateOutlet="row; context: { $implicit: character, present: true }" />
+      }
+    </ul>
+    @if (store.full()) {
+      <p class="hint">
+        The room is full: {{ store.limits()?.maxPresent }} characters at most. Send someone out to invite another.
+      </p>
+    }
   }
+
+  <h3 class="section">Everyone else</h3>
   <cdt-field class="search" label="Find a character" for="sands-cast-search">
     <input
       #search
@@ -19,47 +29,46 @@
     />
   </cdt-field>
   <p class="visually-hidden" role="status">{{ found() }}</p>
-  <ul class="cast">
-    @for (character of store.cast(); track character.id) {
-      <li class="person" [class.present]="store.isPresent(character.id)">
-        <cdt-avatar
-          class="avatar"
-          [src]="character.image"
-          [size]="48"
-          [frame]="store.isPresent(character.id) ? 'highlight' : 'line'"
-        />
-        <span class="who">
-          <!-- Each character has a profile, like a member's: character:<id>. -->
-          <a class="name" [routerLink]="['/profile', 'character:' + character.id]">{{ character.name }}</a>
-          <span class="title">{{ character.title }}</span>
-          <span class="visually-hidden">{{ store.isPresent(character.id) ? '(in the room)' : '' }}</span>
-        </span>
-        @if (signedIn()) {
-          @if (store.isPresent(character.id)) {
-            <button
-              type="button"
-              class="action"
-              cdtButton="outline-secondary"
-              size="sm"
-              (click)="store.dismiss(character.id)"
-            >
-              Send out<span class="visually-hidden"> {{ character.name }}</span>
-            </button>
-          } @else if (!store.full()) {
-            <button type="button" class="action" cdtButton size="sm" (click)="store.invite(character.id)">
-              Invite<span class="visually-hidden"> {{ character.name }}</span>
-            </button>
-          }
-        }
-      </li>
+  <!-- Scrolls inside, so a long cast never stretches the page; focusable so
+       the keyboard can scroll it too. -->
+  <div class="others" role="region" aria-label="Everyone else" tabindex="0">
+    <ul class="cast">
+      @for (character of store.others(); track character.id) {
+        <ng-container *ngTemplateOutlet="row; context: { $implicit: character, present: false }" />
+      }
+    </ul>
+    @if (store.others().length === 0) {
+      <p class="hint">
+        {{ store.search().trim() ? 'Nobody else matches "' + store.search().trim() + '".' : 'Everyone is in.' }}
+      </p>
     }
-  </ul>
-  @if (store.search().trim() && store.cast().length === store.present().length) {
-    <p class="hint">Nobody else matches "{{ store.search().trim() }}".</p>
-  }
-  <p class="fan-note">
-    Everyone on this page shares the room. FINAL FANTASY XIV's characters and the free company's own are voiced by an AI
-    as fan work: they can get things wrong, and some of them swear.
-  </p>
-  <p class="fan-note">FINAL FANTASY XIV characters and portraits © SQUARE ENIX.</p>
+  </div>
 </cdt-panel>
+
+<ng-template #row let-character let-present="present">
+  <li class="person" [class.present]="present">
+    <cdt-avatar class="avatar" [src]="character.image" [size]="44" [frame]="present ? 'highlight' : 'line'" />
+    <span class="who">
+      <!-- Each character has a profile, like a member's: character:<id>. -->
+      <a class="name" [routerLink]="['/profile', 'character:' + character.id]">{{ character.name }}</a>
+      <span class="title">{{ character.title }}</span>
+    </span>
+    @if (signedIn()) {
+      @if (present) {
+        <button
+          type="button"
+          class="action"
+          cdtButton="outline-secondary"
+          size="sm"
+          (click)="store.dismiss(character.id)"
+        >
+          Send out<span class="visually-hidden"> {{ character.name }}</span>
+        </button>
+      } @else if (!store.full()) {
+        <button type="button" class="action" cdtButton size="sm" (click)="store.invite(character.id)">
+          Invite<span class="visually-hidden"> {{ character.name }}</span>
+        </button>
+      }
+    }
+  </li>
+</ng-template>

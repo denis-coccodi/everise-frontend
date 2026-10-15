@@ -154,14 +154,14 @@ describe('WakingSandsComponent', () => {
 
     await search('YSHTOLA');
     expect(names()).toEqual(['Urianger Augurelt', "Y'shtola Rhul"]);
-    expect(text(page.querySelector('[role="status"]'))).toBe('2 characters shown');
+    expect(text(page.querySelector('[role="status"]'))).toBe('1 character found');
 
     await search('primal slayer');
     expect(names()).toEqual(['Urianger Augurelt', 'Barnaby Rostnsthalsyn']);
 
     await search('moogle');
     expect(names()).toEqual(['Urianger Augurelt']);
-    expect(text(page.querySelector('.cast + .hint'))).toBe('Nobody else matches "moogle".');
+    expect(text(page.querySelector('.others .hint'))).toBe('Nobody else matches "moogle".');
   });
 
   it("links each character's name to their profile", async () => {

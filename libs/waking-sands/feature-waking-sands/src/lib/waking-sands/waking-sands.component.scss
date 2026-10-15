@@ -23,7 +23,8 @@ h1 {
 }
 
 .hero p,
-.notice {
+.notice,
+.fan-note {
   color: var(--color-contrast-muted);
   text-align: center;
 }
@@ -42,6 +43,12 @@ h1 {
   color: var(--color-danger);
 }
 
+.fan-note {
+  margin: 1rem auto 0;
+  max-width: 48rem;
+  font-size: 0.8rem;
+}
+
 // Phones: who's here above the conversation. Wide screens: side by side.
 .layout {
   display: grid;
@@ -51,7 +58,24 @@ h1 {
 }
 
 @include bp.up(lg) {
+  // A tighter header, so the room starts higher and fits on screen.
+  .sands-page {
+    padding-top: 1rem;
+  }
+
+  .hero {
+    margin-bottom: 1rem;
+  }
+
+  .hero .spoilers {
+    max-width: 52rem;
+    margin-top: 0.6rem;
+    padding: 0.4rem 1rem;
+  }
+
+  // Both columns as tall as the conversation: the cast fits beside it.
   .layout {
-    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: stretch;
   }
 }
