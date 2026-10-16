@@ -8,7 +8,13 @@
       <ul>
         @for (name of region.dataCentres; track name) {
           <li>
-            <a routerLink="/venues" [queryParams]="queryFor(name)" [attr.aria-current]="current(name)">{{ name }}</a>
+            <a
+              routerLink="/venues"
+              [queryParams]="queryFor(name)"
+              queryParamsHandling="merge"
+              [attr.aria-current]="current(name)"
+              >{{ name }}</a
+            >
           </li>
         }
       </ul>

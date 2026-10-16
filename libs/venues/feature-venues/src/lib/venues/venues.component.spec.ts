@@ -1,10 +1,10 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { API_URL } from '@everise/core/http-client';
-import { venueList as list } from '../venue-fixtures';
+import { venue, venueList as list } from '../venue-fixtures';
 import { VenuesComponent } from './venues.component';
 
 describe('VenuesComponent', () => {
@@ -85,6 +85,35 @@ describe('VenuesComponent', () => {
     await fixture.whenStable();
 
     expect(page.querySelector('.state')).toBeNull();
+    expect(page.querySelectorAll('cdt-venue-card')).toHaveLength(3);
+  });
+
+  it('finds venues by the words typed, keeps them in the address, and says how many match', async () => {
+    const { fixture, http, page, names } = await render();
+    http.expectOne('/venues?dataCentre=Light').flush(
+      list({
+        venues: [venue('open', -1), venue('soon', 2, { name: 'Moogle Café', tags: ['Café'] }), venue('later', 30)],
+      }),
+    );
+    await fixture.whenStable();
+
+    const box = page.querySelector('#venues-search') as HTMLInputElement;
+    expect(page.querySelector('label[for=venues-search]')?.textContent?.trim()).toBe('Find a venue');
+    box.value = 'cafe';
+    box.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(names('venues-open')).toEqual([]);
+    expect(names('venues-later')).toEqual(['Moogle Café']);
+    expect(page.querySelector('[aria-live=polite].visually-hidden')?.textContent?.trim()).toBe('1 venue matches');
+    expect(TestBed.inject(Router).url).toBe('/venues?search=cafe');
+
+    box.value = 'nowhere';
+    box.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(page.querySelector('.state h2')?.textContent?.trim()).toBe('No venues on Light match “nowhere”');
+    (page.querySelector('.state button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(box);
     expect(page.querySelectorAll('cdt-venue-card')).toHaveLength(3);
   });
 });

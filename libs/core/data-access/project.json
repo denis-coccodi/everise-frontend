@@ -4,5 +4,14 @@
   "projectType": "library",
   "sourceRoot": "libs/core/data-access/src",
   "prefix": "lib",
-  "tags": ["type:util"]
+  "tags": ["type:util"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/core/data-access"
+      }
+    }
+  }
 }
