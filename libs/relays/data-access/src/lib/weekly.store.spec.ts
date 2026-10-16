@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { WeeklyResponse } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
@@ -22,27 +23,48 @@ describe('WeeklyStore', () => {
     TestBed.configureTestingModule({
       providers: [WeeklyStore, provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '' }],
     });
-    return { store: TestBed.inject(WeeklyStore), http: TestBed.inject(HttpTestingController) };
+    const store = TestBed.inject(WeeklyStore);
+    // The resource asks once effects run, and answers once the app is stable.
+    TestBed.tick();
+    const settled = () => TestBed.inject(ApplicationRef).whenStable();
+    return { store, http: TestBed.inject(HttpTestingController), settled };
   }
 
-  it('reads the week', () => {
-    const { store, http } = setup();
+  it('reads the week', async () => {
+    const { store, http, settled } = setup();
 
+    expect(store.loadState()).toBe('loading');
     http.expectOne('/weekly').flush(WEEK);
+    await settled();
 
     expect(store.loadState()).toBe('ready');
     expect(store.weekly()).toEqual(WEEK);
   });
 
-  it('keeps what it showed when a refresh fails, and says why', () => {
-    const { store, http } = setup();
+  it('keeps what it showed when a refresh fails, and says why', async () => {
+    const { store, http, settled } = setup();
     http.expectOne('/weekly').flush(WEEK);
+    await settled();
+    expect(store.weekly()).toEqual(WEEK);
 
     store.load();
+    TestBed.tick();
     http.expectOne('/weekly').flush({ errors: { body: ['Try again later.'] } }, { status: 503, statusText: '' });
+    await settled();
 
     expect(store.loadState()).toBe('ready');
     expect(store.weekly()).toEqual(WEEK);
+    expect(store.error()).toBe('Try again later.');
+  });
+
+  it("says why when the week can't be read", async () => {
+    const { store, http, settled } = setup();
+
+    http.expectOne('/weekly').flush({ errors: { body: ['Try again later.'] } }, { status: 503, statusText: '' });
+    await settled();
+
+    expect(store.loadState()).toBe('error');
+    expect(store.weekly()).toBeNull();
     expect(store.error()).toBe('Try again later.');
   });
 });

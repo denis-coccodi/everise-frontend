@@ -1,10 +1,10 @@
-import { computed, inject } from '@angular/core';
-import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
+import { computed, effect, inject, untracked } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from '@ngrx/signals';
+import { extendResource, withPreviousValueOnError } from '@ngrx/signals/resource';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { HuntsResponse } from '@everise/core/api-types';
-import { serverMessage } from '@everise/core/forms';
-import { fromEvent, interval, pipe, switchMap, tap } from 'rxjs';
+import { errorMessageOf, loadStateOf } from '@everise/core/data-access';
+import { fromEvent, interval, tap } from 'rxjs';
 import { RelaysService } from './relays.service';
 
 // The backend reads the hunt channels every 2 minutes: asked again this
@@ -14,9 +14,6 @@ export const HUNTS_POLL_MS = 60 * 1000;
 const HUNTS_TICK_MS = 15 * 1000;
 
 interface HuntsState {
-  hunts: HuntsResponse | null;
-  loadState: 'loading' | 'ready' | 'error';
-  error: string;
   // When the tab last heard back, and the clock for the trains' times.
   checkedAt: number;
   now: number;
@@ -26,10 +23,17 @@ interface HuntsState {
 // section per data centre, in the backend's order (Light first). Provided
 // by the tab.
 export const HuntsStore = signalStore(
-  withState<HuntsState>({ hunts: null, loadState: 'loading', error: '', checkedAt: 0, now: Date.now() }),
-  withComputed((store) => ({
+  withState<HuntsState>(() => ({ checkedAt: 0, now: Date.now() })),
+  withProps((_, service = inject(RelaysService)) => ({
+    // A failed refresh keeps what's shown, and says why.
+    _hunts: extendResource(rxResource({ stream: () => service.hunts() }), withPreviousValueOnError()),
+  })),
+  withComputed(({ _hunts }) => ({
+    hunts: computed(() => _hunts.value() ?? null),
+    loadState: computed(() => loadStateOf(_hunts)),
+    error: computed(() => errorMessageOf(_hunts)),
     sections: computed(() => {
-      const hunts = store.hunts();
+      const hunts = _hunts.value();
       if (!hunts) return [];
       return hunts.dataCentres.map((dataCentre) => ({
         dataCentre,
@@ -37,33 +41,23 @@ export const HuntsStore = signalStore(
       }));
     }),
   })),
-  withMethods((store, service = inject(RelaysService)) => {
-    const load = rxMethod<void>(
-      pipe(
-        switchMap(() =>
-          service.hunts().pipe(
-            tapResponse({
-              next: (hunts) =>
-                patchState(store, { hunts, loadState: 'ready', error: '', checkedAt: Date.now(), now: Date.now() }),
-              error: (error: unknown) =>
-                patchState(store, { error: serverMessage(error), loadState: store.hunts() ? 'ready' : 'error' }),
-            }),
-          ),
-        ),
-      ),
-    );
-    return {
-      load,
-      tick: () => patchState(store, { now: Date.now() }),
-      // Asks again if the list is older than a poll, e.g. back from another tab.
-      refreshIfStale() {
-        if (document.visibilityState === 'visible' && Date.now() - store.checkedAt() >= HUNTS_POLL_MS) load();
-      },
-    };
-  }),
+  withMethods((store) => ({
+    load: () => store._hunts.reload(),
+    tick: () => patchState(store, { now: Date.now() }),
+    // Asks again if the list is older than a poll, e.g. back from another tab.
+    refreshIfStale() {
+      if (document.visibilityState === 'visible' && Date.now() - store.checkedAt() >= HUNTS_POLL_MS) {
+        store._hunts.reload();
+      }
+    },
+  })),
   withHooks((store) => ({
     onInit() {
-      store.load();
+      effect(() => {
+        if (store._hunts.status() === 'resolved') {
+          untracked(() => patchState(store, { checkedAt: Date.now(), now: Date.now() }));
+        }
+      });
       rxMethod<number>(tap(() => document.visibilityState === 'visible' && store.load()))(interval(HUNTS_POLL_MS));
       rxMethod<Event>(tap(() => store.refreshIfStale()))(fromEvent(document, 'visibilitychange'));
       rxMethod<number>(tap(() => store.tick()))(interval(HUNTS_TICK_MS));

@@ -13,6 +13,7 @@ describe('WeeklyComponent', () => {
       providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '/api' }],
     });
     const fixture = TestBed.createComponent(WeeklyComponent);
+    TestBed.tick();
     TestBed.inject(HttpTestingController).expectOne('/api/weekly').flush(weekly);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
