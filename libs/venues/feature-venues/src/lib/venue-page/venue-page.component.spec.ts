@@ -9,7 +9,7 @@ import { DiscordSharingService } from '@everise/articles/data-access';
 import { AuthStore } from '@everise/auth/data-access';
 import { User, VenueDetail } from '@everise/core/api-types';
 import { API_URL } from '@everise/core/http-client';
-import { venue } from '../venue-fixtures';
+import { venue, venueEvent } from '../venue-fixtures';
 import { VenuePageComponent } from './venue-page.component';
 
 const HOUR = 3_600_000;
@@ -57,7 +57,7 @@ describe('VenuePageComponent', () => {
     const { http, page, settle } = await render();
     expect(page.querySelector('[role=status]')?.textContent).toContain('Finding the venue');
 
-    http.expectOne('/venues/abc').flush({ venue: detail() });
+    http.expectOne('/venues/abc').flush({ venue: detail(), events: [venueEvent(56133, 3)] });
     await settle();
 
     expect(page.querySelector('h1')?.textContent?.trim()).toBe('Venue abc');
@@ -82,6 +82,9 @@ describe('VenuePageComponent', () => {
       'https://example.com/',
       'https://ffxivvenues.com/venue/abc',
     ]);
+    // The week's events held there, linking to their pages.
+    expect(page.querySelector('cdt-venue-events h2')?.textContent).toBe('Upcoming events here');
+    expect(page.querySelector('cdt-venue-events a')?.getAttribute('href')).toBe('/events/56133');
     // Guests can't share.
     expect(page.querySelector('.share')).toBeNull();
   });
@@ -103,7 +106,7 @@ describe('VenuePageComponent', () => {
 
   it('lets members share it in the Discord with a message, and says when it went', async () => {
     const { http, page, settle } = await render({ signedIn: true });
-    http.expectOne('/venues/abc').flush({ venue: detail({ nextOpening: null }) });
+    http.expectOne('/venues/abc').flush({ venue: detail({ nextOpening: null }), events: [] });
     await settle();
     expect(page.querySelector('.opening')?.textContent).toBe('No opening set right now');
 
@@ -126,7 +129,7 @@ describe('VenuePageComponent', () => {
 
   it("doesn't offer sharing where the site can't share in Discord", async () => {
     const { http, page, settle } = await render({ signedIn: true, discord: false });
-    http.expectOne('/venues/abc').flush({ venue: detail() });
+    http.expectOne('/venues/abc').flush({ venue: detail(), events: [] });
     await settle();
 
     expect(page.querySelector('.share')).toBeNull();

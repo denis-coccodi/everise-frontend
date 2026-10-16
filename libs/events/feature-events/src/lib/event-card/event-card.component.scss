@@ -1,0 +1,102 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.event {
+  display: flex;
+  flex-direction: column;
+}
+
+// Partake's banners come in any shape; a fixed ratio keeps cards level.
+.cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--color-surface-strong);
+}
+
+// The site's own banner, for an event without one: the calendar in the well.
+.no-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-well);
+  box-shadow: var(--shadow-inset);
+  color: var(--color-crystal);
+  font-size: 2.5rem;
+}
+
+.content {
+  padding: 0.9rem 1rem 0.5rem;
+}
+
+h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+// The title links to the event's page, in the heading's colour.
+h3 a {
+  color: inherit;
+}
+
+p {
+  margin: 0.35rem 0 0;
+}
+
+.when {
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.when.live {
+  color: var(--color-primary-bright);
+}
+
+.where,
+.team {
+  color: var(--color-contrast-muted);
+  overflow-wrap: anywhere;
+}
+
+// The organisers' description, kept to a few lines.
+.summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  color: var(--color-contrast-soft);
+  overflow-wrap: anywhere;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags li {
+  font-weight: 300;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+// Comfortable targets in the footer strip.
+.links a {
+  display: inline-block;
+  padding: 0.35rem 0;
+}

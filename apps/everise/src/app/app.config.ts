@@ -115,6 +115,27 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/venues/feature-venues').then((m) => m.VenuePageComponent),
         },
         {
+          // The community's events this week, from Partake: every data
+          // centre's, or one's (?dc=chaos); the title follows it. Open to
+          // everyone.
+          path: 'events',
+          title: (route) => {
+            const dataCentre = route.queryParamMap.get('dc');
+            return dataCentre ? `${capitalised(dataCentre)} Events` : 'Events';
+          },
+          runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+          loadComponent: () => import('@everise/events/feature-events').then((m) => m.EventsComponent),
+        },
+        {
+          // One event's own page, which event cards and shares in the
+          // Everise Discord open (the page names the event once loaded);
+          // open to everyone.
+          path: 'events/:id',
+          title: 'Event',
+          canActivate: [discordLinkGuard],
+          loadComponent: () => import('@everise/events/feature-events').then((m) => m.EventPageComponent),
+        },
+        {
           // An item's prices over time on each world of a region; what's
           // picked is in the query string (?item=5111&region=europe). Open to
           // everyone, who can read what it does; the tool itself, and the API

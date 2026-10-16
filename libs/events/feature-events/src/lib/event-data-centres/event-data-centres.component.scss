@@ -1,0 +1,22 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+// The data centres in one centred, wrapping row.
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  display: inline-block;
+  padding: 0.25rem 0;
+}
+
+a[aria-current='page'] {
+  font-weight: 700;
+  text-decoration: none;
+}
