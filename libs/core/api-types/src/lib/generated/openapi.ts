@@ -1258,6 +1258,147 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The community events going on or starting this week */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The events. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['EventsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/events/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** One community event */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The event. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['EventPageResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/events/discord': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Share an event in the Everise Discord */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['NewEventDiscordShare'];
+        };
+      };
+      responses: {
+        /** @description Sent to the channel. */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['EventDiscordShareResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/frontline': {
     parameters: {
       query?: never;
@@ -3255,7 +3396,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** One venue, with its regular openings */
+    /** One venue, with its regular openings and this week's events */
     get: {
       parameters: {
         query?: never;
@@ -3743,6 +3884,10 @@ export interface components {
         body: string;
         media?: components['schemas']['NewAttachment'][];
       };
+    };
+    NewEventDiscordShare: {
+      eventId: number;
+      comment?: string;
     };
     NewPartyFinderPost: {
       /** @enum {string} */
@@ -4357,6 +4502,69 @@ export interface components {
       failed: number[];
       downloaded: number;
     };
+    EventsResponse: {
+      /** Format: date-time */
+      fetchedAt: string;
+      events: {
+        id: number;
+        title: string;
+        summary: string;
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        live: boolean;
+        /** @enum {string} */
+        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
+        dataCentre: string | null;
+        world: string | null;
+        location: string | null;
+        tags: string[];
+        banner: string | null;
+        recurring: boolean;
+        attendees: number;
+        team: {
+          name: string;
+          icon: string | null;
+          discord: string | null;
+          website: string | null;
+        } | null;
+        url: string;
+      }[];
+    };
+    EventPageResponse: {
+      event: {
+        id: number;
+        title: string;
+        summary: string;
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        live: boolean;
+        /** @enum {string} */
+        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
+        dataCentre: string | null;
+        world: string | null;
+        location: string | null;
+        tags: string[];
+        banner: string | null;
+        recurring: boolean;
+        attendees: number;
+        team: {
+          name: string;
+          icon: string | null;
+          discord: string | null;
+          website: string | null;
+        } | null;
+        url: string;
+        description: string;
+      };
+    };
+    EventDiscordShareResponse: {
+      /** @constant */
+      shared: true;
+    };
     MarketItem: {
       id: number;
       name: string;
@@ -4639,6 +4847,32 @@ export interface components {
               };
         }[];
       };
+      events: {
+        id: number;
+        title: string;
+        summary: string;
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        live: boolean;
+        /** @enum {string} */
+        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
+        dataCentre: string | null;
+        world: string | null;
+        location: string | null;
+        tags: string[];
+        banner: string | null;
+        recurring: boolean;
+        attendees: number;
+        team: {
+          name: string;
+          icon: string | null;
+          discord: string | null;
+          website: string | null;
+        } | null;
+        url: string;
+      }[];
     };
     VenueDiscordShareResponse: {
       /** @constant */
