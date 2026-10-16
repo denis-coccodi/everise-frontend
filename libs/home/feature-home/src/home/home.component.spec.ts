@@ -145,4 +145,26 @@ describe('HomeComponent tabs', () => {
     expect(guest.tab('Global Feed')?.className).toMatch(/active/);
     expect(guest.postRequests()).toEqual(['/articles']);
   });
+
+  it('puts New Post above the posts of both feeds, for members only', async () => {
+    const newPost = (page: () => HTMLElement) => page().querySelector<HTMLAnchorElement>('.compose a');
+    const member = await render(true);
+    expect(newPost(member.page)).toBeNull();
+
+    await member.click('Your Feed');
+    expect(newPost(member.page)?.textContent?.trim()).toBe('New Post');
+    expect(newPost(member.page)?.getAttribute('href')).toBe('/editor');
+    // Before the posts, not after them.
+    const list = member.page().querySelector('cdt-article-list') as HTMLElement;
+    expect(newPost(member.page)!.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await member.click('Global Feed');
+    expect(newPost(member.page)?.getAttribute('href')).toBe('/editor');
+    await member.click('Hunts');
+    expect(newPost(member.page)).toBeNull();
+    TestBed.resetTestingModule();
+
+    const guest = await render(false, '/?view=global');
+    expect(newPost(guest.page)).toBeNull();
+  });
 });

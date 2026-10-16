@@ -11,7 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { User } from '@everise/core/api-types';
-import { ButtonComponent, IconComponent } from '@everise/ui/components';
+import { IconComponent } from '@everise/ui/components';
 import { filter } from 'rxjs';
 import { AccountNavComponent } from '../account-nav/account-nav.component';
 import { NavGroupComponent } from '../nav-group/nav-group.component';
@@ -25,14 +25,7 @@ import { NotificationsComponent } from '../notifications/notifications.component
   selector: 'cdt-navbar',
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
-  imports: [
-    RouterModule,
-    IconComponent,
-    ButtonComponent,
-    AccountNavComponent,
-    NavGroupComponent,
-    NotificationsComponent,
-  ],
+  imports: [RouterModule, IconComponent, AccountNavComponent, NavGroupComponent, NotificationsComponent],
   host: {
     '(document:click)': 'closeOutside($event)',
     '(keydown.escape)': 'closeAndFocus()',
