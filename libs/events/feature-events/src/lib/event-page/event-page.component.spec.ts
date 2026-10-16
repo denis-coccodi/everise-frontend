@@ -46,7 +46,8 @@ describe('EventPageComponent', () => {
     expect(TestBed.inject(Meta).getTag("name='robots'")?.content).toBe('noindex');
     expect(page.querySelector('.back a')?.getAttribute('href')).toBe('/events?dc=light');
     expect(page.querySelector('.when')?.textContent).toContain('Starts');
-    expect(page.querySelector('.hours')?.textContent).toMatch(/\d\d:\d\d – \d\d:\d\d/);
+    // In the visitor's locale: "20:00 – 00:00" or "08:00 PM – 12:00 AM".
+    expect(page.querySelector('.hours')?.textContent).toMatch(/\d:\d\d.* – \d+:\d\d/);
     expect(page.querySelector('.where')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       'Odin, Empyreum, Ward 30, Plot 52 (Light)',
     );
