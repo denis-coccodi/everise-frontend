@@ -6,6 +6,23 @@
 
   <cdt-venue-data-centres />
 
+  <form class="search" role="search" (submit)="$event.preventDefault()">
+    <cdt-field label="Find a venue" for="venues-search">
+      <input
+        #box="cdtInput"
+        id="venues-search"
+        type="search"
+        cdtInput
+        autocomplete="off"
+        placeholder="Name, world, address or what it offers"
+        [value]="store.search()"
+        (input)="store.setSearch(box.value)"
+      />
+    </cdt-field>
+  </form>
+  <!-- How many match while searching, for screen readers. -->
+  <p class="visually-hidden" aria-live="polite">{{ matches() }}</p>
+
   <!-- Why the last load failed, in the backend's words. -->
   <cdt-message class="status" tone="error">{{ store.error() }}</cdt-message>
 
@@ -24,7 +41,14 @@
       </cdt-card>
     }
     @default {
-      @if (store.total() === 0) {
+      @if (store.total() === 0 && store.search().trim()) {
+        <cdt-card class="state">
+          <cdt-icon class="state-icon" name="search" />
+          <h2>No venues on {{ store.dataCentre() }} match “{{ store.search().trim() }}”</h2>
+          <p>Try fewer or other words, or another data centre.</p>
+          <button type="button" cdtButton="outline-primary" (click)="clearSearch()">Clear the search</button>
+        </cdt-card>
+      } @else if (store.total() === 0) {
         <cdt-card class="state">
           <cdt-icon class="state-icon" name="venue" />
           <h2>No venues on {{ store.dataCentre() }} this week yet</h2>

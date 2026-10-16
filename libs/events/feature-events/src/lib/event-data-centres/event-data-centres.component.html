@@ -2,11 +2,23 @@
   <h2 id="event-data-centres" class="visually-hidden">Data centres</h2>
   <ul>
     <li>
-      <a routerLink="/events" [queryParams]="queryFor(null)" [attr.aria-current]="current(null)">All data centres</a>
+      <a
+        routerLink="/events"
+        [queryParams]="queryFor(null)"
+        queryParamsHandling="merge"
+        [attr.aria-current]="current(null)"
+        >All data centres</a
+      >
     </li>
     @for (name of store.dataCentres(); track name) {
       <li>
-        <a routerLink="/events" [queryParams]="queryFor(name)" [attr.aria-current]="current(name)">{{ name }}</a>
+        <a
+          routerLink="/events"
+          [queryParams]="queryFor(name)"
+          queryParamsHandling="merge"
+          [attr.aria-current]="current(name)"
+          >{{ name }}</a
+        >
       </li>
     }
   </ul>

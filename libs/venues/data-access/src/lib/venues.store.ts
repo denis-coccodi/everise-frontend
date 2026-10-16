@@ -1,9 +1,10 @@
 import { computed, inject } from '@angular/core';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { VenueDataCentre, VenueList } from '@everise/core/api-types';
+import { Venue, VenueDataCentre, VenueList } from '@everise/core/api-types';
+import { matchesSearch } from '@everise/core/data-access';
 import { serverMessage } from '@everise/core/forms';
 import { interval, map, pipe, switchMap, tap } from 'rxjs';
 import { isOpen } from './venue-time';
@@ -26,6 +27,8 @@ interface VenuesState {
   // The data centres with venues by region, from the last answer (kept
   // while another data centre loads).
   knownRegions: VenueList['regions'];
+  // The words typed in the search box, from the query string (?search=bar).
+  search: string;
   now: number;
 }
 
@@ -37,19 +40,23 @@ function initialState(): VenuesState {
     error: '',
     dataCentre: venueDataCentre(query ?? { get: () => null }),
     knownRegions: [],
+    search: query?.get('search') ?? '',
     now: Date.now(),
   };
 }
 
 // The Venues page's state: a data centre's venues opening this week, those
-// open now apart from the rest, refreshed while the page is in view.
-// Provided by the page.
+// open now apart from the rest, those matching the search, refreshed while
+// the page is in view. Provided by the page.
 export const VenuesStore = signalStore(
   withState<VenuesState>(initialState),
   withComputed((store) => {
-    // Venues whose opening hasn't ended since the backend read them.
+    // Venues whose opening hasn't ended since the backend read them, and
+    // that match the search.
     const venues = computed(() =>
-      (store.list()?.venues ?? []).filter((venue) => Date.parse(venue.closesAt) > store.now()),
+      (store.list()?.venues ?? []).filter(
+        (venue) => Date.parse(venue.closesAt) > store.now() && matchesSearch(store.search(), searchedText(venue)),
+      ),
     );
     return {
       openNow: computed(() => venues().filter((venue) => isOpen(venue, store.now()))),
@@ -62,7 +69,8 @@ export const VenuesStore = signalStore(
       ),
     };
   }),
-  withMethods((store, service = inject(VenuesService)) => {
+  withMethods((store, service = inject(VenuesService), router = inject(Router)) => {
+    const route = inject(ActivatedRoute, { optional: true });
     const load = rxMethod<VenueDataCentre>(
       pipe(
         switchMap((dataCentre) =>
@@ -97,6 +105,12 @@ export const VenuesStore = signalStore(
       // The query string changed (a data centre's link, Back, Forward).
       followQuery: rxMethod<ParamMap>(
         pipe(
+          // The box keeps what was typed (spaces too) while the address
+          // catches up.
+          tap((query) => {
+            const search = query.get('search') ?? '';
+            if (search.trim() !== store.search().trim()) patchState(store, { search });
+          }),
           map((query) => venueDataCentre(query)),
           tap((dataCentre) => {
             if (dataCentre === store.dataCentre() && store.list()) return;
@@ -105,6 +119,18 @@ export const VenuesStore = signalStore(
           }),
         ),
       ),
+      // Typed in the search box: shown at once, and kept in the query string
+      // (the same history entry), so a link brings it along.
+      setSearch: (search: string) => {
+        patchState(store, { search });
+        if (!route) return;
+        void router.navigate([], {
+          relativeTo: route,
+          queryParams: { search: search.trim() || null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      },
       tick: () => patchState(store, { now: Date.now() }),
       // The data centres with venues, on their own: the list offers them
       // even when the venues don't load. A failure leaves the list's own.
@@ -130,3 +156,8 @@ export const VenuesStore = signalStore(
     },
   })),
 );
+
+// What the search box looks in.
+function searchedText(venue: Venue) {
+  return [venue.name, venue.world, venue.address, ...venue.tags, ...venue.description];
+}
