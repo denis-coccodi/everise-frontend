@@ -53,23 +53,6 @@
             >
           </li>
         } @else {
-          <!-- Writing a post: a button in the bar, set apart from the pages. -->
-          <li class="nav-item wide-only">
-            <a
-              cdtButton="outline-primary"
-              size="sm"
-              routerLink="/editor"
-              routerLinkActive="current"
-              ariaCurrentWhenActive="page"
-            >
-              <cdt-icon name="compose" />New Post
-            </a>
-          </li>
-          <li class="nav-item narrow-only">
-            <a class="nav-link" routerLink="/editor" routerLinkActive="active" ariaCurrentWhenActive="page">
-              <cdt-icon name="compose" />New Post
-            </a>
-          </li>
           <!-- The notifications, before the account (on a phone, before Menu instead). -->
           <li class="nav-item wide-only">
             <cdt-notifications />

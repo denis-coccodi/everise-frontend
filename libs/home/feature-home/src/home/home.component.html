@@ -14,6 +14,15 @@
     <cdt-community-links look="buttons" />
   </cdt-banner>
 
+  <!-- Writing a post, at the top of the feeds' posts: members only. -->
+  <ng-template #compose>
+    @if (isLoggedIn()) {
+      <p class="compose">
+        <a cdtButton="outline-primary" size="sm" routerLink="/editor"><cdt-icon name="compose" />New Post</a>
+      </p>
+    }
+  </ng-template>
+
   <div class="container page">
     <div class="row">
       <div class="col-md-9">
@@ -78,9 +87,11 @@
 
         @switch (view()) {
           @case ('yours') {
+            <ng-container [ngTemplateOutlet]="compose" />
             <cdt-article-list></cdt-article-list>
           }
           @case ('global') {
+            <ng-container [ngTemplateOutlet]="compose" />
             <cdt-article-list></cdt-article-list>
           }
           @case ('hunts') {
