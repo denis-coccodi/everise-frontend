@@ -15,6 +15,9 @@ export type EventPage = Schemas['EventPageResponse'];
 
 export type EventDetail = EventPage['event'];
 
+// The venue on the site an event is surely held at, to link to its page.
+export type EventVenue = NonNullable<EventPage['venue']>;
+
 // Sharing an event in the Everise Discord.
 export type NewEventDiscordShare = Schemas['NewEventDiscordShare'];
 export type EventDiscordShareResponse = Schemas['EventDiscordShareResponse'];

@@ -1310,7 +1310,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** One community event */
+    /** One community event, and the venue it is held at */
     get: {
       parameters: {
         query?: never;
@@ -4560,6 +4560,10 @@ export interface components {
         url: string;
         description: string;
       };
+      venue: {
+        id: string;
+        name: string;
+      } | null;
     };
     EventDiscordShareResponse: {
       /** @constant */

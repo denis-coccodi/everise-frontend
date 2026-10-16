@@ -38,7 +38,15 @@ describe('EventPageComponent', () => {
     const { http, page, settle } = await render();
     expect(page.querySelector('[role=status]')?.textContent).toContain('Finding the event');
 
-    http.expectOne('/events/56133').flush({ event: eventDetail({ ageRating: 'MATURE' }) });
+    http.expectOne('/events/56133').flush({
+      event: eventDetail({
+        ageRating: 'MATURE',
+        description: `${eventDetail().description}
+
+🌐 Website`,
+      }),
+      venue: { id: '03SsBX8Q1dkl', name: 'The Heretic Knight' },
+    });
     await settle();
 
     expect(page.querySelector('h1')?.textContent?.trim()).toBe('Event 56133');
@@ -57,6 +65,13 @@ describe('EventPageComponent', () => {
     expect(about.querySelector('h2')?.textContent).toBe('Tonight');
     expect(about.querySelector('strong')?.textContent).toBe('date');
     expect(about.querySelector('a')?.getAttribute('href')).toBe('https://example.com');
+    // A link whose address Partake lost points to its page there instead.
+    const lost = [...about.querySelectorAll('p')].at(-1) as HTMLElement;
+    expect(lost.textContent).toBe('🌐 Website (the link is on Partake)');
+    expect(lost.querySelector('a')?.getAttribute('href')).toBe('https://www.partake.gg/events/56133');
+    // The venue it's held at, on the site.
+    expect(page.querySelector('.venue')?.textContent?.trim()).toBe('At The Heretic Knight');
+    expect(page.querySelector('.venue a')?.getAttribute('href')).toBe('/venues/03SsBX8Q1dkl');
     expect(page.querySelector('.team')?.textContent?.trim()).toBe('Club Noir');
     expect([...page.querySelectorAll('.links a')].map((a) => a.getAttribute('href'))).toEqual([
       'https://discord.gg/example',
@@ -84,8 +99,10 @@ describe('EventPageComponent', () => {
 
   it('lets members share it in the Discord with a message, and says when it went', async () => {
     const { http, page, settle } = await render({ signedIn: true });
-    http.expectOne('/events/56133').flush({ event: eventDetail() });
+    http.expectOne('/events/56133').flush({ event: eventDetail(), venue: null });
     await settle();
+    // No venue the site lists.
+    expect(page.querySelector('.venue')).toBeNull();
 
     (page.querySelector('.share button') as HTMLButtonElement).click();
     await settle();

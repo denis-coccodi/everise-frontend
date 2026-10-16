@@ -42,6 +42,11 @@
               }
             </p>
           }
+          @if (store.venue(); as venue) {
+            <p class="venue">
+              <cdt-icon name="venue" />At <a [routerLink]="['/venues', venue.id]">{{ venue.name }}</a>
+            </p>
+          }
           @if (event.ageRating === 'MATURE') {
             <p class="rating">
               <span cdtTag><span class="visually-hidden">Rated </span>Mature</span>
@@ -65,7 +70,7 @@
           <section class="about" aria-labelledby="event-about">
             <h2 id="event-about">About</h2>
             @if (event.description) {
-              <cdt-rich-text [text]="event.description" />
+              <cdt-rich-text [text]="description()" />
             } @else {
               <p class="hint">The organisers didn't write a description.</p>
             }

@@ -10,6 +10,7 @@ import {
   eventsQuery,
   hoursText,
   isLive,
+  markLostLinks,
   whenText,
 } from '@everise/events/data-access';
 import { RichTextComponent } from '@everise/media';
@@ -24,8 +25,8 @@ import { EventShareDialogComponent } from '../event-share-dialog/event-share-dia
 
 // One event's own page (/events/<id>), which event cards and links shared
 // in the Everise Discord open: the event as Partake lists it (the
-// organisers' description, when it is in the visitor's time, where, who
-// hosts it), and for members a way to share it in the Discord until it
+// organisers' description, when it is in the visitor's time, where, the
+// venue's page here when it's one the site lists, who hosts it), and for members a way to share it in the Discord until it
 // ends. An event the site doesn't list gets the backend's words and a way
 // back. Open to everyone, kept out of search engines: Partake is the
 // event's home.
@@ -67,6 +68,11 @@ export class EventPageComponent {
   protected readonly where = computed(() => {
     const event = this.store.event();
     return event ? [event.world, event.location].filter(Boolean).join(', ') : '';
+  });
+  // The organisers' words, with a note where Partake lost a link's address.
+  protected readonly description = computed(() => {
+    const event = this.store.event();
+    return event ? markLostLinks(event.description, event.url) : '';
   });
   // Back to the events of the event's data centre.
   protected readonly back = computed(() => {

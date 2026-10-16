@@ -85,6 +85,17 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+// The venue's page here, with the goblet before it.
+.venue {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.venue cdt-icon {
+  margin-inline-end: 0.35em;
+  color: var(--color-crystal);
+}
+
 .share {
   display: flex;
   flex-wrap: wrap;
