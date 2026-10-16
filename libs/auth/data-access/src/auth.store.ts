@@ -153,6 +153,26 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
+      // Signs out this device and every other one.
+      logoutEverywhere: rxMethod<void>(
+        pipe(
+          exhaustMap(() =>
+            authService.logoutEverywhere().pipe(
+              tapResponse({
+                next: () => {
+                  patchState(store, { user: initialUserValue, loggedIn: false });
+                  router.navigateByUrl('login');
+                },
+                error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
+              }),
+            ),
+          ),
+        ),
+      ),
+      // A password reset signed every device out, this one too.
+      signedOut() {
+        patchState(store, { user: initialUserValue, loggedIn: false });
+      },
     }),
   ),
   withCallState({ collection: 'getUser' }),

@@ -3,7 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import {
   ConfirmationResponse,
   LoginUserRequest,
+  NewPasswordWithCode,
   NewUserRequest,
+  PasswordResetRequest,
+  PasswordResetResponse,
   ProvidersResponse,
   ResendConfirmationRequest,
   UserChanges,
@@ -61,6 +64,22 @@ export class AuthService {
 
   logout(): Observable<{ message: string }> {
     return this.apiService.post<{ message: string }, void>('/users/logout');
+  }
+
+  // Ends every session, on every device (and clears this one's cookie).
+  logoutEverywhere(): Observable<void> {
+    return this.apiService.post<void, void>('/users/logout-everywhere');
+  }
+
+  // "Forgot password?": emails a code, if the address has an account. The
+  // answer is the same either way.
+  requestPasswordReset(request: PasswordResetRequest): Observable<PasswordResetResponse> {
+    return this.apiService.post<PasswordResetResponse, PasswordResetRequest>('/users/password-reset', request);
+  }
+
+  // Sets a new password with the code from the email. Doesn't sign in.
+  resetPassword(request: NewPasswordWithCode): Observable<void> {
+    return this.apiService.post<void, NewPasswordWithCode>('/users/password-reset/confirm', request);
   }
 
   // Signs in, or (when the backend confirms emails) sends a link to the

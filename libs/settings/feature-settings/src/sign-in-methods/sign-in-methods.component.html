@@ -7,7 +7,10 @@
       @if (hasPassword()) {
         <span class="state tied">Set</span>
       } @else {
-        <span class="state">Not set: add a password below to also sign in with your email.</span>
+        <span class="state"
+          >Not set: <a routerLink="/forgot-password">get a code by email</a> to set one and also sign in with your
+          email.</span
+        >
       }
     </li>
     @for (provider of providers(); track provider.id) {
@@ -24,4 +27,10 @@
       </li>
     }
   </ul>
+  <div class="everywhere">
+    <button type="button" cdtButton="outline-secondary" size="sm" (click)="signOutEverywhere()">
+      Sign out everywhere
+    </button>
+    <p class="hint">Signs you out on every device, this one too. Changing your password does the same.</p>
+  </div>
 </section>

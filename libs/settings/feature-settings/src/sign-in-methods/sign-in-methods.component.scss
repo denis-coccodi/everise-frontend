@@ -44,3 +44,14 @@ h2 {
   color: var(--color-primary-strong);
   font-weight: 600;
 }
+
+// Signing out on every device, under the list.
+.everywhere {
+  margin-top: 0.75rem;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}

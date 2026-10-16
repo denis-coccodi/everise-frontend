@@ -9,6 +9,8 @@ export const ERROR_MESSAGES: Record<string, ErrorMessage> = {
   required: () => `Fill in this field.`,
   email: () => `Enter a valid email address, like name@example.com.`,
   minLength: (error) => `Use at least ${requiredLength(error)} characters.`,
+  maxLength: (error) => `Use at most ${'maxLength' in error ? Number(error.maxLength) : 0} characters.`,
+  sameAs: () => `The two passwords don't match.`,
 };
 
 // The minLength validator's error: { kind: 'minLength', minLength }.

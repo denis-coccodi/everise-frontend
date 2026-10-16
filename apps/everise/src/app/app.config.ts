@@ -46,6 +46,17 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/auth/feature-auth').then((m) => m.ConfirmEmailComponent),
         },
         {
+          path: 'forgot-password',
+          title: 'Forgot your password?',
+          loadComponent: () => import('@everise/auth/feature-auth').then((m) => m.ForgotPasswordComponent),
+        },
+        {
+          // The link in a password reset email (?code=…), or the code typed.
+          path: 'reset-password',
+          title: 'Choose a new password',
+          loadComponent: () => import('@everise/auth/feature-auth').then((m) => m.ResetPasswordComponent),
+        },
+        {
           path: 'privacy',
           title: 'Privacy policy',
           loadComponent: () => import('@everise/auth/feature-auth').then((m) => m.PrivacyComponent),

@@ -1,29 +1,13 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  computed,
-  effect,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
-import { FormField, FormRoot, email, form, minLength, required } from '@angular/forms/signals';
+import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { FormField, FormRoot, email, form, maxLength, minLength, required } from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
-import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
+import { InputErrorsComponent, ListErrorsComponent, sameAs } from '@everise/core/forms';
 import { SettingsStore } from '@everise/settings/data-access';
-import {
-  AvatarComponent,
-  ButtonComponent,
-  FieldComponent,
-  InputComponent,
-  SwitchComponent,
-} from '@everise/ui/components';
+import { ButtonComponent, FieldComponent, InputComponent, SwitchComponent } from '@everise/ui/components';
 import { AdminMembersComponent } from '../admin-members/admin-members.component';
 import { AdminCharactersComponent } from '../admin-characters/admin-characters.component';
-import { PictureCropDialogComponent } from '../picture-crop-dialog/picture-crop-dialog.component';
-import { PICTURE_HINT, checkChosenFile } from '../profile-picture/profile-picture';
+import { PictureSettingsComponent } from '../picture-settings/picture-settings.component';
 import { SignInMethodsComponent } from '../sign-in-methods/sign-in-methods.component';
 
 @Component({
@@ -41,9 +25,9 @@ import { SignInMethodsComponent } from '../sign-in-methods/sign-in-methods.compo
     FormField,
     FormRoot,
     InputErrorsComponent,
-    PictureCropDialogComponent,
+    PictureSettingsComponent,
     SignInMethodsComponent,
-    AvatarComponent,
+    RouterLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,37 +35,44 @@ export class SettingsComponent implements OnDestroy {
   protected readonly authStore = inject(AuthStore);
   private readonly settingsStore = inject(SettingsStore);
 
-  protected readonly pictureHint = PICTURE_HINT;
-  // The picture being cropped in the dialog.
-  protected readonly cropping = signal<File | null>(null);
-  // The element, not the cdtButton component on it.
-  private readonly chooseButton = viewChild('chooseButton', { read: ElementRef<HTMLButtonElement> });
-  // An uploaded picture can be removed; the default one can't.
-  protected readonly hasOwnPicture = computed(() => this.authStore.user().image.includes('/api/profile-images/'));
+  // An account made with Google or Discord has no password: it sets one
+  // with a code by email ("Forgot your password?"), not here.
+  protected readonly hasPassword = computed(() => this.authStore.user().signInMethods.includes('password'));
 
-  // The password is only changed when a new one is typed.
+  // The password is only changed when a new one is typed, twice.
   private readonly settings = signal({
     username: '',
     bio: '',
     email: '',
     password: '',
+    repeat: '',
+    currentPassword: '',
     darkMode: this.settingsStore.darkMode(),
   });
+
+  // A new password or email address needs the current password (the
+  // backend checks it), when the account has one.
+  protected readonly needsCurrentPassword = computed(() => {
+    const { password, email } = this.settings();
+    const newEmail = email.trim().toLowerCase() !== this.authStore.user().email.toLowerCase();
+    return this.hasPassword() && (!!password || newEmail);
+  });
+
   protected readonly form = form(
     this.settings,
     (path) => {
       required(path.username);
       required(path.email);
       email(path.email);
+      // The backend's rules: bcrypt reads 72 bytes at most.
       minLength(path.password, 8);
+      maxLength(path.password, 72);
+      required(path.repeat, { when: ({ valueOf }) => !!valueOf(path.password) });
+      sameAs(path.repeat, path.password);
+      required(path.currentPassword, { when: () => this.needsCurrentPassword() });
     },
     { submission: { action: async () => this.save() } },
   );
-
-  constructor() {
-    // A problem from an earlier visit is old news.
-    this.authStore.setImageError(null);
-  }
 
   readonly setUserDataToForm = effect(() => {
     const userLoaded = this.authStore.getUserLoaded();
@@ -92,6 +83,8 @@ export class SettingsComponent implements OnDestroy {
         bio: bio ?? '',
         email,
         password: '',
+        repeat: '',
+        currentPassword: '',
         darkMode: darkMode ?? settings.darkMode,
       }));
     }
@@ -115,38 +108,17 @@ export class SettingsComponent implements OnDestroy {
   // The mode is saved only once it's the person's choice: one they saved
   // before, or the switch flipped; otherwise it keeps following the default.
   private save() {
-    const { password, darkMode, ...fields } = this.settings();
+    const { username, bio, email, password, currentPassword, darkMode } = this.settings();
     const chosen = this.authStore.user().darkMode !== undefined || this.form.darkMode().dirty();
-    this.authStore.updateUser({ ...fields, ...(chosen ? { darkMode } : {}), ...(password ? { password } : {}) });
-  }
-
-  // A file chosen in the browser's file window: checked, then cropped in the
-  // dialog.
-  onPictureChosen(input: HTMLInputElement) {
-    const file = input.files?.[0];
-    // Lets the same file be chosen again.
-    input.value = '';
-    if (!file) return;
-
-    const problem = checkChosenFile(file);
-    this.authStore.setImageError(problem);
-    if (!problem) {
-      this.cropping.set(file);
-    }
-  }
-
-  // The cropped picture, ready to store.
-  onCropped(picture: Blob) {
-    this.closeCropDialog();
-    this.authStore.uploadImage(picture);
-  }
-
-  closeCropDialog() {
-    this.cropping.set(null);
-    this.chooseButton()?.nativeElement.focus();
-  }
-
-  removePicture() {
-    this.authStore.removeImage();
+    this.authStore.updateUser({
+      username,
+      bio,
+      email,
+      ...(chosen ? { darkMode } : {}),
+      ...(password ? { password } : {}),
+      ...(this.needsCurrentPassword() ? { currentPassword } : {}),
+    });
+    // Typed again for the next change, never kept.
+    this.form.currentPassword().reset('');
   }
 }
