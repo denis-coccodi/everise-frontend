@@ -1,17 +1,11 @@
 @if (shown().length) {
   <section aria-labelledby="venue-events">
-    <h2 id="venue-events">Upcoming events here</h2>
+    <h2 id="venue-events"><cdt-icon name="calendar" />Upcoming events here</h2>
+    <p class="hint">{{ count() }} this week, from Partake. Times are in your time zone.</p>
     <ul>
       @for (event of shown(); track event.id) {
-        <li>
-          <a [routerLink]="['/events', event.id]">{{ event.title }}</a>
-          <span class="when" [class.live]="event.live">{{ event.when }}</span>
-          @if (event.ageRating === 'MATURE') {
-            <span cdtTag class="rating"><span class="visually-hidden">Rated </span>Mature</span>
-          }
-        </li>
+        <li><cdt-event-card [event]="event" [now]="now()" [compact]="true" /></li>
       }
     </ul>
-    <p class="hint">From Partake. Times are in your time zone.</p>
   </section>
 }

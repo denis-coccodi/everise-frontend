@@ -10,7 +10,7 @@ import {
   InputComponent,
   MessageComponent,
 } from '@everise/ui/components';
-import { EventCardComponent } from '../event-card/event-card.component';
+import { EventCardComponent } from '@everise/events/event-card';
 import { EventDataCentresComponent } from '../event-data-centres/event-data-centres.component';
 
 // Events: the community's FFXIV events this week (club nights, parties,

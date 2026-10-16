@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { CommunityEvent } from '@everise/core/api-types';
-import { communityEvent } from '../event-fixtures';
+import { communityEvent } from './test-event';
 import { EventCardComponent } from './event-card.component';
 
 describe('EventCardComponent', () => {
@@ -50,6 +50,19 @@ describe('EventCardComponent', () => {
     expect(card.querySelector('.rating')?.textContent?.trim()).toBe('Rated Mature');
     expect(card.querySelector('.when')?.textContent).toContain('Starts');
     expect(card.querySelector('.when')?.classList).not.toContain('live');
+  });
+
+  it('shows only the banner, title, when, rating and links when compact', () => {
+    const { fixture, card } = render(communityEvent(11, 2, { ageRating: 'MATURE' }));
+    fixture.componentRef.setInput('compact', true);
+    fixture.detectChanges();
+
+    expect(card.querySelector('img.cover')).not.toBeNull();
+    expect(card.querySelector('h3')?.textContent?.trim()).toBe('Event 11');
+    expect(card.querySelector('.when')?.textContent).toContain('Starts');
+    expect(card.querySelector('.rating')?.textContent?.trim()).toBe('Rated Mature');
+    for (const left of ['.where', '.team', '.summary', '.tags']) expect(card.querySelector(left)).toBeNull();
+    expect(card.querySelectorAll('.links a')).toHaveLength(3);
   });
 
   it('leaves out what the event has none of', () => {

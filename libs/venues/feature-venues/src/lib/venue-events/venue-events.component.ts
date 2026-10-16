@@ -1,18 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { CommunityEvent } from '@everise/core/api-types';
-import { isLive, whenText } from '@everise/events/data-access';
-import { TagComponent } from '@everise/ui/components';
+import { EventCardComponent } from '@everise/events/event-card';
+import { IconComponent } from '@everise/ui/components';
 
-// "Upcoming events here" on a venue's page: the week's events on Partake
-// the backend is sure are held at the venue (on its world, at its house or
-// run by its Discord's team), each linking to its page on the site. Shows
-// nothing when there are none.
+// "Upcoming events here" on a venue's page, under its heading: the week's
+// events on Partake the backend is sure are held at the venue (on its
+// world, at its house or run by its Discord's team), each a card with its
+// banner linking to its page on the site. Shows nothing when there are none.
 @Component({
   selector: 'cdt-venue-events',
   templateUrl: './venue-events.component.html',
   styleUrl: './venue-events.component.scss',
-  imports: [RouterLink, TagComponent],
+  imports: [EventCardComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VenueEventsComponent {
@@ -23,11 +22,9 @@ export class VenueEventsComponent {
   protected readonly shown = computed(() =>
     this.events()
       .filter((event) => Date.parse(event.endsAt) > this.now())
-      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-      .map((event) => ({
-        ...event,
-        when: whenText(event, this.now()),
-        live: isLive(event, this.now()),
-      })),
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+  );
+  protected readonly count = computed(() =>
+    this.shown().length === 1 ? 'One event' : `${this.shown().length} events`,
   );
 }

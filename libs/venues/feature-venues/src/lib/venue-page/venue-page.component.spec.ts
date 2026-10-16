@@ -77,13 +77,19 @@ describe('VenuePageComponent', () => {
     const repeats = [...page.querySelectorAll('.schedule .repeat')].map((r) => r.textContent?.trim());
     expect(repeats[0]).toMatch(/^Every \w+day$/);
     expect(repeats[1]).toMatch(/^Last \w+day of the month$/);
-    expect([...page.querySelectorAll('.links a')].map((a) => a.getAttribute('href'))).toEqual([
+    expect([...page.querySelectorAll('.side .links a')].map((a) => a.getAttribute('href'))).toEqual([
       'https://discord.gg/example',
       'https://example.com/',
       'https://ffxivvenues.com/venue/abc',
     ]);
     // The week's events held there, linking to their pages.
-    expect(page.querySelector('cdt-venue-events h2')?.textContent).toBe('Upcoming events here');
+    expect(page.querySelector('cdt-venue-events h2')?.textContent?.trim()).toBe('Upcoming events here');
+    // Under the heading, before the description.
+    const events = page.querySelector('cdt-venue-events') as HTMLElement;
+    expect(events.compareDocumentPosition(page.querySelector('.columns') as HTMLElement)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(page.querySelector('.side cdt-venue-events')).toBeNull();
     expect(page.querySelector('cdt-venue-events a')?.getAttribute('href')).toBe('/events/56133');
     // Guests can't share.
     expect(page.querySelector('.share')).toBeNull();

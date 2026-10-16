@@ -64,6 +64,10 @@
           <cdt-venue-share-dialog [venue]="venue" />
         }
 
+        <!-- The week's events held there, with their banners: before the
+             description, where they're seen. -->
+        <cdt-venue-events [events]="store.events()" [now]="store.now()" />
+
         <div class="columns">
           <section class="about" aria-labelledby="venue-about">
             <h2 id="venue-about">About</h2>
@@ -90,7 +94,6 @@
           </section>
 
           <aside class="side">
-            <cdt-venue-events [events]="store.events()" [now]="store.now()" />
             <section aria-labelledby="venue-when">
               <h2 id="venue-when">When</h2>
               @if (schedule().length) {
