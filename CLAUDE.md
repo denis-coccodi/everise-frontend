@@ -1,6 +1,6 @@
 # Working in this repo
 
-- Every change goes through a `feature/<name>` branch and a pull request to `main`, merged once the `test` check passes. Follow the `feature-branch` skill before the first edit.
+- Every change goes through a branch named `bugfix/<description>` for a bug fix (`hotfix/` when production is broken) or `feature/<description>` for anything else, with Conventional Commits messages (`fix(events): …`) and a pull request to `main`, merged once the `test` check passes. Follow the `feature-branch` skill before the first edit.
 - Merging to `main` deploys staging automatically. Production is deployed by hand (`deploy` skill); never start it unless asked.
 - `node scripts/check-sizes.mjs && node scripts/check-structure.mjs && node scripts/check-mobile-first.mjs && npx nx run-many -t lint test && npx tsc -p worker/tsconfig.json && npx vitest run --config worker/vitest.config.mts && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must exit 0 before pushing (the same as the `test` check). The build matters: the specs don't type-check templates.
 - Follow the `frontend-best-practices` skill for any TypeScript, component, store or library change: where code goes (feature, widget, data-access, ui, util; one component per folder, stores and services only in data-access), stores for state, no `any`, API types in `@everise/core/api-types`, `serverMessage()` for errors, and the size limits (a component class over 200 lines gets split).
