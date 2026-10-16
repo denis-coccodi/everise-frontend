@@ -1,0 +1,76 @@
+<div class="events-page">
+  <header class="hero">
+    <h1 class="xiv-title">Events</h1>
+    <p>Club nights, parties, races and gatherings players run in game this week. Come along!</p>
+  </header>
+
+  <cdt-event-data-centres />
+
+  <!-- Why the last load failed, in the backend's words. -->
+  <cdt-message class="status" tone="error">{{ store.error() }}</cdt-message>
+
+  @switch (store.loadState()) {
+    @case ('loading') {
+      <p class="notice" role="status">Finding this week's events…</p>
+    }
+    @case ('error') {
+      <cdt-card class="state">
+        <cdt-icon class="state-icon" name="calendar" />
+        <h2>The events didn't load</h2>
+        <p>Partake, where they come from, may be busy for a moment.</p>
+        <button type="button" cdtButton="outline-primary" (click)="store.retry()">
+          <cdt-icon name="refresh" />Try again
+        </button>
+      </cdt-card>
+    }
+    @default {
+      @if (store.total() === 0) {
+        <cdt-card class="state">
+          <cdt-icon class="state-icon" name="calendar" />
+          <h2>No events {{ store.dataCentre() ? 'on ' + store.dataCentre() + ' ' : '' }}this week yet</h2>
+          <p>
+            Running one?
+            <a href="https://www.partake.gg" target="_blank" rel="noopener noreferrer"
+              >Post it on Partake<span class="visually-hidden"> (opens in a new tab)</span></a
+            >
+            and it shows here.
+          </p>
+        </cdt-card>
+      }
+      @if (store.liveNow().length) {
+        <section aria-labelledby="events-live">
+          <h2 id="events-live">On now</h2>
+          <ul class="events">
+            @for (event of store.liveNow(); track event.id) {
+              <li><cdt-event-card [event]="event" [now]="store.now()" /></li>
+            }
+          </ul>
+        </section>
+      }
+      @for (day of store.days(); track day.key) {
+        <section [attr.aria-labelledby]="'events-' + day.key">
+          <h2 [id]="'events-' + day.key">{{ day.heading }}</h2>
+          <ul class="events">
+            @for (event of day.events; track event.id) {
+              <li><cdt-event-card [event]="event" [now]="store.now()" /></li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  }
+
+  @if (!signedIn()) {
+    <p class="join">
+      Everise is a laid-back free company on Odin (Light).
+      <a routerLink="/register">Sign up</a> to share events in our Discord and post in the feed.
+    </p>
+  }
+
+  <p class="source">
+    Events from
+    <a href="https://www.partake.gg" target="_blank" rel="noopener noreferrer"
+      >Partake<span class="visually-hidden"> (opens in a new tab)</span></a
+    >, where organisers list them. Times are in your time zone.
+  </p>
+</div>

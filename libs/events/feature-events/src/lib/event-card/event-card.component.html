@@ -1,0 +1,50 @@
+<cdt-card [flush]="true" [stretch]="true">
+  <article class="event" [attr.aria-labelledby]="headingId()">
+    <!-- Decorative: the title below says what it is. An event without a
+         banner (or whose banner doesn't load) gets the site's own. -->
+    @if (event().banner && !bannerFailed()) {
+      <img class="cover" [src]="event().banner" alt="" loading="lazy" (error)="bannerFailed.set(true)" />
+    } @else {
+      <div class="cover no-banner" aria-hidden="true"><cdt-icon name="calendar" /></div>
+    }
+    <div class="content">
+      <h3 [id]="headingId()">
+        <a [routerLink]="page()">{{ event().title }}</a>
+      </h3>
+      <p class="when" [class.live]="live()">{{ when() }}</p>
+      @if (where()) {
+        <p class="where">{{ where() }}</p>
+      }
+      @if (event().team; as team) {
+        <p class="team">Hosted by {{ team.name }}</p>
+      }
+      @if (event().ageRating === 'MATURE') {
+        <p class="rating">
+          <span cdtTag><span class="visually-hidden">Rated </span>Mature</span>
+        </p>
+      }
+      @if (event().summary) {
+        <p class="summary">{{ event().summary }}</p>
+      }
+      @if (tags().length) {
+        <ul class="tags" aria-label="What it is">
+          @for (tag of tags(); track tag) {
+            <li cdtTag="outline">{{ tag }}</li>
+          }
+        </ul>
+      }
+    </div>
+  </article>
+  <div cdtCardFooter class="links">
+    <!-- The title above already links here, for keyboard and screen readers. -->
+    <a [routerLink]="page()" tabindex="-1" aria-hidden="true">More</a>
+    @if (event().team?.discord; as discord) {
+      <a [href]="discord" target="_blank" rel="noopener noreferrer"
+        >Discord<span class="visually-hidden"> of {{ event().team?.name }} (opens in a new tab)</span></a
+      >
+    }
+    <a [href]="event().url" target="_blank" rel="noopener noreferrer"
+      >On Partake<span class="visually-hidden">: {{ event().title }} (opens in a new tab)</span></a
+    >
+  </div>
+</cdt-card>

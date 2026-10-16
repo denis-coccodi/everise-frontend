@@ -26,6 +26,7 @@ export const NAV_GROUPS: NavGroup[] = [
       // (party-finder/data-access's party-finder-query.ts).
       { label: 'Party Finder', icon: 'party', path: '/party-finder', query: { dc: 'light', world: 'odin' } },
       { label: 'Venues', icon: 'venue', path: '/venues' },
+      { label: 'Events', icon: 'calendar', path: '/events' },
       { label: 'The Waking Sands', icon: 'chat', path: '/waking-sands' },
     ],
   },

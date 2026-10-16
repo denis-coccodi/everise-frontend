@@ -14,6 +14,7 @@ import {
   venuesQuery,
 } from '@everise/venues/data-access';
 import { ButtonComponent, IconComponent, MessageComponent, TagComponent } from '@everise/ui/components';
+import { VenueEventsComponent } from '../venue-events/venue-events.component';
 import { VenueShareDialogComponent } from '../venue-share-dialog/venue-share-dialog.component';
 
 // One venue's own page (/venues/<id>), which venue cards and links shared in
@@ -26,7 +27,15 @@ import { VenueShareDialogComponent } from '../venue-share-dialog/venue-share-dia
   selector: 'cdt-venue-page',
   templateUrl: './venue-page.component.html',
   styleUrl: './venue-page.component.scss',
-  imports: [ButtonComponent, IconComponent, MessageComponent, RouterLink, TagComponent, VenueShareDialogComponent],
+  imports: [
+    ButtonComponent,
+    IconComponent,
+    MessageComponent,
+    RouterLink,
+    TagComponent,
+    VenueEventsComponent,
+    VenueShareDialogComponent,
+  ],
   providers: [VenuePageStore, VenueShareStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
