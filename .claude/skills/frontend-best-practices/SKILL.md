@@ -1,6 +1,6 @@
 ---
 name: frontend-best-practices
-description: Describes how Everise's Angular code is organised and written: which library code belongs in (feature, widget, data-access, ui, util, testing, enforced by tags), one component per folder, stores and services only in data-access, entry-point imports, NgRx signal stores, no any, typed templates, generated API types, serverMessage() for errors, specs, and the size limits that force a long component to be split. Use before writing or changing any TypeScript, component, template, store, service or library, when adding a page or library, and when reviewing a frontend change.
+description: Describes how Everise's Angular code is organised and written: which library code belongs in (feature, widget, data-access, ui, util, testing, enforced by tags), one component per folder, stores and services only in data-access, entry-point imports, NgRx signal stores, resources for loads, signal forms, no any, typed templates, generated API types, serverMessage() for errors, specs, and the size limits that force a long component to be split. Use before writing or changing any TypeScript, component, template, store, service or library, when adding a page or library, and when reviewing a frontend change.
 ---
 
 # Frontend best practices
@@ -48,7 +48,9 @@ Angular's style guide and Nx's generators agree; `node scripts/check-structure.m
 ## Stores (NgRx signal store)
 
 - `signalStore(withState, withComputed, withMethods, withHooks)` in the data-access library. A page's store is provided by the page (`providers: [XStore]`), so it starts and ends with it; app-wide state (`AuthStore`, `SettingsStore`) is `providedIn: 'root'`.
-- API calls are `rxMethod` with `tapResponse` (`switchMap` to load, `exhaustMap` to submit, `mergeMap` for independent actions). Errors become `serverMessage(error)` in state.
+- **A read whose loading or error state a page shows is a resource** (see "Loads as resources" below), when it fits; resources aren't mandatory.
+- Other API calls are `rxMethod` with `tapResponse` (`switchMap` to load, `exhaustMap` to submit, `mergeMap` for independent actions). Errors become `serverMessage(error)` in state. Submits (anything that changes data) are always `rxMethod`.
+- Initial state that reads the clock is a factory, `withState(() => ({ now: Date.now() }))`: an object literal is evaluated once, when the module loads.
 - Live updates, timers and listeners start in `withHooks.onInit` (`rxMethod(...)(observable)` subscribes for the store's lifetime) and stop in `onDestroy`.
 - **State and method names never collide** (`searchTerm` state, `search()` method): a method replaces a state signal of the same name.
 - Derived values are `computed` in `withComputed`; pure helpers (reel items, prompts, formatting) are plain exported functions in their own file.
@@ -59,6 +61,29 @@ Angular's style guide and Nx's generators agree; `node scripts/check-structure.m
 - A failed call ends in state (an error message, or an empty fallback the page can show), never only in `console`.
 - Names: `XStore` in `x.store.ts`, its `XState` and initial state in the store file or `x.model.ts`; the API calls in `XService` (`x.service.ts`), typed with `@everise/core/api-types`.
 - NgRx's lint rules are on (root `eslint.config.mjs`: `ngrx.configs.signals`, `ngrx.configs.operators`); its type-checked rules aren't, as lint here isn't type-aware.
+
+### Loads as resources
+
+A resource tracks a request's status for you, so a store stops hand-writing `loadState`/`error` patches. Use one where that's what the store would otherwise do (`WeeklyStore`, `HuntsStore`, `EventPageStore`, `VenuePageStore`):
+
+- The resource is a private prop, the service stays an Observable: `withProps((_, service = inject(XService)) => ({ _x: rxResource({ params, stream: ({ params }) => service.x(params) }) }))`. The page reads it through `withComputed`: `x`, `loadState: loadStateOf(_x)` and `error: errorMessageOf(_x)` from `@everise/core/data-access`, so components keep reading `store.loadState()` and `store.error()`.
+- `params` come from the route (`toSignal(route.paramMap.pipe(map(...)), { requireSync: true })`) or another store's signals; a change loads afresh, and `undefined` leaves it idle. Polls and "Try again" call `_x.reload()`, which keeps the value while it asks.
+- `value()` throws once a load fails: read it behind `hasValue()`. A refresh that fails keeps what's shown with `extendResource(rxResource(...), withPreviousValueOnError())` (`@ngrx/signals/resource`), but only on a resource whose params don't change, or it shows the previous params' value after a failed switch. A 404 that means "missing" is `error() instanceof HttpErrorResponse && error.status === 404` (an `HttpErrorResponse` arrives unwrapped).
+- Something to do on each answer (a "last checked" time) is an `effect()` in `withHooks.onInit` on `status() === 'resolved'`, its writes `untracked()`.
+- Keep `rxMethod` when a resource doesn't fit: data that mutations also patch (`ArticleStore`, `AuthStore`), debounced searches, "load more", and a list that switches params but keeps the old answer on failure (`VenuesStore`, `PfListingStore`).
+- **Tests.** A resource asks once effects run, and keeps the app unstable until it's answered. Call `TestBed.tick()` (a store spec) or let the fixture render before `expectOne`, flush, then `await whenStable()` before reading the result. Never `await whenStable()` with a resource's request unflushed: it waits until the test times out. That's why `MarketListingsStore` and `EventsStore` stay on `rxMethod`: their page specs wait for stability with the request still open.
+
+## Forms (signal forms)
+
+Angular 22's signal forms (`@angular/forms/signals`) only: never `FormBuilder`, `FormGroup`, `FormControl`, `ReactiveFormsModule`, or `FormsModule`/`ngModel`. The sign in, sign up, settings, characters, article editor and comment forms are the examples.
+
+- The values live in a `signal()` model with the form's own shape, plain strings for text boxes (an API type with optional or nullable fields won't bind; it's what the model is sent as). `form(model, (path) => { required(path.email); email(path.email); }, { submission: { action: async () => this.save() } })`.
+- The template: `<form [formRoot]="form">` (it sets `novalidate`, prevents the reload and runs the action once valid), `[formField]="form.email"` on the native `<input cdtInput>`, and the submit button `[disabled]="form().invalid() || form().pending()"`. Import `FormField` and `FormRoot`.
+- Rules go in the schema function, not the template: limits from the API's answer are `maxLength(path.title, () => this.store.limits()?.title)`, which also sets the native `maxlength`. Don't bind `[attr.maxlength]`, `[required]`, `[disabled]` or `[value]` on a `[formField]` element: the field sets them.
+- Fill the form from loaded data with `model.set(...)` in an `effect()`; read it with `model()`; clear a field with `form.password().reset('')` (value, touched and dirty).
+- Field errors: `<cdt-input-errors [field]="form.email" />`, shown once the field is changed. Its words are `ERROR_MESSAGES` in `core/forms`, keyed by the error's `kind` (`required`, `email`, `minLength`): a new validator kind gets its message there. `cdtInput` sets `aria-invalid` from the bound field (`FORM_FIELD`), and a server's answer goes in `<cdt-list-errors>`.
+- A custom control (`cdt-switch`) with a `checked` or `value` model can take `[formField]` itself; otherwise bind it by hand as the dark mode switch does (`[checked]="form.darkMode().value()"`, then `value.set(...)`).
+- Specs type into the native element (`input.value = '…'; input.dispatchEvent(new Event('input'))`), then `fixture.detectChanges()`.
 
 ## TypeScript
 
@@ -111,6 +136,7 @@ npx nx run everise:build --configuration=production
 npx nx run everise:build --configuration=staging
 git grep -nE ': any\b|<any>|as any[;,)>\]]|\$any\(' -- 'apps/**/*.ts' 'apps/**/*.html' 'libs/**/*.ts' 'libs/**/*.html' ':!*.spec.ts' ':!*test-setup.ts'
 git grep -nE 'errors\?\.body\?\.\[0\]|class="ion-' -- 'apps' 'libs' ':!*.spec.ts' ':!libs/core/forms/src/lib/server-message.ts'
+git grep -nE 'FormBuilder|FormGroup|FormControl|ReactiveFormsModule|FormsModule|ngModel' -- 'apps' 'libs'
 ```
 
-The last two should print nothing.
+The last three should print nothing.
