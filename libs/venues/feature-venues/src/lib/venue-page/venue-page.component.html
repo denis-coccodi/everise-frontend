@@ -64,11 +64,10 @@
           <cdt-venue-share-dialog [venue]="venue" />
         }
 
-        <!-- The week's events held there, with their banners: before the
-             description, where they're seen. -->
-        <cdt-venue-events [events]="store.events()" [now]="store.now()" />
-
         <div class="columns">
+          <!-- The week's events held there, with their banners: first on
+               phones, at the top of the side column on wide screens. -->
+          <cdt-venue-events [events]="store.events()" [now]="store.now()" />
           <section class="about" aria-labelledby="venue-about">
             <h2 id="venue-about">About</h2>
             @for (paragraph of paragraphs(); track $index) {

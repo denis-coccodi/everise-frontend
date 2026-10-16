@@ -3,7 +3,7 @@ import { CommunityEvent } from '@everise/core/api-types';
 import { EventCardComponent } from '@everise/events/event-card';
 import { IconComponent } from '@everise/ui/components';
 
-// "Upcoming events here" on a venue's page, under its heading: the week's
+// "Upcoming events here" on a venue's page, beside its description: the week's
 // events on Partake the backend is sure are held at the venue (on its
 // world, at its house or run by its Discord's team), each a card with its
 // banner linking to its page on the site. Shows nothing when there are none.

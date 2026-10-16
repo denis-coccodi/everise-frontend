@@ -24,8 +24,8 @@ h2 cdt-icon {
   color: var(--color-contrast-muted);
 }
 
-// Phones: one card a row; tablets: two; wide screens: three, as on the
-// Events page.
+// Phones: one card a row; tablets, where the page is one column still:
+// two; wide screens, in the venue page's side column: one again.
 ul {
   display: grid;
   gap: 1rem;
@@ -43,6 +43,6 @@ ul {
 
 @include bp.up(lg) {
   ul {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
