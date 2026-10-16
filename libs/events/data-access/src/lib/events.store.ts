@@ -1,9 +1,10 @@
 import { computed, inject } from '@angular/core';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { CommunityEvent, EventList } from '@everise/core/api-types';
+import { matchesSearch } from '@everise/core/data-access';
 import { serverMessage } from '@everise/core/forms';
 import { interval, map, pipe, switchMap, tap } from 'rxjs';
 import { dayHeading, dayKey, isLive } from './event-time';
@@ -23,6 +24,8 @@ interface EventsState {
   error: string;
   // The data centre shown, from the query string (?dc=light); null for all.
   dataCentre: string | null;
+  // The words typed in the search box, from the query string (?search=dj).
+  search: string;
   now: number;
 }
 
@@ -33,14 +36,15 @@ function initialState(): EventsState {
     loadState: 'loading',
     error: '',
     dataCentre: eventDataCentre(query ?? { get: () => null }),
+    search: query?.get('search') ?? '',
     now: Date.now(),
   };
 }
 
 // The Events page's state: the week's events, those going on now apart
 // from the rest, which are grouped by the day they start; one data
-// centre's or every one's. Refreshed while the page is in view. Provided
-// by the page.
+// centre's or every one's, those matching the search. Refreshed while the
+// page is in view. Provided by the page.
 export const EventsStore = signalStore(
   withState<EventsState>(initialState),
   withComputed((store) => {
@@ -49,7 +53,11 @@ export const EventsStore = signalStore(
       (store.list()?.events ?? []).filter((event) => Date.parse(event.endsAt) > store.now()),
     );
     const shown = computed(() =>
-      current().filter((event) => !store.dataCentre() || event.dataCentre === store.dataCentre()),
+      current().filter(
+        (event) =>
+          (!store.dataCentre() || event.dataCentre === store.dataCentre()) &&
+          matchesSearch(store.search(), searchedText(event)),
+      ),
     );
     return {
       liveNow: computed(() => shown().filter((event) => isLive(event, store.now()))),
@@ -70,7 +78,8 @@ export const EventsStore = signalStore(
       }),
     };
   }),
-  withMethods((store, service = inject(EventsService)) => {
+  withMethods((store, service = inject(EventsService), router = inject(Router)) => {
+    const route = inject(ActivatedRoute, { optional: true });
     const load = rxMethod<void>(
       pipe(
         switchMap(() =>
@@ -92,12 +101,27 @@ export const EventsStore = signalStore(
         patchState(store, { loadState: store.list() ? 'ready' : 'loading', error: '' });
         load();
       },
+      // Typed in the search box: shown at once, and kept in the query string
+      // (the same history entry), so a link brings it along.
+      setSearch: (search: string) => {
+        patchState(store, { search });
+        if (!route) return;
+        void router.navigate([], {
+          relativeTo: route,
+          queryParams: { search: search.trim() || null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      },
       // The query string changed (a data centre's link, Back, Forward): the
-      // list is the same, only what's shown changes.
+      // list is the same, only what's shown changes. The box keeps what was
+      // typed (spaces too) while the address catches up.
       followQuery: rxMethod<ParamMap>(
         pipe(
-          map((query) => eventDataCentre(query)),
-          tap((dataCentre) => patchState(store, { dataCentre })),
+          map((query) => ({ dataCentre: eventDataCentre(query), search: query.get('search') ?? '' })),
+          tap(({ dataCentre, search }) =>
+            patchState(store, { dataCentre, ...(search.trim() !== store.search().trim() && { search }) }),
+          ),
         ),
       ),
       tick: () => patchState(store, { now: Date.now() }),
@@ -112,6 +136,11 @@ export const EventsStore = signalStore(
     },
   })),
 );
+
+// What the search box looks in.
+function searchedText(event: CommunityEvent) {
+  return [event.title, event.team?.name, event.world, event.location, event.dataCentre, ...event.tags, event.summary];
+}
 
 // The events in order, under the day each starts on.
 function byDay(events: CommunityEvent[], now: number) {

@@ -33,6 +33,12 @@ h1 {
   margin-top: 1.5rem;
 }
 
+// The search box, under the data centres, as wide as a card at most.
+.search {
+  max-width: 28rem;
+  margin: 1rem auto 0;
+}
+
 // The backend's words when a load failed, under the data centres.
 .status {
   display: block;

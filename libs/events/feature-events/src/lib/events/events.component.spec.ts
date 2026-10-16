@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { API_URL } from '@everise/core/http-client';
 import { communityEvent, eventList as list } from '../event-fixtures';
@@ -95,5 +95,46 @@ describe('EventsComponent', () => {
 
     expect(page.querySelector('.state')).toBeNull();
     expect(page.querySelectorAll('cdt-event-card')).toHaveLength(3);
+  });
+
+  it('finds events by the words typed, keeps them in the address, and says how many match', async () => {
+    const { harness, fixture, http, page, sections } = await render();
+    http.expectOne('/events').flush(list());
+    await fixture.whenStable();
+
+    const box = page.querySelector('#events-search') as HTMLInputElement;
+    expect(page.querySelector('label[for=events-search]')?.textContent?.trim()).toBe('Find an event');
+    box.value = 'omega  MATURE';
+    box.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    // Event 2 is on Omega: its tags or summary needn't say "mature", but the
+    // words must all be there, so nothing matches.
+    expect(sections()).toEqual([]);
+    expect(page.querySelector('.state h2')?.textContent?.trim()).toBe('No events match “omega  MATURE”');
+
+    box.value = 'omega dj';
+    box.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(sections().flatMap((section) => section.titles)).toEqual(['Event 2']);
+    expect(page.querySelector('[aria-live=polite].visually-hidden')?.textContent?.trim()).toBe('1 event matches');
+    expect(TestBed.inject(Router).url).toBe('/events?search=omega%20dj');
+    // A data centre's link keeps the search.
+    expect(page.querySelector('cdt-event-data-centres a')?.getAttribute('href')).toBe('/events?search=omega%20dj');
+
+    box.value = 'nothing like it';
+    box.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    (page.querySelector('.state button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(box.value).toBe('');
+    expect(document.activeElement).toBe(box);
+    expect(sections().flatMap((section) => section.titles)).toEqual(['Event 1', 'Event 2', 'Event 3']);
+    expect(TestBed.inject(Router).url).toBe('/events');
+
+    // A link with a search opens on it.
+    await harness.navigateByUrl('/events?search=odin');
+    await fixture.whenStable();
+    expect(box.value).toBe('odin');
+    expect(sections().flatMap((section) => section.titles)).toEqual(['Event 1', 'Event 3']);
   });
 });
