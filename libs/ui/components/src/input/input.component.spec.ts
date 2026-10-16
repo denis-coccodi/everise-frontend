@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormField, form, required } from '@angular/forms/signals';
 import { InputComponent } from './input.component';
 
 @Component({
-  imports: [InputComponent, ReactiveFormsModule],
+  imports: [InputComponent, FormField],
   template: `
-    <input id="field" cdtInput="lg" [formControl]="name" />
+    <input id="field" cdtInput="lg" [formField]="form.name" />
     <textarea id="area" cdtInput></textarea>
     <select id="choice" cdtInput="sm">
       <option value="user">User</option>
@@ -15,7 +15,8 @@ import { InputComponent } from './input.component';
   `,
 })
 class HostComponent {
-  readonly name = new FormControl("Y'shtola", Validators.required);
+  readonly model = signal({ name: "Y'shtola" });
+  readonly form = form(this.model, (path) => required(path.name));
 }
 
 describe('InputComponent', () => {
@@ -33,7 +34,7 @@ describe('InputComponent', () => {
 
     field.value = 'Alphinaud';
     field.dispatchEvent(new Event('input'));
-    expect(fixture.componentInstance.name.value).toBe('Alphinaud');
+    expect(fixture.componentInstance.model().name).toBe('Alphinaud');
   });
 
   it('marks an invalid field for screen readers once the person has been in it', async () => {

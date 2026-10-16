@@ -9,7 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormField, FormRoot, email, form, minLength, required } from '@angular/forms/signals';
 import { AuthStore } from '@everise/auth/data-access';
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { SettingsStore } from '@everise/settings/data-access';
@@ -38,7 +38,8 @@ import { SignInMethodsComponent } from '../sign-in-methods/sign-in-methods.compo
     SwitchComponent,
     InputComponent,
     ListErrorsComponent,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
     InputErrorsComponent,
     PictureCropDialogComponent,
     SignInMethodsComponent,
@@ -49,7 +50,6 @@ import { SignInMethodsComponent } from '../sign-in-methods/sign-in-methods.compo
 export class SettingsComponent implements OnDestroy {
   protected readonly authStore = inject(AuthStore);
   private readonly settingsStore = inject(SettingsStore);
-  private readonly fb = inject(FormBuilder);
 
   protected readonly pictureHint = PICTURE_HINT;
   // The picture being cropped in the dialog.
@@ -60,13 +60,23 @@ export class SettingsComponent implements OnDestroy {
   protected readonly hasOwnPicture = computed(() => this.authStore.user().image.includes('/api/profile-images/'));
 
   // The password is only changed when a new one is typed.
-  form = this.fb.nonNullable.group({
-    username: ['', [Validators.required]],
-    bio: [''],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.minLength(8)]],
-    darkMode: [this.settingsStore.darkMode()],
+  private readonly settings = signal({
+    username: '',
+    bio: '',
+    email: '',
+    password: '',
+    darkMode: this.settingsStore.darkMode(),
   });
+  protected readonly form = form(
+    this.settings,
+    (path) => {
+      required(path.username);
+      required(path.email);
+      email(path.email);
+      minLength(path.password, 8);
+    },
+    { submission: { action: async () => this.save() } },
+  );
 
   constructor() {
     // A problem from an earlier visit is old news.
@@ -76,15 +86,21 @@ export class SettingsComponent implements OnDestroy {
   readonly setUserDataToForm = effect(() => {
     const userLoaded = this.authStore.getUserLoaded();
     if (userLoaded) {
-      const user = this.authStore.user();
-      this.form.patchValue({ ...user, bio: user.bio ?? '', password: '', darkMode: user.darkMode });
+      const { username, bio, email, darkMode } = this.authStore.user();
+      this.settings.update((settings) => ({
+        username,
+        bio: bio ?? '',
+        email,
+        password: '',
+        darkMode: darkMode ?? settings.darkMode,
+      }));
     }
   });
 
   // Dark mode is saved with "Update Settings", but shows straight away.
   previewDarkMode(darkMode: boolean) {
-    this.form.controls.darkMode.setValue(darkMode);
-    this.form.controls.darkMode.markAsDirty();
+    this.form.darkMode().value.set(darkMode);
+    this.form.darkMode().markAsDirty();
     this.settingsStore.setDarkMode(darkMode);
   }
 
@@ -96,9 +112,9 @@ export class SettingsComponent implements OnDestroy {
     }
   }
 
-  onSubmit() {
-    const { password, bio, ...fields } = this.form.getRawValue();
-    this.authStore.updateUser({ ...fields, bio, ...(password ? { password } : {}) });
+  private save() {
+    const { password, ...fields } = this.settings();
+    this.authStore.updateUser({ ...fields, ...(password ? { password } : {}) });
   }
 
   // A file chosen in the browser's file window: checked, then cropped in the

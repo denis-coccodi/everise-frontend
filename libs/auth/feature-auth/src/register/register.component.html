@@ -14,39 +14,39 @@
         } @else {
           <cdt-social-sign-in />
 
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <form [formRoot]="form">
             <cdt-field label="Username" for="username" required>
               <input
-                formControlName="username"
+                [formField]="form.username"
                 type="text"
                 id="username"
                 autocomplete="username"
                 placeholder="Username"
                 cdtInput="lg"
               />
-              <cdt-input-errors [control]="form.controls.username" />
+              <cdt-input-errors [field]="form.username" />
             </cdt-field>
             <cdt-field label="Email" for="email" required>
               <input
-                formControlName="email"
+                [formField]="form.email"
                 type="email"
                 id="email"
                 autocomplete="email"
                 placeholder="Email"
                 cdtInput="lg"
               />
-              <cdt-input-errors [control]="form.controls.email" />
+              <cdt-input-errors [field]="form.email" />
             </cdt-field>
             <cdt-field label="Password" for="password" required>
               <input
-                formControlName="password"
+                [formField]="form.password"
                 type="password"
                 id="password"
                 autocomplete="new-password"
                 placeholder="Password"
                 cdtInput="lg"
               />
-              <cdt-input-errors [control]="form.controls.password" />
+              <cdt-input-errors [field]="form.password" />
             </cdt-field>
             <cdt-turnstile action="signup" (token)="turnstileToken.set($event)" />
             <button
@@ -54,7 +54,7 @@
               cdtButton
               size="lg"
               class="pull-xs-right"
-              [disabled]="form.invalid || form.pending || waitingForCheck()"
+              [disabled]="form().invalid() || form().pending() || waitingForCheck()"
               type="submit"
             >
               Sign up

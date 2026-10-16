@@ -63,20 +63,14 @@
         </div>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()">
+      <form [formRoot]="form">
         <cdt-field label="Title" for="character-title">
-          <input id="character-title" cdtInput formControlName="title" [attr.maxlength]="store.limits()?.title" />
+          <input id="character-title" cdtInput [formField]="form.title" />
         </cdt-field>
         <p class="hint field-hint">Under the name in the Waking Sands. Empty goes back to the original.</p>
 
         <cdt-field label="Bio" for="character-bio">
-          <textarea
-            id="character-bio"
-            cdtInput
-            rows="3"
-            formControlName="bio"
-            [attr.maxlength]="store.limits()?.bio"
-          ></textarea>
+          <textarea id="character-bio" cdtInput rows="3" [formField]="form.bio"></textarea>
         </cdt-field>
         <p class="hint field-hint">On their profile. Empty goes back to the original.</p>
 
@@ -85,8 +79,7 @@
             id="character-persona"
             cdtInput
             rows="12"
-            formControlName="persona"
-            [attr.maxlength]="store.limits()?.persona"
+            [formField]="form.persona"
             aria-describedby="character-persona-hint"
           ></textarea>
         </cdt-field>
