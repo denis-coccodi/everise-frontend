@@ -8,7 +8,7 @@ import { CardComponent, IconComponent, TagComponent } from '@everise/ui/componen
 const SHOWN_TAGS = 5;
 
 // One event: its banner, title, when and where, its rating when it's
-// MATURE, the start of its description, its tags, and links to its page
+// MATURE (`compact`: only those but where), the start of its description, its tags, and links to its page
 // here, its team's Discord and Partake (in new tabs).
 @Component({
   selector: 'cdt-event-card',
@@ -20,6 +20,9 @@ const SHOWN_TAGS = 5;
 export class EventCardComponent {
   readonly event = input.required<CommunityEvent>();
   readonly now = input.required<number>();
+  // On a venue's page: the banner, title, when and rating only, as where it
+  // is and who hosts it are the venue.
+  readonly compact = input(false);
 
   protected readonly when = computed(() => whenText(this.event(), this.now()));
   protected readonly live = computed(() => isLive(this.event(), this.now()));

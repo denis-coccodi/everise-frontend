@@ -1,47 +1,48 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
 
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
 :host {
   display: block;
 }
 
 h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0;
+  font-size: 1.3rem;
 }
 
+h2 cdt-icon {
+  color: var(--color-crystal);
+}
+
+.hint {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}
+
+// Phones: one card a row; tablets: two; wide screens: three, as on the
+// Events page.
 ul {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-// Each event: its title, then when (and its rating) under it.
-li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.15rem 0.6rem;
-  padding: 0.5rem 0;
-  border-bottom: var(--border-width) solid var(--color-border-faint);
+@include bp.up(md) {
+  ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-li a {
-  flex: 1 1 100%;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.when {
-  color: var(--color-contrast-soft);
-}
-
-.when.live {
-  font-weight: 600;
-  color: var(--color-primary-bright);
-}
-
-.hint {
-  margin: 0.5rem 0 0;
-  font-size: 0.85rem;
-  color: var(--color-contrast-muted);
+@include bp.up(lg) {
+  ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

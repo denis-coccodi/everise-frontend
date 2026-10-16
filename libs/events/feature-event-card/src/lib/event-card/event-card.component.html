@@ -12,21 +12,21 @@
         <a [routerLink]="page()">{{ event().title }}</a>
       </h3>
       <p class="when" [class.live]="live()">{{ when() }}</p>
-      @if (where()) {
+      @if (where() && !compact()) {
         <p class="where">{{ where() }}</p>
       }
-      @if (event().team; as team) {
-        <p class="team">Hosted by {{ team.name }}</p>
+      @if (event().team && !compact()) {
+        <p class="team">Hosted by {{ event().team?.name }}</p>
       }
       @if (event().ageRating === 'MATURE') {
         <p class="rating">
           <span cdtTag><span class="visually-hidden">Rated </span>Mature</span>
         </p>
       }
-      @if (event().summary) {
+      @if (event().summary && !compact()) {
         <p class="summary">{{ event().summary }}</p>
       }
-      @if (tags().length) {
+      @if (tags().length && !compact()) {
         <ul class="tags" aria-label="What it is">
           @for (tag of tags(); track tag) {
             <li cdtTag="outline">{{ tag }}</li>

@@ -153,9 +153,9 @@ h2 {
   margin-top: 1.5rem;
 }
 
-// The venue's events, first in the side column, when it has any.
-.side cdt-venue-events:not(:empty) {
-  margin-bottom: 1.5rem;
+// The venue's events, under its heading, when it has any.
+cdt-venue-events:not(:empty) {
+  margin-top: 1.5rem;
 }
 
 .schedule li {
