@@ -1,0 +1,17 @@
+{
+  "name": "events-feature-events",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/events/feature-events/src",
+  "prefix": "cdt",
+  "tags": ["type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/events/feature-events"
+      }
+    }
+  }
+}

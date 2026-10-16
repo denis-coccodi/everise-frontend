@@ -34,10 +34,11 @@ describe('NavGroupComponent', () => {
     const trigger = host.querySelector('button[aria-haspopup=menu]') as HTMLButtonElement;
     expect(trigger.textContent?.trim()).toBe('Community');
     expect(host.querySelector('[role=menu]')?.getAttribute('aria-label')).toBe('Community');
-    expect(links().map((a) => a.textContent?.trim())).toEqual(['Party Finder', 'Venues', 'The Waking Sands']);
+    expect(links().map((a) => a.textContent?.trim())).toEqual(['Party Finder', 'Venues', 'Events', 'The Waking Sands']);
     expect(links().map((a) => a.getAttribute('href'))).toEqual([
       '/party-finder?dc=light&world=odin',
       '/venues',
+      '/events',
       '/waking-sands',
     ]);
     expect(links().every((a) => a.getAttribute('role') === 'menuitem')).toBe(true);
@@ -66,10 +67,10 @@ describe('NavGroupComponent', () => {
     const heading = host.querySelector('.heading') as HTMLElement;
     expect(heading.textContent?.trim()).toBe('Community');
     expect(host.querySelector('ul')?.getAttribute('aria-labelledby')).toBe(heading.id);
-    expect(links().map((a) => a.textContent?.trim())).toEqual(['Party Finder', 'Venues', 'The Waking Sands']);
+    expect(links().map((a) => a.textContent?.trim())).toEqual(['Party Finder', 'Venues', 'Events', 'The Waking Sands']);
     expect(host.querySelector('[role=menu]')).toBeNull();
 
     await go('/waking-sands');
-    expect(links()[2].getAttribute('aria-current')).toBe('page');
+    expect(links()[3].getAttribute('aria-current')).toBe('page');
   });
 });

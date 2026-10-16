@@ -33,6 +33,7 @@ export const ICON_NAMES = [
   'chart',
   'search',
   'venue',
+  'calendar',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -151,6 +152,10 @@ export type IconName = (typeof ICON_NAMES)[number];
         }
         @case ('venue') {
           <path d="M7 3h10v4a5 5 0 0 1-10 0zM12 12v8M8 21h8" />
+        }
+        @case ('calendar') {
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M3 10h18M8 3v4M16 3v4" />
         }
         @case ('info') {
           <circle cx="12" cy="12" r="9" />

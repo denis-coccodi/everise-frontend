@@ -1,0 +1,166 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.event-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem 16px 3rem;
+}
+
+.back {
+  margin: 0 0 1rem;
+}
+
+.back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+}
+
+.notice,
+.source,
+.hint {
+  color: var(--color-contrast-muted);
+}
+
+// Partake's banners come in any shape: shown whole up to a height.
+.cover {
+  display: block;
+  width: 100%;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-strong);
+}
+
+// The site's own banner, for an event without one: the calendar in the
+// well, a slim strip.
+.no-banner {
+  aspect-ratio: 6 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-well);
+  box-shadow: var(--shadow-inset);
+  color: var(--color-crystal);
+  font-size: 4rem;
+}
+
+.heading {
+  margin-top: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+.heading p {
+  margin: 0.35rem 0 0;
+}
+
+.when {
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.when.live {
+  color: var(--color-primary-bright);
+}
+
+.hours {
+  color: var(--color-contrast-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.where {
+  color: var(--color-contrast-muted);
+  overflow-wrap: anywhere;
+}
+
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+}
+
+.share cdt-icon {
+  margin-inline-end: 0.35em;
+}
+
+// Phones: the description, then who hosts it and where to find them. Wide
+// screens: those beside the description.
+.columns {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 1.5rem;
+}
+
+@include bp.up(lg) {
+  .columns {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.about cdt-rich-text {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.tags,
+.links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.tags li {
+  font-weight: 300;
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.links a {
+  display: inline-block;
+  padding: 0.3rem 0;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+}
+
+.source {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  text-align: center;
+}

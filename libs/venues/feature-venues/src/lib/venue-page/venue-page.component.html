@@ -90,6 +90,7 @@
           </section>
 
           <aside class="side">
+            <cdt-venue-events [events]="store.events()" [now]="store.now()" />
             <section aria-labelledby="venue-when">
               <h2 id="venue-when">When</h2>
               @if (schedule().length) {
