@@ -104,18 +104,40 @@ h1 {
   margin-inline-end: 0.35em;
 }
 
-// Phones: the description, then when and where to find them. Wide
-// screens: those beside the description.
+// Phones: the venue's events, the description, then when and where to
+// find them. Wide screens: the description on the left, the events over
+// when and where on the right.
 .columns {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   margin-top: 1.5rem;
 }
 
+// No events: no empty cell, nor its gap.
+cdt-venue-events:empty {
+  display: none;
+}
+
 @include bp.up(lg) {
+  // The description fills the left column from the top (dense), and the
+  // right one's boxes stack at their own height however long it is
+  // (auto 1fr); with no events, when and where take the top.
   .columns {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-auto-flow: row dense;
+  }
+
+  .about {
+    grid-column: 1;
+    grid-row: span 2;
+  }
+
+  cdt-venue-events,
+  .side {
+    grid-column: 2;
   }
 }
 
@@ -150,11 +172,6 @@ h2 {
 }
 
 .side section + section {
-  margin-top: 1.5rem;
-}
-
-// The venue's events, under its heading, when it has any.
-cdt-venue-events:not(:empty) {
   margin-top: 1.5rem;
 }
 

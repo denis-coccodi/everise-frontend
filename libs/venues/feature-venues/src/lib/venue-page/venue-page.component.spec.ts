@@ -84,12 +84,9 @@ describe('VenuePageComponent', () => {
     ]);
     // The week's events held there, linking to their pages.
     expect(page.querySelector('cdt-venue-events h2')?.textContent?.trim()).toBe('Upcoming events here');
-    // Under the heading, before the description.
-    const events = page.querySelector('cdt-venue-events') as HTMLElement;
-    expect(events.compareDocumentPosition(page.querySelector('.columns') as HTMLElement)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(page.querySelector('.side cdt-venue-events')).toBeNull();
+    // The columns' first box: first on phones, and the styles put it at the
+    // top of the side column on wide screens.
+    expect(page.querySelector('.columns > :first-child')?.tagName.toLowerCase()).toBe('cdt-venue-events');
     expect(page.querySelector('cdt-venue-events a')?.getAttribute('href')).toBe('/events/56133');
     // Guests can't share.
     expect(page.querySelector('.share')).toBeNull();
