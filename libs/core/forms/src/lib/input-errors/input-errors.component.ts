@@ -1,8 +1,6 @@
-import { KeyValuePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { AbstractControl } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ReadonlyFieldTree } from '@angular/forms/signals';
 import { ErrorMapperPipe } from '../error-mapper/error-mapper.pipe';
-import { IsErrorVisibleDirective } from '../is-error-visible/is-error-visible.directive';
 
 @Component({
   selector: 'cdt-input-errors',
@@ -11,8 +9,15 @@ import { IsErrorVisibleDirective } from '../is-error-visible/is-error-visible.di
   // Always present, so screen readers announce a message when it appears.
   host: { 'aria-live': 'polite' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KeyValuePipe, ErrorMapperPipe, IsErrorVisibleDirective],
+  imports: [ErrorMapperPipe],
 })
 export class InputErrorsComponent {
-  readonly control = input.required<AbstractControl>();
+  // A signal form's field: <cdt-input-errors [field]="form.email" />.
+  readonly field = input.required<ReadonlyFieldTree<unknown>>();
+
+  // Once the person has changed the field, and only while it's wrong.
+  protected readonly errors = computed(() => {
+    const state = this.field()();
+    return state.invalid() && state.dirty() ? state.errors() : [];
+  });
 }

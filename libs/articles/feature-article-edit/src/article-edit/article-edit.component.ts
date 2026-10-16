@@ -1,7 +1,6 @@
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { OnDestroy } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormField, FormRoot, form, required } from '@angular/forms/signals';
 import { ActivatedRoute } from '@angular/router';
 import { ArticleStore, DiscordSharingService } from '@everise/articles/data-access';
 import { AttachmentsEditorComponent } from '@everise/media';
@@ -19,14 +18,14 @@ import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } fr
     ButtonComponent,
     InputComponent,
     ListErrorsComponent,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
     InputErrorsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEditComponent implements OnDestroy {
+export class ArticleEditComponent {
   private readonly articleStore = inject(ArticleStore);
-  private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute).snapshot;
 
   // /editor/:articleId edits an article; /editor writes a new one.
@@ -40,18 +39,21 @@ export class ArticleEditComponent implements OnDestroy {
   protected readonly discordAvailable = inject(DiscordSharingService).available;
   protected readonly shareToDiscord = signal(false);
 
-  form = this.fb.nonNullable.group({
-    title: ['', [Validators.required]],
-    description: ['', [Validators.required]],
-    // May be empty when the post has attachments.
-    body: [''],
-    tagList: [''],
-  });
+  // The body may be empty when the post has attachments.
+  private readonly article = signal({ title: '', description: '', body: '', tagList: '' });
+  protected readonly form = form(
+    this.article,
+    (path) => {
+      required(path.title);
+      required(path.description);
+    },
+    { submission: { action: async () => this.publish() } },
+  );
 
   readonly setArticleDataToForm = effect(() => {
     const articleLoaded = this.articleStore.getArticleLoaded();
     if (articleLoaded) {
-      this.form.patchValue({
+      this.article.set({
         title: this.articleStore.data.title(),
         description: this.articleStore.data.description(),
         body: this.articleStore.data.body(),
@@ -61,13 +63,13 @@ export class ArticleEditComponent implements OnDestroy {
     }
   });
 
-  onSubmit() {
+  private publish() {
     const article = {
       // Tags are typed comma-separated; no tags (or stray commas) send none.
       article: {
-        ...this.form.getRawValue(),
-        tagList: this.form.controls.tagList.value
-          .split(',')
+        ...this.article(),
+        tagList: this.article()
+          .tagList.split(',')
           .map((tag) => tag.trim())
           .filter(Boolean),
         media: this.attachments(),
@@ -81,10 +83,6 @@ export class ArticleEditComponent implements OnDestroy {
         ...(this.shareToDiscord() && this.discordAvailable() ? { shareToDiscord: true } : {}),
       });
     }
-  }
-
-  ngOnDestroy() {
-    this.form.reset();
   }
 }
 

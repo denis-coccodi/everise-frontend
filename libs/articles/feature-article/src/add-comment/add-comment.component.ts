@@ -1,7 +1,7 @@
 import { Article, User } from '@everise/core/api-types';
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { FormField, FormRoot, form } from '@angular/forms/signals';
 import { AttachmentsEditorComponent } from '@everise/media';
 import { NewComment } from '@everise/articles/data-access';
 import { NewAttachment } from '@everise/core/api-types';
@@ -23,7 +23,8 @@ import {
     FieldComponent,
     InputComponent,
     ListErrorsComponent,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
     InputErrorsComponent,
     AttachmentsEditorComponent,
     AvatarComponent,
@@ -31,25 +32,22 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddCommentComponent {
-  private readonly fb = inject(FormBuilder);
-
   article = input.required<Article>();
   currentUser = input.required<User>();
   submitComment = output<NewComment>();
   // An image, GIF or video to go with the comment.
   protected readonly attachments = signal<NewAttachment[]>([]);
 
-  form = this.fb.nonNullable.group({
-    comment: [''],
-  });
+  private readonly comment = signal({ comment: '' });
+  protected readonly form = form(this.comment, { submission: { action: async () => this.submit() } });
 
   // Posts the comment and empties the box for the next one. Text, an
   // attachment, or both.
-  protected submit() {
-    const body = this.form.controls.comment.value;
+  private submit() {
+    const body = this.comment().comment;
     if (!body.trim() && this.attachments().length === 0) return;
     this.submitComment.emit({ body, media: this.attachments() });
-    this.form.reset();
+    this.form().reset({ comment: '' });
     this.attachments.set([]);
   }
 }

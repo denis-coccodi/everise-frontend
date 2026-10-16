@@ -1,8 +1,8 @@
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import { FormField, FormRoot, email, form, minLength, required } from '@angular/forms/signals';
 import { RouterModule } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   ButtonComponent,
   FieldComponent,
@@ -22,7 +22,8 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
     InputComponent,
     ListErrorsComponent,
     RouterModule,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
     InputErrorsComponent,
     SocialSignInComponent,
     CheckEmailComponent,
@@ -32,7 +33,6 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
 })
 export class RegisterComponent {
   private readonly authStore = inject(AuthStore);
-  private readonly fb = inject(FormBuilder);
 
   // Where the confirmation link went, once one has.
   protected readonly linkSentTo = this.authStore.awaitingConfirmation;
@@ -43,16 +43,23 @@ export class RegisterComponent {
   protected readonly turnstileToken = signal<string | null>(null);
   protected readonly waitingForCheck = computed(() => this.checked && !this.turnstileToken());
 
-  form = this.fb.nonNullable.group({
-    username: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-  });
+  private readonly newUser = signal({ username: '', email: '', password: '' });
+  protected readonly form = form(
+    this.newUser,
+    (path) => {
+      required(path.username);
+      required(path.email);
+      email(path.email);
+      required(path.password);
+      minLength(path.password, 8);
+    },
+    { submission: { action: async () => this.signUp() } },
+  );
 
-  onSubmit() {
-    this.authStore.register({ user: this.form.getRawValue(), turnstileToken: this.turnstileToken() ?? undefined });
+  private signUp() {
+    this.authStore.register({ user: this.newUser(), turnstileToken: this.turnstileToken() ?? undefined });
     // Keep the name and email, so a problem only needs that field fixed.
-    this.form.controls.password.reset();
+    this.form.password().reset('');
     // A pass works once: the next try needs a new one.
     this.botCheck()?.reset();
   }

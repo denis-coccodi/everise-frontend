@@ -1,6 +1,6 @@
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormField, FormRoot, email, form, required } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
 import {
@@ -23,7 +23,8 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
     InputComponent,
     ListErrorsComponent,
     RouterLink,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
     InputErrorsComponent,
     SocialSignInComponent,
     CheckEmailComponent,
@@ -34,7 +35,6 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
 })
 export class LoginComponent {
   private readonly authStore = inject(AuthStore);
-  private readonly fb = inject(FormBuilder);
 
   // Sent here by a link from the Everise Discord (discordLinkGuard).
   protected readonly fromDiscord = inject(ActivatedRoute).snapshot.queryParamMap.get('from') === 'discord';
@@ -48,15 +48,21 @@ export class LoginComponent {
   protected readonly turnstileToken = signal<string | null>(null);
   protected readonly waitingForCheck = computed(() => this.checked && !this.turnstileToken());
 
-  form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
-  });
+  private readonly credentials = signal({ email: '', password: '' });
+  protected readonly form = form(
+    this.credentials,
+    (path) => {
+      required(path.email);
+      email(path.email);
+      required(path.password);
+    },
+    { submission: { action: async () => this.signIn() } },
+  );
 
-  onSubmit() {
-    this.authStore.login({ user: this.form.getRawValue(), turnstileToken: this.turnstileToken() ?? undefined });
+  private signIn() {
+    this.authStore.login({ user: this.credentials(), turnstileToken: this.turnstileToken() ?? undefined });
     // Keep the email, so a wrong password only needs the password again.
-    this.form.controls.password.reset();
+    this.form.password().reset('');
     // A pass works once: the next try needs a new one.
     this.botCheck().reset();
   }

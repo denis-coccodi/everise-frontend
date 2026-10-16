@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, input } from '@angular/core';
-import { NgControl } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input } from '@angular/core';
+import { FORM_FIELD } from '@angular/forms/signals';
 
 export type InputSize = 'sm' | 'md' | 'lg';
 
@@ -7,9 +7,9 @@ export type InputSize = 'sm' | 'md' | 'lg';
 // validation and accessibility work as usual: <input cdtInput="lg" ...>. An
 // empty cdtInput is the medium size. A component (allowed on these elements)
 // so its styles live here; its template only passes the content through, so
-// a <select>'s <option>s stay in it. In a reactive or template-driven
-// form, it sets aria-invalid once the person has been in an invalid field, so
-// screen readers announce it and it gets the danger outline.
+// a <select>'s <option>s stay in it. Bound to a signal form's field
+// ([formField]), it sets aria-invalid once the person has been in an invalid
+// field, so screen readers announce it and it gets the danger outline.
 // Outside a form, a template reads what was typed through it, typed:
 // <input cdtInput #name="cdtInput" (input)="set(name.value)">.
 @Component({
@@ -26,7 +26,7 @@ export type InputSize = 'sm' | 'md' | 'lg';
 export class InputComponent {
   readonly cdtInput = input<InputSize | ''>('');
 
-  private readonly control = inject(NgControl, { self: true, optional: true });
+  private readonly field = inject(FORM_FIELD, { self: true, optional: true });
   private readonly element =
     inject<ElementRef<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>>(ElementRef).nativeElement;
 
@@ -35,8 +35,8 @@ export class InputComponent {
     return this.element.value;
   }
 
-  protected invalid() {
-    const control = this.control;
-    return !!control && !!control.invalid && !!(control.touched || control.dirty);
-  }
+  protected readonly invalid = computed(() => {
+    const state = this.field?.state();
+    return !!state && state.invalid() && (state.touched() || state.dirty());
+  });
 }

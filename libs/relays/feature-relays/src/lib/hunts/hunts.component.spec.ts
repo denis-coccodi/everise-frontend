@@ -11,6 +11,7 @@ describe('HuntsComponent', () => {
       providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_URL, useValue: '/api' }],
     });
     const fixture = TestBed.createComponent(HuntsComponent);
+    TestBed.tick();
     TestBed.inject(HttpTestingController).expectOne('/api/hunts').flush(hunts);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;

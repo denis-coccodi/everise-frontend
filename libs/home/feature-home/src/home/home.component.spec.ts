@@ -6,8 +6,16 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { AuthStore } from '@everise/auth/data-access';
 import { API_URL, LiveUpdates } from '@everise/core/http-client';
-import { NEVER } from 'rxjs';
+import { RelaysService } from '@everise/relays/data-access';
+import { NEVER, throwError } from 'rxjs';
 import { HomeComponent } from './home.component';
+
+// The Weekly and Hunts tabs' reads, failing at once: a load in flight would
+// keep the page from settling, and their own specs cover what they show.
+function relays() {
+  const nothing = () => throwError(() => new Error('Not read in this test.'));
+  return { weekly: vi.fn(nothing), hunts: vi.fn(nothing) };
+}
 
 describe('HomeComponent Discord box', () => {
   async function render(loggedIn: boolean) {
@@ -17,6 +25,7 @@ describe('HomeComponent Discord box', () => {
       providers: [
         { provide: AuthStore, useValue: authStore },
         { provide: LiveUpdates, useValue: { events$: NEVER } },
+        { provide: RelaysService, useValue: relays() },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -58,10 +67,12 @@ describe('HomeComponent Discord box', () => {
 
 describe('HomeComponent tabs', () => {
   async function render(loggedIn = false, address = '/') {
+    const relaysService = relays();
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthStore, useValue: { loggedIn: signal(loggedIn) } },
         { provide: LiveUpdates, useValue: { events$: NEVER } },
+        { provide: RelaysService, useValue: relaysService },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: '**', component: HomeComponent }]),
@@ -89,18 +100,19 @@ describe('HomeComponent tabs', () => {
           request.flush({ articles: [], articlesCount: 0 });
           return request.request.url;
         });
-    return { page, tabs, tab, click, http, postRequests, router: TestBed.inject(Router) };
+    return { page, tabs, tab, click, relaysService, postRequests, router: TestBed.inject(Router) };
   }
 
   it('opens on Weekly, then Hunts and the Global Feed, each at its own address; posts load only for a feed', async () => {
-    const { page, tabs, tab, click, http, postRequests, router } = await render();
+    const { page, tabs, tab, click, relaysService, postRequests, router } = await render();
 
     // Guests: no Your Feed.
     expect(tabs().map((t) => t.textContent?.trim())).toEqual(['Weekly', 'Hunts', 'Global Feed']);
     expect(router.url).toBe('/');
     expect(tab('Weekly')?.className).toMatch(/active/);
     expect(page().querySelector('cdt-weekly')).not.toBeNull();
-    expect(http.match('/weekly')).toHaveLength(1);
+    expect(relaysService.weekly).toHaveBeenCalledTimes(1);
+    expect(relaysService.hunts).not.toHaveBeenCalled();
     expect(postRequests()).toEqual([]);
 
     await click('Hunts');

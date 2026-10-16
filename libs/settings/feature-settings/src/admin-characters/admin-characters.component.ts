@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CharacterChanges } from '@everise/core/api-types';
+import { FormField, FormRoot, form, maxLength } from '@angular/forms/signals';
 import { AdminCharactersStore } from '@everise/settings/data-access';
 import {
   AvatarComponent,
@@ -31,7 +30,8 @@ import { PICTURE_HINT, checkChosenFile } from '../profile-picture/profile-pictur
     InputComponent,
     PanelComponent,
     PictureCropDialogComponent,
-    ReactiveFormsModule,
+    FormField,
+    FormRoot,
     TabComponent,
     TabsComponent,
     AvatarComponent,
@@ -44,11 +44,17 @@ export class AdminCharactersComponent {
   protected readonly store = inject(AdminCharactersStore);
 
   protected readonly pictureHint = PICTURE_HINT;
-  protected readonly form = new FormGroup({
-    title: new FormControl('', { nonNullable: true }),
-    persona: new FormControl('', { nonNullable: true }),
-    bio: new FormControl('', { nonNullable: true }),
-  });
+  private readonly changes = signal({ title: '', persona: '', bio: '' });
+  // The lengths come from the backend's answer, and set each box's maxlength.
+  protected readonly form = form(
+    this.changes,
+    (path) => {
+      maxLength(path.title, () => this.store.limits()?.title);
+      maxLength(path.persona, () => this.store.limits()?.persona);
+      maxLength(path.bio, () => this.store.limits()?.bio);
+    },
+    { submission: { action: async () => this.store.save(this.changes()) } },
+  );
   // The picture being cropped in the dialog.
   protected readonly cropping = signal<File | null>(null);
   // The element, not the cdtButton component on it.
@@ -60,14 +66,9 @@ export class AdminCharactersComponent {
     effect(() => {
       const character = this.store.selected();
       if (character) {
-        this.form.setValue({ title: character.title, persona: character.persona, bio: character.bio });
+        this.changes.set({ title: character.title, persona: character.persona, bio: character.bio });
       }
     });
-  }
-
-  protected save() {
-    const changes: CharacterChanges = this.form.getRawValue();
-    this.store.save(changes);
   }
 
   // A file chosen in the browser's file window: checked, then cropped.

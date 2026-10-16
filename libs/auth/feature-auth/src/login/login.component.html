@@ -21,28 +21,28 @@
 
         <cdt-social-sign-in />
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <form [formRoot]="form">
           <cdt-field label="Email" for="email" required>
             <input
-              formControlName="email"
+              [formField]="form.email"
               type="email"
               id="email"
               autocomplete="email"
               placeholder="Email"
               cdtInput="lg"
             />
-            <cdt-input-errors [control]="form.controls.email"></cdt-input-errors>
+            <cdt-input-errors [field]="form.email"></cdt-input-errors>
           </cdt-field>
           <cdt-field label="Password" for="password" required>
             <input
-              formControlName="password"
+              [formField]="form.password"
               type="password"
               id="password"
               autocomplete="current-password"
               placeholder="Password"
               cdtInput="lg"
             />
-            <cdt-input-errors [control]="form.controls.password"></cdt-input-errors>
+            <cdt-input-errors [field]="form.password"></cdt-input-errors>
           </cdt-field>
           <cdt-turnstile action="login" (token)="turnstileToken.set($event)" />
           <button
@@ -50,7 +50,7 @@
             cdtButton
             size="lg"
             class="pull-xs-right"
-            [disabled]="form.invalid || form.pending || waitingForCheck()"
+            [disabled]="form().invalid() || form().pending() || waitingForCheck()"
             type="submit"
           >
             Sign in

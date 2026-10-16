@@ -1,18 +1,19 @@
 import { InjectionToken } from '@angular/core';
+import { ValidationError } from '@angular/forms/signals';
 
-// A validator's error value is whatever the validator put there; each
-// message reads what it needs from it.
-export type ErrorMessage = (error: unknown) => string;
+// A signal forms validator's error, by its kind; each message reads what it
+// needs from it.
+export type ErrorMessage = (error: ValidationError) => string;
 
 export const ERROR_MESSAGES: Record<string, ErrorMessage> = {
   required: () => `Fill in this field.`,
   email: () => `Enter a valid email address, like name@example.com.`,
-  minlength: (error) => `Use at least ${requiredLength(error)} characters.`,
+  minLength: (error) => `Use at least ${requiredLength(error)} characters.`,
 };
 
-// Angular's minlength error: { requiredLength, actualLength }.
-function requiredLength(error: unknown) {
-  return typeof error === 'object' && error !== null && 'requiredLength' in error ? Number(error.requiredLength) : 0;
+// The minLength validator's error: { kind: 'minLength', minLength }.
+function requiredLength(error: ValidationError) {
+  return 'minLength' in error ? Number(error.minLength) : 0;
 }
 
 export const VALIDATION_ERROR_MESSAGES = new InjectionToken(`Validation Messages`, {

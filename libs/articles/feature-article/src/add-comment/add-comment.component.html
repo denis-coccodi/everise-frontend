@@ -1,16 +1,16 @@
 <cdt-list-errors> </cdt-list-errors>
 
-<form [formGroup]="form" (ngSubmit)="submit()">
+<form [formRoot]="form">
   <cdt-card [flush]="true">
     <cdt-field label="Comment" for="new-comment" hideLabel>
       <textarea
         id="new-comment"
-        formControlName="comment"
+        [formField]="form.comment"
         rows="5"
         placeholder="Write a comment..."
         cdtInput="lg"
       ></textarea>
-      <cdt-input-errors [control]="form.controls.comment" />
+      <cdt-input-errors [field]="form.comment" />
     </cdt-field>
     <cdt-attachments-editor class="media-tools" [(items)]="attachments" [max]="1" />
     <div cdtCardFooter class="footer">

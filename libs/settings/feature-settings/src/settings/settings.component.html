@@ -64,37 +64,37 @@
         }
 
         <cdt-list-errors />
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <form [formRoot]="form">
           <cdt-field label="Username" for="username" required>
             <input
-              formControlName="username"
+              [formField]="form.username"
               type="text"
               id="username"
               autocomplete="username"
               placeholder="Your Name"
               cdtInput="lg"
             />
-            <cdt-input-errors [control]="form.controls.username" />
+            <cdt-input-errors [field]="form.username" />
           </cdt-field>
           <cdt-field label="Bio" for="bio">
             <textarea
               cdtInput="lg"
               rows="5"
               id="bio"
-              formControlName="bio"
+              [formField]="form.bio"
               placeholder="Short bio about you"
             ></textarea>
           </cdt-field>
           <cdt-field label="Email" for="email" required>
             <input
-              formControlName="email"
+              [formField]="form.email"
               type="email"
               id="email"
               autocomplete="email"
               placeholder="Email"
               cdtInput="lg"
             />
-            <cdt-input-errors [control]="form.controls.email" />
+            <cdt-input-errors [field]="form.email" />
             @if (authStore.user().pendingEmail; as pending) {
               <p class="pending-email" role="status">
                 We sent a link to <strong>{{ pending }}</strong
@@ -104,20 +104,20 @@
           </cdt-field>
           <cdt-field label="New password" for="password">
             <input
-              formControlName="password"
+              [formField]="form.password"
               type="password"
               id="password"
               placeholder="New password (leave empty to keep yours)"
               autocomplete="new-password"
               cdtInput="lg"
             />
-            <cdt-input-errors [control]="form.controls.password" />
+            <cdt-input-errors [field]="form.password" />
           </cdt-field>
           <!-- Saved with the rest; previewed as soon as it changes. -->
           <fieldset class="appearance">
             <legend class="legend">Appearance</legend>
             <cdt-switch
-              [checked]="form.controls.darkMode.value"
+              [checked]="form.darkMode().value()"
               (checkedChange)="previewDarkMode($event)"
               onIcon="moon"
               offIcon="sun"
@@ -130,7 +130,7 @@
             data-testid="edit-button-container"
             cdtButton
             size="lg"
-            [disabled]="form.invalid || form.pending"
+            [disabled]="form().invalid() || form().pending()"
             type="submit"
           >
             Update Settings
