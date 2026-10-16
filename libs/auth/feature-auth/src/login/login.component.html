@@ -44,6 +44,9 @@
             />
             <cdt-input-errors [field]="form.password"></cdt-input-errors>
           </cdt-field>
+          <p>
+            <a routerLink="/forgot-password">Forgot your password?</a>
+          </p>
           <cdt-turnstile action="login" (token)="turnstileToken.set($event)" />
           <button
             data-testid="sign-in"
