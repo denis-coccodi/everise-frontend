@@ -78,6 +78,16 @@ describe('SettingsComponent dark mode', () => {
     );
   });
 
+  it("leaves the mode to the default when saving other settings for someone who hasn't chosen one", async () => {
+    const { fixture, page, authStore } = await render({ ...user, darkMode: undefined });
+
+    (page.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    expect(authStore.updateUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'Urianger' }));
+    expect(authStore.updateUser).not.toHaveBeenCalledWith(expect.objectContaining({ darkMode: expect.anything() }));
+  });
+
   it('puts the saved mode back when left without saving', async () => {
     const { fixture, darkMode, settings } = await render();
 

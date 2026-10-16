@@ -112,9 +112,12 @@ export class SettingsComponent implements OnDestroy {
     }
   }
 
+  // The mode is saved only once it's the person's choice: one they saved
+  // before, or the switch flipped; otherwise it keeps following the default.
   private save() {
-    const { password, ...fields } = this.settings();
-    this.authStore.updateUser({ ...fields, ...(password ? { password } : {}) });
+    const { password, darkMode, ...fields } = this.settings();
+    const chosen = this.authStore.user().darkMode !== undefined || this.form.darkMode().dirty();
+    this.authStore.updateUser({ ...fields, ...(chosen ? { darkMode } : {}), ...(password ? { password } : {}) });
   }
 
   // A file chosen in the browser's file window: checked, then cropped in the
