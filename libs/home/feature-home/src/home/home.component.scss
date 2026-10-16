@@ -45,6 +45,31 @@ cdt-banner .free {
   margin-bottom: -1px;
 }
 
+// New Post, above the feed's posts. Phones: across the column, an easy
+// target; wider: at the column's end.
+.compose {
+  display: flex;
+  margin: 1rem 0 0.75rem;
+}
+
+.compose a {
+  flex: 1;
+}
+
+.compose cdt-icon {
+  margin-inline-end: 0.35em;
+}
+
+@include bp.up(sm) {
+  .compose {
+    justify-content: flex-end;
+  }
+
+  .compose a {
+    flex: none;
+  }
+}
+
 // Phones: the sidebar stacks under the feed, a panel's gap below it.
 // Wider: beside the feed, a little further from it than the grid's gutter.
 .col-md-3 {

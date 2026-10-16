@@ -125,17 +125,16 @@ describe('NavbarComponent', () => {
     fixture.componentRef.setInput('isLoggedIn', true);
     await fixture.whenStable();
 
-    // In the bar (from md up): the page groups, New Post, then the bell just
-    // before the account menu.
+    // In the bar (from md up): the page groups, then the bell just before
+    // the account menu. New Post is on the feeds, not in the bar.
     const items = [...panel().querySelectorAll(':scope > ul > li.wide-only')];
     expect(items.map((item) => item.firstElementChild?.tagName.toLowerCase())).toEqual([
       'cdt-nav-group',
       'cdt-nav-group',
-      'a',
       'cdt-notifications',
       'cdt-account-nav',
     ]);
-    expect(items[2].textContent?.trim()).toBe('New Post');
+    expect(page().querySelector('a[href="/editor"]')).toBeNull();
     // In the bar, just before the Menu button, outside the folding menu (phones only).
     const actions = page().querySelector('.bar-actions.narrow-only') as HTMLElement;
     expect([...actions.children].map((child) => child.tagName.toLowerCase())).toEqual(['cdt-notifications', 'button']);

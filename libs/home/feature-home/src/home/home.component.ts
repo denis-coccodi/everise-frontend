@@ -1,10 +1,12 @@
 import { Component, ChangeDetectionStrategy, computed, inject, effect, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ArticlesListStore, ListType, TagsStore, articlesListInitialState } from '@everise/articles/data-access';
 import { LiveUpdates } from '@everise/core/http-client';
 import {
   BannerComponent,
+  ButtonComponent,
   CommunityLinksComponent,
   IconComponent,
   TabComponent,
@@ -38,6 +40,9 @@ const VIEW_HEADINGS: Record<HomeView, string> = {
   styleUrl: './home.component.scss',
   imports: [
     BannerComponent,
+    ButtonComponent,
+    NgTemplateOutlet,
+    RouterLink,
     CommunityLinksComponent,
     DiscordWidgetComponent,
     TabsComponent,
