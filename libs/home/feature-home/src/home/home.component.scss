@@ -71,14 +71,17 @@ cdt-banner .free {
 }
 
 // Phones: the sidebar stacks under the feed, a panel's gap below it.
-// Wider: beside the feed, a little further from it than the grid's gutter.
+// Wider: beside the feed, a little further from it than the grid's gutter,
+// its top level with the feed's first panel rather than with the tabs: the
+// tab row (2.5rem of text and padding, its underline, less the -1px of
+// .feed-toggle) and the 1.5rem gap under it.
 .col-md-3 {
   margin-top: 1.5rem;
 }
 
 @include bp.up(md) {
   .col-md-3 {
-    margin-top: 0;
+    margin-top: calc(4rem + var(--border-width-strong) - 1px);
   }
 
   .sidebar {
