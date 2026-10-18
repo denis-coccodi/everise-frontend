@@ -3342,6 +3342,145 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/users/logout-everywhere': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sign out on every device */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Signed out everywhere. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/password-reset': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Email a code to choose a new password with */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['PasswordResetRequest'];
+        };
+      };
+      responses: {
+        /** @description Sent, if the address has an account. */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PasswordResetResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/users/password-reset/confirm': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Set a new password with the email's code */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          'application/json': components['schemas']['NewPasswordWithCode'];
+        };
+      };
+      responses: {
+        /** @description Changed; every device was signed out. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/venues': {
     parameters: {
       query?: never;
@@ -3825,12 +3964,25 @@ export interface components {
       };
       turnstileToken?: string;
     };
+    PasswordResetRequest: {
+      user: {
+        /** Format: email */
+        email: string;
+      };
+      turnstileToken?: string;
+    };
+    NewPasswordWithCode: {
+      code: string;
+      password: string;
+      turnstileToken?: string;
+    };
     UserUpdate: {
       user: {
         /** Format: email */
         email?: string;
         username?: string;
         password?: string;
+        currentPassword?: string;
         bio?: string | null;
         /** Format: uri */
         image?: string;
@@ -3972,6 +4124,11 @@ export interface components {
       };
     };
     RegistrationResponse: components['schemas']['UserResponse'] | components['schemas']['ConfirmationResponse'];
+    PasswordResetResponse: {
+      passwordReset: {
+        email: string;
+      };
+    };
     SandsLine: {
       id: string;
       /** Format: date-time */
