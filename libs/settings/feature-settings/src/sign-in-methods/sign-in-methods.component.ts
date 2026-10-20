@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService, AuthStore } from '@everise/auth/data-access';
-import { RouterLink } from '@angular/router';
-import { ButtonComponent, IconComponent } from '@everise/ui/components';
 import { catchError, map, of } from 'rxjs';
 
 const PROVIDERS = [
@@ -12,15 +10,14 @@ const PROVIDERS = [
   { id: 'discord', name: 'Discord', icon: 'assets/images/discord.svg' },
 ] as const;
 
-// In the settings: the ways into this account. The password, and the Google
-// and Facebook accounts tied to it, with a word on how to add the others.
-// Providers the backend isn't set up for are only listed when already tied.
-// Under them, signing out on every device.
+// In the settings' account section: the Google, Facebook, Microsoft and
+// Discord accounts tied to this one, with a word on how to tie the others.
+// Providers the backend isn't set up for are only listed when already tied;
+// with none at all, nothing shows.
 @Component({
   selector: 'cdt-sign-in-methods',
   templateUrl: './sign-in-methods.component.html',
   styleUrl: './sign-in-methods.component.scss',
-  imports: [ButtonComponent, IconComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignInMethodsComponent {
@@ -38,15 +35,9 @@ export class SignInMethodsComponent {
 
   private readonly methods = computed(() => this.authStore.user().signInMethods ?? []);
 
-  protected readonly hasPassword = computed(() => this.methods().includes('password'));
-
   protected readonly providers = computed(() =>
     PROVIDERS.map((provider) => ({ ...provider, tied: this.methods().includes(provider.id) })).filter(
       (provider) => provider.tied || this.available().includes(provider.id),
     ),
   );
-
-  protected signOutEverywhere() {
-    this.authStore.logoutEverywhere();
-  }
 }

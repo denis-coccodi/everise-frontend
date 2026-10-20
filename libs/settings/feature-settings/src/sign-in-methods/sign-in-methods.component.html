@@ -1,18 +1,6 @@
-<section aria-labelledby="sign-in-heading">
-  <h2 id="sign-in-heading" class="xiv-label">Ways to sign in</h2>
+@if (providers().length) {
+  <h3 class="heading">Connected accounts</h3>
   <ul class="methods">
-    <li class="method">
-      <cdt-icon class="method-icon" name="mail" />
-      <span class="name">Email and password</span>
-      @if (hasPassword()) {
-        <span class="state tied">Set</span>
-      } @else {
-        <span class="state"
-          >Not set: <a routerLink="/forgot-password">get a code by email</a> to set one and also sign in with your
-          email.</span
-        >
-      }
-    </li>
     @for (provider of providers(); track provider.id) {
       <li class="method">
         <img class="method-icon" [src]="provider.icon" alt="" width="20" height="20" />
@@ -27,10 +15,4 @@
       </li>
     }
   </ul>
-  <div class="everywhere">
-    <button type="button" cdtButton="outline-secondary" size="sm" (click)="signOutEverywhere()">
-      Sign out everywhere
-    </button>
-    <p class="hint">Signs you out on every device, this one too. Changing your password does the same.</p>
-  </div>
-</section>
+}

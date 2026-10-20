@@ -83,16 +83,16 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
+      // The profile settings (name, bio, mode); the email and password change
+      // in their own windows (AccountChangesStore).
       updateUser: rxMethod<UserChanges>(
         pipe(
           exhaustMap((user) =>
             authService.update(user).pipe(
               tapResponse({
                 next: ({ user }) => {
-                  const newPending = !!user.pendingEmail && user.pendingEmail !== store.user().pendingEmail;
                   patchState(store, { user });
-                  // A new email waits for its link: the settings say so.
-                  if (!newPending) router.navigate(['profile', user.id]);
+                  router.navigate(['profile', user.id]);
                 },
                 error: (response: HttpErrorResponse) => formErrorsStore.setResponseErrors(response),
               }),
@@ -172,6 +172,10 @@ export const AuthStore = signalStore(
       // A password reset signed every device out, this one too.
       signedOut() {
         patchState(store, { user: initialUserValue, loggedIn: false });
+      },
+      // The account's email or password changed in the settings' windows.
+      userChanged(user: User) {
+        patchState(store, { user });
       },
     }),
   ),

@@ -11,6 +11,7 @@ export const ERROR_MESSAGES: Record<string, ErrorMessage> = {
   minLength: (error) => `Use at least ${requiredLength(error)} characters.`,
   maxLength: (error) => `Use at most ${'maxLength' in error ? Number(error.maxLength) : 0} characters.`,
   sameAs: () => `The two passwords don't match.`,
+  sameEmail: () => `That's already your email address.`,
 };
 
 // The minLength validator's error: { kind: 'minLength', minLength }.

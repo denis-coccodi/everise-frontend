@@ -1,11 +1,16 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
 :host {
   display: block;
-  margin-bottom: 1.5rem;
 }
 
-h2 {
-  margin: 0 0 0.5rem;
+// Like the account rows' names, not a display heading.
+.heading {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--color-contrast);
 }
 
 .methods {
@@ -43,15 +48,4 @@ h2 {
 .tied {
   color: var(--color-primary-strong);
   font-weight: 600;
-}
-
-// Signing out on every device, under the list.
-.everywhere {
-  margin-top: 0.75rem;
-}
-
-.hint {
-  margin: 0.5rem 0 0;
-  font-size: 0.85rem;
-  color: var(--color-contrast-muted);
 }
