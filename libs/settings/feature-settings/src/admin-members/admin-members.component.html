@@ -42,6 +42,12 @@
           <span class="who">
             <a class="name" [routerLink]="['/profile', member.id]">{{ member.username }}</a>
             <span class="email">{{ member.email }}</span>
+            <span class="sign-ins">
+              Signs in with {{ signInsOf(member) }}
+              @if (!member.emailConfirmed) {
+                <span class="unconfirmed">· Email not confirmed</span>
+              }
+            </span>
           </span>
           @if (member.role === 'admin') {
             <span class="admin">Admin</span>

@@ -7,8 +7,24 @@ import { API_URL } from '@everise/core/http-client';
 import { AdminMembersComponent } from './admin-members.component';
 
 const members: Member[] = [
-  { id: 'id-minfilia', username: 'Minfilia', email: 'minfilia@example.com', image: '/m.png', role: 'admin' },
-  { id: 'id-thancred', username: 'Thancred', email: 'thancred@example.com', image: '/t.png', role: 'user' },
+  {
+    id: 'id-minfilia',
+    username: 'Minfilia',
+    email: 'minfilia@example.com',
+    image: '/m.png',
+    role: 'admin',
+    signInMethods: ['password'],
+    emailConfirmed: true,
+  },
+  {
+    id: 'id-thancred',
+    username: 'Thancred',
+    email: 'thancred@example.com',
+    image: '/t.png',
+    role: 'user',
+    signInMethods: ['google', 'discord'],
+    emailConfirmed: false,
+  },
 ];
 
 describe('AdminMembersComponent', () => {
@@ -45,6 +61,13 @@ describe('AdminMembersComponent', () => {
     const select = rows[1].querySelector('select') as HTMLSelectElement;
     expect(select.value).toBe('user');
     expect((select.labels?.[0] as HTMLLabelElement).textContent?.trim()).toBe('Role of Thancred');
+  });
+
+  it('says how each member signs in, and when their email is not confirmed', async () => {
+    const { page } = await render();
+
+    const signIns = [...page.querySelectorAll('.sign-ins')].map((s) => s.textContent?.replace(/\s+/g, ' ').trim());
+    expect(signIns).toEqual(['Signs in with Email', 'Signs in with Google · Discord · Email not confirmed']);
   });
 
   it('changes a role and says whether staging access followed', async () => {

@@ -55,6 +55,17 @@
   color: var(--color-contrast-muted);
 }
 
+// How they sign in, and whether their email is confirmed.
+.sign-ins {
+  font-size: 0.8rem;
+  color: var(--color-contrast-muted);
+}
+
+.unconfirmed {
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
 .role {
   flex: 0 0 auto;
   width: auto;
