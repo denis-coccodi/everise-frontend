@@ -56,17 +56,22 @@ describe('ChangePasswordDialogComponent', () => {
     expect(submit().disabled).toBe(false);
   });
 
+  it('shows the account as text, which takes no focus', async () => {
+    const { page } = await render();
+
+    expect(page.querySelector('.what')?.textContent).toContain('The password of yda@example.com.');
+    expect(document.activeElement?.id).toBe('current-password');
+  });
+
   // What Chrome and other password managers read to suggest a strong
   // password and save it for this account.
   it("names the account to password managers, and marks each password's role", async () => {
     const { page } = await render();
     const form = page.querySelector('form') as HTMLFormElement;
-    const username = form.querySelector('#account-email') as HTMLInputElement;
-    expect(username.getAttribute('autocomplete')).toBe('username');
+    const username = form.querySelector('input[autocomplete=username]') as HTMLInputElement;
 
     expect(username.value).toBe('yda@example.com');
-    expect(username.readOnly).toBe(true);
-    expect(username.hidden).toBe(false);
+    expect(username.hidden).toBe(true);
     expect([...form.querySelectorAll('input[type=password]')].map((i) => i.getAttribute('autocomplete'))).toEqual([
       'current-password',
       'new-password',
