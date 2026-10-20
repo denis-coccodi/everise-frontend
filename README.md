@@ -4,7 +4,7 @@
 
 **The Everise FC community site: a Final Fantasy XIV–themed feed, profiles and a Duty Roulette that posts your next run.**
 
-[![CI/CD](https://github.com/denis-coccodi/everise-frontend/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/denis-coccodi/everise-frontend/actions/workflows/ci-cd.yaml)
+[![Test and deploy staging](https://github.com/denis-coccodi/everise-frontend/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/denis-coccodi/everise-frontend/actions/workflows/ci-cd.yaml)
 ![Angular 22](https://img.shields.io/badge/Angular-22-dd0031?logo=angular&logoColor=white)
 ![Nx 23](https://img.shields.io/badge/Nx-23-143055?logo=nx&logoColor=white)
 ![NgRx Signals](https://img.shields.io/badge/NgRx-Signal%20Store-ba2bd2)
@@ -196,7 +196,7 @@ Browser ──> prod / staging  ├─ static files (Angular build)
 | Environment | URL                         | Environment file                                                               | API                                                 | Deployed by                                                                               |
 | ----------- | --------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | local       | http://localhost:4200       | [environment.ts](apps/everise/src/environments/environment.ts)                 | http://localhost:8080/api (direct, CORS)            | `npm start`                                                                               |
-| staging     | https://staging.everise.dev | [environment.staging.ts](apps/everise/src/environments/environment.staging.ts) | `/api` → `be-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([CI/CD](.github/workflows/ci-cd.yaml))                             |
+| staging     | https://staging.everise.dev | [environment.staging.ts](apps/everise/src/environments/environment.staging.ts) | `/api` → `be-staging` (binding in `wrangler.jsonc`) | every merge to `main` ([Test and deploy staging](.github/workflows/ci-cd.yaml))           |
 | production  | https://everise.dev         | [environment.prod.ts](apps/everise/src/environments/environment.prod.ts)       | `/api` → `be-prod` (binding in `wrangler.jsonc`)    | by hand: Actions → Deploy production → Run workflow, only for commits that passed staging |
 
 Each Worker's custom domain is declared under `routes` in `wrangler.jsonc` (`everise.dev`, `staging.everise.dev`); the backends answer at `apis.everise.dev` and `staging.apis.everise.dev`. The old `workers.dev` addresses (`prod.everisefc.workers.dev`, `staging.everisefc.workers.dev`) stay on, so links saved before the move keep working.
@@ -204,6 +204,8 @@ Each Worker's custom domain is declared under `routes` in `wrangler.jsonc` (`eve
 Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/): only allowed people can open it, after logging in once. CI gets through with an Access service token (`CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` repository secrets).
 
 The bot check ([Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/)) on sign-up, sign-in and resending a confirmation link uses `turnstileSiteKey` from the environment: the Everise widget's site key on staging and production (public; the backend holds the secret, `TURNSTILE_SECRET_KEY`), and locally Cloudflare's test key, which always passes and shows "For testing only". The forms wait for the widget's pass, send it as `turnstileToken`, and ask for a new one after each try (a pass works once). An empty key turns the check off.
+
+Dependabot ([.github/dependabot.yml](.github/dependabot.yml)) opens pull requests every Monday that update the npm packages and the GitHub Actions: one for Angular, Nx and NgRx's minor and patch updates, one for every other minor and patch update, one per other major. Angular, Nx and NgRx majors go through `npx nx migrate latest` instead. The PRs come from `dependabot/…` branches, the one exception to the branch names, and are merged like any other once **test** passes.
 
 ### Search engines
 

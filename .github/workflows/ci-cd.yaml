@@ -1,8 +1,8 @@
-name: CI/CD
+name: Test and deploy staging
 
 # Pushes to main build the app and deploy it to staging. Any other branch can be
-# built and deployed to staging by hand: Actions → CI/CD → Run workflow → pick
-# the branch. Pull requests only build.
+# built and deployed to staging by hand: Actions → Test and deploy staging →
+# Run workflow → pick the branch. Pull requests only build.
 # Production is deployed separately: see deploy-production.yaml.
 on:
   push:
