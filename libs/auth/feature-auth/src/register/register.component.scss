@@ -1,0 +1,62 @@
+// Uses the theme's role tokens only (../../../../ui/components/src/theme).
+
+// The password rule under the field, ticked once met: in the primary colour
+// (the site has no green), and in words too for screen readers.
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+.rule cdt-icon {
+  visibility: hidden;
+}
+
+.rule.met {
+  color: var(--color-primary-strong);
+}
+
+.rule.met cdt-icon {
+  visibility: visible;
+}
+
+// The username: apart from what signs in, under its own heading.
+.profile {
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 0 0;
+  border: 0;
+  border-top: var(--border-width) solid var(--color-divider);
+  min-width: 0;
+}
+
+.legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-label);
+}
+
+// The legend floats so the border stays above it; the field starts under it.
+.legend + cdt-field {
+  clear: both;
+}
+
+.hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}
+
+.privacy {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--color-contrast-muted);
+}

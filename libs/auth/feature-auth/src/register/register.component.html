@@ -2,64 +2,75 @@
   <div class="container page">
     <div class="row">
       <div class="col-md-6 offset-md-3 col-xs-12">
-        <h1 class="text-xs-center">Sign up</h1>
-        <p class="text-xs-center">
-          <a [routerLink]="['/login']">Have an account?</a>
-        </p>
+        <h1 class="text-xs-center">Create your account</h1>
 
         <cdt-list-errors></cdt-list-errors>
 
         @if (linkSentTo(); as email) {
           <cdt-check-email [email]="email" />
         } @else {
-          <cdt-social-sign-in />
+          <cdt-panel class="window">
+            <cdt-social-sign-in />
 
-          <form [formRoot]="form">
-            <cdt-field label="Username" for="username" required>
-              <input
-                [formField]="form.username"
-                type="text"
-                id="username"
-                autocomplete="nickname"
-                placeholder="Username"
-                cdtInput="lg"
-              />
-              <cdt-input-errors [field]="form.username" />
-            </cdt-field>
-            <cdt-field label="Email" for="email" required>
-              <input
-                [formField]="form.email"
-                type="email"
-                id="email"
-                autocomplete="username"
-                placeholder="Email"
-                cdtInput="lg"
-              />
-              <cdt-input-errors [field]="form.email" />
-            </cdt-field>
-            <cdt-field label="Password" for="password" required>
-              <input
-                [formField]="form.password"
-                type="password"
-                id="password"
-                autocomplete="new-password"
-                placeholder="Password"
-                cdtInput="lg"
-              />
-              <cdt-input-errors [field]="form.password" />
-            </cdt-field>
-            <cdt-turnstile action="signup" (token)="turnstileToken.set($event)" />
-            <button
-              data-testid="sign-up"
-              cdtButton
-              size="lg"
-              class="pull-xs-right"
-              [disabled]="form().invalid() || form().pending() || waitingForCheck()"
-              type="submit"
-            >
-              Sign up
-            </button>
-          </form>
+            <form [formRoot]="form">
+              <cdt-field label="Email" for="email" required>
+                <input [formField]="form.email" type="email" id="email" autocomplete="username" cdtInput="lg" />
+                <cdt-input-errors [field]="form.email" />
+              </cdt-field>
+              <cdt-field label="Password" for="password" required>
+                <input
+                  [formField]="form.password"
+                  type="password"
+                  id="password"
+                  autocomplete="new-password"
+                  aria-describedby="password-rule"
+                  cdtInput="lg"
+                />
+                <cdt-show-password for="password" />
+                <p id="password-rule" class="rule" [class.met]="passwordFits()">
+                  <cdt-icon name="check" />8 to 72 characters
+                  @if (passwordFits()) {
+                    <span class="visually-hidden">: done</span>
+                  }
+                </p>
+                <cdt-input-errors [field]="form.password" />
+              </cdt-field>
+
+              <!-- Not part of signing in: how others see you, set apart and last. -->
+              <fieldset class="profile">
+                <legend class="legend">Your name on Everise</legend>
+                <cdt-field label="Username" for="username" required>
+                  <input
+                    [formField]="form.username"
+                    type="text"
+                    id="username"
+                    autocomplete="nickname"
+                    aria-describedby="username-hint"
+                    cdtInput="lg"
+                  />
+                  <p id="username-hint" class="hint">
+                    Shown on your posts and profile. You sign in with your email, and can change this later in Settings.
+                  </p>
+                  <cdt-input-errors [field]="form.username" />
+                </cdt-field>
+              </fieldset>
+
+              <cdt-turnstile action="signup" (token)="turnstileToken.set($event)" />
+              <button
+                data-testid="sign-up"
+                cdtButton
+                size="lg"
+                class="submit"
+                [disabled]="form().invalid() || form().pending() || waitingForCheck()"
+                type="submit"
+              >
+                Create account
+              </button>
+            </form>
+
+            <p class="switch">Already have an account? <a [routerLink]="['/login']">Sign in</a></p>
+          </cdt-panel>
+          <p class="privacy">By creating an account you agree to the <a routerLink="/privacy">privacy policy</a>.</p>
         }
       </div>
     </div>

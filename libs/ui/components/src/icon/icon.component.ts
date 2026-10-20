@@ -34,6 +34,7 @@ export const ICON_NAMES = [
   'search',
   'venue',
   'calendar',
+  'check',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -50,6 +51,9 @@ export type IconName = (typeof ICON_NAMES)[number];
       @switch (name()) {
         @case ('menu') {
           <path d="M4 7h16M4 12h16M4 17h16" />
+        }
+        @case ('check') {
+          <path d="M5 12.5l4.5 4.5L19 7" />
         }
         @case ('close') {
           <path d="M6 6l12 12M18 6L6 18" />

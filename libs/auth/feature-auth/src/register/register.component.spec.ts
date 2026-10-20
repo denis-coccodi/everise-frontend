@@ -50,10 +50,53 @@ describe('RegisterComponent', () => {
     await fixture.whenStable();
     return {
       fixture,
+      page,
+      type,
       http: TestBed.inject(HttpTestingController),
       button: page.querySelector('[data-testid=sign-up]') as HTMLButtonElement,
     };
   }
+
+  it('asks for what signs in first, then the username apart, under its own heading', async () => {
+    const { page } = await render('');
+
+    expect([...page.querySelectorAll('form input')].map((input) => input.id)).toEqual([
+      'email',
+      'password',
+      'username',
+    ]);
+    const profile = page.querySelector('fieldset.profile') as HTMLFieldSetElement;
+    expect(profile.querySelector('legend')?.textContent?.trim()).toBe('Your name on Everise');
+    expect(profile.querySelector('#username')?.getAttribute('aria-describedby')).toBe('username-hint');
+    expect(page.querySelector('#username-hint')?.textContent).toContain('You sign in with your email');
+    expect(page.querySelector('[data-testid=sign-up]')?.textContent?.trim()).toBe('Create account');
+  });
+
+  it('shows the password rule up front, ticked once met', async () => {
+    const { fixture, page, type } = await render('');
+    const rule = page.querySelector('#password-rule') as HTMLElement;
+    expect(page.querySelector('#password')?.getAttribute('aria-describedby')).toBe('password-rule');
+    expect(rule.classList).toContain('met');
+
+    type('password', 'short');
+    await fixture.whenStable();
+
+    expect(rule.textContent?.trim()).toBe('8 to 72 characters');
+    expect(rule.classList).not.toContain('met');
+  });
+
+  it('can show the password instead of asking for it twice', async () => {
+    const { fixture, page } = await render('');
+    const password = page.querySelector('#password') as HTMLInputElement;
+    const show = page.querySelector('cdt-show-password button') as HTMLButtonElement;
+    document.body.appendChild(page);
+
+    show.click();
+    await fixture.whenStable();
+
+    expect(password.type).toBe('text');
+    expect(page.querySelectorAll('input[type=password]')).toHaveLength(0);
+  });
 
   it('waits for the bot check, then sends its pass with the sign-up and asks for a new one', async () => {
     const { fixture, http, button } = await render();

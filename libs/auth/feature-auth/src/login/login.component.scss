@@ -1,0 +1,14 @@
+// Uses the theme's role tokens only (../../../../ui/components/src/theme).
+
+// "Forgot your password?" under the password.
+.forgot {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+}
+
+// The Discord link's note, apart from the window.
+.from-discord {
+  display: block;
+  margin-bottom: 1rem;
+}

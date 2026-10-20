@@ -13,9 +13,9 @@ test.beforeEach(async () => {
 test('Successful login', async ({ page }) => {
   await page.goto('/login');
 
-  await page.locator("[placeholder='Email']").fill(`${userId}@example.com`);
-  await page.locator("[placeholder='Password']").fill(userId);
-  await page.locator("[placeholder='Password']").blur();
+  await page.locator('#email').fill(`${userId}@example.com`);
+  await page.locator('#password').fill(userId);
+  await page.locator('#password').blur();
   await page.getByTestId('sign-in').click();
 
   await expect(page.getByTestId('loggedin-user')).toContainText(userId);
@@ -24,9 +24,9 @@ test('Successful login', async ({ page }) => {
 test('Unsuccessful login', async ({ page }) => {
   await page.goto('/login');
 
-  await page.locator("[placeholder='Email']").fill(`${userId}@example.com`);
-  await page.locator("[placeholder='Password']").fill('111111111');
-  await page.locator("[placeholder='Password']").blur();
+  await page.locator('#email').fill(`${userId}@example.com`);
+  await page.locator('#password').fill('111111111');
+  await page.locator('#password').blur();
   await page.getByTestId('sign-in').click();
 
   await expect(page.getByTestId('error')).toContainText('message User not found');
