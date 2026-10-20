@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService, AuthStore } from '@everise/auth/data-access';
-import { IconComponent } from '@everise/ui/components';
+import { RouterLink } from '@angular/router';
+import { ButtonComponent, IconComponent } from '@everise/ui/components';
 import { catchError, map, of } from 'rxjs';
 
 const PROVIDERS = [
@@ -14,11 +15,12 @@ const PROVIDERS = [
 // In the settings: the ways into this account. The password, and the Google
 // and Facebook accounts tied to it, with a word on how to add the others.
 // Providers the backend isn't set up for are only listed when already tied.
+// Under them, signing out on every device.
 @Component({
   selector: 'cdt-sign-in-methods',
   templateUrl: './sign-in-methods.component.html',
   styleUrl: './sign-in-methods.component.scss',
-  imports: [IconComponent],
+  imports: [ButtonComponent, IconComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignInMethodsComponent {
@@ -43,4 +45,8 @@ export class SignInMethodsComponent {
       (provider) => provider.tied || this.available().includes(provider.id),
     ),
   );
+
+  protected signOutEverywhere() {
+    this.authStore.logoutEverywhere();
+  }
 }

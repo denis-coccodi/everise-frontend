@@ -1,0 +1,47 @@
+<!-- The profile picture: chosen in the browser's file window and uploaded right away. -->
+<section class="picture" aria-labelledby="picture-heading">
+  <cdt-avatar [src]="authStore.user().image" alt="Your profile picture" [size]="96" frame="strong" />
+  <div class="picture-controls">
+    <h2 id="picture-heading" class="xiv-label">Profile picture</h2>
+    <input
+      #pictureInput
+      type="file"
+      class="file-input"
+      tabindex="-1"
+      aria-label="Profile picture file"
+      accept="image/*"
+      (change)="onPictureChosen(pictureInput)"
+    />
+    <div class="picture-buttons">
+      <button
+        #chooseButton
+        type="button"
+        cdtButton="outline-primary"
+        size="sm"
+        [disabled]="authStore.imageBusy()"
+        (click)="pictureInput.click()"
+      >
+        {{ authStore.imageBusy() ? 'Saving…' : 'Choose a picture' }}
+      </button>
+      @if (hasOwnPicture()) {
+        <button
+          type="button"
+          cdtButton="outline-secondary"
+          size="sm"
+          [disabled]="authStore.imageBusy()"
+          (click)="removePicture()"
+        >
+          Remove
+        </button>
+      }
+    </div>
+    <p class="hint">{{ pictureHint }}</p>
+    @if (authStore.imageError(); as error) {
+      <p class="picture-error" role="alert">{{ error }}</p>
+    }
+  </div>
+</section>
+
+@if (cropping(); as file) {
+  <cdt-picture-crop-dialog [file]="file" (chosen)="onCropped($event)" (cancelled)="closeCropDialog()" />
+}
