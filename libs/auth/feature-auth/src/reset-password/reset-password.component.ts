@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormField, FormRoot, form, maxLength, minLength, required } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { PasswordResetStore } from '@everise/auth/data-access';
+import { PasswordResetStore, resetEmail, resetEmailState } from '@everise/auth/data-access';
 import { InputErrorsComponent, ListErrorsComponent, sameAs } from '@everise/core/forms';
 import {
   ButtonComponent,
@@ -19,6 +19,7 @@ import {
 @Component({
   selector: 'cdt-reset-password',
   templateUrl: './reset-password.component.html',
+  styleUrl: './reset-password.component.scss',
   imports: [
     ButtonComponent,
     FieldComponent,
@@ -36,6 +37,12 @@ import {
 })
 export class ResetPasswordComponent {
   protected readonly store = inject(PasswordResetStore);
+
+  // Where the code was just sent, coming from "Forgot your password?";
+  // unknown when the page is opened from the email's link.
+  protected readonly sentTo = resetEmail();
+  // Back to fix the address, with it filled in.
+  protected readonly changeEmailState = this.sentTo ? resetEmailState(this.sentTo) : undefined;
 
   // The bot check's pass; with a site key, the form waits for it.
   private readonly botCheck = viewChild.required(TurnstileComponent);

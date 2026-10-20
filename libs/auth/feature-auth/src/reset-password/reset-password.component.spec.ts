@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
 import { API_URL } from '@everise/core/http-client';
 import { TURNSTILE_SITE_KEY } from '@everise/ui/components';
@@ -92,5 +92,37 @@ describe('ResetPasswordComponent', () => {
     expect(page.textContent).toContain('Use at least 8 characters.');
     await type('password', 'x'.repeat(73));
     expect(page.textContent).toContain('Use at most 72 characters.');
+  });
+  describe('coming from "Forgot your password?"', () => {
+    afterEach(() => history.replaceState(null, ''));
+
+    it('says where the code went, to look in junk, and offers to change the address, keeping it', async () => {
+      history.replaceState({ resetEmail: 'yshtola@example.com' }, '');
+      const { fixture, page } = await render();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+      const sent = page.querySelector('cdt-message.sent') as HTMLElement;
+      expect(sent.getAttribute('role')).toBe('status');
+      expect(sent.textContent?.replace(/\s+/g, ' ')).toContain(
+        "If yshtola@example.com has an Everise account, we've sent it a code.",
+      );
+      expect(sent.textContent).toContain('Look in your junk or spam folder.');
+
+      const change = [...page.querySelectorAll('a')].find((a) => a.textContent?.trim() === 'Change it')!;
+      expect(change.getAttribute('href')).toBe('/forgot-password');
+      change.click();
+      await fixture.whenStable();
+      expect(navigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ state: { resetEmail: 'yshtola@example.com' } }),
+      );
+    });
+
+    it("offers to ask for a code when it doesn't know where one went (the email's link)", async () => {
+      const { page } = await render({ code: 'ABCD-EFGH' });
+
+      expect(page.querySelector('cdt-message.sent')).toBeNull();
+      expect(page.textContent).toContain('No code? Ask for one');
+    });
   });
 });

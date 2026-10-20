@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { API_URL } from '@everise/core/http-client';
 import { FormErrorsStore } from '@everise/core/forms';
 import { patchState } from '@ngrx/signals';
@@ -27,15 +27,30 @@ describe('PasswordResetStore', () => {
     };
   }
 
-  it('asks for a code, busy until the answer, then keeps where it may have gone', () => {
+  it('asks for a code, busy until the answer, then goes on to entering it, saying where it went', () => {
     const { store, http } = setup();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
     store.requestCode({ user: { email: 'thancred@example.com' } });
     expect(store.busy()).toBe(true);
     http.expectOne('/api/users/password-reset').flush({ passwordReset: { email: 'thancred@example.com' } });
 
     expect(store.busy()).toBe(false);
-    expect(store.sentTo()).toBe('thancred@example.com');
+    expect(navigate).toHaveBeenCalledWith(['/reset-password'], {
+      state: { resetEmail: 'thancred@example.com' },
+    });
+  });
+
+  it('stays on the page when the server refuses', () => {
+    const { store, http } = setup();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate');
+
+    store.requestCode({ user: { email: 'thancred@example.com' } });
+    http
+      .expectOne('/api/users/password-reset')
+      .flush({ errors: { body: ['Too soon.'] } }, { status: 429, statusText: 'Too Many Requests' });
+
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('sets the new password and signs this device out too', () => {

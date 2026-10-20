@@ -1,19 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormField, FormRoot, email, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
-import { PasswordResetStore } from '@everise/auth/data-access';
+import { PasswordResetStore, resetEmail } from '@everise/auth/data-access';
 import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
 import {
   ButtonComponent,
   FieldComponent,
   InputComponent,
-  MessageComponent,
   TURNSTILE_SITE_KEY,
   TurnstileComponent,
 } from '@everise/ui/components';
 
 // "Forgot password?" on the sign-in page: emails a code to choose a new
-// password with (/reset-password).
+// password with, then goes on to the page for entering it (/reset-password).
 @Component({
   selector: 'cdt-forgot-password',
   templateUrl: './forgot-password.component.html',
@@ -23,7 +22,6 @@ import {
     InputComponent,
     InputErrorsComponent,
     ListErrorsComponent,
-    MessageComponent,
     TurnstileComponent,
     FormField,
     FormRoot,
@@ -41,7 +39,8 @@ export class ForgotPasswordComponent {
   protected readonly turnstileToken = signal<string | null>(null);
   protected readonly waitingForCheck = computed(() => this.checked && !this.turnstileToken());
 
-  private readonly model = signal({ email: '' });
+  // Back from the code page to fix the address: it's filled in.
+  private readonly model = signal({ email: resetEmail() ?? '' });
   protected readonly form = form(
     this.model,
     (path) => {
