@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Member } from '@everise/core/api-types';
+
 import { AdminMembersStore, isAssignableRole } from '@everise/settings/data-access';
 import {
   AvatarComponent,
@@ -29,6 +30,15 @@ import {
 // tester lets them open the staging site; admins come from the backend's
 // settings and can't be changed here. A member can also be deleted for
 // good, after a confirmation, e.g. when they ask under the privacy policy.
+// The names of the ways to sign in, as the member list shows them.
+const SIGN_IN_NAMES: Record<Member['signInMethods'][number], string> = {
+  password: 'Email',
+  google: 'Google',
+  facebook: 'Facebook',
+  microsoft: 'Microsoft',
+  discord: 'Discord',
+};
+
 @Component({
   selector: 'cdt-admin-members',
   templateUrl: './admin-members.component.html',
@@ -75,6 +85,11 @@ export class AdminMembersComponent {
   }
 
   // The role chosen in the member's list (a select's value).
+  // How a member signs in, in words: "Email · Google".
+  protected signInsOf(member: Member) {
+    return member.signInMethods.map((method) => SIGN_IN_NAMES[method]).join(' · ');
+  }
+
   protected changeRole(member: Member, role: string) {
     if (isAssignableRole(role) && role !== member.role) this.store.changeRole({ member, role });
   }

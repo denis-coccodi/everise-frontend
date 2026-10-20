@@ -4167,6 +4167,8 @@ export interface components {
       image: string;
       /** @enum {string} */
       role: 'admin' | 'staging-tester' | 'user';
+      signInMethods: ('password' | 'google' | 'facebook' | 'microsoft' | 'discord')[];
+      emailConfirmed: boolean;
     };
     StagingAccessSync: {
       synced: boolean;
