@@ -2,7 +2,7 @@
 
 # ✦ Everise ✦
 
-**The Everise FC community site: a Final Fantasy XIV–themed feed, profiles and a Duty Roulette that posts your next run.**
+**The Everise FC community site, themed after Final Fantasy XIV: the free company's feed and Discord news, the Party Finder, community events and venues, a Duty Roulette, market price history and a chat with the game's characters.**
 
 [![Test and deploy staging](https://github.com/denis-coccodi/everise-frontend/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/denis-coccodi/everise-frontend/actions/workflows/ci-cd.yaml)
 ![Angular 22](https://img.shields.io/badge/Angular-22-dd0031?logo=angular&logoColor=white)
@@ -29,6 +29,9 @@
 - **Duty Roulette** (`/roulette`). Three reels pick the duty type, the duty and how you run it (Min IL, Unsynced, Awktrail, everyone on one job…), from the real game data. The page starts with nothing ticked: you pick the duty types (turning on Duty Roulettes, PvP or Gold Saucer ticks their usual entries, all but custom matches). The Duty Finder settings (duty types, ticked roulettes, PvP and Gold Saucer entries, level range) live in the page's query string, only where they differ from the defaults (`/roulette?types=Dungeons,Duty Roulettes&min=50`), so a link or a bookmark brings them along. **Commence** posts the result to the feeds as a duty card: with your comment when you're signed in (and, if you tick **Also share in the Everise Discord**, in the free company's Discord channel too), or by **Tataru** for guests, on the site only: the Waking Sands character herself, with a line the backend's AI writes in her voice about what the guest got, posting as her character profile.
 - **The Waking Sands** (`/waking-sands`). A chat with FINAL FANTASY XIV characters, voiced by an AI on the backend (Workers AI): **Tataru**, **Urianger** and **Y'shtola**, and the free company's own **Barnaby Bollocksworth**, a foul-mouthed braggart whose tales of slaying primals don't add up, and **Bernadette "Bernie" Starling**, a cheerful Astrologian (the healer job) who reads anyone's fortune with her star globe and an arcanum from her deck, by the Twelve (each zodiac sign is the god of the month it starts in: Pisces is Menphina's). One room every member shares, live: members bring characters in or send them out for everyone and talk; after each member's line the characters answer as they see fit (at least one, each up to twice, answering each other too). Lines, who's in and who's writing arrive over the live updates' WebSocket (`LiveUpdates.sands$`), and the page reloads the room whenever the socket (re)connects, so nothing is missed. The room keeps the last day; guests can watch. Each character's name leads to their **profile** (`/profile/character:<id>`), like a member's: their picture, a bio in their own voice and their posts (Tataru's: guests' roulette results), with a note that they're an AI-voiced character; nobody can follow them, and only admins change them. The backend keeps each member and the site within a daily budget.
 - **Party Finder** (`/party-finder`, open to everyone; everything it shows is in its query string, by id: `?dc=light&world=odin&category=high-end-duty-savage&slot=healer&search=…&sort=ending-soon&no-duty=show&beginners=only&page=2`, so any view can be linked). The Party Finder listings up in the game on any data centre (picked by region, Europe first; **Light** from **Odin** when arriving at the page, **Chaos** next; picking a data centre, Light too, shows all its worlds), as [xivpf.com](https://xivpf.com/listings) collects them from players' Remote Party Finder plugin: in the game's order (by Party Finder tab, high-end duty savage first, then ultimates, then extremes, then the highest level duty first, the newest among duties of one level, one duty's listings by time left) or by time left, last seen, players needed, item level or name, 20 a page, tiles laid out like the game's: the duty type's icon and the duty (treasure maps, deep dungeons and roulettes named right, where xivpf's API mixes them up), the sprout when beginners are welcome, the conditions in brackets, the description, where the party is, item level and players still needed, and the slots as the game's job and role icons, an open slot's accepted jobs in a tooltip; time left. Filter by world (what you can join from it: the whole data centre plus that world's own Hunt and FATE parties, explained in a tooltip), category, an open slot for your role and words to find; listings without a duty are hidden unless switched on. The page asks again every 30 seconds while it's in view (the backend reads xivpf at most once a minute); nothing is kept in the browser, and a refresh keeps your place in the list and the page you're on. Signed-in members can **Share as post** (the listing as it is then, with their message, shown in the feeds with the same card; optionally in the Discord too) or **Share to Discord** (the listing with their message, in the free company's channel only). Anything going to Discord takes a picture of the listing's card along, drawn in the member's browser (`html-to-image`) and uploaded with it. Links from the Discord carry `?from=discord`: whoever opens one signed out is asked to sign in first (`discordLinkGuard`), then brought back; a Discord-only share opens its data centre's page with the listing pinned under **Shared with you** while it's up.
+- **Events** (`/events`, open to everyone; `?dc=chaos` for one data centre, `?search=` to find by words). The community's FFXIV events this week (club nights, parties, races, gatherings) as [Partake](https://www.partake.gg) lists them, only those rated at most MATURE (labelled "Mature"; the backend never sends ADULT ones): those on now first, then the rest under the day they start, asked again every 5 minutes. Each has its own page (`/events/<id>`): the organisers' description, when and where in the visitor's time, who hosts it, the venue it's held at when the backend is sure of it, and for members **Share to Discord** until it ends. Event pages are kept out of search engines: Partake is their home (`@everise/events/feature-events`, `@everise/events/event-card`).
+- **Venues** (`/venues`, open to everyone; Light by default, `?dc=` for another, `?search=`). The community's player-run venues (taverns, cafés, clubs…) as [FFXIV Venues](https://ffxivvenues.com) lists them, only the safe-for-work ones its team approved: those open now first, then the rest of the week. A venue's page (`/venues/<id>`) has its whole description, its regular openings in the visitor's time, its links, the week's Partake events held there, and **Share to Discord** for members (`@everise/venues/feature-venues`).
+- **Market History** (`/market-history`, for members; guests see what it does and a way to sign up). One item's median sale price over time on every world of a region (and Oceania's, when asked), a line per world, from the sales players report to [Universalis](https://universalis.app); above the chart, the cheapest listing now and the lowest prices today and in the days shown. The item, region, quality, days and worlds are all in the address, so a link shows anyone the same chart (`@everise/market/feature-market`).
 - **Found by search engines.** The pages people search for (home, Party Finder and each data centre's page, roulette, Waking Sands, posts) get their own title, description, canonical address, link-preview card and [schema.org](https://schema.org) data from the Worker ([Search engines](#search-engines)), and `robots.txt` and `sitemap.xml` list what to crawl.
 - **Notifications** (the bell in the header, for members, as Facebook has it). Who liked (favorited) or commented on your posts, grouped per post ("Alisaie, Alphinaud and 3 others liked your post …", a comment's opening words under it), and who started following you; each names the members and the post, linked to their profiles and the post. The site's own news shows its crest: a Party Finder listing you shared is no longer up (linked to its data centre's listings, or to the post you shared it as; the Discord hears too when it was shared there), and an admin changed your role. The badge counts what you haven't seen, asked for every minute while the tab is shown and when you come back to it; opening the list makes them seen, and each stays highlighted until you open it or **Mark all as read**. The panel closes on following a link, Escape or a click outside (`NotificationsStore` in `@everise/notifications/data-access`).
 - **Profiles and settings.** Profile pictures picked in the browser, cropped to a square and shrunk to the backend's limits before uploading; bio, email, password; an account menu in the header.
@@ -72,10 +75,11 @@ The Duty Roulette needs game data: run the backend's duty refresh once (its READ
 | `npm run api-types`                                                     | Regenerate the API types from the backend's `openapi.json` ([API types](#api-types)) |
 | `node scripts/check-sizes.mjs`                                          | Check every file is within its size limit ([Code conventions](#code-conventions))    |
 | `node scripts/check-structure.mjs`                                      | Check every file is in the right folder ([Code conventions](#code-conventions))      |
-| `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` | Regenerate a diagram ([below](#architecture))                                        |
+| `node scripts/check-mobile-first.mjs`                                   | Check styles are written for phones first ([Code conventions](#code-conventions))    |
+| `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` | Regenerate a diagram (or `website-structure.js`; [below](#website-structure))        |
 | `node tools/crest/update-crest.mjs`                                     | Redraw the crest and `favicon.ico` from the free company's Lodestone page            |
 
-Before pushing, `node scripts/check-sizes.mjs && node scripts/check-structure.mjs && npx nx run-many -t lint test && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must pass: it's the same as the required `test` check. Every change goes through a `feature/<name>` branch and a pull request to `main`.
+Before pushing, `node scripts/check-sizes.mjs && node scripts/check-structure.mjs && node scripts/check-mobile-first.mjs && npx nx run-many -t lint test && npx tsc -p worker/tsconfig.json && npx vitest run --config worker/vitest.config.mts && npx nx run everise:build --configuration=production && npx nx run everise:build --configuration=staging` must pass: it's the same as the required `test` check. Every change goes through a `bugfix/`, `hotfix/` or `feature/` branch and a pull request to `main` (the `feature-branch` skill).
 
 ## Architecture
 
@@ -83,13 +87,14 @@ Before pushing, `node scripts/check-sizes.mjs && node scripts/check-structure.mj
 
 ![Everise frontend: Nx apps and libraries by layer, with their dependencies](docs/frontend-structure.svg)
 
-One Angular app (`apps/everise`) is a thin shell: routes, guard, page titles, HTTP setup and layout. Everything else lives in libraries under `libs/`, grouped by domain (`auth`, `articles`, `home`, `market`, `media`, `notifications`, `party-finder`, `profile`, `relays`, `roulette`, `settings`, `waking-sands`) and layered:
+One Angular app (`apps/everise`) is a thin shell: routes, guard, page titles, HTTP setup and layout. Everything else lives in libraries under `libs/`, grouped by domain (`articles`, `auth`, `events`, `home`, `market`, `media`, `notifications`, `party-finder`, `profile`, `relays`, `roulette`, `settings`, `venues`, `waking-sands`, plus `core` and `ui`) and layered:
 
-- **feature** libs: one per page, lazy-loaded by the router (`feature-articles-list` and `relays/feature-relays` are the exceptions: widgets shown on other pages, the shared list on Home and Profile, the Weekly and Hunts tabs on Home);
-- **data-access** libs: NgRx signal stores, API services, guards and resolvers;
+- **feature** libs: a page or a few related pages, lazy-loaded by the router;
+- **widget** libs: feature pieces several pages show, so no page imports another: the feed list (`articles/feature-articles-list`, on Home and Profile), the Weekly and Hunts tabs (`relays/feature-relays`), the event card (`events/feature-event-card`, on the Events page and a venue's page), the Party Finder listing card (`party-finder/feature-pf-listing`, in the Party Finder and in posts) and post media (`media/feature-media`);
+- **data-access** libs: NgRx signal stores, API services, guards and resolvers. A load whose loading or error a page shows is an Angular resource, which the page reads directly (`hasValue()`, `isLoading()`, `error()`);
 - **core** and **ui** libs: API types, HTTP client (with `LiveUpdates`, the live updates WebSocket), form errors and error handling; the **ui** lib also holds the theme and the themed building blocks every page uses ([Theme](#theme)). They have no dependencies on other libs.
 
-Dependencies only point down a layer or sideways within a domain.
+Dependencies point down a layer (a page may use any domain's widgets and data-access, as the articles page shows Party Finder cards), never up and never from one page to another; lint enforces it.
 
 ### API types
 
@@ -99,7 +104,7 @@ The shapes the app sends and receives aren't written by hand. The backend descri
 
 ![Everise website: pages, what they show, where they lead, and site-wide rules](docs/website-structure.svg)
 
-Both images are generated: run `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` (or `website-structure.js`) after changing the structure, then refresh the PNG copy with a headless browser, e.g. `msedge --headless=new --hide-scrollbars --window-size=1760,1000 --screenshot=docs/frontend-structure.png docs/frontend-structure.svg` (`1560,1236` for the website image).
+Both images are generated, and refuse to generate when they'd leave something out. `frontend-structure.js` reads the Nx project graph and each data-access library's exports; a new project needs a line in its `PROJECTS`. `website-structure.js` reads the routes from `app.config.ts` and the navbar's groups from `nav-groups.ts`; a new route needs a card in its `SECTIONS`. They share their colours (`tools/diagrams/colours.js`), one per domain. Run `node tools/diagrams/frontend-structure.js docs/frontend-structure.svg` (or `website-structure.js docs/website-structure.svg`) after changing either, then refresh the PNG copy with a headless browser at the size the script prints, e.g. `msedge --headless=new --hide-scrollbars --window-size=1560,2635 --screenshot=docs/frontend-structure.png docs/frontend-structure.svg`.
 
 ### Theme
 
@@ -119,26 +124,32 @@ The site looks like Final Fantasy / FFXIV: crystal motifs, deep-blue windows, si
 
 **The UI library provides the dumb, themed building blocks** every page uses. Each sits in its own folder with its `.ts`, `.scss` and `.spec.ts`:
 
-| Building block        | For                                                                                       |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| `cdtButton`           | buttons and button links                                                                  |
-| `cdtInput`            | text fields and text areas (marks invalid fields with `aria-invalid`)                     |
-| `<cdt-field>`         | a form field with its visible label and its errors                                        |
-| `<cdt-checkbox>`      | a checkbox with its label                                                                 |
-| `<cdt-switch>`        | an on/off switch for a setting that applies at once (dark mode)                           |
-| `<cdt-tooltip>`       | a note on hover or keyboard focus (Escape hides it), read as a description                |
-| `<cdt-turnstile>`     | Cloudflare Turnstile, the bot check on sign-up, sign-in and resending a confirmation link |
-| `<cdt-panel>`         | a window                                                                                  |
-| `<cdt-card>`          | a card with an optional footer                                                            |
-| `<cdt-banner>`        | a page's title strip                                                                      |
-| `<cdt-dialog>`        | a modal window that keeps the keyboard focus inside and gives it back                     |
-| `<cdt-duty-card>`     | a roulette result, like the "Duty Found" window                                           |
-| `<cdt-image-cropper>` | choosing a square area of a picture                                                       |
-| `<cdt-menu>`          | a button that opens a menu (the account menu), with `cdtMenuItem` entries                 |
-| `<cdt-byline>`        | an avatar, author name and date                                                           |
-| `cdtTabs` / `cdtTab`  | tab bars: links for pages, buttons for views                                              |
-| `cdtTag`              | tag pills                                                                                 |
-| `<cdt-pager>`         | pagination                                                                                |
+| Building block          | For                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `cdtButton`             | buttons and button links                                                                  |
+| `cdtInput`              | text fields and text areas (marks invalid fields with `aria-invalid`)                     |
+| `<cdt-field>`           | a form field with its visible label and its errors                                        |
+| `<cdt-checkbox>`        | a checkbox with its label                                                                 |
+| `<cdt-switch>`          | an on/off switch for a setting that applies at once (dark mode)                           |
+| `<cdt-tooltip>`         | a note on hover or keyboard focus (Escape hides it), read as a description                |
+| `<cdt-turnstile>`       | Cloudflare Turnstile, the bot check on sign-up, sign-in and resending a confirmation link |
+| `<cdt-panel>`           | a window                                                                                  |
+| `<cdt-card>`            | a card with an optional footer                                                            |
+| `<cdt-banner>`          | a page's title strip                                                                      |
+| `<cdt-dialog>`          | a modal window that keeps the keyboard focus inside and gives it back                     |
+| `<cdt-duty-card>`       | a roulette result, like the "Duty Found" window                                           |
+| `<cdt-image-cropper>`   | choosing a square area of a picture                                                       |
+| `<cdt-menu>`            | a button that opens a menu (the account menu), with `cdtMenuItem` entries                 |
+| `<cdt-byline>`          | an avatar, author name and date                                                           |
+| `cdtTabs` / `cdtTab`    | tab bars: links for pages, buttons for views                                              |
+| `cdtTag`                | tag pills                                                                                 |
+| `<cdt-pager>`           | pagination                                                                                |
+| `<cdt-icon>`            | every icon the site draws, as inline SVG                                                  |
+| `<cdt-avatar>`          | a round profile picture, with the default one for someone without                         |
+| `<cdt-message>`         | a status, warning or error line, read out by screen readers                               |
+| `<cdt-show-password>`   | shows or hides the password typed in a field                                              |
+| `<cdt-line-chart>`      | a time series chart (the market's prices)                                                 |
+| `<cdt-community-links>` | where else to find Everise (the Discord invite)                                           |
 
 The ones on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTab`, `cdtTag`, `cdtMenuItem`) are components with attribute selectors, as in Angular Material. That keeps native semantics and forms while letting them carry their own styles.
 
@@ -163,7 +174,7 @@ The code rules, in short:
 
 - **Libraries by type, enforced by lint.** Every project is tagged (app, feature, widget, data-access, ui, util, testing) and `@nx/enforce-module-boundaries` fails an import that breaks the layering. A page never imports another page; what two pages share becomes a widget, a data-access library or a UI building block.
 - **One component per folder, named after it** (`settings/settings.component.ts`), pages included; directives and pipes likewise. Stores and API services live only in data-access libraries, never next to a component, and folders are named after what they hold, not by kind of file (no `components/`, `services/`, `models/`). Libraries are imported by their `@everise/…` entry point only, never by a path into their `src/`. `scripts/check-structure.mjs` (part of the `test` check) enforces it.
-- **State in NgRx signal stores**, components with signals and `OnPush`, typed templates. NgRx's own lint rules (`signals`, `operators`) are on.
+- **State in NgRx signal stores**, components with signals and `OnPush`, typed templates. A load whose status a page shows is a resource the page reads directly; other calls are `rxMethod`. Forms are signal forms only. NgRx's own lint rules (`signals`, `operators`) are on.
 - **No `any`** outside specs, and no `$any()` in templates (both fail lint). API shapes come only from the generated types ([API types](#api-types)).
 - **Errors** are shown with the backend's own message (`serverMessage()`), in the shared message component.
 - **Size limits** (`scripts/check-sizes.mjs`, first step of the `test` check): component classes 200 lines, templates 150, styles 250, stores and services 250, other TypeScript 350. A file that grows past them is split, never exempted; generated code is skipped.

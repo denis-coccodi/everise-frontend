@@ -1,40 +1,158 @@
-// Generates docs/frontend-structure.svg from a hand-placed layout of the Nx projects.
+// Generates docs/frontend-structure.svg from the Nx project graph: a lane per
+// domain (its pages and widgets, then its data-access library), the app above,
+// the core and UI libraries below.
 // Run: node tools/diagrams/frontend-structure.js docs/frontend-structure.svg (then render the PNG, see README).
-// Edges between domain libs are drawn as arrows; direct imports of core/ui libs
-// are listed on each box ("uses:") to keep the picture readable.
+// What each project is for comes from PROJECTS below: a project the graph has
+// and PROJECTS doesn't fails the run, so a new library can't be left out.
+// Arrows join a domain's pages to its own data-access library; every other
+// dependency is listed on the box ("uses:"), except the core and UI libraries,
+// which nearly every library uses.
+const { execSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const out = process.argv[2];
 
-const W = 1760,
-  H = 1000,
-  X0 = 70;
+// What the graph can't say: each project's routes and what it is for. The
+// stores and services of a data-access library are read from its index.ts.
+const PROJECTS = {
+  everise: { lines: ['routes, AuthGuard, page titles, HTTP setup', 'layout: navbar, notifications bell, footer'] },
+  'home-feature-home': {
+    routes: ['/'],
+    lines: ['Home: the Weekly, Hunts, Your Feed and', 'Global Feed tabs, popular tags'],
+  },
+  relays: { lines: ['The Weekly and Hunts tabs: Discord', 'posts the backend relays'] },
+  'articles-feature-article': {
+    routes: ['/article/:id'],
+    lines: ['A post: comments, favourite, follow,', 'Share to Discord'],
+  },
+  'articles-feature-article-edit': { routes: ['/editor[/:id]'], guard: true, lines: ['Write or edit a post'] },
+  'articles-feature-articles-list': { lines: ['A feed: posts and pager, live new', 'posts, duty and listing cards'] },
+  'events-feature-events': {
+    routes: ['/events  /events/:id'],
+    lines: ["This week's Partake events; an", "event's page, Share to Discord"],
+  },
+  'events-feature-event-card': { lines: ["An event's card, on the Events page", "and a venue's page"] },
+  'venues-feature-venues': {
+    routes: ['/venues  /venues/:id'],
+    lines: ['FFXIV Venues by data centre; a', "venue's page with its week's events"],
+  },
+  'party-finder-feature-party-finder': {
+    routes: ['/party-finder', '/party-finder/listings/:id'],
+    lines: ['Listings from xivpf, filters in the', 'address; Share as post or to Discord'],
+  },
+  'party-finder-feature-pf-listing': { lines: ["A listing's card, in the Party", 'Finder and in posts'] },
+  'roulette-feature-roulette': {
+    routes: ['/roulette'],
+    lines: ['Duty Roulette: three reels, posts', 'the result to the feeds'],
+  },
+  'waking-sands-feature-waking-sands': {
+    routes: ['/waking-sands'],
+    lines: ['A live chat with AI-voiced FFXIV', 'characters'],
+  },
+  'market-feature-market': {
+    routes: ['/market-history'],
+    lines: ["An item's prices per world over", 'time, the cheapest listings now'],
+  },
+  'profile-feature-profile': {
+    routes: ['/profile/:id'],
+    guard: true,
+    lines: ["A member's or character's profile", 'and posts'],
+  },
+  'settings-feature-settings': {
+    routes: ['/settings'],
+    guard: true,
+    lines: ['Picture, account, dark mode; for', 'admins: characters, roles'],
+  },
+  'auth-feature-auth': {
+    routes: ['/login  /register  /privacy', '/confirm-email  /forgot-password', '/reset-password'],
+    lines: ['Sign in, sign up, email and password'],
+  },
+  media: { lines: ['Pictures, GIFs, YouTube and rich', 'text in posts; the attachments editor'] },
+  'core-api-types': { lines: ['Generated from the backend’s', 'openapi.json (api-types)'] },
+  'core-http-client': { lines: ['ApiService, API_URL,', 'LiveUpdates (WebSocket)'] },
+  'core-forms': { lines: ['serverMessage(), form', 'and list error views'] },
+  'core-data-access': { lines: ['withCallState, text search,', 'errorMessageOf (resources)'] },
+  'core-error-handler': { lines: ['HTTP error interceptor:', '401 → sign in, 404 → home'] },
+  'ui-components': { lines: ['The FFXIV theme and the', 'building blocks (cdt-…)'] },
+  'core-testing': { lines: ['The shared test setup,', 'imported by every spec'] },
+};
+// Lanes, top to bottom: roughly the site's navigation.
+const DOMAINS = [
+  'home',
+  'relays',
+  'articles',
+  'events',
+  'venues',
+  'party-finder',
+  'roulette',
+  'waking-sands',
+  'market',
+  'profile',
+  'settings',
+  'auth',
+  'notifications',
+  'media',
+];
+const CORE = [
+  'core-api-types',
+  'core-http-client',
+  'core-forms',
+  'core-data-access',
+  'core-error-handler',
+  'ui-components',
+  'core-testing',
+];
+const COLOURS = require('./colours');
+
+// --- The graph
+const graphFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nx-graph-')), 'graph.json');
+execSync(`npx nx graph --file="${graphFile}"`, { stdio: 'ignore' });
+const { nodes, dependencies } = JSON.parse(fs.readFileSync(graphFile, 'utf8')).graph;
+const projects = Object.entries(nodes)
+  .map(([name, node]) => ({
+    name,
+    root: node.data.root,
+    type: (node.data.tags || []).find((tag) => tag.startsWith('type:'))?.slice(5),
+    // Projects only; the test setup every spec imports isn't drawn.
+    deps: [...new Set((dependencies[name] || []).map((d) => d.target))].filter(
+      (t) => nodes[t] && t !== 'core-testing' && t !== name,
+    ),
+  }))
+  .filter((p) => p.type !== 'e2e');
+const byName = Object.fromEntries(projects.map((p) => [p.name, p]));
+const domainOf = (p) => p.root.split('/')[1];
+const unknown = projects.filter((p) => !PROJECTS[p.name] && p.type !== 'data-access').map((p) => p.name);
+const unplaced = projects.filter((p) => p.type !== 'app' && !CORE.includes(p.name) && !DOMAINS.includes(domainOf(p)));
+if (unknown.length || unplaced.length) {
+  console.error('Describe these in PROJECTS / DOMAINS first:', [...unknown, ...unplaced.map((p) => p.name)].join(', '));
+  process.exit(1);
+}
+// A library by its folder: "articles/data-access", "media/feature-media".
+const short = (name) => {
+  const p = byName[name];
+  return p.type === 'app' ? name : p.root.replace(/^libs\//, '');
+};
+// A data-access library's stores, services, guards and resolvers, from what
+// its entry point exports.
+const EXPORTED = /export (?:const|class|function) (\w*(?:Store|Service|Guard|Resolver))\b/g;
+function exportsOf(p) {
+  const names = [];
+  const index = fs.readFileSync(path.join(p.root, 'src/index.ts'), 'utf8');
+  for (const [, file] of index.matchAll(/from '(\.\/[^']+)'/g)) {
+    const source = fs.readFileSync(path.join(p.root, 'src', `${file}.ts`), 'utf8');
+    names.push(...[...source.matchAll(EXPORTED)].map((m) => m[1]));
+  }
+  return [...new Set(names)];
+}
+
+// --- Drawing
+const W = 1560,
+  X0 = 170;
 const FONT = 'Segoe UI, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif';
-const C = {
-  app: '#0f766e',
-  auth: '#7c3aed',
-  articles: '#2563eb',
-  home: '#059669',
-  profile: '#c2410c',
-  settings: '#be185d',
-  roulette: '#0e7490',
-  core: '#475569',
-  ui: '#475569',
-  ext: '#334155',
-};
-const tint = {
-  app: '#f0fdfa',
-  auth: '#f5f3ff',
-  articles: '#eff6ff',
-  home: '#ecfdf5',
-  profile: '#fff7ed',
-  settings: '#fdf2f8',
-  roulette: '#ecfeff',
-  core: '#f8fafc',
-  ui: '#f8fafc',
-  ext: '#ffffff',
-};
+const MONO = 'Consolas, SFMono-Regular, Menlo, monospace';
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-let svg = [];
+const svg = [];
 const add = (s) => svg.push(s);
 const text = (x, y, s, o = {}) =>
   add(
@@ -44,452 +162,277 @@ const text = (x, y, s, o = {}) =>
       o.family ? ` font-family="${o.family}" xml:space="preserve"` : ''
     }>${esc(s)}</text>`,
   );
-const MONO = 'Consolas, SFMono-Regular, Menlo, monospace';
-
-// box: {id, domain, name, x, y, w, h, lines: [{t, kind}], route, guard}
-const boxes = {};
+const tint = (hex) => `${hex}12`;
+// Words joined into lines of at most `max` characters.
+function wrap(words, max, first = '') {
+  const lines = [];
+  let line = first;
+  for (const word of words) {
+    if (line.length && (line + word).length > max) {
+      lines.push(line.trimEnd());
+      line = ' '.repeat(first.length);
+    }
+    line += word;
+  }
+  if (line.trim()) lines.push(line.trimEnd());
+  return lines;
+}
+// The lines a box shows: routes, what it's for, what else it uses.
+function contents(p, width, ownDataAccess) {
+  const info = PROJECTS[p.name] || {};
+  const lines = [];
+  for (const route of info.routes || []) lines.push({ t: route, kind: 'route' });
+  if (p.type === 'data-access') {
+    for (const l of wrap(
+      exportsOf(p).map((n, i, all) => n + (i < all.length - 1 ? ', ' : '')),
+      Math.floor((width - 24) / 6.6),
+    ))
+      lines.push({ t: l });
+  }
+  for (const l of info.lines || []) lines.push({ t: l });
+  const others = p.deps
+    .filter((d) => d !== ownDataAccess && !CORE.includes(d) && byName[d].type !== 'app')
+    .map(short)
+    .sort();
+  if (others.length && p.type !== 'app') {
+    for (const l of wrap(
+      others.map((n, i) => n + (i < others.length - 1 ? ', ' : '')),
+      Math.floor((width - 24) / 6.6),
+      'uses: ',
+    ))
+      lines.push({ t: l, kind: 'uses' });
+  }
+  return lines;
+}
+const LABEL = {
+  feature: 'page',
+  widget: 'widget',
+  'data-access': 'data-access',
+  app: 'app',
+  util: 'core',
+  ui: 'ui',
+  testing: 'testing',
+};
+const heightOf = (lines) => 46 + lines.length * 17;
 function box(b) {
-  boxes[b.id] = b;
-  const col = C[b.domain];
+  const col = b.colour;
   add(
     `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="10" fill="${
-      tint[b.domain]
-    }" stroke="${col}" stroke-width="${b.strong ? 2.5 : 1.6}"${b.dashed ? ' stroke-dasharray="6 4"' : ''}/>`,
+      b.fill || tint(col)
+    }" stroke="${col}" stroke-width="${b.strong ? 2.4 : 1.5}"${b.dashed ? ' stroke-dasharray="6 4"' : ''}/>`,
   );
-  let y = b.y + 18;
-  if (b.domainLabel !== false) {
-    text(b.x + 12, y, (b.domainLabel || b.domain).toUpperCase(), { size: 10.5, weight: 700, fill: col });
-    y += 18;
-  }
-  text(b.x + 12, y, b.name, { size: 14, weight: 700 });
-  y += 4;
+  text(b.x + 12, b.y + 18, b.label.toUpperCase(), { size: 10, weight: 700, fill: col });
+  text(b.x + 12, b.y + 36, b.name, { size: 13.5, weight: 700 });
   if (b.guard) {
-    const gw = 52,
-      gx = b.x + b.w - gw - 8,
-      gy = b.y + 7;
-    add(`<rect x="${gx}" y="${gy}" width="${gw}" height="17" rx="8.5" fill="${C.auth}"/>`);
-    text(gx + gw / 2, gy + 12.5, 'guarded', { size: 10, weight: 600, fill: '#ffffff', anchor: 'middle' });
+    const gx = b.x + b.w - 60;
+    add(`<rect x="${gx}" y="${b.y + 7}" width="52" height="17" rx="8.5" fill="${COLOURS.auth}"/>`);
+    text(gx + 26, b.y + 19.5, 'guarded', { size: 10, weight: 600, fill: '#ffffff', anchor: 'middle' });
   }
-  for (const l of b.lines || []) {
+  let y = b.y + 40;
+  for (const l of b.lines) {
     y += 17;
     if (l.kind === 'route') text(b.x + 12, y, l.t, { size: 11.5, fill: col, family: MONO, weight: 600 });
     else if (l.kind === 'uses') text(b.x + 12, y, l.t, { size: 11, fill: '#64748b', family: MONO });
-    else if (l.kind === 'muted') text(b.x + 12, y, l.t, { size: 11.5, fill: '#64748b', style: 'italic' });
     else text(b.x + 12, y, l.t, { size: 12.5, fill: '#334155' });
   }
 }
-
-// cubic arrow from (x1,y1) down to (x2,y2)
-function down(x1, y1, x2, y2, col, o = {}) {
-  const my = (y1 + y2) / 2;
+const arrow = (x1, y1, x2, y2, col, dash) =>
   add(
-    `<path d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2 - 2}" fill="none" stroke="${col}" stroke-width="${
-      o.w || 1.8
-    }"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} marker-end="url(#a-${o.m || 'gray'})" opacity="${
-      o.op || 0.9
-    }"/>`,
+    `<path d="M${x1},${y1} L${x2 - 2},${y2}" stroke="${col}" stroke-width="1.8"${
+      dash ? ' stroke-dasharray="5 4"' : ''
+    } marker-end="url(#a-${col.slice(1)})"/>`,
   );
+
+// Columns: pages and widgets, then the domain's data-access library.
+const PW = 300,
+  PG = 14,
+  DX = X0 + 3 * PW + 2 * PG + 52,
+  DW = W - 30 - DX;
+let y = 84;
+const body = [];
+const draw = (f) => body.push(f);
+
+// The app, and where it runs.
+const app = byName.everise;
+const appLines = contents(app, 3 * PW + 2 * PG);
+const appH = heightOf(appLines);
+const appY = y;
+draw(() =>
+  box({
+    x: X0,
+    y: appY,
+    w: 3 * PW + 2 * PG,
+    h: appH,
+    colour: COLOURS.app,
+    label: 'app · apps/everise',
+    name: 'everise — the Angular app shell',
+    lines: appLines,
+    strong: true,
+  }),
+);
+draw(() => {
+  box({
+    x: DX,
+    y: appY,
+    w: DW,
+    h: appH,
+    colour: COLOURS.ext,
+    fill: '#ffffff',
+    dashed: true,
+    label: 'hosting',
+    name: 'Cloudflare Workers',
+    lines: [
+      { t: 'dist/apps/everise + worker/index.ts (/api, SEO)' },
+      { t: 'staging.everise.dev · everise.dev', kind: 'route' },
+    ],
+  });
+  arrow(X0 + 3 * PW + 2 * PG, appY + appH / 2, DX, appY + appH / 2, COLOURS.ext, true);
+  text((X0 + 3 * PW + 2 * PG + DX) / 2, appY + appH / 2 - 8, 'build', { size: 11, fill: '#64748b', anchor: 'middle' });
+});
+y += appH + 36;
+draw(() => {
+  arrow(X0 + 40, appY + appH, X0 + 40, appY + appH + 26, COLOURS.app, true);
+  text(X0 + 50, appY + appH + 17, 'the router lazy-loads every page', { size: 11, fill: COLOURS.app, weight: 600 });
+});
+
+// A lane per domain.
+const lanesTop = y;
+for (const domain of DOMAINS) {
+  const col = COLOURS[domain];
+  const inDomain = projects.filter((p) => p.type !== 'app' && !CORE.includes(p.name) && domainOf(p) === domain);
+  const da = inDomain.find((p) => p.type === 'data-access');
+  const pages = inDomain
+    .filter((p) => p !== da)
+    .sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'feature' ? -1 : 1));
+  const pageBoxes = pages.map((p) => ({ p, lines: contents(p, PW, da?.name) }));
+  const daLines = da ? contents(da, DW) : [];
+  const h = Math.max(...pageBoxes.map((b) => heightOf(b.lines)), da ? heightOf(daLines) : 0);
+  const laneY = y;
+  draw(() => {
+    add(`<rect x="12" y="${laneY - 8}" width="${W - 24}" height="${h + 16}" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>`);
+    text(28, laneY + 22, domain, { size: 13, weight: 700, fill: col });
+    text(28, laneY + 40, `libs/${domain}`, { size: 10.5, fill: '#94a3b8', family: MONO });
+    pageBoxes.forEach(({ p, lines }, i) =>
+      box({
+        x: X0 + i * (PW + PG),
+        y: laneY,
+        w: PW,
+        h,
+        colour: col,
+        label: LABEL[p.type],
+        name: short(p.name),
+        guard: PROJECTS[p.name]?.guard,
+        lines,
+      }),
+    );
+    if (da) {
+      box({ x: DX, y: laneY, w: DW, h, colour: col, label: 'data-access', name: short(da.name), lines: daLines });
+      // Every page or widget of the domain that uses its data-access library.
+      const users = pages.filter((p) => p.deps.includes(da.name));
+      if (users.length) {
+        const last = X0 + (pages.length - 1) * (PW + PG) + PW;
+        arrow(last, laneY + h / 2, DX, laneY + h / 2, col);
+        if (users.length < pages.length) console.warn(`${domain}: not every page uses ${da.name}`);
+      }
+    }
+  });
+  y += h + 26;
 }
+
+// Core and UI.
+const coreTop = y + 6;
+const CW = (W - 30 - X0 - (CORE.length - 1) * 12) / CORE.length;
+const coreBoxes = CORE.map((name) => ({ p: byName[name], lines: contents(byName[name], CW) }));
+const CH = Math.max(...coreBoxes.map((b) => heightOf(b.lines)));
+draw(() => {
+  add(
+    `<rect x="12" y="${coreTop - 8}" width="${W - 24}" height="${CH + 40}" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>`,
+  );
+  text(28, coreTop + 22, 'core & ui', { size: 13, weight: 700, fill: COLOURS.core });
+  text(28, coreTop + 40, 'libs/core, libs/ui', { size: 10.5, fill: '#94a3b8', family: MONO });
+  coreBoxes.forEach(({ p, lines }, i) =>
+    box({
+      x: X0 + i * (CW + 12),
+      y: coreTop,
+      w: CW,
+      h: CH,
+      colour: COLOURS.core,
+      label: LABEL[p.type],
+      name: short(p.name),
+      lines,
+    }),
+  );
+  text(W - 30, coreTop + CH + 24, 'used by nearly every library above; they depend on nothing but each other', {
+    size: 11.5,
+    fill: '#94a3b8',
+    anchor: 'end',
+    style: 'italic',
+  });
+});
+y = coreTop + CH + 52;
+
+// The backend, and the legend.
+const backendY = y;
+const http = CORE.indexOf('core-http-client');
+const hx = X0 + http * (CW + 12);
+draw(() => {
+  const bx = hx - 60,
+    bw = 520;
+  add(
+    `<rect x="${bx}" y="${backendY}" width="${bw}" height="92" rx="10" fill="#ffffff" stroke="${COLOURS.ext}" stroke-width="1.6" stroke-dasharray="6 4"/>`,
+  );
+  text(bx + 12, backendY + 18, 'BACKEND API  ·  everise-backend', { size: 10.5, weight: 700, fill: COLOURS.ext });
+  text(bx + 12, backendY + 38, 'deployed   /api → worker/index.ts → service binding', {
+    size: 12,
+    family: MONO,
+    fill: '#334155',
+  });
+  text(bx + 12, backendY + 56, '           staging: be-staging · production: be-prod', {
+    size: 12,
+    family: MONO,
+    fill: '#334155',
+  });
+  text(bx + 12, backendY + 74, 'local      http://localhost:8080/api (direct)', {
+    size: 12,
+    family: MONO,
+    fill: '#334155',
+  });
+  arrow(hx + CW / 2, coreTop + CH, hx + CW / 2, backendY, COLOURS.ext);
+  const lx = W - 30 - 560;
+  add(`<rect x="${lx}" y="${backendY}" width="560" height="92" rx="10" fill="#ffffff" stroke="#e2e8f0"/>`);
+  text(lx + 14, backendY + 22, 'Legend', { size: 13, weight: 700 });
+  arrow(lx + 14, backendY + 44, lx + 54, backendY + 44, '#64748b');
+  text(lx + 62, backendY + 48, "uses the domain's data-access library", { size: 12 });
+  arrow(lx + 14, backendY + 66, lx + 54, backendY + 66, '#64748b', true);
+  text(lx + 62, backendY + 70, 'lazy route load / build', { size: 12 });
+  text(lx + 300, backendY + 48, 'uses: …', { size: 11, family: MONO, fill: '#64748b' });
+  text(lx + 352, backendY + 48, '= its other library imports', { size: 12 });
+  add(`<rect x="${lx + 300}" y="${backendY + 56}" width="52" height="17" rx="8.5" fill="${COLOURS.auth}"/>`);
+  text(lx + 326, backendY + 68.5, 'guarded', { size: 10, weight: 600, fill: '#ffffff', anchor: 'middle' });
+  text(lx + 360, backendY + 70, '= AuthGuard on the route', { size: 12 });
+});
+const H = backendY + 92 + 24;
 
 add(
   `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="${FONT}">`,
 );
 add('<defs>');
-for (const [k, v] of Object.entries({ ...C, gray: '#64748b' }))
+for (const col of new Set([...Object.values(COLOURS), '#64748b']))
   add(
-    `<marker id="a-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${v}"/></marker>`,
+    `<marker id="a-${col.slice(
+      1,
+    )}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker>`,
   );
 add('</defs>');
 add(`<rect width="${W}" height="${H}" fill="#ffffff"/>`);
-
-// Title
 text(X0, 38, 'Everise frontend — Nx workspace structure', { size: 22, weight: 700 });
 text(
   X0,
   60,
-  'Apps and libraries, grouped by layer and coloured by domain. Arrows point from a project to what it depends on (from the Nx project graph).',
+  `${projects.length} projects from the Nx project graph: the app, a lane per domain (its pages and widgets, then its data-access library), and the core and UI libraries.`,
   { size: 13, fill: '#475569' },
 );
-
-// Layer bands with rotated labels
-const bands = [
-  { y: 80, h: 140, label: 'APPS' },
-  { y: 236, h: 200, label: 'FEATURE LIBS' },
-  { y: 452, h: 164, label: 'DATA-ACCESS LIBS' },
-  { y: 632, h: 132, label: 'CORE & UI LIBS' },
-];
-for (const b of bands) {
-  add(`<rect x="12" y="${b.y}" width="${W - 24}" height="${b.h}" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>`);
-  add(
-    `<text x="34" y="${
-      b.y + b.h / 2
-    }" font-size="11" font-weight="700" fill="#94a3b8" letter-spacing="1.5" text-anchor="middle" transform="rotate(-90 34 ${
-      b.y + b.h / 2
-    })">${esc(b.label)}</text>`,
-  );
-}
-text(X0, 256, 'one per page, lazy-loaded by the router; all of them build their pages from ui/components', {
-  size: 11.5,
-  fill: '#94a3b8',
-  style: 'italic',
-});
-text(W - 28, 612, 'NgRx signal stores, API services, guards, resolvers', {
-  size: 11.5,
-  fill: '#94a3b8',
-  anchor: 'end',
-  style: 'italic',
-});
-text(W - 28, 760, 'no dependencies on other libs', { size: 11.5, fill: '#94a3b8', anchor: 'end', style: 'italic' });
-
-// --- Apps
-box({
-  id: 'app',
-  domain: 'app',
-  domainLabel: 'apps',
-  name: 'everise  —  Angular app shell',
-  x: X0,
-  y: 96,
-  w: 1260,
-  h: 108,
-  strong: true,
-  lines: [
-    {
-      t: 'app.config.ts: routes + AuthGuard, page titles, HTTP client + error interceptor',
-    },
-    {
-      t: 'layout: skip link, navbar with account menu, <main>, footer  ·  environments/*.ts: api_url /api deployed, a backend URL locally',
-    },
-    {
-      t: 'uses: auth/data-access, settings/data-access, core/api-types, core/error-handler, core/http-client, ui/components',
-      kind: 'uses',
-    },
-  ],
-});
-box({
-  id: 'cf',
-  domain: 'ext',
-  domainLabel: 'hosting',
-  name: 'Cloudflare Workers',
-  x: X0 + 1330,
-  y: 96,
-  w: 290,
-  h: 108,
-  dashed: true,
-  lines: [
-    { t: 'dist/apps/everise + worker/index.ts (/api)' },
-    { t: 'staging, prod', kind: 'route' },
-    { t: 'wrangler.jsonc · GitHub Actions', kind: 'muted' },
-  ],
-});
-add(
-  `<path d="M${X0 + 1260},150 L${X0 + 1328},150" stroke="${
-    C.ext
-  }" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-ext)"/>`,
-);
-text(X0 + 1294, 142, 'build', { size: 11, fill: '#64748b', anchor: 'middle' });
-
-// --- Feature libs (8)
-const FW = 190,
-  FG = 16,
-  FY = 268,
-  FH = 150;
-const fx = (i) => X0 + i * (FW + FG);
-const feats = [
-  {
-    id: 'f-auth',
-    domain: 'auth',
-    name: 'feature-auth',
-    lines: [
-      { t: '/login  /register', kind: 'route' },
-      { t: 'Sign in, sign up forms' },
-      { t: 'uses: core/forms', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'f-settings',
-    domain: 'settings',
-    name: 'feature-settings',
-    guard: true,
-    lines: [
-      { t: '/settings', kind: 'route' },
-      { t: 'Picture (crop, upload),' },
-      { t: 'edit user, dark mode' },
-      { t: 'uses: core/api-types,forms', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'f-edit',
-    domain: 'articles',
-    name: 'feature-article-edit',
-    guard: true,
-    lines: [
-      { t: '/editor[/:slug]', kind: 'route' },
-      { t: 'Create & edit article' },
-      { t: 'uses: core/forms', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'f-article',
-    domain: 'articles',
-    name: 'feature-article',
-    lines: [
-      { t: '/article/:slug', kind: 'route' },
-      { t: 'Article, comments,' },
-      { t: 'follow, favorite' },
-      { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      forms, http-client', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'f-home',
-    domain: 'home',
-    name: 'feature-home',
-    lines: [
-      { t: '/', kind: 'route' },
-      { t: 'Global / your feed,' },
-      { t: 'popular tags' },
-      { t: 'uses: core/http-client', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'f-list',
-    domain: 'articles',
-    name: 'feature-articles-list',
-    lines: [
-      { t: 'no route (shared)', kind: 'muted' },
-      { t: 'Article list + pager,' },
-      { t: 'roulette duty cards' },
-      { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      http-client', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'f-profile',
-    domain: 'profile',
-    name: 'feature-profile',
-    guard: true,
-    lines: [{ t: '/profile/:username', kind: 'route' }, { t: 'Profile, my and' }, { t: 'favorited articles' }],
-  },
-  {
-    id: 'f-roulette',
-    domain: 'roulette',
-    name: 'feature-roulette',
-    lines: [
-      { t: '/roulette', kind: 'route' },
-      { t: 'Duty Roulette: reels,' },
-      { t: 'posts results to feeds' },
-      { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      forms, http-client', kind: 'uses' },
-    ],
-  },
-];
-feats.forEach((f, i) => box({ ...f, x: fx(i), y: FY, w: FW, h: FH }));
-const fcx = (id) => {
-  const b = boxes[id];
-  return b.x + b.w / 2;
-};
-// router lazy-loads the routed feature libs
-add(
-  `<path d="M${X0 + 780},204 L${X0 + 780},236" stroke="${
-    C.app
-  }" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-app)"/>`,
-);
-text(X0 + 790, 226, 'router: loadComponent / loadChildren', { size: 11, fill: C.app, weight: 600 });
-
-// feature -> feature (shared list), drawn as arcs above the boxes
-function arc(fromId, toId, col) {
-  const a = boxes[fromId],
-    b = boxes[toId];
-  const x1 = a.x + a.w / 2 + (a.x < b.x ? -10 : -40),
-    x2 = b.x + b.w / 2 + (a.x < b.x ? -30 : 30);
-  add(
-    `<path d="M${x1},${FY} C${x1},${FY - 26} ${x2},${FY - 26} ${x2},${
-      FY - 2
-    }" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#a-articles)"/>`,
-  );
-}
-arc('f-home', 'f-list', C.articles);
-arc('f-profile', 'f-list', C.articles);
-
-// --- Data-access libs (4)
-const DY = 484,
-  DH = 118,
-  DW = 290;
-const das = [
-  {
-    id: 'd-settings',
-    domain: 'settings',
-    name: 'data-access',
-    x: X0 + 140,
-    lines: [{ t: 'SettingsStore (dark mode)' }, { t: 'uses: —', kind: 'uses' }],
-  },
-  {
-    id: 'd-auth',
-    domain: 'auth',
-    name: 'data-access',
-    x: X0 + 520,
-    lines: [
-      { t: 'AuthStore, AuthGuard' },
-      { t: 'uses: core/api-types, data-access,', kind: 'uses' },
-      { t: '      error-handler, forms, http-client', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'd-articles',
-    domain: 'articles',
-    name: 'data-access',
-    x: X0 + 900,
-    lines: [
-      { t: 'ArticleStore, ArticlesListStore,' },
-      { t: 'ActionsService' },
-      { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      data-access, forms, http-client', kind: 'uses' },
-    ],
-  },
-  {
-    id: 'd-profile',
-    domain: 'profile',
-    name: 'data-access',
-    x: X0 + 1280,
-    lines: [
-      { t: 'ProfileStore, route resolvers' },
-      { t: 'uses: core/api-types,', kind: 'uses' },
-      { t: '      data-access, http-client', kind: 'uses' },
-    ],
-  },
-];
-das.forEach((d) => box({ ...d, y: DY, w: DW, h: DH }));
-
-// feature -> data-access edges, coloured by the target's domain, spread at the target
-const FB = FY + FH;
-function fanIn(target, sources, m) {
-  const t = boxes[target],
-    n = sources.length,
-    span = Math.min(t.w - 60, 36 * (n - 1));
-  sources
-    .slice()
-    .sort((p, q) => fcx(p) - fcx(q))
-    .forEach((s, i) =>
-      down(
-        fcx(s) +
-          (fcx(s) < t.x + t.w / 2 ? 18 : -18) * (s === 'f-auth' || s === 'f-profile' || s === 'f-roulette' ? 0 : 1),
-        FB,
-        t.x + t.w / 2 - span / 2 + (n > 1 ? (span * i) / (n - 1) : span / 2),
-        DY,
-        C[m],
-        { m },
-      ),
-    );
-}
-fanIn('d-settings', ['f-settings'], 'settings');
-fanIn('d-auth', ['f-auth', 'f-settings', 'f-edit', 'f-article', 'f-home', 'f-profile', 'f-roulette'], 'auth');
-fanIn('d-articles', ['f-edit', 'f-article', 'f-home', 'f-list'], 'articles');
-fanIn('d-profile', ['f-profile'], 'profile');
-// profile/data-access -> articles/data-access (sideways)
-add(
-  `<path d="M${boxes['d-profile'].x},${DY + 60} L${boxes['d-articles'].x + DW + 2},${DY + 60}" stroke="${
-    C.articles
-  }" stroke-width="1.8" marker-end="url(#a-articles)"/>`,
-);
-
-// --- Core & UI libs (6)
-const CY = 664,
-  CH = 84,
-  CW = 254,
-  CG = 18;
-const cores = [
-  { id: 'c-types', name: 'api-types', lines: [{ t: 'API DTOs: Article, User,' }, { t: 'Profile, Comment, Auth' }] },
-  { id: 'c-data', name: 'data-access', lines: [{ t: 'withCallState() store' }, { t: 'feature (loading, errors)' }] },
-  { id: 'c-forms', name: 'forms', lines: [{ t: 'Form errors store,' }, { t: 'input & list error views' }] },
-  {
-    id: 'c-http',
-    name: 'http-client',
-    lines: [{ t: 'ApiService + API_URL token,' }, { t: 'withCredentials (auth cookie)' }],
-  },
-  { id: 'c-err', name: 'error-handler', lines: [{ t: 'HTTP error interceptor:' }, { t: '401 → /login, 404 → /' }] },
-  {
-    id: 'c-ui',
-    domain: 'ui',
-    name: 'components',
-    lines: [{ t: 'FFXIV theme + building blocks:' }, { t: 'button, field, dialog, menu, pager…' }],
-  },
-];
-cores.forEach((c, i) => box({ domain: 'core', ...c, x: X0 + i * (CW + CG), y: CY, w: CW, h: CH }));
-
-// --- Backend
-const http = boxes['c-http'];
-const BX = http.x - 40,
-  BY = 804,
-  BW = 560,
-  BH = 92;
-add(
-  `<rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="10" fill="#ffffff" stroke="${C.ext}" stroke-width="1.6" stroke-dasharray="6 4"/>`,
-);
-text(BX + 12, BY + 18, 'BACKEND API  ·  everise-backend', { size: 10.5, weight: 700, fill: C.ext });
-text(BX + 12, BY + 38, 'deployed   /api → worker/index.ts → service binding', {
-  size: 12,
-  family: MONO,
-  fill: '#334155',
-});
-text(BX + 12, BY + 56, '           staging: be-staging · production: be-prod', {
-  size: 12,
-  family: MONO,
-  fill: '#334155',
-});
-text(BX + 12, BY + 74, 'local      http://localhost:8080/api (direct)', {
-  size: 12,
-  family: MONO,
-  fill: '#334155',
-});
-add(
-  `<path d="M${http.x + http.w / 2},${CY + CH} L${http.x + http.w / 2},${BY - 2}" stroke="${
-    C.ext
-  }" stroke-width="1.8" marker-end="url(#a-ext)"/>`,
-);
-text(http.x + http.w / 2 + 8, CY + CH + 32, 'same-origin /api, cookie auth', { size: 11, fill: '#64748b' });
-
-// --- Legend
-const LX = X0,
-  LY = 804;
-add(`<rect x="${LX}" y="${LY}" width="560" height="170" rx="10" fill="#ffffff" stroke="#e2e8f0"/>`);
-text(LX + 14, LY + 22, 'Legend', { size: 13, weight: 700 });
-const swatch = (i, k, label) => {
-  const x = LX + 14 + (i % 3) * 180,
-    y = LY + 44 + Math.floor(i / 3) * 22;
-  add(
-    `<rect x="${x}" y="${y - 10}" width="14" height="14" rx="3" fill="${tint[k]}" stroke="${
-      C[k]
-    }" stroke-width="1.6"/>`,
-  );
-  text(x + 22, y + 1, label, { size: 12 });
-};
-[
-  ['app', 'apps'],
-  ['auth', 'auth'],
-  ['articles', 'articles'],
-  ['home', 'home'],
-  ['profile', 'profile'],
-  ['settings', 'settings'],
-  ['roulette', 'roulette'],
-].forEach(([k, l], i) => swatch(i, k, l));
-add(
-  `<path d="M${LX + 14},${LY + 120} L${LX + 54},${
-    LY + 120
-  }" stroke="#64748b" stroke-width="1.8" marker-end="url(#a-gray)"/>`,
-);
-text(LX + 62, LY + 124, 'depends on (colour of the library it points to)', { size: 12 });
-add(
-  `<path d="M${LX + 14},${LY + 142} L${LX + 54},${
-    LY + 142
-  }" stroke="#64748b" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-gray)"/>`,
-);
-text(LX + 62, LY + 146, 'implicit / build / lazy route load', { size: 12 });
-text(LX + 310, LY + 146, 'uses: …', { size: 11, family: MONO, fill: '#64748b' });
-text(LX + 360, LY + 146, '= direct core/ui imports', { size: 12 });
-add(`<rect x="${LX + 310}" y="${LY + 110}" width="52" height="17" rx="8.5" fill="${C.auth}"/>`);
-text(LX + 336, LY + 122.5, 'guarded', { size: 10, weight: 600, fill: '#ffffff', anchor: 'middle' });
-text(LX + 370, LY + 124, '= AuthGuard on the route', { size: 12 });
-
+body.forEach((f) => f());
 add('</svg>');
 fs.writeFileSync(out, svg.join('\n') + '\n');
-console.log('wrote', out);
+console.log(`wrote ${out} (${W}×${H})`);
