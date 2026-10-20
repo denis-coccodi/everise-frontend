@@ -5,7 +5,7 @@ description: Describes the required way to make any change in this repo (code, t
 
 # Feature branch → pull request → main
 
-`main` is protected: nobody, admins included, can push to it directly. Every change reaches `main` through a pull request, and the PR can only be merged once the `test` check (the CI/CD workflow's lint + test + build job) passes on a branch that is up to date with `main`. Merging into `main` then deploys to staging automatically. Production stays a separate manual step (see the `deploy` skill).
+`main` is protected: nobody, admins included, can push to it directly. Every change reaches `main` through a pull request, and the PR can only be merged once the `test` check (the Test and deploy staging workflow's lint + test + build job) passes on a branch that is up to date with `main`. Merging into `main` then deploys to staging automatically. Production stays a separate manual step (see the `deploy` skill).
 
 The same rules as the backend repo apply:
 
@@ -106,7 +106,7 @@ gh pr merge <number> --squash --delete-branch --subject "$(gh pr view <number> -
 git switch main && git pull --ff-only
 ```
 
-After merging, follow the CI/CD push run on `main` (build → deploy-staging → smoke test) as in the `deploy` skill, and report the staging result.
+After merging, follow the Test and deploy staging push run on `main` (build → deploy-staging → smoke test) as in the `deploy` skill, and report the staging result.
 
 ## Notes
 
