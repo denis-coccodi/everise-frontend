@@ -71,10 +71,10 @@ for (const [dir, files] of folders) {
   }
 }
 // Only the folders inside a project's src/ (libs/ui/components is a project's
-// name), and not the Playwright tests.
+// name).
 const insideSrc = (dir) => dir.split(sep).slice(0, -1).includes('src');
 for (const dir of new Set([...folders.keys()].flatMap((d) => ancestors(d)))) {
-  if (insideSrc(dir) && !tagsOf(dir).includes('type:e2e') && TYPE_FOLDERS.has(basename(dir))) {
+  if (insideSrc(dir) && TYPE_FOLDERS.has(basename(dir))) {
     problems.push(`${relative('.', dir).split(sep).join('/')}/: a folder by kind of file; name it after what it holds`);
   }
 }

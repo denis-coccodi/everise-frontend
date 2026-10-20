@@ -143,28 +143,13 @@ text(W - 28, 760, 'no dependencies on other libs', { size: 11.5, fill: '#94a3b8'
 
 // --- Apps
 box({
-  id: 'e2e',
-  domain: 'app',
-  domainLabel: 'apps',
-  name: 'everise-e2e',
-  x: X0,
-  y: 96,
-  w: 230,
-  h: 108,
-  lines: [
-    { t: 'Playwright end-to-end tests' },
-    { t: 'login, register, articles' },
-    { t: 'implicit dependency →', kind: 'muted' },
-  ],
-});
-box({
   id: 'app',
   domain: 'app',
   domainLabel: 'apps',
   name: 'everise  —  Angular app shell',
-  x: X0 + 300,
+  x: X0,
   y: 96,
-  w: 960,
+  w: 1260,
   h: 108,
   strong: true,
   lines: [
@@ -196,11 +181,6 @@ box({
     { t: 'wrangler.jsonc · GitHub Actions', kind: 'muted' },
   ],
 });
-add(
-  `<path d="M${X0 + 230},150 L${X0 + 298},150" stroke="${
-    C.app
-  }" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a-app)"/>`,
-);
 add(
   `<path d="M${X0 + 1260},150 L${X0 + 1328},150" stroke="${
     C.ext

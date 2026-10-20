@@ -47,7 +47,7 @@ Game data and images come from the backend, which caches them from [XIVAPI](http
 | State     | [NgRx Signal Store](https://ngrx.io/guide/signals)                                                                                                                                                                                           |
 | API types | Generated from the backend's OpenAPI document with [openapi-typescript](https://openapi-ts.dev) ([below](#api-types)); a CI job fails on drift                                                                                               |
 | Language  | [TypeScript 6](https://www.typescriptlang.org/), strict templates, no `any` outside specs                                                                                                                                                    |
-| Tests     | [Vitest](https://vitest.dev) unit tests in every project; [Playwright](https://playwright.dev) end-to-end tests (`apps/everise-e2e`)                                                                                                         |
+| Tests     | [Vitest](https://vitest.dev) unit tests in every project; `scripts/smoke.sh` against each deploy                                                                                                                                             |
 | Hosting   | [Cloudflare Workers](https://developers.cloudflare.com/workers/) static assets, with `/api` forwarded to the backend Worker over a service binding                                                                                           |
 | Backend   | [everise-backend](https://github.com/denis-coccodi/everise-backend): Express 5 and zod on Cloudflare Workers, its data in SQL tables (SQLite in a Durable Object), R2 for images, Workers AI ([API docs](https://apis.everise.dev/api/docs)) |
 
@@ -67,7 +67,6 @@ The Duty Roulette needs game data: run the backend's duty refresh once (its READ
 | `npm start`                                                             | Dev server on port 4200                                                              |
 | `npx nx run-many -t lint test`                                          | Lint and unit-test every project                                                     |
 | `npx nx run everise:build --configuration=production`                   | Production build in `dist/apps/everise` (`staging` for the staging build)            |
-| `npm run e2e`                                                           | Playwright end-to-end tests                                                          |
 | `npm run start-worker`                                                  | Build, then serve with `wrangler dev`, as deployed (the Worker's SEO pages)          |
 | `npx nx graph`                                                          | The live project graph                                                               |
 | `npm run api-types`                                                     | Regenerate the API types from the backend's `openapi.json` ([API types](#api-types)) |
