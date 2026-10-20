@@ -26,62 +26,59 @@
   <!-- Why the last load failed, in the backend's words. -->
   <cdt-message class="status" tone="error">{{ store.error() }}</cdt-message>
 
-  @switch (store.loadState()) {
-    @case ('loading') {
-      <p class="notice" role="status">Finding this week's events…</p>
-    }
-    @case ('error') {
+  @if (store.list.hasValue()) {
+    @if (store.total() === 0 && store.search().trim()) {
+      <cdt-card class="state">
+        <cdt-icon class="state-icon" name="search" />
+        <h2>No events match “{{ store.search().trim() }}”</h2>
+        <p>Try fewer or other words, or another data centre.</p>
+        <button type="button" cdtButton="outline-primary" (click)="clearSearch()">Clear the search</button>
+      </cdt-card>
+    } @else if (store.total() === 0) {
       <cdt-card class="state">
         <cdt-icon class="state-icon" name="calendar" />
-        <h2>The events didn't load</h2>
-        <p>Partake, where they come from, may be busy for a moment.</p>
-        <button type="button" cdtButton="outline-primary" (click)="store.retry()">
-          <cdt-icon name="refresh" />Try again
-        </button>
+        <h2>No events {{ store.dataCentre() ? 'on ' + store.dataCentre() + ' ' : '' }}this week yet</h2>
+        <p>
+          Running one?
+          <a href="https://www.partake.gg" target="_blank" rel="noopener noreferrer"
+            >Post it on Partake<span class="visually-hidden"> (opens in a new tab)</span></a
+          >
+          and it shows here.
+        </p>
       </cdt-card>
     }
-    @default {
-      @if (store.total() === 0 && store.search().trim()) {
-        <cdt-card class="state">
-          <cdt-icon class="state-icon" name="search" />
-          <h2>No events match “{{ store.search().trim() }}”</h2>
-          <p>Try fewer or other words, or another data centre.</p>
-          <button type="button" cdtButton="outline-primary" (click)="clearSearch()">Clear the search</button>
-        </cdt-card>
-      } @else if (store.total() === 0) {
-        <cdt-card class="state">
-          <cdt-icon class="state-icon" name="calendar" />
-          <h2>No events {{ store.dataCentre() ? 'on ' + store.dataCentre() + ' ' : '' }}this week yet</h2>
-          <p>
-            Running one?
-            <a href="https://www.partake.gg" target="_blank" rel="noopener noreferrer"
-              >Post it on Partake<span class="visually-hidden"> (opens in a new tab)</span></a
-            >
-            and it shows here.
-          </p>
-        </cdt-card>
-      }
-      @if (store.liveNow().length) {
-        <section aria-labelledby="events-live">
-          <h2 id="events-live">On now</h2>
-          <ul class="events">
-            @for (event of store.liveNow(); track event.id) {
-              <li><cdt-event-card [event]="event" [now]="store.now()" /></li>
-            }
-          </ul>
-        </section>
-      }
-      @for (day of store.days(); track day.key) {
-        <section [attr.aria-labelledby]="'events-' + day.key">
-          <h2 [id]="'events-' + day.key">{{ day.heading }}</h2>
-          <ul class="events">
-            @for (event of day.events; track event.id) {
-              <li><cdt-event-card [event]="event" [now]="store.now()" /></li>
-            }
-          </ul>
-        </section>
-      }
+    @if (store.liveNow().length) {
+      <section aria-labelledby="events-live">
+        <h2 id="events-live">On now</h2>
+        <ul class="events">
+          @for (event of store.liveNow(); track event.id) {
+            <li><cdt-event-card [event]="event" [now]="store.now()" /></li>
+          }
+        </ul>
+      </section>
     }
+    @for (day of store.days(); track day.key) {
+      <section [attr.aria-labelledby]="'events-' + day.key">
+        <h2 [id]="'events-' + day.key">{{ day.heading }}</h2>
+        <ul class="events">
+          @for (event of day.events; track event.id) {
+            <li><cdt-event-card [event]="event" [now]="store.now()" /></li>
+          }
+        </ul>
+      </section>
+    }
+  } @else if (store.list.isLoading()) {
+    <p class="notice" role="status">Finding this week's events…</p>
+  } @else {
+    <!-- The last load failed (a reload keeps its error until it's answered). -->
+    <cdt-card class="state">
+      <cdt-icon class="state-icon" name="calendar" />
+      <h2>The events didn't load</h2>
+      <p>Partake, where they come from, may be busy for a moment.</p>
+      <button type="button" cdtButton="outline-primary" (click)="store.refresh()">
+        <cdt-icon name="refresh" />Try again
+      </button>
+    </cdt-card>
   }
 
   @if (!signedIn()) {

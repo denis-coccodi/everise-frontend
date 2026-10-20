@@ -41,7 +41,7 @@ export class EventsComponent {
 
   // Said to screen readers while searching: how many events match.
   protected readonly matches = computed(() => {
-    if (!this.store.search().trim() || this.store.loadState() !== 'ready') return '';
+    if (!this.store.search().trim() || !this.store.list.hasValue()) return '';
     const total = this.store.total();
     return total === 1 ? '1 event matches' : `${total} events match`;
   });

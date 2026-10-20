@@ -20,6 +20,8 @@ describe('EventDataCentresComponent', () => {
     });
     const fixture = TestBed.createComponent(EventDataCentresComponent);
     fixture.detectChanges();
+    // The store's list is a resource: it asks once effects run.
+    TestBed.tick();
     TestBed.inject(HttpTestingController).expectOne('/events').flush(eventList());
     await fixture.whenStable();
     const nav = fixture.nativeElement as HTMLElement;

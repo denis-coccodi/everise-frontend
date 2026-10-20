@@ -1,12 +1,12 @@
-import { computed, inject } from '@angular/core';
+import { computed, effect, inject, untracked } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from '@ngrx/signals';
+import { extendResource, withPreviousValueOnError } from '@ngrx/signals/resource';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { CommunityEvent, EventList } from '@everise/core/api-types';
-import { matchesSearch } from '@everise/core/data-access';
-import { serverMessage } from '@everise/core/forms';
-import { interval, map, pipe, switchMap, tap } from 'rxjs';
+import { CommunityEvent } from '@everise/core/api-types';
+import { errorMessageOf, matchesSearch } from '@everise/core/data-access';
+import { interval, map, pipe, tap } from 'rxjs';
 import { dayHeading, dayKey, isLive } from './event-time';
 import { eventDataCentre } from './events-query';
 import { EventsService } from './events.service';
@@ -18,10 +18,6 @@ export const EVENTS_POLL_MS = 5 * 60 * 1000;
 const TICK_MS = 60 * 1000;
 
 interface EventsState {
-  list: EventList | null;
-  loadState: 'loading' | 'ready' | 'error';
-  // The backend's words when the last load failed.
-  error: string;
   // The data centre shown, from the query string (?dc=light); null for all.
   dataCentre: string | null;
   // The words typed in the search box, from the query string (?search=dj).
@@ -32,9 +28,6 @@ interface EventsState {
 function initialState(): EventsState {
   const query = inject(ActivatedRoute, { optional: true })?.snapshot.queryParamMap;
   return {
-    list: null,
-    loadState: 'loading',
-    error: '',
     dataCentre: eventDataCentre(query ?? { get: () => null }),
     search: query?.get('search') ?? '',
     now: Date.now(),
@@ -47,10 +40,16 @@ function initialState(): EventsState {
 // page is in view. Provided by the page.
 export const EventsStore = signalStore(
   withState<EventsState>(initialState),
+  withProps((_, service = inject(EventsService)) => {
+    // A failed refresh keeps what's shown (value() doesn't throw), and says why.
+    const list = extendResource(rxResource({ stream: () => service.events() }), withPreviousValueOnError());
+    // The page reads the load itself: hasValue(), isLoading(), error().
+    return { _list: list, list: list.asReadonly() };
+  }),
   withComputed((store) => {
     // Events that haven't ended since the backend read them.
     const current = computed(() =>
-      (store.list()?.events ?? []).filter((event) => Date.parse(event.endsAt) > store.now()),
+      (store.list.value()?.events ?? []).filter((event) => Date.parse(event.endsAt) > store.now()),
     );
     const shown = computed(() =>
       current().filter(
@@ -60,6 +59,8 @@ export const EventsStore = signalStore(
       ),
     );
     return {
+      // The backend's words when the last load failed.
+      error: computed(() => errorMessageOf(store._list)),
       liveNow: computed(() => shown().filter((event) => isLive(event, store.now()))),
       days: computed(() =>
         byDay(
@@ -78,29 +79,12 @@ export const EventsStore = signalStore(
       }),
     };
   }),
-  withMethods((store, service = inject(EventsService), router = inject(Router)) => {
+  withMethods((store, router = inject(Router)) => {
     const route = inject(ActivatedRoute, { optional: true });
-    const load = rxMethod<void>(
-      pipe(
-        switchMap(() =>
-          service.events().pipe(
-            tapResponse({
-              next: (list) => patchState(store, { list, loadState: 'ready', error: '', now: Date.now() }),
-              // A failed refresh keeps what's shown, and says why.
-              error: (error: unknown) =>
-                patchState(store, { error: serverMessage(error), loadState: store.list() ? 'ready' : 'error' }),
-            }),
-          ),
-        ),
-      ),
-    );
     return {
-      refresh: () => load(),
-      // Asked for again after a failed load: the page shows it loading.
-      retry: () => {
-        patchState(store, { loadState: store.list() ? 'ready' : 'loading', error: '' });
-        load();
-      },
+      // The poll, and "Try again" after a failed load (the page shows it
+      // loading while there's nothing to show).
+      refresh: () => store._list.reload(),
       // Typed in the search box: shown at once, and kept in the query string
       // (the same history entry), so a link brings it along.
       setSearch: (search: string) => {
@@ -129,8 +113,11 @@ export const EventsStore = signalStore(
   }),
   withHooks((store, route = inject(ActivatedRoute, { optional: true })) => ({
     onInit() {
+      // Each answer is measured against the time it came.
+      effect(() => {
+        if (store._list.status() === 'resolved') untracked(() => store.tick());
+      });
       if (route) store.followQuery(route.queryParamMap);
-      store.refresh();
       rxMethod<number>(tap(() => document.visibilityState === 'visible' && store.refresh()))(interval(EVENTS_POLL_MS));
       rxMethod<number>(tap(() => store.tick()))(interval(TICK_MS));
     },
