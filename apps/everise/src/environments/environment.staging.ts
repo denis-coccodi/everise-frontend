@@ -6,4 +6,6 @@ export const environment = {
   api_url: '/api',
   // Cloudflare Turnstile's site key (public; the secret is the backend's).
   turnstileSiteKey: '0x4AAAAAAFROIj4bDEEExZyj',
+  // No Web Analytics: staging is behind Cloudflare Access, so only the team visits.
+  webAnalyticsToken: '',
 };

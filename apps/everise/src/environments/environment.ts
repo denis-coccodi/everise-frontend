@@ -15,4 +15,6 @@ export const environment = {
   // Cloudflare Turnstile's test key, which always passes (a local backend
   // has no Turnstile secret and checks nothing). '' turns the check off.
   turnstileSiteKey: '1x00000000000000000000AA',
+  // Cloudflare Web Analytics' site token; only production counts visits.
+  webAnalyticsToken: '',
 };
