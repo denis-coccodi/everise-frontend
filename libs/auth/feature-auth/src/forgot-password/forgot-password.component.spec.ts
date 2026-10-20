@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { API_URL } from '@everise/core/http-client';
 import { TURNSTILE_SITE_KEY, TurnstileApi } from '@everise/ui/components';
 import { ForgotPasswordComponent } from './forgot-password.component';
@@ -23,7 +23,9 @@ describe('ForgotPasswordComponent', () => {
     delete (window as Window & { turnstile?: TurnstileApi }).turnstile;
   });
 
-  async function render() {
+  afterEach(() => history.replaceState(null, ''));
+
+  async function render(typed: string | null = 'yshtola@example.com') {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -38,19 +40,23 @@ describe('ForgotPasswordComponent', () => {
     await new Promise((resolve) => setTimeout(resolve));
     const page = fixture.nativeElement as HTMLElement;
     const input = page.querySelector('#email') as HTMLInputElement;
-    input.value = 'yshtola@example.com';
-    input.dispatchEvent(new Event('input'));
-    await fixture.whenStable();
+    if (typed !== null) {
+      input.value = typed;
+      input.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+    }
     return {
       fixture,
       page,
+      input,
       http: TestBed.inject(HttpTestingController),
       button: page.querySelector('[data-testid=send-code]') as HTMLButtonElement,
     };
   }
 
-  it('sends the address with the bot check, then says a code may be on its way and where to enter it', async () => {
+  it('sends the address with the bot check, then goes on to entering the code, saying where it went', async () => {
     const { fixture, page, http, button } = await render();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     expect(page.querySelector('h1')?.textContent?.trim()).toBe('Forgot your password?');
     expect(widgets.map((w) => w.action)).toEqual(['forgot-password']);
     expect(button.disabled).toBe(true);
@@ -66,10 +72,15 @@ describe('ForgotPasswordComponent', () => {
     request.flush({ passwordReset: { email: 'yshtola@example.com' } });
     await fixture.whenStable();
 
-    const sent = page.querySelector('cdt-message.sent') as HTMLElement;
-    expect(sent.getAttribute('role')).toBe('status');
-    expect(sent.textContent).toContain('If yshtola@example.com has an Everise account, a code is on its way.');
-    expect(sent.querySelector('a')?.getAttribute('href')).toBe('/reset-password');
+    expect(navigate).toHaveBeenCalledWith(['/reset-password'], { state: { resetEmail: 'yshtola@example.com' } });
+  });
+
+  it('fills in the address when sent back from the code page to change it', async () => {
+    history.replaceState({ resetEmail: 'wrong@example.com' }, '');
+
+    const { input } = await render(null);
+
+    expect(input.value).toBe('wrong@example.com');
   });
 
   it("shows the server's message when it refuses", async () => {
@@ -87,6 +98,5 @@ describe('ForgotPasswordComponent', () => {
     await fixture.whenStable();
 
     expect(page.textContent).toContain("We've just sent a code. Try again in 42 seconds.");
-    expect(page.querySelector('cdt-message.sent')?.textContent?.trim()).toBe('');
   });
 });

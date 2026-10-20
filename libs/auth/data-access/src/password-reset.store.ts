@@ -5,31 +5,31 @@ import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { NewPasswordWithCode, PasswordResetRequest } from '@everise/core/api-types';
 import { FormErrorsStore } from '@everise/core/forms';
+import { Router } from '@angular/router';
 import { exhaustMap, pipe, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { AuthStore } from './auth.store';
+import { resetEmailState } from './reset-email';
 
 export type PasswordResetState = {
   // Asking for a code, or setting the password, right now.
   busy: boolean;
-  // Where a code may have gone (the answer is the same whether or not the
-  // address has an account).
-  sentTo: string | null;
   // The new password is set; every device was signed out.
   done: boolean;
 };
 
-// "Forgot password?": asking for a code by email, then setting a new
-// password with it. Provided by those two pages; errors show in the page's
-// <cdt-list-errors>.
+// "Forgot password?": asking for a code by email, which goes on to the page
+// for entering it, then setting a new password with it. Provided by those
+// two pages; errors show in the page's <cdt-list-errors>.
 export const PasswordResetStore = signalStore(
-  withState<PasswordResetState>({ busy: false, sentTo: null, done: false }),
+  withState<PasswordResetState>({ busy: false, done: false }),
   withMethods(
     (
       store,
       authService = inject(AuthService),
       authStore = inject(AuthStore),
       formErrorsStore = inject(FormErrorsStore),
+      router = inject(Router),
     ) => {
       const failed = (response: HttpErrorResponse) => {
         patchState(store, { busy: false });
@@ -38,11 +38,15 @@ export const PasswordResetStore = signalStore(
       return {
         requestCode: rxMethod<PasswordResetRequest>(
           pipe(
-            tap(() => patchState(store, { busy: true, sentTo: null })),
+            tap(() => patchState(store, { busy: true })),
             exhaustMap((request) =>
               authService.requestPasswordReset(request).pipe(
                 tapResponse({
-                  next: ({ passwordReset }) => patchState(store, { busy: false, sentTo: passwordReset.email }),
+                  // Straight on to entering the code, saying where it went.
+                  next: ({ passwordReset }) => {
+                    patchState(store, { busy: false });
+                    router.navigate(['/reset-password'], { state: resetEmailState(passwordReset.email) });
+                  },
                   error: failed,
                 }),
               ),
