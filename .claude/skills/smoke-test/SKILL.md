@@ -42,4 +42,4 @@ The service binding works locally too: `wrangler dev` connects to another `wrang
 
 - A newly created `*.workers.dev` hostname answers `404` with `error code: 1042` for up to a minute or so. Wait and retry before treating it as a failure.
 - `GET /api/tags` returning the app shell (HTML) instead of JSON means `/api/*` is not reaching the Worker script: check `assets.run_worker_first` in `wrangler.jsonc`. A `5xx` from `/api` usually means the bound backend Worker does not exist under that name.
-- For a full browser check, run the app and drive it with Playwright (`apps/everise-e2e`), pointing `BASE_URL` at the target.
+- For a check in a real browser, use the `ui-check` skill (Playwright, against a local or deployed URL).

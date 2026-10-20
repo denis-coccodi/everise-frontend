@@ -7,8 +7,7 @@
     "ghaschel.vscode-angular-html",
     "dbaeumer.vscode-eslint",
     "nrwl.angular-console",
-    "stylelint.vscode-stylelint",
-    "ms-playwright.playwright"
+    "stylelint.vscode-stylelint"
   ],
   "unwantedRecommendations": []
 }

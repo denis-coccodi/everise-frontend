@@ -5,7 +5,7 @@
       "style": "css",
       "linter": "eslint",
       "unitTestRunner": "vitest-analog",
-      "e2eTestRunner": "cypress"
+      "e2eTestRunner": "none"
     },
     "@nx/angular:library": {
       "linter": "eslint",
@@ -19,7 +19,7 @@
       "style": "scss",
       "linter": "eslint",
       "unitTestRunner": "none",
-      "e2eTestRunner": "playwright"
+      "e2eTestRunner": "none"
     },
     "@schematics/angular:component": {
       "type": "component"
@@ -77,10 +77,6 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"],
-      "cache": true
-    },
-    "e2e": {
-      "inputs": ["default", "^production"],
       "cache": true
     },
     "@nx/eslint:lint": {

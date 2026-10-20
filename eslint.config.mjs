@@ -27,7 +27,6 @@ export default [
                 'type:testing',
               ],
             },
-            { sourceTag: 'type:e2e', onlyDependOnLibsWithTags: ['type:app'] },
             {
               sourceTag: 'type:feature',
               onlyDependOnLibsWithTags: ['type:widget', 'type:data-access', 'type:ui', 'type:util', 'type:testing'],
