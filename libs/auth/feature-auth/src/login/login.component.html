@@ -3,9 +3,6 @@
     <div class="row">
       <div class="col-md-6 offset-md-3 col-xs-12">
         <h1 class="text-xs-center">Sign in</h1>
-        <p class="text-xs-center">
-          <a [routerLink]="['/register']">Need an account?</a>
-        </p>
 
         @if (fromDiscord) {
           <cdt-message class="from-discord">
@@ -19,46 +16,41 @@
           <cdt-check-email [email]="email" />
         }
 
-        <cdt-social-sign-in />
+        <cdt-panel class="window">
+          <cdt-social-sign-in />
 
-        <form [formRoot]="form">
-          <cdt-field label="Email" for="email" required>
-            <input
-              [formField]="form.email"
-              type="email"
-              id="email"
-              autocomplete="username"
-              placeholder="Email"
-              cdtInput="lg"
-            />
-            <cdt-input-errors [field]="form.email"></cdt-input-errors>
-          </cdt-field>
-          <cdt-field label="Password" for="password" required>
-            <input
-              [formField]="form.password"
-              type="password"
-              id="password"
-              autocomplete="current-password"
-              placeholder="Password"
-              cdtInput="lg"
-            />
-            <cdt-input-errors [field]="form.password"></cdt-input-errors>
-          </cdt-field>
-          <p>
-            <a routerLink="/forgot-password">Forgot your password?</a>
-          </p>
-          <cdt-turnstile action="login" (token)="turnstileToken.set($event)" />
-          <button
-            data-testid="sign-in"
-            cdtButton
-            size="lg"
-            class="pull-xs-right"
-            [disabled]="form().invalid() || form().pending() || waitingForCheck()"
-            type="submit"
-          >
-            Sign in
-          </button>
-        </form>
+          <form [formRoot]="form">
+            <cdt-field label="Email" for="email" required>
+              <input [formField]="form.email" type="email" id="email" autocomplete="username" cdtInput="lg" />
+              <cdt-input-errors [field]="form.email"></cdt-input-errors>
+            </cdt-field>
+            <cdt-field label="Password" for="password" required>
+              <input
+                [formField]="form.password"
+                type="password"
+                id="password"
+                autocomplete="current-password"
+                cdtInput="lg"
+              />
+              <cdt-show-password for="password" />
+              <cdt-input-errors [field]="form.password"></cdt-input-errors>
+              <a class="forgot" routerLink="/forgot-password">Forgot your password?</a>
+            </cdt-field>
+            <cdt-turnstile action="login" (token)="turnstileToken.set($event)" />
+            <button
+              data-testid="sign-in"
+              cdtButton
+              size="lg"
+              class="submit"
+              [disabled]="form().invalid() || form().pending() || waitingForCheck()"
+              type="submit"
+            >
+              Sign in
+            </button>
+          </form>
+
+          <p class="switch">New to Everise? <a [routerLink]="['/register']">Create an account</a></p>
+        </cdt-panel>
       </div>
     </div>
   </div>

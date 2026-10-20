@@ -8,19 +8,26 @@ import {
   FieldComponent,
   InputComponent,
   MessageComponent,
+  PanelComponent,
+  ShowPasswordComponent,
   TURNSTILE_SITE_KEY,
   TurnstileComponent,
 } from '@everise/ui/components';
 import { CheckEmailComponent } from '../check-email/check-email.component';
 import { SocialSignInComponent } from '../social-sign-in/social-sign-in.component';
 
+// The sign-in form, in a window like the sign-up's, with a "Show" button on
+// the password.
 @Component({
   selector: 'cdt-login',
   templateUrl: './login.component.html',
+  styleUrls: ['../auth-page.scss', './login.component.scss'],
   imports: [
     FieldComponent,
     ButtonComponent,
     InputComponent,
+    PanelComponent,
+    ShowPasswordComponent,
     ListErrorsComponent,
     RouterLink,
     FormField,

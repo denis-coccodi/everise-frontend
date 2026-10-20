@@ -1,0 +1,20 @@
+// Uses the theme's role tokens only (../../../ui/components/src/theme).
+// The sign-in and sign-up pages: their window, main button and the link to
+// the other page.
+
+// The form's window, a little apart from the heading.
+.window {
+  margin-top: 0.5rem;
+}
+
+// The main action, across the window.
+.submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+// "Already have an account?" / "New to Everise?", under the button.
+.switch {
+  margin: 1rem 0 0;
+  text-align: center;
+}
