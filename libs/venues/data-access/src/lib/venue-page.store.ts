@@ -18,17 +18,18 @@ export const VenuePageStore = signalStore(
   withProps((_, service = inject(VenuesService), route = inject(ActivatedRoute)) => {
     // The venue's id, from the address; another id loads afresh.
     const id = toSignal(route.paramMap.pipe(map((params) => params.get('id') ?? '')), { requireSync: true });
-    return { _page: rxResource({ params: id, stream: ({ params }) => service.venue(params) }) };
+    const page = rxResource({ params: id, stream: ({ params }) => service.venue(params) });
+    // The page reads the load itself: hasValue(), isLoading(), error().
+    return { _page: page, page: page.asReadonly() };
   }),
   withComputed(({ _page }) => ({
     venue: computed(() => (_page.hasValue() ? _page.value().venue : null)),
     // The week's events surely held there, from Partake.
     events: computed(() => (_page.hasValue() ? _page.value().events : [])),
-    // 'missing': the backend says the site doesn't list it.
-    loadState: computed(() => {
+    // The backend says the site doesn't list it.
+    missing: computed(() => {
       const error = _page.error();
-      if (error) return error instanceof HttpErrorResponse && error.status === 404 ? 'missing' : 'error';
-      return _page.hasValue() ? 'ready' : 'loading';
+      return error instanceof HttpErrorResponse && error.status === 404;
     }),
     // Why it's missing, or why loading failed, in the backend's words.
     error: computed(() => errorMessageOf(_page)),

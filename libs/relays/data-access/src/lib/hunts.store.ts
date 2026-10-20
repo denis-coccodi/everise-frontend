@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from '@ngrx/signals';
 import { extendResource, withPreviousValueOnError } from '@ngrx/signals/resource';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { errorMessageOf, loadStateOf } from '@everise/core/data-access';
+import { errorMessageOf } from '@everise/core/data-access';
 import { fromEvent, interval, tap } from 'rxjs';
 import { RelaysService } from './relays.service';
 
@@ -24,13 +24,14 @@ interface HuntsState {
 // by the tab.
 export const HuntsStore = signalStore(
   withState<HuntsState>(() => ({ checkedAt: 0, now: Date.now() })),
-  withProps((_, service = inject(RelaysService)) => ({
-    // A failed refresh keeps what's shown, and says why.
-    _hunts: extendResource(rxResource({ stream: () => service.hunts() }), withPreviousValueOnError()),
-  })),
+  withProps((_, service = inject(RelaysService)) => {
+    // A failed refresh keeps what's shown (value() doesn't throw), and says why.
+    const hunts = extendResource(rxResource({ stream: () => service.hunts() }), withPreviousValueOnError());
+    // The tab reads the load itself: value(), isLoading(), error().
+    return { _hunts: hunts, hunts: hunts.asReadonly() };
+  }),
   withComputed(({ _hunts }) => ({
-    hunts: computed(() => _hunts.value() ?? null),
-    loadState: computed(() => loadStateOf(_hunts)),
+    // The backend's words when the last load failed.
     error: computed(() => errorMessageOf(_hunts)),
     sections: computed(() => {
       const hunts = _hunts.value();

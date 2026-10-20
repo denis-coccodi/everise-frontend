@@ -20,7 +20,7 @@ export class WeeklyComponent {
   protected readonly store = inject(WeeklyStore);
 
   protected readonly resets = computed(() => {
-    const resets = this.store.weekly()?.resets;
+    const resets = this.store.weekly.value()?.resets;
     const now = this.store.now();
     if (!resets) return [];
     return [
@@ -34,12 +34,12 @@ export class WeeklyComponent {
   });
 
   protected readonly fashionStatus = computed(() => {
-    const weekly = this.store.weekly();
+    const weekly = this.store.weekly.value();
     return weekly ? fashionReportStatus(weekly.fashionReport, weekly.nextJudgingAt, this.store.now()) : '';
   });
 
   protected readonly islandStatus = computed(() => {
-    const weekly = this.store.weekly();
+    const weekly = this.store.weekly.value();
     return weekly ? islandSeasonStatus(weekly.islandSanctuary, this.store.now()) : '';
   });
 }

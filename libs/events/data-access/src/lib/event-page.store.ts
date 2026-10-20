@@ -18,19 +18,17 @@ export const EventPageStore = signalStore(
   withProps((_, service = inject(EventsService), route = inject(ActivatedRoute)) => {
     // The event's id, from the address; another id loads afresh.
     const id = toSignal(route.paramMap.pipe(map((params) => params.get('id') ?? '')), { requireSync: true });
-    return { _page: rxResource({ params: id, stream: ({ params }) => service.event(params) }) };
+    const page = rxResource({ params: id, stream: ({ params }) => service.event(params) });
+    // The page reads the load itself: hasValue(), isLoading(), error().
+    return { _page: page, page: page.asReadonly() };
   }),
   withComputed(({ _page }) => ({
     event: computed(() => (_page.hasValue() ? _page.value().event : null)),
     // The venue on the site it is held at, when the backend is sure of it.
     venue: computed(() => (_page.hasValue() ? _page.value().venue ?? null : null)),
-    // 'missing': the backend says the site doesn't list it (or the address
-    // names no event).
-    loadState: computed(() => {
-      const error = _page.error();
-      if (error) return isMissing(error) ? 'missing' : 'error';
-      return _page.hasValue() ? 'ready' : 'loading';
-    }),
+    // The backend says the site doesn't list it (or the address names no
+    // event).
+    missing: computed(() => isMissing(_page.error())),
     // Why it's missing, or why loading failed, in the backend's words.
     error: computed(() => errorMessageOf(_page)),
   })),
@@ -44,6 +42,6 @@ export const EventPageStore = signalStore(
   })),
 );
 
-function isMissing(error: Error) {
+function isMissing(error: Error | undefined) {
   return error instanceof HttpErrorResponse && (error.status === 404 || error.status === 422);
 }
