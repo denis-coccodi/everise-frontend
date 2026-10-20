@@ -8,6 +8,7 @@ import {
   FieldComponent,
   InputComponent,
   MessageComponent,
+  ShowPasswordComponent,
   TURNSTILE_SITE_KEY,
   TurnstileComponent,
 } from '@everise/ui/components';
@@ -27,6 +28,7 @@ import {
     InputErrorsComponent,
     ListErrorsComponent,
     MessageComponent,
+    ShowPasswordComponent,
     TurnstileComponent,
     FormField,
     FormRoot,
