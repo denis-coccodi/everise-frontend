@@ -17,6 +17,7 @@ import {
   FieldComponent,
   InputComponent,
   MessageComponent,
+  ShowPasswordComponent,
 } from '@everise/ui/components';
 
 // The window for a new password: the current one, then the new one twice.
@@ -32,6 +33,7 @@ import {
     InputComponent,
     InputErrorsComponent,
     MessageComponent,
+    ShowPasswordComponent,
     FormField,
     FormRoot,
     RouterLink,

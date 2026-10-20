@@ -78,4 +78,13 @@ describe('ChangePasswordDialogComponent', () => {
       'new-password',
     ]);
   });
+
+  it('can show the current and the new password', async () => {
+    const { page } = await render();
+
+    expect([...page.querySelectorAll('cdt-show-password button')].map((b) => b.getAttribute('aria-controls'))).toEqual([
+      'current-password',
+      'new-password',
+    ]);
+  });
 });

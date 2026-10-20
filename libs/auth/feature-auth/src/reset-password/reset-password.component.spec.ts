@@ -125,4 +125,10 @@ describe('ResetPasswordComponent', () => {
       expect(page.textContent).toContain('No code? Ask for one');
     });
   });
+
+  it('can show the new password', async () => {
+    const { page } = await render({ code: 'ABCD-EFGH' });
+
+    expect(page.querySelector('cdt-show-password button')?.getAttribute('aria-controls')).toBe('password');
+  });
 });
