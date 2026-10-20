@@ -7,137 +7,130 @@
     }
   </p>
 
-  @switch (store.loadState()) {
-    @case ('loading') {
-      <h1 class="xiv-title">Venue</h1>
-      <p class="notice" role="status">Finding the venue…</p>
+  @if (store.venue(); as venue) {
+    <!-- Decorative: the name below says what it is. A venue without a
+         banner (or whose banner doesn't load) gets the site's own. -->
+    @if (venue.banner && !bannerFailed()) {
+      <img class="cover" [src]="venue.banner" alt="" (error)="bannerFailed.set(true)" />
+    } @else {
+      <div class="cover no-banner" aria-hidden="true"><cdt-icon name="venue" /></div>
     }
-    @case ('missing') {
-      <h1 class="xiv-title">Venue not listed</h1>
-      <cdt-message tone="warning">{{ store.error() }}</cdt-message>
-    }
-    @case ('error') {
-      <h1 class="xiv-title">Venue</h1>
-      <cdt-message tone="error">{{ store.error() }}</cdt-message>
-    }
-    @default {
-      @if (store.venue(); as venue) {
-        <!-- Decorative: the name below says what it is. A venue without a
-             banner (or whose banner doesn't load) gets the site's own. -->
-        @if (venue.banner && !bannerFailed()) {
-          <img class="cover" [src]="venue.banner" alt="" (error)="bannerFailed.set(true)" />
-        } @else {
-          <div class="cover no-banner" aria-hidden="true"><cdt-icon name="venue" /></div>
+    <header class="heading">
+      <h1>{{ venue.name }}</h1>
+      @if (opening(); as opening) {
+        <p class="opening" [class.open]="opening.open">{{ opening.text }}</p>
+      } @else {
+        <p class="opening">No opening set right now</p>
+      }
+      <p class="where">
+        @if (venue.world) {
+          <span class="world">{{ venue.world }}</span
+          >{{ venue.address ? ', ' : '' }}
         }
-        <header class="heading">
-          <h1>{{ venue.name }}</h1>
-          @if (opening(); as opening) {
-            <p class="opening" [class.open]="opening.open">{{ opening.text }}</p>
-          } @else {
-            <p class="opening">No opening set right now</p>
-          }
-          <p class="where">
-            @if (venue.world) {
-              <span class="world">{{ venue.world }}</span
-              >{{ venue.address ? ', ' : '' }}
-            }
-            {{ venue.address }}
-            @if (venue.dataCentre) {
-              ({{ venue.dataCentre }})
+        {{ venue.address }}
+        @if (venue.dataCentre) {
+          ({{ venue.dataCentre }})
+        }
+      </p>
+    </header>
+
+    @for (notice of venue.notices; track $index) {
+      <p class="notice-box"><span class="visually-hidden">Notice from the owners: </span>{{ notice }}</p>
+    }
+
+    @if (signedIn() && discordAvailable()) {
+      <div class="share">
+        <button type="button" cdtButton="outline-primary" size="sm" (click)="share.open()">
+          <cdt-icon name="send" />Share to Discord
+        </button>
+        <cdt-message>{{ share.sent() ? 'Sent to the Everise Discord.' : '' }}</cdt-message>
+      </div>
+    }
+    @if (share.showing()) {
+      <cdt-venue-share-dialog [venue]="venue" />
+    }
+
+    <div class="columns">
+      <!-- The week's events held there, with their banners: first on
+           phones, at the top of the side column on wide screens. -->
+      <cdt-venue-events [events]="store.events()" [now]="store.now()" />
+      <section class="about" aria-labelledby="venue-about">
+        <h2 id="venue-about">About</h2>
+        @for (paragraph of paragraphs(); track $index) {
+          <p>
+            @for (part of paragraph; track $index) {
+              @if (part.url) {
+                <a [href]="part.url" target="_blank" rel="noopener noreferrer nofollow"
+                  >{{ part.text }}<span class="visually-hidden"> (opens in a new tab)</span></a
+                >
+              } @else {
+                {{ part.text }}
+              }
             }
           </p>
-        </header>
-
-        @for (notice of venue.notices; track $index) {
-          <p class="notice-box"><span class="visually-hidden">Notice from the owners: </span>{{ notice }}</p>
         }
-
-        @if (signedIn() && discordAvailable()) {
-          <div class="share">
-            <button type="button" cdtButton="outline-primary" size="sm" (click)="share.open()">
-              <cdt-icon name="send" />Share to Discord
-            </button>
-            <cdt-message>{{ share.sent() ? 'Sent to the Everise Discord.' : '' }}</cdt-message>
-          </div>
-        }
-        @if (share.showing()) {
-          <cdt-venue-share-dialog [venue]="venue" />
-        }
-
-        <div class="columns">
-          <!-- The week's events held there, with their banners: first on
-               phones, at the top of the side column on wide screens. -->
-          <cdt-venue-events [events]="store.events()" [now]="store.now()" />
-          <section class="about" aria-labelledby="venue-about">
-            <h2 id="venue-about">About</h2>
-            @for (paragraph of paragraphs(); track $index) {
-              <p>
-                @for (part of paragraph; track $index) {
-                  @if (part.url) {
-                    <a [href]="part.url" target="_blank" rel="noopener noreferrer nofollow"
-                      >{{ part.text }}<span class="visually-hidden"> (opens in a new tab)</span></a
-                    >
-                  } @else {
-                    {{ part.text }}
-                  }
-                }
-              </p>
+        @if (venue.tags.length) {
+          <ul class="tags" aria-label="What it offers">
+            @for (tag of venue.tags; track tag) {
+              <li cdtTag="outline">{{ tag }}</li>
             }
-            @if (venue.tags.length) {
-              <ul class="tags" aria-label="What it offers">
-                @for (tag of venue.tags; track tag) {
-                  <li cdtTag="outline">{{ tag }}</li>
-                }
-              </ul>
-            }
-          </section>
+          </ul>
+        }
+      </section>
 
-          <aside class="side">
-            <section aria-labelledby="venue-when">
-              <h2 id="venue-when">When</h2>
-              @if (schedule().length) {
-                <ul class="schedule">
-                  @for (row of schedule(); track row.key) {
-                    <li>
-                      <span class="repeat">{{ row.repeat }}</span>
-                      <span class="hours">{{ row.hours }}</span>
-                    </li>
-                  }
-                </ul>
-                <p class="hint">Times are in your time zone.</p>
-              } @else {
-                <p class="hint">No regular openings listed: check the venue's Discord.</p>
-              }
-            </section>
-            <section aria-labelledby="venue-links">
-              <h2 id="venue-links">Find them</h2>
-              <ul class="links">
-                @if (venue.discord) {
-                  <li>
-                    <a [href]="venue.discord" target="_blank" rel="noopener noreferrer"
-                      >Discord<span class="visually-hidden"> (opens in a new tab)</span></a
-                    >
-                  </li>
-                }
-                @if (venue.website) {
-                  <li>
-                    <a [href]="venue.website" target="_blank" rel="noopener noreferrer"
-                      >Website<span class="visually-hidden"> (opens in a new tab)</span></a
-                    >
-                  </li>
-                }
+      <aside class="side">
+        <section aria-labelledby="venue-when">
+          <h2 id="venue-when">When</h2>
+          @if (schedule().length) {
+            <ul class="schedule">
+              @for (row of schedule(); track row.key) {
                 <li>
-                  <a [href]="venue.url" target="_blank" rel="noopener noreferrer"
-                    >On FFXIV Venues<span class="visually-hidden"> (opens in a new tab)</span></a
-                  >
+                  <span class="repeat">{{ row.repeat }}</span>
+                  <span class="hours">{{ row.hours }}</span>
                 </li>
-              </ul>
-            </section>
-          </aside>
-        </div>
+              }
+            </ul>
+            <p class="hint">Times are in your time zone.</p>
+          } @else {
+            <p class="hint">No regular openings listed: check the venue's Discord.</p>
+          }
+        </section>
+        <section aria-labelledby="venue-links">
+          <h2 id="venue-links">Find them</h2>
+          <ul class="links">
+            @if (venue.discord) {
+              <li>
+                <a [href]="venue.discord" target="_blank" rel="noopener noreferrer"
+                  >Discord<span class="visually-hidden"> (opens in a new tab)</span></a
+                >
+              </li>
+            }
+            @if (venue.website) {
+              <li>
+                <a [href]="venue.website" target="_blank" rel="noopener noreferrer"
+                  >Website<span class="visually-hidden"> (opens in a new tab)</span></a
+                >
+              </li>
+            }
+            <li>
+              <a [href]="venue.url" target="_blank" rel="noopener noreferrer"
+                >On FFXIV Venues<span class="visually-hidden"> (opens in a new tab)</span></a
+              >
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </div>
 
-        <p class="source">Listed by its owners on FFXIV Venues.</p>
-      }
-    }
+    <p class="source">Listed by its owners on FFXIV Venues.</p>
+  } @else if (store.missing()) {
+    <h1 class="xiv-title">Venue not listed</h1>
+    <cdt-message tone="warning">{{ store.error() }}</cdt-message>
+  } @else if (store.page.error()) {
+    <h1 class="xiv-title">Venue</h1>
+    <cdt-message tone="error">{{ store.error() }}</cdt-message>
+  } @else {
+    <h1 class="xiv-title">Venue</h1>
+    <p class="notice" role="status">Finding the venue…</p>
   }
 </div>

@@ -1,8 +1,5 @@
 <cdt-message tone="error">{{ store.error() }}</cdt-message>
-@if (store.loadState() === 'loading') {
-  <p class="note">Loading the hunt trains…</p>
-}
-@if (store.hunts(); as hunts) {
+@if (store.hunts.value(); as hunts) {
   @if (!hunts.available) {
     <p class="note">The hunt trains aren't relayed here yet.</p>
   }
@@ -22,4 +19,6 @@
       }
     </cdt-panel>
   }
+} @else if (store.hunts.isLoading()) {
+  <p class="note">Loading the hunt trains…</p>
 }

@@ -1,8 +1,5 @@
 <cdt-message tone="error">{{ store.error() }}</cdt-message>
-@if (store.loadState() === 'loading') {
-  <p class="note">Loading this week…</p>
-}
-@if (store.weekly(); as weekly) {
+@if (store.weekly.value(); as weekly) {
   <cdt-panel heading="Resets">
     <ul class="resets">
       @for (reset of resets(); track reset.name) {
@@ -38,4 +35,6 @@
       }
     </div>
   </cdt-panel>
+} @else if (store.weekly.isLoading()) {
+  <p class="note">Loading this week…</p>
 }

@@ -21,7 +21,9 @@ describe('EventsComponent', () => {
     await harness.navigateByUrl(url);
     const fixture = harness.fixture;
     const http = TestBed.inject(HttpTestingController);
-    await fixture.whenStable();
+    // The list is a resource: it asks once effects run, and keeps the app
+    // unstable until answered, so each test flushes before whenStable().
+    TestBed.tick();
     const page = fixture.nativeElement as HTMLElement;
     const sections = () =>
       [...page.querySelectorAll('section')].map((section) => ({
@@ -88,7 +90,7 @@ describe('EventsComponent', () => {
     expect(page.querySelector('cdt-message')?.textContent).toContain("can't be reached right now");
 
     (failed.querySelector('button') as HTMLButtonElement).click();
-    await fixture.whenStable();
+    TestBed.tick();
     expect(page.querySelector('[role=status]')?.textContent).toContain("Finding this week's events");
     http.expectOne('/events').flush(list());
     await fixture.whenStable();

@@ -33,7 +33,7 @@ describe('HuntsStore', () => {
     } satisfies HuntsResponse);
     await settled();
 
-    expect(store.loadState()).toBe('ready');
+    expect(store.hunts.hasValue()).toBe(true);
     expect(store.sections().map((s) => [s.dataCentre, s.trains.map((t) => t.message.id)])).toEqual([
       ['Light', ['odin', 'shiva']],
       ['Chaos', ['cerberus']],
@@ -48,7 +48,8 @@ describe('HuntsStore', () => {
       .flush({ errors: { body: ['The hunt trains are resting.'] } }, { status: 500, statusText: '' });
     await settled();
 
-    expect(store.loadState()).toBe('error');
+    expect(store.hunts.status()).toBe('error');
+    expect(store.hunts.value()).toBeUndefined();
     expect(store.error()).toBe('The hunt trains are resting.');
   });
 

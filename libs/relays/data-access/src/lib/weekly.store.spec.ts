@@ -33,27 +33,27 @@ describe('WeeklyStore', () => {
   it('reads the week', async () => {
     const { store, http, settled } = setup();
 
-    expect(store.loadState()).toBe('loading');
+    expect(store.weekly.isLoading()).toBe(true);
     http.expectOne('/weekly').flush(WEEK);
     await settled();
 
-    expect(store.loadState()).toBe('ready');
-    expect(store.weekly()).toEqual(WEEK);
+    expect(store.weekly.hasValue()).toBe(true);
+    expect(store.weekly.value()).toEqual(WEEK);
   });
 
   it('keeps what it showed when a refresh fails, and says why', async () => {
     const { store, http, settled } = setup();
     http.expectOne('/weekly').flush(WEEK);
     await settled();
-    expect(store.weekly()).toEqual(WEEK);
+    expect(store.weekly.value()).toEqual(WEEK);
 
     store.load();
     TestBed.tick();
     http.expectOne('/weekly').flush({ errors: { body: ['Try again later.'] } }, { status: 503, statusText: '' });
     await settled();
 
-    expect(store.loadState()).toBe('ready');
-    expect(store.weekly()).toEqual(WEEK);
+    expect(store.weekly.hasValue()).toBe(true);
+    expect(store.weekly.value()).toEqual(WEEK);
     expect(store.error()).toBe('Try again later.');
   });
 
@@ -63,8 +63,8 @@ describe('WeeklyStore', () => {
     http.expectOne('/weekly').flush({ errors: { body: ['Try again later.'] } }, { status: 503, statusText: '' });
     await settled();
 
-    expect(store.loadState()).toBe('error');
-    expect(store.weekly()).toBeNull();
+    expect(store.weekly.status()).toBe('error');
+    expect(store.weekly.value()).toBeUndefined();
     expect(store.error()).toBe('Try again later.');
   });
 });
