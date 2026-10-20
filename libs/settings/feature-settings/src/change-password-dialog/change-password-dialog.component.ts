@@ -40,8 +40,12 @@ import {
 })
 export class ChangePasswordDialogComponent {
   protected readonly store = inject(AccountChangesStore);
+  // The account's sign-in name, in a hidden field of the form: Chrome and
+  // other password managers need it to see a password change for that
+  // account, to suggest a strong password and to save it.
+  protected readonly email = inject(AuthStore).user().email;
   // Forgot the current one: the code form, with the address filled in.
-  protected readonly forgotState = resetEmailState(inject(AuthStore).user().email);
+  protected readonly forgotState = resetEmailState(this.email);
 
   private readonly model = signal({ currentPassword: '', password: '', repeat: '' });
   protected readonly form = form(
