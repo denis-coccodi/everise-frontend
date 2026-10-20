@@ -61,10 +61,12 @@ describe('ChangePasswordDialogComponent', () => {
   it("names the account to password managers, and marks each password's role", async () => {
     const { page } = await render();
     const form = page.querySelector('form') as HTMLFormElement;
-    const username = form.querySelector('input[autocomplete=username]') as HTMLInputElement;
+    const username = form.querySelector('#account-email') as HTMLInputElement;
+    expect(username.getAttribute('autocomplete')).toBe('username');
 
     expect(username.value).toBe('yda@example.com');
-    expect(username.hidden).toBe(true);
+    expect(username.readOnly).toBe(true);
+    expect(username.hidden).toBe(false);
     expect([...form.querySelectorAll('input[type=password]')].map((i) => i.getAttribute('autocomplete'))).toEqual([
       'current-password',
       'new-password',

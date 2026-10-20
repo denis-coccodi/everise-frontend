@@ -40,7 +40,7 @@ import {
 })
 export class ChangePasswordDialogComponent {
   protected readonly store = inject(AccountChangesStore);
-  // The account's sign-in name, in a hidden field of the form: Chrome and
+  // The account's sign-in name, in a read-only field of the form: Chrome and
   // other password managers need it to see a password change for that
   // account, to suggest a strong password and to save it.
   protected readonly email = inject(AuthStore).user().email;
