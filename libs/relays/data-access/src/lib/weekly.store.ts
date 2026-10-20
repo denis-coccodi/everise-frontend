@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from '@ngrx/signals';
 import { extendResource, withPreviousValueOnError } from '@ngrx/signals/resource';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { errorMessageOf, loadStateOf } from '@everise/core/data-access';
+import { errorMessageOf } from '@everise/core/data-access';
 import { interval, tap } from 'rxjs';
 import { RelaysService } from './relays.service';
 
@@ -17,13 +17,13 @@ const WEEKLY_POLL_MS = 10 * 60 * 1000;
 export const WeeklyStore = signalStore(
   // The clock for the countdowns and the reports' days.
   withState(() => ({ now: Date.now() })),
-  withProps((_, service = inject(RelaysService)) => ({
-    // A failed refresh keeps what's shown, and says why.
-    _weekly: extendResource(rxResource({ stream: () => service.weekly() }), withPreviousValueOnError()),
-  })),
+  withProps((_, service = inject(RelaysService)) => {
+    // A failed refresh keeps what's shown (value() doesn't throw), and says why.
+    const weekly = extendResource(rxResource({ stream: () => service.weekly() }), withPreviousValueOnError());
+    // The tab reads the load itself: value(), isLoading(), error().
+    return { _weekly: weekly, weekly: weekly.asReadonly() };
+  }),
   withComputed(({ _weekly }) => ({
-    weekly: computed(() => _weekly.value() ?? null),
-    loadState: computed(() => loadStateOf(_weekly)),
     // The backend's words when the last load failed.
     error: computed(() => errorMessageOf(_weekly)),
   })),

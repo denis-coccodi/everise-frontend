@@ -7,121 +7,114 @@
     }
   </p>
 
-  @switch (store.loadState()) {
-    @case ('loading') {
-      <h1 class="xiv-title">Event</h1>
-      <p class="notice" role="status">Finding the event…</p>
+  @if (store.event(); as event) {
+    <!-- Decorative: the title below says what it is. -->
+    @if (event.banner && !bannerFailed()) {
+      <img class="cover" [src]="event.banner" alt="" (error)="bannerFailed.set(true)" />
+    } @else {
+      <div class="cover no-banner" aria-hidden="true"><cdt-icon name="calendar" /></div>
     }
-    @case ('missing') {
-      <h1 class="xiv-title">Event not listed</h1>
-      <cdt-message tone="warning">{{ store.error() }}</cdt-message>
-    }
-    @case ('error') {
-      <h1 class="xiv-title">Event</h1>
-      <cdt-message tone="error">{{ store.error() }}</cdt-message>
-    }
-    @default {
-      @if (store.event(); as event) {
-        <!-- Decorative: the title below says what it is. -->
-        @if (event.banner && !bannerFailed()) {
-          <img class="cover" [src]="event.banner" alt="" (error)="bannerFailed.set(true)" />
-        } @else {
-          <div class="cover no-banner" aria-hidden="true"><cdt-icon name="calendar" /></div>
-        }
-        <header class="heading">
-          <h1>{{ event.title }}</h1>
-          @if (when(); as when) {
-            <p class="when" [class.live]="when.live">{{ when.text }}</p>
-            <p class="hours">{{ when.day }}, {{ when.hours }}</p>
-          }
-          @if (where()) {
-            <p class="where">
-              {{ where() }}
-              @if (event.dataCentre) {
-                ({{ event.dataCentre }})
-              }
-            </p>
-          }
-          @if (store.venue(); as venue) {
-            <p class="venue">
-              <cdt-icon name="venue" />At <a [routerLink]="['/venues', venue.id]">{{ venue.name }}</a>
-            </p>
-          }
-          @if (event.ageRating === 'MATURE') {
-            <p class="rating">
-              <span cdtTag><span class="visually-hidden">Rated </span>Mature</span>
-            </p>
-          }
-        </header>
-
-        @if (signedIn() && discordAvailable() && !when()?.over) {
-          <div class="share">
-            <button type="button" cdtButton="outline-primary" size="sm" (click)="share.open()">
-              <cdt-icon name="send" />Share to Discord
-            </button>
-            <cdt-message>{{ share.sent() ? 'Sent to the Everise Discord.' : '' }}</cdt-message>
-          </div>
-        }
-        @if (share.showing()) {
-          <cdt-event-share-dialog [event]="event" />
-        }
-
-        <div class="columns">
-          <section class="about" aria-labelledby="event-about">
-            <h2 id="event-about">About</h2>
-            @if (event.description) {
-              <cdt-rich-text [text]="description()" />
-            } @else {
-              <p class="hint">The organisers didn't write a description.</p>
-            }
-            @if (event.tags.length) {
-              <ul class="tags" aria-label="What it is">
-                @for (tag of event.tags; track tag) {
-                  <li cdtTag="outline">{{ tag }}</li>
-                }
-              </ul>
-            }
-          </section>
-
-          <aside class="side" aria-labelledby="event-host">
-            <h2 id="event-host">Hosted by</h2>
-            @if (event.team; as team) {
-              <p class="team"><cdt-avatar [src]="team.icon" [size]="36" />{{ team.name }}</p>
-            } @else {
-              <p class="hint">Partake doesn't say.</p>
-            }
-            <ul class="links">
-              @if (event.team?.discord; as discord) {
-                <li>
-                  <a [href]="discord" target="_blank" rel="noopener noreferrer"
-                    >Discord<span class="visually-hidden"> (opens in a new tab)</span></a
-                  >
-                </li>
-              }
-              @if (event.team?.website; as website) {
-                <li>
-                  <a [href]="website" target="_blank" rel="noopener noreferrer"
-                    >Website<span class="visually-hidden"> (opens in a new tab)</span></a
-                  >
-                </li>
-              }
-              <li>
-                <a [href]="event.url" target="_blank" rel="noopener noreferrer"
-                  >On Partake<span class="visually-hidden"> (opens in a new tab)</span></a
-                >
-              </li>
-            </ul>
-            <p class="hint">
-              {{ event.attendees === 1 ? '1 player is' : event.attendees + ' players are' }} going, on Partake.
-              @if (event.recurring) {
-                It comes back regularly.
-              }
-            </p>
-          </aside>
-        </div>
-
-        <p class="source">Listed by its organisers on Partake. Times are in your time zone.</p>
+    <header class="heading">
+      <h1>{{ event.title }}</h1>
+      @if (when(); as when) {
+        <p class="when" [class.live]="when.live">{{ when.text }}</p>
+        <p class="hours">{{ when.day }}, {{ when.hours }}</p>
       }
+      @if (where()) {
+        <p class="where">
+          {{ where() }}
+          @if (event.dataCentre) {
+            ({{ event.dataCentre }})
+          }
+        </p>
+      }
+      @if (store.venue(); as venue) {
+        <p class="venue">
+          <cdt-icon name="venue" />At <a [routerLink]="['/venues', venue.id]">{{ venue.name }}</a>
+        </p>
+      }
+      @if (event.ageRating === 'MATURE') {
+        <p class="rating">
+          <span cdtTag><span class="visually-hidden">Rated </span>Mature</span>
+        </p>
+      }
+    </header>
+
+    @if (signedIn() && discordAvailable() && !when()?.over) {
+      <div class="share">
+        <button type="button" cdtButton="outline-primary" size="sm" (click)="share.open()">
+          <cdt-icon name="send" />Share to Discord
+        </button>
+        <cdt-message>{{ share.sent() ? 'Sent to the Everise Discord.' : '' }}</cdt-message>
+      </div>
     }
+    @if (share.showing()) {
+      <cdt-event-share-dialog [event]="event" />
+    }
+
+    <div class="columns">
+      <section class="about" aria-labelledby="event-about">
+        <h2 id="event-about">About</h2>
+        @if (event.description) {
+          <cdt-rich-text [text]="description()" />
+        } @else {
+          <p class="hint">The organisers didn't write a description.</p>
+        }
+        @if (event.tags.length) {
+          <ul class="tags" aria-label="What it is">
+            @for (tag of event.tags; track tag) {
+              <li cdtTag="outline">{{ tag }}</li>
+            }
+          </ul>
+        }
+      </section>
+
+      <aside class="side" aria-labelledby="event-host">
+        <h2 id="event-host">Hosted by</h2>
+        @if (event.team; as team) {
+          <p class="team"><cdt-avatar [src]="team.icon" [size]="36" />{{ team.name }}</p>
+        } @else {
+          <p class="hint">Partake doesn't say.</p>
+        }
+        <ul class="links">
+          @if (event.team?.discord; as discord) {
+            <li>
+              <a [href]="discord" target="_blank" rel="noopener noreferrer"
+                >Discord<span class="visually-hidden"> (opens in a new tab)</span></a
+              >
+            </li>
+          }
+          @if (event.team?.website; as website) {
+            <li>
+              <a [href]="website" target="_blank" rel="noopener noreferrer"
+                >Website<span class="visually-hidden"> (opens in a new tab)</span></a
+              >
+            </li>
+          }
+          <li>
+            <a [href]="event.url" target="_blank" rel="noopener noreferrer"
+              >On Partake<span class="visually-hidden"> (opens in a new tab)</span></a
+            >
+          </li>
+        </ul>
+        <p class="hint">
+          {{ event.attendees === 1 ? '1 player is' : event.attendees + ' players are' }} going, on Partake.
+          @if (event.recurring) {
+            It comes back regularly.
+          }
+        </p>
+      </aside>
+    </div>
+
+    <p class="source">Listed by its organisers on Partake. Times are in your time zone.</p>
+  } @else if (store.missing()) {
+    <h1 class="xiv-title">Event not listed</h1>
+    <cdt-message tone="warning">{{ store.error() }}</cdt-message>
+  } @else if (store.page.error()) {
+    <h1 class="xiv-title">Event</h1>
+    <cdt-message tone="error">{{ store.error() }}</cdt-message>
+  } @else {
+    <h1 class="xiv-title">Event</h1>
+    <p class="notice" role="status">Finding the event…</p>
   }
 </div>
