@@ -4112,7 +4112,7 @@ export interface components {
       darkMode: boolean;
       /** @enum {string} */
       role: 'admin' | 'staging-tester' | 'user';
-      signInMethods: ('password' | 'google' | 'facebook' | 'microsoft' | 'discord')[];
+      signInMethods: ('password' | 'google' | 'discord')[];
       pendingEmail: string | null;
     };
     UserResponse: {
@@ -4167,7 +4167,7 @@ export interface components {
       image: string;
       /** @enum {string} */
       role: 'admin' | 'staging-tester' | 'user';
-      signInMethods: ('password' | 'google' | 'facebook' | 'microsoft' | 'discord')[];
+      signInMethods: ('password' | 'google' | 'discord')[];
       emailConfirmed: boolean;
     };
     StagingAccessSync: {
@@ -5042,7 +5042,7 @@ export interface components {
       shared: true;
     };
     ProvidersResponse: {
-      providers: ('google' | 'facebook' | 'microsoft' | 'discord')[];
+      providers: ('google' | 'discord')[];
     };
     DiscordWidgetResponse: {
       widget: {

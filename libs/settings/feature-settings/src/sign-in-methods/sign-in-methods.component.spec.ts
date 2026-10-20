@@ -32,16 +32,14 @@ describe('SignInMethodsComponent', () => {
   }
 
   it('shows the tied accounts and the ones that could be, in words', async () => {
-    expect(await render(['password', 'google', 'discord'], ['google', 'facebook', 'microsoft', 'discord'])).toEqual([
+    expect(await render(['password', 'google'], ['google', 'discord'])).toEqual([
       'Google Tied to this account',
-      'Facebook Not tied: sign out, then "Continue with Facebook" with this account\'s email ties it.',
-      'Microsoft Not tied: sign out, then "Continue with Microsoft" with this account\'s email ties it.',
-      'Discord Tied to this account',
+      'Discord Not tied: sign out, then "Continue with Discord" with this account\'s email ties it.',
     ]);
   });
 
   it('lists a tied provider even if it is no longer offered', async () => {
-    expect(await render(['facebook'], [])).toEqual(['Facebook Tied to this account']);
+    expect(await render(['discord'], [])).toEqual(['Discord Tied to this account']);
   });
 
   it('shows nothing when no provider is tied or offered', async () => {

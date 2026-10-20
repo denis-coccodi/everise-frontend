@@ -32,7 +32,7 @@ export class AuthService {
   }
 
   // The ways to sign in besides email and password that the backend is set
-  // up for, e.g. ["google", "facebook"].
+  // up for, e.g. ["google", "discord"].
   providers(): Observable<ProvidersResponse> {
     return this.apiService.get<ProvidersResponse>('/auth/providers');
   }

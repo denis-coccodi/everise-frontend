@@ -5,13 +5,11 @@ import { catchError, map, of } from 'rxjs';
 
 const PROVIDERS = [
   { id: 'google', name: 'Google', icon: 'assets/images/google.svg' },
-  { id: 'facebook', name: 'Facebook', icon: 'assets/images/facebook.svg' },
-  { id: 'microsoft', name: 'Microsoft', icon: 'assets/images/microsoft.svg' },
   { id: 'discord', name: 'Discord', icon: 'assets/images/discord.svg' },
 ] as const;
 
-// In the settings' account section: the Google, Facebook, Microsoft and
-// Discord accounts tied to this one, with a word on how to tie the others.
+// In the settings' account section: the Google and Discord accounts tied
+// to this one, with a word on how to tie the others.
 // Providers the backend isn't set up for are only listed when already tied;
 // with none at all, nothing shows.
 @Component({

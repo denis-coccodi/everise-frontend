@@ -9,8 +9,6 @@ import { catchError, map, of } from 'rxjs';
 
 const PROVIDERS: Record<string, { name: string; icon: string }> = {
   google: { name: 'Google', icon: 'assets/images/google.svg' },
-  facebook: { name: 'Facebook', icon: 'assets/images/facebook.svg' },
-  microsoft: { name: 'Microsoft', icon: 'assets/images/microsoft.svg' },
   discord: { name: 'Discord', icon: 'assets/images/discord.svg' },
 };
 
@@ -25,7 +23,7 @@ export const SOCIAL_SIGN_IN_PROBLEMS: Record<string, string> = {
   unavailable: "That way of signing in isn't available right now. Use your email and password instead.",
 };
 
-// "Continue with Google / Facebook / Microsoft / Discord", on the sign-in
+// "Continue with Google / Discord", on the sign-in
 // and sign-up pages: one button both signs in and signs up. Each is a plain link to the backend,
 // which takes the person to the provider and back, signed in. Only the
 // providers the backend is set up for are shown.
