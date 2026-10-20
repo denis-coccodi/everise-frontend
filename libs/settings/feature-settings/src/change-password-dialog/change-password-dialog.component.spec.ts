@@ -2,7 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AccountChangesStore } from '@everise/auth/data-access';
+import { AccountChangesStore, AuthStore } from '@everise/auth/data-access';
+import { patchState } from '@ngrx/signals';
+import { unprotected } from '@ngrx/signals/testing';
 import { API_URL } from '@everise/core/http-client';
 import { ChangePasswordDialogComponent } from './change-password-dialog.component';
 
@@ -18,6 +20,8 @@ describe('ChangePasswordDialogComponent', () => {
         { provide: API_URL, useValue: '' },
       ],
     });
+    const authStore = TestBed.inject(AuthStore);
+    patchState(unprotected(authStore), { user: { ...authStore.user(), email: 'yda@example.com' } });
     const fixture = TestBed.createComponent(ChangePasswordDialogComponent);
     await fixture.whenStable();
     const page = fixture.nativeElement as HTMLElement;
@@ -50,5 +54,23 @@ describe('ChangePasswordDialogComponent', () => {
 
     await type('repeat-password', 'new-crystal-1');
     expect(submit().disabled).toBe(false);
+  });
+
+  // What Chrome and other password managers read to suggest a strong
+  // password and save it for this account.
+  it("names the account to password managers, and marks each password's role", async () => {
+    const { page } = await render();
+    const form = page.querySelector('form') as HTMLFormElement;
+    const username = form.querySelector('#account-email') as HTMLInputElement;
+    expect(username.getAttribute('autocomplete')).toBe('username');
+
+    expect(username.value).toBe('yda@example.com');
+    expect(username.readOnly).toBe(true);
+    expect(username.hidden).toBe(false);
+    expect([...form.querySelectorAll('input[type=password]')].map((i) => i.getAttribute('autocomplete'))).toEqual([
+      'current-password',
+      'new-password',
+      'new-password',
+    ]);
   });
 });
