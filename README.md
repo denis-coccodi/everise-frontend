@@ -205,6 +205,8 @@ Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudfla
 
 The bot check ([Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/)) on sign-up, sign-in and resending a confirmation link uses `turnstileSiteKey` from the environment: the Everise widget's site key on staging and production (public; the backend holds the secret, `TURNSTILE_SECRET_KEY`), and locally Cloudflare's test key, which always passes and shows "For testing only". The forms wait for the widget's pass, send it as `turnstileToken`, and ask for a new one after each try (a pass works once). An empty key turns the check off.
 
+Dependabot ([.github/dependabot.yml](.github/dependabot.yml)) opens pull requests every Monday that update the npm packages and the GitHub Actions: one for Angular, Nx and NgRx's minor and patch updates, one for every other minor and patch update, one per other major. Angular, Nx and NgRx majors go through `npx nx migrate latest` instead. The PRs come from `dependabot/…` branches, the one exception to the branch names, and are merged like any other once **test** passes.
+
 ### Search engines
 
 The Worker also writes what search engines and link previews read, since the app only fills a page in after it runs (`worker/seo`, run for the paths in `assets.run_worker_first`):
