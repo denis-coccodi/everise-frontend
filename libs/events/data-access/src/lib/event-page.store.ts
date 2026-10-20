@@ -19,18 +19,19 @@ export const EventPageStore = signalStore(
     // The event's id, from the address; another id loads afresh.
     const id = toSignal(route.paramMap.pipe(map((params) => params.get('id') ?? '')), { requireSync: true });
     const page = rxResource({ params: id, stream: ({ params }) => service.event(params) });
-    // The page reads the load itself: hasValue(), isLoading(), error().
-    return { _page: page, page: page.asReadonly() };
+    // Read-only: nothing here reloads it. The page reads the load itself:
+    // hasValue(), isLoading(), error().
+    return { page: page.asReadonly() };
   }),
-  withComputed(({ _page }) => ({
-    event: computed(() => (_page.hasValue() ? _page.value().event : null)),
+  withComputed(({ page }) => ({
+    event: computed(() => (page.hasValue() ? page.value().event : null)),
     // The venue on the site it is held at, when the backend is sure of it.
-    venue: computed(() => (_page.hasValue() ? _page.value().venue ?? null : null)),
+    venue: computed(() => (page.hasValue() ? page.value().venue ?? null : null)),
     // The backend says the site doesn't list it (or the address names no
     // event).
-    missing: computed(() => isMissing(_page.error())),
+    missing: computed(() => isMissing(page.error())),
     // Why it's missing, or why loading failed, in the backend's words.
-    error: computed(() => errorMessageOf(_page)),
+    error: computed(() => errorMessageOf(page)),
   })),
   withMethods((store) => ({
     tick: () => patchState(store, { now: Date.now() }),
