@@ -1,0 +1,57 @@
+# Weekly pull requests that update the dependencies. Every PR runs the `test`
+# check like any other.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Conventional Commits: build(deps): …, build(deps-dev): …
+    commit-message:
+      prefix: build
+      include: scope
+    # Angular, Nx and NgRx move together and their majors come with code
+    # migrations: those go through `npx nx migrate latest`, not Dependabot.
+    ignore:
+      - dependency-name: '@angular/*'
+        update-types: [version-update:semver-major]
+      - dependency-name: '@angular-devkit/*'
+        update-types: [version-update:semver-major]
+      - dependency-name: '@schematics/angular'
+        update-types: [version-update:semver-major]
+      - dependency-name: '@nx/*'
+        update-types: [version-update:semver-major]
+      - dependency-name: 'nx'
+        update-types: [version-update:semver-major]
+      - dependency-name: '@ngrx/*'
+        update-types: [version-update:semver-major]
+    groups:
+      # Their minor and patch updates in one PR, so the versions stay in step.
+      angular-nx-ngrx:
+        patterns:
+          - '@angular/*'
+          - '@angular-devkit/*'
+          - '@angular-eslint/*'
+          - 'angular-eslint'
+          - '@schematics/angular'
+          - '@nx/*'
+          - 'nx'
+          - '@ngrx/*'
+          - '@analogjs/*'
+        update-types: [minor, patch]
+      # Every other minor and patch update in one PR; each other major gets
+      # its own, as it may need code changes.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ['*']
