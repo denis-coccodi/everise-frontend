@@ -1,0 +1,71 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+:host {
+  display: block;
+  margin-top: 2.5rem;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+}
+
+// What it is on the left, its button on the right at every width: the text
+// wraps beside the button, so every row looks the same.
+.item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: var(--border-width) solid var(--color-divider);
+}
+
+.what {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.item > [cdtButton] {
+  flex: 0 0 auto;
+}
+
+// Like the form's field labels, not a display heading.
+.name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--color-contrast);
+}
+
+.value,
+.note {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast-soft);
+  overflow-wrap: anywhere;
+}
+
+.note {
+  color: var(--color-contrast-muted);
+}
+
+// What the last change did; a line kept while empty (a live region).
+.done {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+// Only when it lists something: with no connected accounts it is empty.
+cdt-sign-in-methods:not(:empty) {
+  margin-top: 0.75rem;
+}
+
+.everywhere {
+  margin-top: 0.5rem;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-contrast-muted);
+}

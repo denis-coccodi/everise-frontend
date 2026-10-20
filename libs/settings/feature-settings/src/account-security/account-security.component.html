@@ -1,0 +1,57 @@
+<section aria-labelledby="account-heading">
+  <h2 id="account-heading" class="xiv-label">Account security</h2>
+
+  <div class="item">
+    <div class="what">
+      <h3 class="name">Email</h3>
+      <p class="value">{{ user().email }}</p>
+      @if (user().pendingEmail; as pending) {
+        <p class="note">
+          Waiting for you to open the link sent to <strong>{{ pending }}</strong
+          >.
+        </p>
+      }
+    </div>
+    <button type="button" cdtButton="outline-primary" size="sm" (click)="store.open('email')">Change email</button>
+  </div>
+
+  <div class="item">
+    <div class="what">
+      <h3 class="name">Password</h3>
+      @if (hasPassword()) {
+        <p class="value">Set. Changing it signs you out on your other devices.</p>
+      } @else {
+        <p class="value">Not set: you sign in with a connected account below.</p>
+      }
+    </div>
+    @if (hasPassword()) {
+      <button type="button" cdtButton="outline-primary" size="sm" (click)="store.open('password')">
+        Change password
+      </button>
+    } @else {
+      <a cdtButton="outline-primary" size="sm" routerLink="/forgot-password" [state]="setPasswordState()"
+        >Set a password</a
+      >
+    }
+  </div>
+
+  <cdt-message class="done">{{ store.done() }}</cdt-message>
+
+  <cdt-sign-in-methods />
+
+  <div class="everywhere">
+    <button type="button" cdtButton="outline-secondary" size="sm" (click)="signOutEverywhere()">
+      Sign out everywhere
+    </button>
+    <p class="hint">Signs you out on every device, this one too.</p>
+  </div>
+</section>
+
+@switch (store.editing()) {
+  @case ('email') {
+    <cdt-change-email-dialog [currentEmail]="user().email" [hasPassword]="hasPassword()" />
+  }
+  @case ('password') {
+    <cdt-change-password-dialog />
+  }
+}

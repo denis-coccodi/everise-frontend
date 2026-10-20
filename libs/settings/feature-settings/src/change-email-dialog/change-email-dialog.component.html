@@ -1,0 +1,35 @@
+<cdt-dialog heading="Change email" (dismissed)="store.close()">
+  <p class="what">
+    Your email is <strong>{{ currentEmail() }}</strong
+    >. We'll send a link to the new one: it takes over once you open the link. Until then, sign in with this one.
+  </p>
+  <form [formRoot]="form">
+    <fieldset [disabled]="store.saving()">
+      <cdt-field label="New email" for="new-email" required>
+        <input #firstField [formField]="form.email" type="email" id="new-email" autocomplete="email" cdtInput />
+        <cdt-input-errors [field]="form.email" />
+      </cdt-field>
+      @if (hasPassword()) {
+        <cdt-field label="Current password" for="email-current-password" required>
+          <input
+            [formField]="form.currentPassword"
+            type="password"
+            id="email-current-password"
+            autocomplete="current-password"
+            cdtInput
+          />
+          <cdt-input-errors [field]="form.currentPassword" />
+        </cdt-field>
+      }
+
+      <cdt-message tone="error">{{ store.error() }}</cdt-message>
+
+      <div class="actions">
+        <button type="submit" cdtButton [disabled]="form().invalid()" [attr.aria-busy]="store.saving()">
+          {{ store.saving() ? 'Saving…' : 'Send the link' }}
+        </button>
+        <button type="button" cdtButton="secondary" (click)="store.close()">Cancel</button>
+      </div>
+    </fieldset>
+  </form>
+</cdt-dialog>

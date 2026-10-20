@@ -1,0 +1,30 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+// The settings' account windows: changing the email and the password.
+
+.what {
+  margin: 0 0 1rem;
+  color: var(--color-contrast-soft);
+  overflow-wrap: anywhere;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+// "Forgot it?" under the current password.
+.forgot {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+}

@@ -111,70 +111,17 @@ describe('SettingsComponent dark mode', () => {
   });
 });
 
-describe('SettingsComponent password', () => {
+describe('SettingsComponent profile', () => {
   afterEach(() => localStorage.clear());
 
-  async function type(fixture: { whenStable(): Promise<unknown> }, page: HTMLElement, id: string, value: string) {
-    const input = page.querySelector(`#${id}`) as HTMLInputElement;
-    input.value = value;
-    input.dispatchEvent(new Event('input'));
-    await fixture.whenStable();
-  }
+  it('keeps the email and password out of the profile form, in the account section', async () => {
+    const { page, authStore } = await render();
 
-  // The fields' names, without the required mark ("* (required)").
-  const labels = (page: HTMLElement) =>
-    [...page.querySelectorAll('form label')].map((l) => l.textContent?.replace(/\*.*$/s, '').trim());
-  const saveButton = (page: HTMLElement) =>
-    page.querySelector('[data-testid=edit-button-container]') as HTMLButtonElement;
+    expect(page.querySelector('form #email')).toBeNull();
+    expect(page.querySelector('form #password')).toBeNull();
+    expect(page.querySelector('cdt-account-security')).not.toBeNull();
 
-  it('asks for the new password twice and the current one, and sends the current one along', async () => {
-    const { fixture, page, authStore } = await render();
-    expect(labels(page)).not.toContain('Current password');
-
-    await type(fixture, page, 'password', 'new-crystal-1');
-    expect(labels(page)).toEqual(expect.arrayContaining(['New password again', 'Current password']));
-    expect(saveButton(page).disabled).toBe(true);
-
-    await type(fixture, page, 'repeat', 'new-crystal-2');
-    await type(fixture, page, 'current-password', 'old-crystal');
-    expect(page.textContent).toContain("The two passwords don't match.");
-    expect(saveButton(page).disabled).toBe(true);
-
-    await type(fixture, page, 'repeat', 'new-crystal-1');
-    expect(saveButton(page).disabled).toBe(false);
-    saveButton(page).click();
-
-    expect(authStore.updateUser).toHaveBeenCalledWith(
-      expect.objectContaining({ password: 'new-crystal-1', currentPassword: 'old-crystal' }),
-    );
-    expect(authStore.updateUser.mock.calls[0][0]).not.toHaveProperty('repeat');
-  });
-
-  it('asks for the current password for a new email address, in any letter case only when it really changes', async () => {
-    const { fixture, page } = await render();
-
-    await type(fixture, page, 'email', 'URIANGER@example.com');
-    expect(labels(page)).not.toContain('Current password');
-
-    await type(fixture, page, 'email', 'new@example.com');
-    expect(labels(page)).toContain('Current password');
-    expect(saveButton(page).disabled).toBe(true);
-  });
-
-  it('sends no current password for other changes', async () => {
-    const { fixture, page, authStore } = await render();
-
-    await type(fixture, page, 'username', 'Moenbryda');
-    saveButton(page).click();
-
-    expect(authStore.updateUser.mock.calls[0][0]).not.toHaveProperty('currentPassword');
-    expect(authStore.updateUser.mock.calls[0][0]).not.toHaveProperty('password');
-  });
-
-  it('points an account without a password to the emailed code instead of the password fields', async () => {
-    const { page } = await render({ ...user, signInMethods: ['google'] });
-
-    expect(page.querySelector('#password')).toBeNull();
-    expect(page.querySelector('.no-password a')?.getAttribute('href')).toBe('/forgot-password');
+    (page.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+    expect(Object.keys(authStore.updateUser.mock.calls[0][0]).sort()).toEqual(['bio', 'darkMode', 'username']);
   });
 });
