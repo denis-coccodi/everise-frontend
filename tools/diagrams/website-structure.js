@@ -202,10 +202,7 @@ const SECTIONS = [
         title: 'Sign in',
         domain: 'auth',
         routes: ['/login'],
-        lines: [
-          'Email and password, or Google, Facebook or Discord; the bot check (Turnstile)',
-          'Back to where you were',
-        ],
+        lines: ['Email and password, or Google or Discord; the bot check (Turnstile)', 'Back to where you were'],
         to: [
           ['Forgot password?', '/forgot-password', 'auth'],
           ['Sign up', '/register', 'auth'],

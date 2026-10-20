@@ -34,8 +34,6 @@ import {
 const SIGN_IN_NAMES: Record<Member['signInMethods'][number], string> = {
   password: 'Email',
   google: 'Google',
-  facebook: 'Facebook',
-  microsoft: 'Microsoft',
   discord: 'Discord',
 };
 

@@ -163,15 +163,14 @@
 <text x="552.6666666666667" y="1284" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ guests: sign up </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/register</tspan></text>
 <rect x="24" y="1387" width="1512" height="398" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
 <text x="40" y="1413" font-size="12" font-weight="700" fill="#64748b">ACCOUNT</text>
-<rect x="40" y="1427" width="482.6666666666667" height="166" rx="10" fill="#7c3aed0d" stroke="#7c3aed" stroke-width="1.8"/>
+<rect x="40" y="1427" width="482.6666666666667" height="147" rx="10" fill="#7c3aed0d" stroke="#7c3aed" stroke-width="1.8"/>
 <text x="54" y="1451" font-size="14" font-weight="600" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/login</text>
 <text x="508.66666666666674" y="1451" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Sign in</text>
-<text x="54" y="1490" font-size="12.5" font-weight="400" fill="#334155">• Email and password, or Google, Facebook or Discord; the bot check</text>
-<text x="66" y="1509" font-size="12.5" font-weight="400" fill="#334155">(Turnstile)</text>
-<text x="54" y="1528" font-size="12.5" font-weight="400" fill="#334155">• Back to where you were</text>
-<text x="54" y="1547" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
-<text x="54" y="1566" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ Forgot password? </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/forgot-password</tspan></text>
-<text x="54" y="1585" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ Sign up </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/register</tspan></text>
+<text x="54" y="1490" font-size="12.5" font-weight="400" fill="#334155">• Email and password, or Google or Discord; the bot check (Turnstile)</text>
+<text x="54" y="1509" font-size="12.5" font-weight="400" fill="#334155">• Back to where you were</text>
+<text x="54" y="1528" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="54" y="1547" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ Forgot password? </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/forgot-password</tspan></text>
+<text x="54" y="1566" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ Sign up </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/register</tspan></text>
 <rect x="538.6666666666667" y="1427" width="482.6666666666667" height="128" rx="10" fill="#7c3aed0d" stroke="#7c3aed" stroke-width="1.8"/>
 <text x="552.6666666666667" y="1451" font-size="14" font-weight="600" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/register</text>
 <text x="1007.3333333333335" y="1451" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Sign up</text>
@@ -203,16 +202,16 @@
 <text x="552.6666666666667" y="1691" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
 <text x="552.6666666666667" y="1710" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ a post </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#2563eb">/article/:id</tspan></text>
 <text x="552.6666666666667" y="1729" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ yours: Edit settings </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#be185d">/settings</tspan></text>
-<rect x="40" y="1609" width="482.6666666666667" height="147" rx="10" fill="#be185d0d" stroke="#be185d" stroke-width="1.8"/>
-<text x="54" y="1633" font-size="14" font-weight="600" fill="#be185d" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/settings</text>
-<text x="508.66666666666674" y="1633" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Settings</text>
-<rect x="450.36666666666673" y="1641" width="58.3" height="17" rx="8.5" fill="#7c3aed"/>
-<text x="479.51666666666677" y="1653.5" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">signed in</text>
-<text x="54" y="1672" font-size="12.5" font-weight="400" fill="#334155">• Picture (crop, upload), username, bio, dark mode</text>
-<text x="54" y="1691" font-size="12.5" font-weight="400" fill="#334155">• Account: email, password, the sign-in methods</text>
-<text x="54" y="1710" font-size="12.5" font-weight="400" fill="#334155">• Admins: the Waking Sands characters, members' roles</text>
-<text x="54" y="1729" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
-<text x="54" y="1748" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ your profile </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c2410c">/profile/:id</tspan></text>
+<rect x="40" y="1590" width="482.6666666666667" height="147" rx="10" fill="#be185d0d" stroke="#be185d" stroke-width="1.8"/>
+<text x="54" y="1614" font-size="14" font-weight="600" fill="#be185d" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/settings</text>
+<text x="508.66666666666674" y="1614" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Settings</text>
+<rect x="450.36666666666673" y="1622" width="58.3" height="17" rx="8.5" fill="#7c3aed"/>
+<text x="479.51666666666677" y="1634.5" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">signed in</text>
+<text x="54" y="1653" font-size="12.5" font-weight="400" fill="#334155">• Picture (crop, upload), username, bio, dark mode</text>
+<text x="54" y="1672" font-size="12.5" font-weight="400" fill="#334155">• Account: email, password, the sign-in methods</text>
+<text x="54" y="1691" font-size="12.5" font-weight="400" fill="#334155">• Admins: the Waking Sands characters, members' roles</text>
+<text x="54" y="1710" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="54" y="1729" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ your profile </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#c2410c">/profile/:id</tspan></text>
 <rect x="1037.3333333333335" y="1696" width="482.6666666666667" height="71" rx="10" fill="#7c3aed0d" stroke="#7c3aed" stroke-width="1.8"/>
 <text x="1051.3333333333335" y="1720" font-size="14" font-weight="600" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/privacy</text>
 <text x="1506.0000000000002" y="1720" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Privacy policy</text>

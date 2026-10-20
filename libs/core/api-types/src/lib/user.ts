@@ -8,7 +8,7 @@ export type User = Schemas['User'];
 export type Role = User['role'];
 
 // How the account can be signed in to: its password, and the provider
-// accounts (Google, Facebook, Microsoft, Discord) tied to it.
+// accounts (Google, Discord) tied to it.
 export type SignInMethod = User['signInMethods'][number];
 
 export type UserResponse = Schemas['UserResponse'];
