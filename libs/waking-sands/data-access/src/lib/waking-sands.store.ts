@@ -78,7 +78,7 @@ export const WakingSandsStore = signalStore(
     }),
     writingName: computed(() => {
       const id = store.writing();
-      return id ? store.characters().find((c) => c.id === id)?.name ?? null : null;
+      return id ? (store.characters().find((c) => c.id === id)?.name ?? null) : null;
     }),
   })),
   withMethods((store, service = inject(WakingSandsService), auth = inject(AuthStore)) => {

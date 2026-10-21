@@ -55,7 +55,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): P
       kind: 'use',
       at: use.at,
       action: use.name,
-      target: use.target !== null && use.target !== playerId ? playerName.get(use.target) ?? null : null,
+      target: use.target !== null && use.target !== playerId ? (playerName.get(use.target) ?? null) : null,
       covers: [...new Set(use.covers.map((id) => mechanic.get(id)?.name ?? 'Unknown'))],
     }));
   // A use comes before the hits it's for.

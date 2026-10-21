@@ -20,8 +20,8 @@ describe('MarketToolComponent', () => {
 
     const legend = [...page.querySelectorAll('cdt-line-chart .legend li .name')].map((n) => n.textContent);
     expect(legend).toEqual(['Odin', 'Phoenix']);
-    const lowest = [...page.querySelectorAll('.lowest > div:not(.now) dd')].map(
-      (dd) => dd.textContent?.replace(/\s+/g, ' ').trim(),
+    const lowest = [...page.querySelectorAll('.lowest > div:not(.now) dd')].map((dd) =>
+      dd.textContent?.replace(/\s+/g, ' ').trim(),
     );
     // Medians of sales, said so, apart from the listings.
     const labels = [...page.querySelectorAll('.lowest dt')].map((dt) => dt.textContent?.trim());

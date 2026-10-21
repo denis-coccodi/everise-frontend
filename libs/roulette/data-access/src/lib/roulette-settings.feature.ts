@@ -62,7 +62,7 @@ export function withRouletteSettings<_>() {
         picks: Object.fromEntries(
           PICKED_TYPES.map((type) => [
             type,
-            s.types.includes(type) ? s.picks[type] ?? [] : usualPicks(store.pickable(), type),
+            s.types.includes(type) ? (s.picks[type] ?? []) : usualPicks(store.pickable(), type),
           ]),
         ),
       });

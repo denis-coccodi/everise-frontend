@@ -195,7 +195,8 @@
   --glow-heading: 0 0 14px rgba(201, 212, 232, 0.35);
 
   /* Gradients. */
-  --gradient-page: radial-gradient(ellipse at 20% 0%, rgba(7, 58, 140, 0.45), transparent 55%),
+  --gradient-page:
+    radial-gradient(ellipse at 20% 0%, rgba(7, 58, 140, 0.45), transparent 55%),
     radial-gradient(ellipse at 85% 100%, rgba(100, 74, 116, 0.25), transparent 50%),
     linear-gradient(var(--palette-abyss-900), var(--palette-abyss-950));
   --gradient-panel: linear-gradient(160deg, rgba(18, 40, 82, 0.92), rgba(10, 21, 48, 0.95) 60%);
@@ -293,7 +294,8 @@ body.light {
   --glow-crystal: 0 0 6px rgba(0, 169, 176, 0.6);
   --glow-heading: none;
 
-  --gradient-page: radial-gradient(ellipse at 15% 0%, rgba(0, 169, 176, 0.1), transparent 50%),
+  --gradient-page:
+    radial-gradient(ellipse at 15% 0%, rgba(0, 169, 176, 0.1), transparent 50%),
     radial-gradient(ellipse at 90% 100%, rgba(7, 58, 140, 0.08), transparent 50%),
     linear-gradient(var(--palette-mist-50), var(--palette-mist-100));
   --gradient-panel: linear-gradient(160deg, var(--palette-mist-0), var(--palette-mist-50));

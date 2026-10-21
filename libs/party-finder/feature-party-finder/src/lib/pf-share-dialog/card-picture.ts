@@ -1,5 +1,3 @@
-import { toBlob } from 'html-to-image';
-
 // The largest picture the backend takes (POST /api/media: 1 MB).
 const MAX_BYTES = 1_000_000;
 // The card is drawn this wide, whatever the screen, so every picture in
@@ -9,7 +7,8 @@ const WIDTH = 520;
 // The listing's card as the share window shows it, as a PNG for the
 // Discord message: sharp (twice the pixels) when that fits the upload limit,
 // else at its size. Undefined when the browser can't draw it (the message
-// then goes without a picture).
+// then goes without a picture). The drawing library is loaded only then, so
+// the Party Finder page doesn't carry it for the few who share a picture.
 export async function cardPicture(card: HTMLElement): Promise<Blob | undefined> {
   // A copy laid out at the picture's width, out of sight: the drawing keeps
   // each element's laid-out size, so the window's own (narrower) card won't
@@ -21,6 +20,7 @@ export async function cardPicture(card: HTMLElement): Promise<Blob | undefined> 
   holder.appendChild(copy);
   document.body.appendChild(holder);
   try {
+    const { toBlob } = await import('html-to-image');
     const backgroundColor = getComputedStyle(document.body).backgroundColor;
     for (const pixelRatio of [2, 1]) {
       const blob = await toBlob(copy, { pixelRatio, backgroundColor });

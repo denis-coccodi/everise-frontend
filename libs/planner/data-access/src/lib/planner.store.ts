@@ -53,7 +53,7 @@ export const PlannerStore = signalStore(
     // The report's pulls, a group per fight, in the order first pulled.
     encounters: computed<EncounterPulls[]>(() => (report.hasValue() ? byEncounter(report.value().pulls) : [])),
     // The pull picked, as the report lists it.
-    picked: computed(() => (report.hasValue() ? report.value().pulls.find((p) => p.id === pullId()) ?? null : null)),
+    picked: computed(() => (report.hasValue() ? (report.value().pulls.find((p) => p.id === pullId()) ?? null) : null)),
     reportError: computed(() => errorMessageOf(report)),
     pullError: computed(() => errorMessageOf(pull)),
     catalogError: computed(() => errorMessageOf(catalog)),

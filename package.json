@@ -72,7 +72,7 @@
     "jsdom": "~22.1.0",
     "nx": "23.2.1",
     "playwright": "^1.57.0",
-    "prettier": "3.1.0",
+    "prettier": "3.9.10",
     "swc-loader": "0.1.15",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
