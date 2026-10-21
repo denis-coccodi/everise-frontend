@@ -1,11 +1,11 @@
 import { HttpContext } from '@angular/common/http';
 import { ProfileResponse, ArticleResponse, ArticleDiscordShareResponse } from '@everise/core/api-types';
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '@everise/core/http-client';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ActionsService {
   private readonly apiService = inject(ApiService);
 

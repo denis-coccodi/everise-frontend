@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import {
   AssignableRole,
   CharacterChanges,
@@ -13,7 +13,7 @@ import {
 import { ApiService } from '@everise/core/http-client';
 
 // The admin's tools on the backend (/api/admin; only for admins).
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AdminService {
   private readonly api = inject(ApiService);
 

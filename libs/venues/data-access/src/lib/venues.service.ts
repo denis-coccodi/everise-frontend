@@ -1,5 +1,5 @@
 import { HttpContext } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import {
   NewVenueDiscordShare,
   VenueDataCentre,
@@ -11,7 +11,7 @@ import {
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class VenuesService {
   private readonly api = inject(ApiService);
 
