@@ -8,7 +8,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { PlannerStore } from '@everise/planner/data-access';
+import { PlanStore, PlannerStore } from '@everise/planner/data-access';
 import { PanelComponent } from '@everise/ui/components';
 import { PullListComponent } from '../pull-list/pull-list.component';
 import { PullViewComponent } from '../pull-view/pull-view.component';
@@ -22,7 +22,7 @@ import { ReportFormComponent } from '../report-form/report-form.component';
   templateUrl: './planner-tool.component.html',
   styleUrl: './planner-tool.component.scss',
   imports: [PanelComponent, PullListComponent, PullViewComponent, ReportFormComponent],
-  providers: [PlannerStore],
+  providers: [PlannerStore, PlanStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlannerToolComponent {

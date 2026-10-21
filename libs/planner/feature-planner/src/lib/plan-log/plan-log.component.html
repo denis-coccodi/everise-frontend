@@ -1,0 +1,33 @@
+<ol class="log">
+  @for (entry of entries(); track $index) {
+    <li class="entry" [class]="entry.kind" [class.unsafe]="entry.kind === 'hit' && !entry.safe">
+      <span class="time">{{ clock(entry.at) }}</span
+      >{{ ' ' }}
+      <div class="what">
+        @switch (entry.kind) {
+          @case ('use') {
+            <p class="line">
+              <span class="label">Use</span>{{ ' ' }}<strong>{{ entry.action }}</strong>
+              @if (entry.target) {
+                {{ ' ' }}on {{ entry.target }}
+              }
+            </p>
+            <p class="detail">For {{ entry.covers.join(', ') }}</p>
+          }
+          @case ('hit') {
+            <p class="line">
+              <span class="label">{{ entry.safe ? 'Hit' : 'Short' }}</span
+              >{{ ' ' }}<strong>{{ entry.action }}</strong>
+            </p>
+            <p class="detail">{{ detail(entry) }}</p>
+            <p class="detail">
+              {{ covered(entry) }}
+            </p>
+          }
+        }
+      </div>
+    </li>
+  } @empty {
+    <li class="empty">The plan has nothing for this player.</li>
+  }
+</ol>

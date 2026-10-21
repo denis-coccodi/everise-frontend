@@ -1,0 +1,17 @@
+{
+  "name": "planner-scheduler",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/planner/scheduler/src",
+  "prefix": "cdt",
+  "tags": ["type:data-access"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/planner/scheduler"
+      }
+    }
+  }
+}

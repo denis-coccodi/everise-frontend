@@ -1,73 +1,12 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
-@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+// The rest of its look is the planner's logs', in ../log-entries.scss.
 
-:host {
-  display: block;
-}
-
-.log {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-// The phone: the time above what happened.
-.entry {
-  display: grid;
-  gap: 0.15rem;
-  padding: 0.6rem 0;
-  border-bottom: var(--border-width) solid var(--color-divider);
-}
-
-.time {
-  color: var(--color-contrast-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.line,
-.detail {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.detail {
-  color: var(--color-contrast-soft);
-}
-
-.label {
-  display: inline-block;
-  min-width: 2.75rem;
-  color: var(--color-label);
-  font-size: 0.8rem;
-  letter-spacing: var(--letter-spacing-label);
-  text-transform: uppercase;
-}
-
-// What the player used, marked by a line in the primary colour as well as
-// its label.
-.use {
-  border-left: var(--border-width-strong) solid var(--color-primary);
-  padding-left: 0.75rem;
-}
-
+// A death, marked by a line in the danger colour as well as its label.
 .death {
   border-left: var(--border-width-strong) solid var(--color-danger);
   padding-left: 0.75rem;
 
   .label {
     color: var(--color-danger-strong);
-  }
-}
-
-.empty {
-  padding: 0.6rem 0;
-  color: var(--color-contrast-muted);
-}
-
-// Wider: the time in its own column.
-@include bp.up(sm) {
-  .entry {
-    grid-template-columns: 3.5rem minmax(0, 1fr);
-    gap: 0.75rem;
   }
 }

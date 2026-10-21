@@ -1,0 +1,23 @@
+<form [formRoot]="form" class="plan-form">
+  <cdt-field
+    label="HP margin (%)"
+    for="planner-margin"
+    required
+    hint="The share of max HP each hit must leave, at least."
+  >
+    <input id="planner-margin" type="number" cdtInput inputmode="numeric" [formField]="form.margin" />
+    <cdt-input-errors [field]="form.margin" />
+  </cdt-field>
+  <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning()">
+    {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan mitigations' }}
+  </button>
+</form>
+<p class="scope">
+  Plans the party's mitigations: when to use each one so every hit leaves the margin, the biggest hits first. Shields
+  and heals come next.
+</p>
+<cdt-message>{{ summary() }}</cdt-message>
+<cdt-message tone="error">{{ plans.error() }}</cdt-message>
+@if (current()) {
+  <cdt-planner-plan-log [entries]="log()" />
+}
