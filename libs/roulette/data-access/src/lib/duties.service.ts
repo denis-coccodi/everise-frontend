@@ -1,10 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { ArticleResponse } from '@everise/core/api-types';
 import { API_URL, ApiService, gameImageUrl } from '@everise/core/http-client';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { DutyGroupsResponse, JobsResponse, RoulettePostRequest, RoulettesResponse } from '@everise/core/api-types';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DutiesService {
   private readonly apiService = inject(ApiService);
   private readonly apiUrl = inject(API_URL);

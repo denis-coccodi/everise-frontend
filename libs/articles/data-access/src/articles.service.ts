@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '@everise/core/http-client';
 import {
@@ -19,7 +19,7 @@ export interface NewComment {
   media: NewAttachment[];
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ArticlesService {
   private readonly apiService = inject(ApiService);
 

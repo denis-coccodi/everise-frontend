@@ -1,5 +1,5 @@
 import { HttpContext, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import {
   ConfirmationResponse,
   LoginUserRequest,
@@ -17,7 +17,7 @@ import { SKIP_LOGIN_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
 import { Observable } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AuthService {
   private readonly apiService = inject(ApiService);
 

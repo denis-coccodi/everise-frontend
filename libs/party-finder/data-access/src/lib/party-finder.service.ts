@@ -1,5 +1,5 @@
 import { HttpContext } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import {
   ArticleResponse,
@@ -12,7 +12,7 @@ import {
 } from '@everise/core/api-types';
 import { ApiService } from '@everise/core/http-client';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PartyFinderService {
   private readonly api = inject(ApiService);
 

@@ -1,6 +1,6 @@
 ---
 name: frontend-best-practices
-description: Describes how Everise's Angular code is organised and written: which library code belongs in (feature, widget, data-access, ui, util, testing, enforced by tags), one component per folder, stores and services only in data-access, entry-point imports, NgRx signal stores, resources for loads, signal forms, no any, typed templates, generated API types, serverMessage() for errors, specs, and the size limits that force a long component to be split. Use before writing or changing any TypeScript, component, template, store, service or library, when adding a page or library, and when reviewing a frontend change.
+description: Describes how Everise's Angular code is organised and written: which library code belongs in (feature, widget, data-access, ui, util, testing, enforced by tags), one component per folder, stores and services only in data-access, entry-point imports, NgRx signal stores, resources for loads, signal forms, @Service() and injectAsync() for services, no any, typed templates, generated API types, serverMessage() for errors, specs, and the size limits that force a long component to be split. Use before writing or changing any TypeScript, component, template, store, service or library, when adding a page or library, and when reviewing a frontend change.
 ---
 
 # Frontend best practices
@@ -38,12 +38,22 @@ Angular's style guide and Nx's generators agree; `node scripts/check-structure.m
 
 ## Components
 
-- Standalone, `ChangeDetectionStrategy.OnPush`, `inject()`, signal `input()` / `output()` / `model()`, the `@if` / `@for` / `@switch` control flow, `host: {}` for host bindings. No `@Input`/`@Output`/`@HostBinding` decorators, no `*ngIf`, no `NgModule`s.
+- Standalone, `ChangeDetectionStrategy.OnPush` (the default since Angular 22, but every component here still says it: keep saying it), `inject()`, signal `input()` / `output()` / `model()`, the `@if` / `@for` / `@switch` control flow, `host: {}` for host bindings. No `@Input`/`@Output`/`@HostBinding` decorators, no `*ngIf`, no `NgModule`s.
 - Template members are `protected`; what a parent or spec reads is `readonly` public.
 - A component shows state and forwards actions. **State and API calls belong in a store** (below). One-shot reads with a fallback are fine as `toSignal(service.read().pipe(catchError(() => of(fallback))))`.
 - Subscriptions in a component are for actions the person starts (an upload, a search) or events (router, live socket). A long-lived one uses `takeUntilDestroyed()`. No hand-written loading flags plus `subscribe` for page data: that is a store's job.
 - Side effects of state changes (focus, closing a window) go in an `effect()` whose non-trigger reads are `untracked()`.
 - A selector is `cdt-<name>`; one component per folder: `.ts`, `.html`, `.scss`, `.spec.ts` (see "Folders inside a library").
+- **Not yet:** Angular 22's `@default never(expr);` (a build-time check that a `@switch` handles every member of a union; switching on `entry.kind` needs `never(entry)`, as plain `never` narrows `entry` itself) and `@let`. The repo's Prettier (3.1) can't parse them, so the pre-commit format check fails on any template using them. Use them once Prettier is upgraded.
+
+## Services and injection (Angular 22)
+
+- **Services are `@Service()`** (`@angular/core`): a class the app injects, provided in the root injector automatically, as `@Injectable({ providedIn: 'root' })` was. That includes guards and strategies written as classes (`AuthGuard`, `PageTitleStrategy`). `@Service({ autoProvided: false })` is for one a `providers` list provides, `@Service({ factory: () => … })` for one a function builds. **No `@Injectable`**: `@Service` covers every case here, the CLI generates it (`ng generate service`), and the `@angular/core:service-migration` schematic converted the old ones.
+- **Dependencies come from `inject()`**, never constructor parameters: `@Service` doesn't take them (the `@angular/core:inject-migration` schematic converts any that turn up).
+- **Code needed only after an action** (the planner's scheduler, a big library one button uses) loads on demand: `private readonly x = injectAsync(() => import('…').then((m) => m.XService), { prefetch: onIdle });`, then `(await this.x()).run(…)`. That keeps it out of the page's bundle. The service must be auto-provided (`@Service()`). `onIdle` fetches it once the browser is idle, so the click doesn't wait; `() => onIdle({ timeout: 2000 })` sets a deadline.
+- `@Service` is for services, guards and strategies; state stays in NgRx signal stores (below). HTTP calls stay in services returning Observables, read through `rxResource` in stores: Angular 22's stable `httpResource` could replace that pair, but the codebase keeps one way to call the API.
+- A signal that should settle before it loads something (a search box) can be `debounced(signal, ms)` (Angular 22), a resource whose status shows the wait. The market search predates it and debounces in its `rxMethod`.
+- In signal forms, a submit with invalid fields can move the focus to the first of them with `form().focusBoundControl()`, rather than leaving the person on the button.
 
 ## Stores (NgRx signal store)
 
@@ -138,6 +148,7 @@ npx nx run everise:build --configuration=staging
 git grep -nE ': any\b|<any>|as any[;,)>\]]|\$any\(' -- 'apps/**/*.ts' 'apps/**/*.html' 'libs/**/*.ts' 'libs/**/*.html' ':!*.spec.ts' ':!*test-setup.ts'
 git grep -nE 'errors\?\.body\?\.\[0\]|class="ion-' -- 'apps' 'libs' ':!*.spec.ts' ':!libs/core/forms/src/lib/server-message.ts'
 git grep -nE 'FormBuilder|FormGroup|FormControl|ReactiveFormsModule|FormsModule|ngModel' -- 'apps' 'libs'
+git grep -n '@Injectable' -- 'apps' 'libs' ':!*.spec.ts'
 ```
 
-The last three should print nothing.
+The last four should print nothing.
