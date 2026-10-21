@@ -1,0 +1,31 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+// The phone: the button under the field.
+.plan-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.scope {
+  margin: 0.5rem 0;
+  color: var(--color-contrast-muted);
+}
+
+// Wider: the button beside the field.
+@include bp.up(sm) {
+  .plan-form {
+    grid-template-columns: minmax(0, 14rem) auto;
+    // The button keeps its own width rather than the rest of the row.
+    justify-content: start;
+    align-items: start;
+
+    button {
+      margin-top: 1.75rem;
+    }
+  }
+}

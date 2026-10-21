@@ -2,22 +2,28 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { TimelinePlayer } from '@everise/core/api-types';
 import { PlannerStore, playerLog, pullClock } from '@everise/planner/data-access';
 import { MessageComponent, PanelComponent, TabComponent, TabsComponent } from '@everise/ui/components';
+import { PlanViewComponent } from '../plan-view/plan-view.component';
 import { PlayerLogComponent } from '../player-log/player-log.component';
 
-// The pull picked, a tab per player: the hits they took, what covered each,
-// and the heals and mitigations they used, in time order.
+// The pull picked, a tab per player, as played (the hits they took, what
+// covered each, the heals and mitigations they used, in time order) or as
+// the plan has it.
 @Component({
   selector: 'cdt-planner-pull-view',
   templateUrl: './pull-view.component.html',
   styleUrl: './pull-view.component.scss',
-  imports: [MessageComponent, PanelComponent, PlayerLogComponent, TabComponent, TabsComponent],
+  imports: [MessageComponent, PanelComponent, PlanViewComponent, PlayerLogComponent, TabComponent, TabsComponent],
   // Focused when a pull is picked, so it takes its heading as its name.
-  host: { tabindex: '-1', role: 'region', '[attr.aria-label]': 'heading()' },
+  // A named group, not a landmark: the panel inside is already a region of
+  // that name.
+  host: { tabindex: '-1', role: 'group', '[attr.aria-label]': 'heading()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PullViewComponent {
   protected readonly store = inject(PlannerStore);
   private readonly chosen = signal<number | null>(null);
+  // The pull as played, or the plan.
+  protected readonly view = signal<'played' | 'plan'>('played');
 
   // "Vamp Fatale, 7:46".
   protected readonly heading = computed(() => {

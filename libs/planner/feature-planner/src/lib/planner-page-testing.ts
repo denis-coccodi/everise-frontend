@@ -226,10 +226,10 @@ export async function renderPlanner(url = '/planner', { signedIn = true } = {}) 
 }
 
 // The page with the report, the Savage kill (pull 3) and the catalog read.
-export async function renderPull() {
+export async function renderPull(timeline = pullTimeline()) {
   const rendered = await renderPlanner(`/planner?report=${CODE}&pull=3`);
   rendered.http.expectOne(`/planner/reports/${CODE}`).flush(fightReport());
-  rendered.http.expectOne(`/planner/reports/${CODE}/pulls/3`).flush(pullTimeline());
+  rendered.http.expectOne(`/planner/reports/${CODE}/pulls/3`).flush(timeline);
   rendered.http.expectOne('/planner/catalog').flush(actionCatalog());
   await rendered.settle();
   return rendered;

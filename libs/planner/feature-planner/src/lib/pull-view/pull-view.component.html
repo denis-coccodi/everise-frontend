@@ -9,9 +9,19 @@
         </li>
       }
     </ul>
+    <ul cdtTabs aria-label="View" class="views">
+      <li>
+        <button type="button" cdtTab [active]="view() === 'played'" (click)="view.set('played')">As played</button>
+      </li>
+      <li><button type="button" cdtTab [active]="view() === 'plan'" (click)="view.set('plan')">Plan</button></li>
+    </ul>
     @if (player(); as p) {
-      <h3 class="visually-hidden">{{ p.name }}'s pull</h3>
-      <cdt-planner-player-log [entries]="log()" />
+      <h3 class="visually-hidden">{{ p.name }}'s {{ view() === 'plan' ? 'plan' : 'pull' }}</h3>
+      @if (view() === 'plan') {
+        <cdt-planner-plan-view [player]="p" />
+      } @else {
+        <cdt-planner-player-log [entries]="log()" />
+      }
     }
   } @else if (loading()) {
     <p class="loading">Reading the pull…</p>

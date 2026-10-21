@@ -9,7 +9,7 @@ const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionD
 @Component({
   selector: 'cdt-planner-player-log',
   templateUrl: './player-log.component.html',
-  styleUrl: './player-log.component.scss',
+  styleUrls: ['../log-entries.scss', './player-log.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlayerLogComponent {
