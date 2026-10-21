@@ -1,0 +1,41 @@
+<div class="planner-page">
+  <header class="hero">
+    <h1 class="xiv-title">Fight Planner</h1>
+    <p>
+      Load your party's FFLogs report and see every hit of an Extreme, Savage or Ultimate pull: how hard it landed on
+      each of you, and which heals, mitigations and shields covered it.
+    </p>
+  </header>
+
+  @if (auth.loggedIn()) {
+    <cdt-planner-tool />
+  } @else if (auth.getUserLoaded()) {
+    <cdt-panel heading="Plan your heals and mitigations" class="pitch">
+      <ul class="features">
+        <li><strong>Your own party.</strong> Your jobs, your HP and the damage you really took, from your log.</li>
+        <li>
+          <strong>Every hit explained.</strong> What each attack did to each player, how much mitigation and shields
+          took off, and what was up when it landed.
+        </li>
+        <li>
+          <strong>Every heal and mitigation.</strong> What each job's actions do, with their numbers from the game's own
+          tooltips.
+        </li>
+      </ul>
+      <p class="join">
+        Free, like everything on Everise. You only need an account, which keeps bots from using up the FFLogs lookups
+        everyone shares. Anyone can make one in a minute, in the free company or not.
+      </p>
+      <div class="actions">
+        <a cdtButton routerLink="/login">Sign in</a>
+        <a cdtButton="outline-primary" routerLink="/register">Sign up</a>
+      </div>
+    </cdt-panel>
+  }
+
+  <!-- Thanks to the projects the page is built on, for everyone to see. -->
+  <p class="credits">
+    Logs from <a href="https://www.fflogs.com" target="_blank" rel="noopener">FFLogs</a>, from the reports players
+    upload. Action data from <a href="https://v2.xivapi.com" target="_blank" rel="noopener">XIVAPI</a>.
+  </p>
+</div>

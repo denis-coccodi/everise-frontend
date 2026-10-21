@@ -2499,6 +2499,236 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/planner/available': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Whether the fight planner is set up */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Whether. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PlannerAvailableResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/planner/catalog': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The jobs' actions, with their heals and mitigations */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The catalog. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ActionCatalogResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/planner/catalog/refresh': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Build the action catalog again (needs x-refresh-key) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description What was built. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['CatalogRefreshResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/planner/reports/{code}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** An FFLogs report's players and its Extreme, Savage and Ultimate pulls */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          code: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The report. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['FightReportResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/planner/reports/{code}/pulls/{pullId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** One Extreme, Savage or Ultimate pull's timeline */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          code: string;
+          pullId: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The timeline. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PullTimelineResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile-images/{id}': {
     parameters: {
       query?: never;
@@ -4798,6 +5028,206 @@ export interface components {
       complete: boolean;
       readBackTo: string | null;
       refreshedAt: string | null;
+    };
+    ActionCatalogResponse: {
+      dataVersion: string;
+      /** Format: date-time */
+      builtAt: string;
+      actions: {
+        id: number;
+        name: string;
+        icon: number | null;
+        jobs: string[];
+        level: number;
+        gcd: boolean;
+        castMs: number;
+        recastMs: number;
+        charges: number;
+        cooldownGroup: number;
+        range: number;
+        radius: number;
+        effects: {
+          /** @enum {string} */
+          kind:
+            | 'mitigation'
+            | 'shield'
+            | 'heal'
+            | 'regen'
+            | 'delayedHeal'
+            | 'maxHp'
+            | 'healingReceived'
+            | 'healingPotency'
+            | 'invulnerable';
+          /** @enum {string} */
+          target: 'self' | 'target' | 'party' | 'enemies';
+          status: string | null;
+          statusId: number | null;
+          percent: number | null;
+          physical: number | null;
+          magic: number | null;
+          potency: number | null;
+          of: ('maxHp' | 'casterMaxHp' | 'healed') | null;
+          durationMs: number | null;
+          stacks: number | null;
+          condition: string | null;
+        }[];
+      }[];
+      changed: {
+        id: number;
+        name: string;
+        missing: string[];
+      }[];
+    };
+    CatalogRefreshResponse: {
+      dataVersion: string;
+      actionCount: number;
+      effectCount: number;
+      changed: {
+        id: number;
+        name: string;
+        missing: string[];
+      }[];
+    };
+    PlannerAvailableResponse: {
+      available: boolean;
+    };
+    FightReportResponse: {
+      code: string;
+      title: string;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      players: {
+        id: number;
+        name: string;
+        server: string | null;
+        job: string | null;
+        role: ('tank' | 'healer' | 'melee' | 'ranged' | 'caster') | null;
+      }[];
+      pulls: {
+        id: number;
+        encounterId: number;
+        name: string;
+        /** @enum {string} */
+        kind: 'extreme' | 'savage' | 'ultimate';
+        kill: boolean;
+        /** Format: date-time */
+        startedAt: string;
+        durationMs: number;
+        bossHpLeft: number | null;
+        fightLeft: number | null;
+        phase: number | null;
+        playerIds: number[];
+      }[];
+      otherPulls: number;
+    };
+    PullTimelineResponse: {
+      code: string;
+      pullId: number;
+      /** Format: date-time */
+      startedAt: string;
+      durationMs: number;
+      players: {
+        id: number;
+        name: string;
+        job: string | null;
+        role: ('tank' | 'healer' | 'melee' | 'ranged' | 'caster') | null;
+        maxHp: number | null;
+        stats: {
+          level: number;
+          strength: number;
+          dexterity: number;
+          vitality: number;
+          intelligence: number;
+          mind: number;
+          piety: number;
+          determination: number;
+          criticalHit: number;
+          directHit: number;
+          skillSpeed: number;
+          spellSpeed: number;
+          tenacity: number;
+        } | null;
+      }[];
+      enemies: {
+        id: number;
+        name: string;
+        boss: boolean;
+      }[];
+      actions: {
+        id: number;
+        name: string;
+      }[];
+      statuses: {
+        id: number;
+        name: string;
+      }[];
+      damage: {
+        at: number;
+        target: number;
+        source: number;
+        action: number;
+        amount: number;
+        unmitigated: number | null;
+        mitigated: number;
+        absorbed: number;
+        overkill: number;
+        multiplier: number | null;
+        tick: boolean;
+        statuses: number[];
+        hp: number | null;
+      }[];
+      heals: {
+        at: number;
+        source: number | null;
+        pet: string | null;
+        target: number;
+        action: number | null;
+        status: number | null;
+        amount: number;
+        overheal: number;
+        tick: boolean;
+        estimated: boolean;
+        hp: number | null;
+      }[];
+      absorbs: {
+        at: number;
+        source: number | null;
+        target: number;
+        status: number;
+        amount: number;
+        hitAction: number | null;
+      }[];
+      playerCasts: {
+        at: number;
+        source: number;
+        target: number | null;
+        action: number;
+        castMs: number | null;
+      }[];
+      enemyCasts: {
+        at: number;
+        source: number;
+        target: number | null;
+        action: number;
+        castMs: number | null;
+      }[];
+      auras: {
+        status: number;
+        source: number | null;
+        target: number;
+        from: number;
+        to: number;
+        stacks: number | null;
+        shield: number | null;
+      }[];
+      deaths: {
+        at: number;
+        player: number;
+        action: number | null;
+        source: number | null;
+      }[];
     };
     PartyFinderDiscordShareResponse: {
       /** @constant */

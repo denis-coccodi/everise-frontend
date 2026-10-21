@@ -156,6 +156,15 @@ export const appConfig: ApplicationConfig = {
           loadComponent: () => import('@everise/market/feature-market').then((m) => m.MarketComponent),
         },
         {
+          // A pull of an FFLogs report, hit by hit, with what covered each;
+          // what's open is in the query string (?report=<code>&pull=<id>).
+          // Open to everyone, who can read what it does; the tool itself, and
+          // the API behind it, are for members (each report reads FFLogs).
+          path: 'planner',
+          title: 'Fight Planner',
+          loadComponent: () => import('@everise/planner/feature-planner').then((m) => m.PlannerComponent),
+        },
+        {
           path: 'settings',
           title: 'Settings',
           loadComponent: () =>
