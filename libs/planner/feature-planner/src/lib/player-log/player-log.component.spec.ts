@@ -25,8 +25,8 @@ describe('PlayerLogComponent', () => {
     fixture.detectChanges();
     // Each entry's blocks (the time, then each line), a space between.
     return [...(fixture.nativeElement as HTMLElement).querySelectorAll('li')].map((li) => {
-      const blocks = [...li.querySelectorAll('.time, p')].map(
-        (block) => block.textContent?.replace(/\s+/g, ' ').trim(),
+      const blocks = [...li.querySelectorAll('.time, p')].map((block) =>
+        block.textContent?.replace(/\s+/g, ' ').trim(),
       );
       return blocks.length ? blocks.join(' ') : li.textContent?.trim();
     });

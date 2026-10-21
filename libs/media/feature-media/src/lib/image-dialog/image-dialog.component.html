@@ -13,7 +13,8 @@
     }
   </ul>
 
-  @switch (mode()) {
+  @let shown = mode();
+  @switch (shown) {
     @case ('upload') {
       <input
         #fileInput
@@ -53,6 +54,7 @@
     @case ('gifs') {
       <cdt-gif-picker (picked)="pickGif($event)" />
     }
+    @default never;
   }
 
   @if (mode() !== 'gifs') {

@@ -49,7 +49,8 @@ export type IconName = (typeof ICON_NAMES)[number];
   selector: 'cdt-icon',
   template: `
     <svg viewBox="0 0 24 24" focusable="false">
-      @switch (name()) {
+      @let drawn = name();
+      @switch (drawn) {
         @case ('menu') {
           <path d="M4 7h16M4 12h16M4 17h16" />
         }
@@ -170,6 +171,7 @@ export type IconName = (typeof ICON_NAMES)[number];
           <circle cx="12" cy="12" r="9" />
           <path d="M12 11v5M12 8h.01" />
         }
+        @default never;
       }
     </svg>
   `,

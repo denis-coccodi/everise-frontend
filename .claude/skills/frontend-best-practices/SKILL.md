@@ -44,16 +44,23 @@ Angular's style guide and Nx's generators agree; `node scripts/check-structure.m
 - Subscriptions in a component are for actions the person starts (an upload, a search) or events (router, live socket). A long-lived one uses `takeUntilDestroyed()`. No hand-written loading flags plus `subscribe` for page data: that is a store's job.
 - Side effects of state changes (focus, closing a window) go in an `effect()` whose non-trigger reads are `untracked()`.
 - A selector is `cdt-<name>`; one component per folder: `.ts`, `.html`, `.scss`, `.spec.ts` (see "Folders inside a library").
-- **Not yet:** Angular 22's `@default never(expr);` (a build-time check that a `@switch` handles every member of a union; switching on `entry.kind` needs `never(entry)`, as plain `never` narrows `entry` itself) and `@let`. The repo's Prettier (3.1) can't parse them, so the pre-commit format check fails on any template using them. Use them once Prettier is upgraded.
+- **A `@switch` that must handle every member of a union ends with `@default never;`** (Angular 22): the build then fails when a member has no case (a new icon name without its drawing, a new log entry kind). Two forms:
+  - Switching on a template variable's field (`@switch (entry.kind)` over a `@for`'s `entry`): `@default never(entry);`, since matching every case narrows `entry` itself to `never` (plain `never` then fails on `entry.kind`).
+  - Switching on a signal (`@switch (mode())`): templates don't narrow function calls, so read it once with `@let`: `@let shown = mode();`, `@switch (shown)`, then `@default never;` (`image-dialog`, the icon, `confirm-email`).
+  - Not where the value can be `null` (nothing open) or is untyped: there the cases rightly don't cover everything.
+- `@let x = expr;` (Angular 22) names a value once in a template. Use it where a switch needs it (above) or a long expression repeats, not as a habit: a `computed` in the class stays the place for logic.
 
 ## Services and injection (Angular 22)
 
 - **Services are `@Service()`** (`@angular/core`): a class the app injects, provided in the root injector automatically, as `@Injectable({ providedIn: 'root' })` was. That includes guards and strategies written as classes (`AuthGuard`, `PageTitleStrategy`). `@Service({ autoProvided: false })` is for one a `providers` list provides, `@Service({ factory: () => … })` for one a function builds. **No `@Injectable`**: `@Service` covers every case here, the CLI generates it (`ng generate service`), and the `@angular/core:service-migration` schematic converted the old ones.
 - **Dependencies come from `inject()`**, never constructor parameters: `@Service` doesn't take them (the `@angular/core:inject-migration` schematic converts any that turn up).
-- **Code needed only after an action** (the planner's scheduler, a big library one button uses) loads on demand: `private readonly x = injectAsync(() => import('…').then((m) => m.XService), { prefetch: onIdle });`, then `(await this.x()).run(…)`. That keeps it out of the page's bundle. The service must be auto-provided (`@Service()`). `onIdle` fetches it once the browser is idle, so the click doesn't wait; `() => onIdle({ timeout: 2000 })` sets a deadline.
+- **Code needed only after an action** loads on demand, out of the page's bundle:
+  - A service (the planner's scheduler, in its own library): `private readonly x = injectAsync(() => import('…').then((m) => m.XService), { prefetch: onIdle });`, then `(await this.x()).run(…)`. The service must be auto-provided (`@Service()`). `onIdle` fetches it once the browser is idle, so the click doesn't wait; `() => onIdle({ timeout: 2000 })` sets a deadline. Import its types with `import type`, which keeps them from pulling it in.
+  - A library a plain function uses for one action (`html-to-image`, drawing the Party Finder card for a Discord share): `const { toBlob } = await import('html-to-image');` inside the function, rather than wrapping it in a service just to inject it.
 - `@Service` is for services, guards and strategies; state stays in NgRx signal stores (below). HTTP calls stay in services returning Observables, read through `rxResource` in stores: Angular 22's stable `httpResource` could replace that pair, but the codebase keeps one way to call the API.
-- A signal that should settle before it loads something (a search box) can be `debounced(signal, ms)` (Angular 22), a resource whose status shows the wait. The market search predates it and debounces in its `rxMethod`.
-- In signal forms, a submit with invalid fields can move the focus to the first of them with `form().focusBoundControl()`, rather than leaving the person on the button.
+- **Not `debounced()` yet**: Angular 22.0 marks it experimental. A debounced search stays an `rxMethod` with `debounceTime` (`MarketSearchStore`) until it's stable.
+- `form().focusBoundControl()` and the `submission` option `onInvalid` (Angular 22) move the focus to an invalid field when a submit fails. The forms here disable their submit button while invalid (which also stops Enter from submitting), so `onInvalid` never runs; it's for a form whose button stays enabled.
+- **Prettier must be 3.9 or later** to format Angular 22 template syntax (3.1 failed on `@let` and `@default never`). Its `.jsonc` override keeps trailing commas out of `wrangler.jsonc`.
 
 ## Stores (NgRx signal store)
 

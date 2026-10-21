@@ -26,7 +26,7 @@ export const EventPageStore = signalStore(
   withComputed(({ page }) => ({
     event: computed(() => (page.hasValue() ? page.value().event : null)),
     // The venue on the site it is held at, when the backend is sure of it.
-    venue: computed(() => (page.hasValue() ? page.value().venue ?? null : null)),
+    venue: computed(() => (page.hasValue() ? (page.value().venue ?? null) : null)),
     // The backend says the site doesn't list it (or the address names no
     // event).
     missing: computed(() => isMissing(page.error())),

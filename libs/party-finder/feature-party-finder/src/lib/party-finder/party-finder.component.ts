@@ -51,8 +51,8 @@ export class PartyFinderComponent {
   // while it's up.
   // (In the template's loops, `listing` is each listing instead.)
   readonly listing = input<string>();
-  protected readonly sharedListing = computed(
-    () => this.store.board()?.listings.find((shown) => shown.id === this.listing()),
+  protected readonly sharedListing = computed(() =>
+    this.store.board()?.listings.find((shown) => shown.id === this.listing()),
   );
 
   protected readonly checked = computed(() => ago(this.store.checkedAt(), this.store.now()));
