@@ -11,13 +11,16 @@ export interface PlanHitEntry {
   asPlayed: number;
   // What the plan's shields absorb of it.
   absorbed: number;
-  // The planned damage as a share of their max HP.
+  // The planned damage, and their HP before and after it with the plan's
+  // heals, as shares of their max HP.
   share: number | null;
+  before: number | null;
+  after: number | null;
   safe: boolean;
   covers: string[];
 }
 
-// A mitigation or shield the plan has the player use.
+// A mitigation, shield or heal the plan has the player use.
 export interface PlanUseEntry {
   kind: 'use';
   at: number;
@@ -31,10 +34,11 @@ export interface PlanUseEntry {
 export type PlanEntry = PlanHitEntry | PlanUseEntry;
 
 // One player's part of the plan, in time order: what to use when, and how
-// each hit on them lands with the plan's mitigations and shields up.
+// each hit on them lands with the plan's mitigations, shields and heals.
 export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): PlanEntry[] {
   const mechanic = new Map(plan.mechanics.map((m) => [m.id, m]));
   const playerName = new Map(timeline.players.map((p) => [p.id, p.name]));
+  const maxHp = timeline.players.find((p) => p.id === playerId)?.maxHp ?? null;
   const hits: PlanHitEntry[] = plan.hits
     .filter((hit) => hit.player === playerId)
     .map((hit) => {
@@ -48,6 +52,8 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): P
         asPlayed: hit.asPlayed,
         absorbed: hit.absorbed,
         share: hit.share,
+        before: maxHp && hit.hpBefore !== null ? hit.hpBefore / maxHp : null,
+        after: maxHp && hit.hpBefore !== null ? Math.max(0, hit.hpBefore - hit.planned) / maxHp : null,
         safe: hit.safe,
         covers: hit.covers,
       };

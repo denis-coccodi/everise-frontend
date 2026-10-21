@@ -77,7 +77,35 @@ export interface MitigationEffect {
 // A set amount of HP, or a share of the max HP of whoever gets it.
 export type ShieldSize = { hp: number } | { maxHpShare: number };
 
-// When a player should use an action, and the mechanics it covers.
+// An action that restores HP: a healer's heal, or the heal a mitigation
+// also gives (Kerachole's regen, Shake It Off's heal).
+export interface HealTool {
+  player: number;
+  action: number;
+  name: string;
+  recastMs: number;
+  charges: number;
+  gcd: boolean;
+  // The cast bar's length: it heals that long after it's used.
+  castMs: number;
+  group: string;
+  pool: ToolPool | null;
+  effects: HealEffect[];
+}
+
+// A heal, or healing over time: `ticks` heals of `size`, every 3 seconds
+// from 3 seconds after it lands.
+export interface HealEffect {
+  target: 'self' | 'target' | 'party';
+  size: ShieldSize;
+  ticks: number;
+  // The healing over time's status (its ticks name it in the log).
+  status: string | null;
+  statusId: number | null;
+}
+
+// When a player should use an action, and the mechanics it covers (or,
+// for a heal, the mechanic it heals them up for).
 export interface PlannedUse {
   player: number;
   action: number;
@@ -97,10 +125,13 @@ export interface PlannedHit {
   asPlayed: number;
   // What shields absorbed of it, after mitigation.
   absorbed: number;
+  // Their HP when it lands, with the plan's heals; null when the pull
+  // doesn't say their max HP.
+  hpBefore: number | null;
   // The planned damage as a share of their max HP; null when the pull
   // doesn't say their max HP.
   share: number | null;
-  // Whether it leaves at least the margin.
+  // Whether it leaves at least the margin of their HP.
   safe: boolean;
   // The mitigations and shields the plan has up for it.
   covers: string[];

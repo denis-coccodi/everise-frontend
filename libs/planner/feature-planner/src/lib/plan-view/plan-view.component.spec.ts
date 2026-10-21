@@ -8,6 +8,14 @@ function overwhelming() {
   return timeline;
 }
 
+// The pull with the scholar's last hit small enough to survive without a
+// heal: nothing in the pull says what their heals do.
+function survivable() {
+  const timeline = pullTimeline();
+  timeline.damage[3].unmitigated = 50_000;
+  return timeline;
+}
+
 describe('PlanViewComponent', () => {
   async function openPlan(timeline = pullTimeline()) {
     const rendered = await renderPull(timeline);
@@ -58,7 +66,7 @@ describe('PlanViewComponent', () => {
     // The scholar's 300,000 hit is more than any mitigation can bring
     // within 90% of their 200,000 HP.
     expect(summary(rendered.page)).toBe(
-      '1 hit takes more than 90% of max HP even with every mitigation and shield the party has free (0 of them on Tank Main).',
+      '1 hit leaves less than 10% of max HP even with every mitigation, shield and heal the party has free (0 of them on Tank Main).',
     );
     const log = rendered.page.querySelector('cdt-planner-plan-log')?.textContent ?? '';
     expect(log).toContain('Use Reprisal');
@@ -68,12 +76,12 @@ describe('PlanViewComponent', () => {
   });
 
   it('plans with the margin set', async () => {
-    const rendered = await openPlan();
+    const rendered = await openPlan(survivable());
 
     await plan(rendered, '0');
 
     expect(summary(rendered.page)).toMatch(
-      /^Every hit leaves at least 0% of max HP, with \d+ mitigations and shields\.$/,
+      /^Every hit leaves at least 0% of max HP, with \d+ mitigations, shields and heals\.$/,
     );
   });
 
