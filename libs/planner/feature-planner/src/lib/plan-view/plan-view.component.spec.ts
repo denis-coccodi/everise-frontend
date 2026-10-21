@@ -44,7 +44,9 @@ describe('PlanViewComponent', () => {
 
     expect(page.querySelector<HTMLInputElement>('#planner-margin')?.value).toBe('10');
     expect(page.querySelector('label[for=planner-margin]')?.textContent).toContain('HP margin (%)');
-    expect(page.querySelector('cdt-planner-plan-view')?.textContent).toContain("Plans the party's mitigations");
+    expect(page.querySelector('cdt-planner-plan-view')?.textContent).toContain(
+      "Plans the party's mitigations and shields",
+    );
     expect(page.querySelector('cdt-planner-plan-log')).toBeNull();
   });
 
@@ -56,7 +58,7 @@ describe('PlanViewComponent', () => {
     // The scholar's 300,000 hit is more than any mitigation can bring
     // within 90% of their 200,000 HP.
     expect(summary(rendered.page)).toBe(
-      '1 hit takes more than 90% of max HP even with every mitigation the party has free (0 of them on Tank Main).',
+      '1 hit takes more than 90% of max HP even with every mitigation and shield the party has free (0 of them on Tank Main).',
     );
     const log = rendered.page.querySelector('cdt-planner-plan-log')?.textContent ?? '';
     expect(log).toContain('Use Reprisal');
@@ -70,7 +72,9 @@ describe('PlanViewComponent', () => {
 
     await plan(rendered, '0');
 
-    expect(summary(rendered.page)).toMatch(/^Every hit leaves at least 0% of max HP, with \d+ mitigations\.$/);
+    expect(summary(rendered.page)).toMatch(
+      /^Every hit leaves at least 0% of max HP, with \d+ mitigations and shields\.$/,
+    );
   });
 
   it('refuses a margin out of range', async () => {

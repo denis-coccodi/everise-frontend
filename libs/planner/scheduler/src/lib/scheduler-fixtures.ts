@@ -34,6 +34,22 @@ const mitigation = (
   condition: null,
 });
 
+const heal = (potency: number): ActionEffect => ({
+  ...mitigation('target', '', 0, 0),
+  kind: 'heal',
+  status: null,
+  percent: null,
+  potency,
+  durationMs: null,
+});
+
+const shield = (
+  target: ActionEffect['target'],
+  status: string,
+  seconds: number,
+  size: Partial<ActionEffect>,
+): ActionEffect => ({ ...mitigation(target, status, 0, seconds), kind: 'shield', percent: null, ...size });
+
 export function action(
   id: number,
   name: string,
@@ -74,14 +90,31 @@ export function catalog(): ActionCatalog {
       action(188, 'Sacred Soil', ['SCH'], 30, [mitigation('party', 'Sacred Soil', 10, 15)]),
       action(7405, 'Troubadour', ['BRD'], 90, [mitigation('party', 'Troubadour', 15, 15)]),
       action(16889, 'Tactician', ['MCH'], 90, [mitigation('party', 'Tactician', 15, 15)]),
+      action(189, 'Lustrate', ['SCH'], 1, [heal(600)]),
+      action(
+        185,
+        'Adloquium',
+        ['SCH'],
+        2.5,
+        [heal(300), shield('target', 'Galvanize', 30, { percent: 180, of: 'healed' })],
+        {
+          gcd: true,
+        },
+      ),
+      action(3540, 'Divine Veil', ['PLD'], 90, [
+        shield('party', 'Divine Veil', 30, { percent: 10, of: 'casterMaxHp' }),
+      ]),
       action(9, 'Fast Blade', ['PLD'], 2.5, [], { gcd: true }),
     ],
   };
 }
 
-// A pull of those players with these hits: [time in s, attack, target,
-// unmitigated damage].
-export function pull(hits: [number, string, number, number][]): PullTimeline {
+// A pull of those players with these hits ([time in s, attack, target,
+// unmitigated damage]) and heals ([time in s, healer, action, HP]).
+export function pull(
+  hits: [number, string, number, number][],
+  heals: [number, number, number, number][] = [],
+): PullTimeline {
   const names = [...new Set(hits.map((h) => h[1]))];
   return {
     code: 'aBcD1234eFgH5678',
@@ -107,7 +140,19 @@ export function pull(hits: [number, string, number, number][]): PullTimeline {
       statuses: [],
       hp: null,
     })),
-    heals: [],
+    heals: heals.map(([at, source, action, amount]) => ({
+      at: at * 1000,
+      source,
+      pet: null,
+      target: 1,
+      action,
+      status: null,
+      amount,
+      overheal: 0,
+      tick: false,
+      estimated: false,
+      hp: null,
+    })),
     absorbs: [],
     playerCasts: [],
     enemyCasts: [],

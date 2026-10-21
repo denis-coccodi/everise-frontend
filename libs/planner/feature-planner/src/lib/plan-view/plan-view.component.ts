@@ -54,10 +54,11 @@ export class PlanViewComponent {
     const margin = this.plans.margin();
     const party = unsafeHits(plan);
     const mine = unsafeHits(plan, this.player().id);
-    if (!party) return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations.`;
+    if (!party)
+      return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations and shields.`;
     return `${party} ${party === 1 ? 'hit takes' : 'hits take'} more than ${
       100 - margin
-    }% of max HP even with every mitigation the party has free (${mine} of them on ${this.player().name}).`;
+    }% of max HP even with every mitigation and shield the party has free (${mine} of them on ${this.player().name}).`;
   });
 
   private async run() {
