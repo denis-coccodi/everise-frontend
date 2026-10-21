@@ -2,16 +2,34 @@ import { action, catalog, party } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
 
 describe('mitigationTools', () => {
-  it("gives each player their jobs' mitigations, not other actions", () => {
+  it("gives each player their jobs' mitigations and shields, not other actions", () => {
     const tools = mitigationTools(party(), catalog());
 
+    // Adloquium's shield is a share of its heal: without the scholar's heal
+    // power it can't be sized, so it's left out.
     expect(tools.map((t) => [t.player, t.name])).toEqual([
       [1, 'Guardian'],
       [1, 'Rampart'],
       [1, 'Reprisal'],
+      [1, 'Divine Veil'],
       [2, 'Sacred Soil'],
       [3, 'Troubadour'],
     ]);
+  });
+
+  it("sizes shields from the caster's heal power or max HP, and marks GCDs", () => {
+    const tools = mitigationTools(party(), catalog(), new Map([[2, 100]]));
+    const adloquium = tools.find((t) => t.name === 'Adloquium');
+    const veil = tools.find((t) => t.name === 'Divine Veil');
+
+    // 300 potency × 100 HP a potency × 180%.
+    expect(adloquium?.effects).toEqual([
+      expect.objectContaining({ target: 'target', share: 0, shield: { hp: 54_000 }, hits: 1, status: 'Galvanize' }),
+    ]);
+    expect(adloquium?.gcd).toBe(true);
+    // 10% of the paladin's 100,000 HP.
+    expect(veil?.effects).toEqual([expect.objectContaining({ target: 'party', shield: { hp: 10_000 } })]);
+    expect(veil?.gcd).toBe(false);
   });
 
   it('keeps what a trait replaces only below the level it does', () => {

@@ -32,6 +32,7 @@ describe('PlanLogComponent', () => {
           unmitigated: 100_000,
           planned: 90_000,
           asPlayed: 40_000,
+          absorbed: 20_000,
           share: 0.45,
           safe: true,
           covers: ['Reprisal'],
@@ -43,6 +44,7 @@ describe('PlanLogComponent', () => {
           unmitigated: 300_000,
           planned: 270_000,
           asPlayed: 210_000,
+          absorbed: 0,
           share: 1.35,
           safe: false,
           covers: [],
@@ -50,11 +52,11 @@ describe('PlanLogComponent', () => {
       ]),
     ).toEqual([
       {
-        text: '1:05 Hit Killer Voice Takes 90,000 of 100,000 (45% of max HP); took 40,000 as played. Covered by Reprisal',
+        text: '1:05 Hit Killer Voice Takes 90,000 of 100,000 (45% of max HP), 20,000 shielded; took 40,000 as played. Covered by Reprisal',
         unsafe: false,
       },
       {
-        text: '3:20 Short Wall Takes 270,000 of 300,000 (135% of max HP); took 210,000 as played. No mitigation was free for it',
+        text: '3:20 Short Wall Takes 270,000 of 300,000 (135% of max HP); took 210,000 as played. No mitigation or shield was free for it',
         unsafe: true,
       },
     ]);

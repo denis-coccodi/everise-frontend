@@ -26,13 +26,17 @@ export interface Mechanic {
   hits: MechanicHit[];
 }
 
-// A mitigation a player can use: an action and what it lowers, for whom.
+// A mitigation or shield a player can use: an action and what it lowers or
+// absorbs, for whom.
 export interface MitigationTool {
   player: number;
   action: number;
   name: string;
   recastMs: number;
   charges: number;
+  // A weaponskill or spell: it costs a GCD the player would deal damage
+  // with, so the plan uses it only where nothing else will do.
+  gcd: boolean;
   // Actions of one player in the same group share their recast.
   group: string;
   // What it spends besides its recast, when that's what really limits it
@@ -52,9 +56,16 @@ export interface ToolPool {
 export interface MitigationEffect {
   // `target`: the user or one party member, picked per use.
   target: 'self' | 'target' | 'party' | 'enemies';
-  // The share of damage it takes off (0.1: 10%). Where physical and magic
-  // differ, the smaller: the planner doesn't know an attack's type yet.
+  // The share of damage it takes off (0.1: 10%; 0 for a shield). Where
+  // physical and magic differ, the smaller: the planner doesn't know an
+  // attack's type yet.
   share: number;
+  // What a shield absorbs after mitigation; null for a mitigation.
+  shield: ShieldSize | null;
+  // How many hits on a player a shield absorbs: it breaks on the first (as
+  // the planner counts it), and one renewed each time it breaks (Haima)
+  // lasts more.
+  hits: number;
   durationMs: number;
   // The status, as the game names it.
   status: string;
@@ -62,6 +73,9 @@ export interface MitigationEffect {
   // Troubadour and Tactician.
   stack: string;
 }
+
+// A set amount of HP, or a share of the max HP of whoever gets it.
+export type ShieldSize = { hp: number } | { maxHpShare: number };
 
 // When a player should use an action, and the mechanics it covers.
 export interface PlannedUse {
@@ -81,12 +95,14 @@ export interface PlannedHit {
   unmitigated: number;
   planned: number;
   asPlayed: number;
+  // What shields absorbed of it, after mitigation.
+  absorbed: number;
   // The planned damage as a share of their max HP; null when the pull
   // doesn't say their max HP.
   share: number | null;
   // Whether it leaves at least the margin.
   safe: boolean;
-  // The mitigations the plan has up for it.
+  // The mitigations and shields the plan has up for it.
   covers: string[];
 }
 

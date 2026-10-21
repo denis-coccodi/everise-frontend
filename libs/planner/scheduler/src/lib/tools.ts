@@ -30,14 +30,23 @@ const SAME_STACK: Record<string, string> = {
 // What really limits some actions, rather than their recast: the Oath
 // gauge (50 of it about every 25 seconds of auto-attacks, up to 100),
 // Aetherflow and Addersgall (about one every 20 seconds, up to 3), the
-// Astrologian's card draw (every 60 seconds), and Suntouched (from Neutral
-// Sect, every 120 seconds). One a use, as the planner counts them.
+// Astrologian's card draw (every 60 seconds), Suntouched (from Neutral
+// Sect, every 120 seconds), Seraph (out every 120 seconds, with two
+// Consolations) and Tempera Coat (which Tempera Grassa uses up; back in 60
+// to 120 seconds). One a use, as the planner counts them.
 const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
 const CARD: ToolPool = { name: 'Play II', gainMs: 60_000, max: 1 };
+const CARD_III: ToolPool = { name: 'Play III', gainMs: 60_000, max: 1 };
 const SUNTOUCHED: ToolPool = { name: 'Suntouched', gainMs: 120_000, max: 1 };
+const SERAPH: ToolPool = { name: 'Seraph', gainMs: 60_000, max: 2 };
+const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const POOLS: Record<number, ToolPool> = {
+  16546: SERAPH, // Consolation
+  16548: SERAPH, // Seraphic Veil
+  34685: TEMPERA, // Tempera Coat
+  34686: TEMPERA, // Tempera Grassa
   3542: OATH, // Sheltron
   25746: OATH, // Holy Sheltron
   7382: OATH, // Intervention
@@ -45,15 +54,23 @@ const POOLS: Record<number, ToolPool> = {
   24298: ADDERSGALL, // Kerachole
   24303: ADDERSGALL, // Taurochole
   37027: CARD, // the Bole
+  37025: CARD_III, // the Spire
   37031: SUNTOUCHED, // Sun Sign
 };
 
 // Conditions the planner can take as met: it assumes everyone stands where
-// the effect lands.
-const ASSUMED = new Set(['behind the paladin']);
+// the effect lands, and counts an effect's least (Improvised Finish at no
+// stacks).
+const ASSUMED = (condition: string) => condition === 'behind the paladin' || condition.startsWith('up to ');
 
-// The mitigations each player of the pull has, at their level.
-export function mitigationTools(players: TimelinePlayer[], catalog: ActionCatalog): MitigationTool[] {
+// The mitigations and shields each player of the pull has, at their level.
+// A shield's HP comes from its caster's `power` (HP a potency heals) for
+// one given in potency or as a share of a heal.
+export function mitigationTools(
+  players: TimelinePlayer[],
+  catalog: ActionCatalog,
+  power: Map<number, number> = new Map(),
+): MitigationTool[] {
   const byId = new Map(catalog.actions.map((action) => [action.id, action]));
   const tools: MitigationTool[] = [];
   for (const player of players) {
@@ -63,7 +80,7 @@ export function mitigationTools(players: TimelinePlayer[], catalog: ActionCatalo
       if (!action.jobs.includes(player.job) || action.level > level) continue;
       const upgrade = byId.get(REPLACED_BY[action.id]);
       if (upgrade && upgrade.level <= level) continue;
-      const effects = mitigationEffects(action);
+      const effects = [...mitigationEffects(action), ...shieldEffects(action, player, power.get(player.id) ?? null)];
       if (!effects.length) continue;
       tools.push({
         player: player.id,
@@ -71,6 +88,7 @@ export function mitigationTools(players: TimelinePlayer[], catalog: ActionCatalo
         name: action.name,
         recastMs: action.recastMs,
         charges: action.charges,
+        gcd: action.gcd,
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         effects,
@@ -80,20 +98,53 @@ export function mitigationTools(players: TimelinePlayer[], catalog: ActionCatalo
   return tools;
 }
 
+const usable = (e: ActionEffect) => !!e.durationMs && (!e.condition || ASSUMED(e.condition));
+
 function mitigationEffects(action: CatalogAction): MitigationEffect[] {
   return action.effects
-    .filter((e) => e.kind === 'mitigation' && e.durationMs && (!e.condition || ASSUMED.has(e.condition)))
+    .filter((e) => e.kind === 'mitigation' && usable(e))
     .map((e) => {
       const status = e.status ?? action.name;
       return {
         target: e.target,
         share: shareOf(e) / 100,
+        shield: null,
+        hits: 1,
         durationMs: e.durationMs as number,
         status,
         stack: SAME_STACK[status] ?? status,
       };
     })
     .filter((e) => e.share > 0);
+}
+
+// A shield's size: a potency (at its caster's power), a share of the heal
+// the same action gives, or a share of max HP (the target's, or the
+// caster's own). None when it can't be told (no heal power for the caster).
+function shieldEffects(action: CatalogAction, player: TimelinePlayer, power: number | null): MitigationEffect[] {
+  const heal = action.effects.find((e) => e.kind === 'heal' && e.potency && !e.condition);
+  const effects: MitigationEffect[] = [];
+  for (const e of action.effects) {
+    if (e.kind !== 'shield' || !usable(e)) continue;
+    let shield: MitigationEffect['shield'] = null;
+    if (e.potency && power) shield = { hp: e.potency * power };
+    else if (e.of === 'healed' && e.percent && heal?.potency && power)
+      shield = { hp: (heal.potency * power * e.percent) / 100 };
+    else if (e.of === 'maxHp' && e.percent) shield = { maxHpShare: e.percent / 100 };
+    else if (e.of === 'casterMaxHp' && e.percent && player.maxHp) shield = { hp: (player.maxHp * e.percent) / 100 };
+    if (!shield) continue;
+    const status = e.status ?? action.name;
+    effects.push({
+      target: e.target,
+      share: 0,
+      shield,
+      hits: e.stacks ?? 1,
+      durationMs: e.durationMs as number,
+      status,
+      stack: status,
+    });
+  }
+  return effects;
 }
 
 // The share taken off; where physical and magic differ, the smaller.

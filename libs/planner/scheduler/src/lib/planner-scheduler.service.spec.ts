@@ -5,6 +5,34 @@ describe('PlannerScheduler', () => {
   const plan = (hits: [number, string, number, number][], margin = 0.1) =>
     new PlannerScheduler().plan(pull(hits), catalog(), { margin });
   const usesOf = (p: ReturnType<typeof plan>) => p.uses.map((u) => [u.name, u.at / 1000]);
+  // The scholar healed 60,000 with a 600 potency Lustrate: 100 HP a potency.
+  const healed: [number, number, number, number][] = [[1, 2, 189, 60_000]];
+  const planHealed = (hits: [number, string, number, number][]) =>
+    new PlannerScheduler().plan(pull(hits, healed), catalog(), { margin: 0.1 });
+
+  it("shields what mitigation can't bring within the margin, a GCD shield last", () => {
+    // 150,000 on the scholar: 103,275 after Reprisal, Sacred Soil and
+    // Troubadour, more than the 90,000 the margin allows.
+    const p = planHealed([
+      [30, 'Raidwide', 1, 60_000],
+      [30, 'Raidwide', 2, 150_000],
+      [30, 'Raidwide', 3, 60_000],
+    ]);
+    const scholar = p.hits.find((h) => h.player === 2);
+
+    expect(scholar?.safe).toBe(true);
+    expect(scholar?.absorbed).toBeGreaterThan(0);
+    expect(scholar?.covers).toEqual(expect.arrayContaining(['Divine Veil', 'Galvanize']));
+    expect(p.uses.find((u) => u.name === 'Adloquium')).toMatchObject({ player: 2, target: 2, at: 29_500 });
+  });
+
+  it('spends no GCD on spare margin', () => {
+    // Heavy (more than half the allowed 90,000) but safe without anything.
+    const p = planHealed([[30, 'Spread', 3, 60_000]]);
+
+    expect(p.hits[0].safe).toBe(true);
+    expect(p.uses.map((u) => u.name)).not.toContain('Adloquium');
+  });
 
   it('mitigates a tank buster until it leaves the margin, half a second before it lands', () => {
     const p = plan([[60, 'Buster', 1, 120_000]]);

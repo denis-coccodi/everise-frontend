@@ -9,13 +9,15 @@ export interface PlanHitEntry {
   unmitigated: number;
   planned: number;
   asPlayed: number;
+  // What the plan's shields absorb of it.
+  absorbed: number;
   // The planned damage as a share of their max HP.
   share: number | null;
   safe: boolean;
   covers: string[];
 }
 
-// A mitigation the plan has the player use.
+// A mitigation or shield the plan has the player use.
 export interface PlanUseEntry {
   kind: 'use';
   at: number;
@@ -29,7 +31,7 @@ export interface PlanUseEntry {
 export type PlanEntry = PlanHitEntry | PlanUseEntry;
 
 // One player's part of the plan, in time order: what to use when, and how
-// each hit on them lands with the plan's mitigations up.
+// each hit on them lands with the plan's mitigations and shields up.
 export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): PlanEntry[] {
   const mechanic = new Map(plan.mechanics.map((m) => [m.id, m]));
   const playerName = new Map(timeline.players.map((p) => [p.id, p.name]));
@@ -44,6 +46,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): P
         unmitigated: hit.unmitigated,
         planned: hit.planned,
         asPlayed: hit.asPlayed,
+        absorbed: hit.absorbed,
         share: hit.share,
         safe: hit.safe,
         covers: hit.covers,
