@@ -9,12 +9,13 @@
     <cdt-input-errors [field]="form.margin" />
   </cdt-field>
   <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning()">
-    {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan mitigations and shields' }}
+    {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
   </button>
 </form>
 <p class="scope">
-  Plans the party's mitigations and shields: when to use each one so every hit leaves the margin, the biggest hits
-  first, and GCD shields only where nothing else will do. Heals come next.
+  Plans the party's mitigations and shields, the biggest hits first, then the healers' heals in time order: when to use
+  each one so every hit leaves the margin of the HP its player has then, with GCDs only where nothing else will do.
+  Everyone else's healing stays as it was played.
 </p>
 <cdt-message>{{ summary() }}</cdt-message>
 <cdt-message tone="error">{{ plans.error() }}</cdt-message>

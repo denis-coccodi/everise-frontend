@@ -12,9 +12,7 @@ export function mechanicsOf(timeline: PullTimeline): Mechanic[] {
   const actionName = new Map(timeline.actions.map((action) => [action.id, action.name]));
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
   const raidwideAt = Math.max(2, Math.ceil(timeline.players.length * 0.75));
-  const hits = timeline.damage.filter(
-    (hit) => !hit.tick && unmitigated(hit) > 0 && actionName.get(hit.action)?.toLowerCase() !== 'attack',
-  );
+  const hits = timeline.damage.filter((hit) => isMechanicHit(hit, actionName));
 
   const groups: { action: number; at: number; hits: TimelineHit[] }[] = [];
   for (const hit of [...hits].sort((a, b) => a.at - b.at)) {
@@ -40,6 +38,12 @@ export function mechanicsOf(timeline: PullTimeline): Mechanic[] {
       hits: group.hits.map((hit) => ({ player: hit.target, unmitigated: unmitigated(hit), asPlayed: hit.amount })),
     };
   });
+}
+
+// Whether a hit is part of a boss mechanic: not a damage over time tick, an
+// auto-attack, or a hit that did no damage.
+export function isMechanicHit(hit: TimelineHit, actionName: Map<number, string>) {
+  return !hit.tick && unmitigated(hit) > 0 && actionName.get(hit.action)?.toLowerCase() !== 'attack';
 }
 
 // A hit's damage before anything reduced it: the log's, or what it took

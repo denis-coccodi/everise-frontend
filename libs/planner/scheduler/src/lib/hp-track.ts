@@ -1,0 +1,77 @@
+// A change to one player's HP: damage taken (negative) or healing.
+export interface HpEvent {
+  at: number;
+  player: number;
+  amount: number;
+}
+
+// A player's HP once everything up to `at` (inclusive) has happened, and
+// where the events after it start.
+export interface HpCheckpoint {
+  player: number;
+  at: number;
+  hp: number;
+  next: number;
+}
+
+// Each player's HP over the pull: from full at the start, down with every
+// hit and up with every heal, never below 0 or above their max HP.
+export class HpTrack {
+  private readonly events = new Map<number, HpEvent[]>();
+
+  constructor(
+    private readonly maxHp: Map<number, number>,
+    events: HpEvent[],
+  ) {
+    this.add(events);
+  }
+
+  add(events: HpEvent[]) {
+    for (const event of events) {
+      if (!this.maxHp.has(event.player)) continue;
+      const list = this.events.get(event.player) ?? [];
+      // After every event at the same moment, before any later one.
+      let i = list.length;
+      while (i > 0 && list[i - 1].at > event.at) i--;
+      list.splice(i, 0, event);
+      this.events.set(event.player, list);
+    }
+  }
+
+  checkpoint(player: number, at: number): HpCheckpoint | null {
+    const max = this.maxHp.get(player);
+    if (max === undefined) return null;
+    const list = this.events.get(player) ?? [];
+    let hp = max;
+    let next = 0;
+    for (; next < list.length && list[next].at <= at; next++) hp = this.step(hp, list[next].amount, max);
+    return { player, at, hp, next };
+  }
+
+  // Their HP just before `at`, from a checkpoint, with `extra` events (all
+  // after the checkpoint) as well.
+  before(from: HpCheckpoint, at: number, extra: HpEvent[] = []) {
+    const max = this.maxHp.get(from.player) as number;
+    const list = this.events.get(from.player) ?? [];
+    const more = extra.filter((e) => e.player === from.player && e.at < at).sort((a, b) => a.at - b.at);
+    let hp = from.hp;
+    let i = from.next;
+    let j = 0;
+    for (;;) {
+      const own = i < list.length && list[i].at < at ? list[i] : null;
+      const added = j < more.length ? more[j] : null;
+      if (!own && !added) return hp;
+      if (own && (!added || own.at <= added.at)) {
+        hp = this.step(hp, own.amount, max);
+        i++;
+      } else if (added) {
+        hp = this.step(hp, added.amount, max);
+        j++;
+      }
+    }
+  }
+
+  private step(hp: number, amount: number, max: number) {
+    return Math.min(max, Math.max(0, hp + amount));
+  }
+}

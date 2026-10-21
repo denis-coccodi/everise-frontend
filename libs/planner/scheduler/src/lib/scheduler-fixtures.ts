@@ -34,7 +34,7 @@ const mitigation = (
   condition: null,
 });
 
-const heal = (potency: number): ActionEffect => ({
+export const heal = (potency: number): ActionEffect => ({
   ...mitigation('target', '', 0, 0),
   kind: 'heal',
   status: null,
@@ -91,6 +91,7 @@ export function catalog(): ActionCatalog {
       action(7405, 'Troubadour', ['BRD'], 90, [mitigation('party', 'Troubadour', 15, 15)]),
       action(16889, 'Tactician', ['MCH'], 90, [mitigation('party', 'Tactician', 15, 15)]),
       action(189, 'Lustrate', ['SCH'], 1, [heal(600)]),
+      action(190, 'Physick', ['SCH'], 2.5, [heal(450)], { gcd: true, castMs: 1500 }),
       action(
         185,
         'Adloquium',

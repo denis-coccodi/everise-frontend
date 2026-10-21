@@ -32,8 +32,9 @@ const SAME_STACK: Record<string, string> = {
 // Aetherflow and Addersgall (about one every 20 seconds, up to 3), the
 // Astrologian's card draw (every 60 seconds), Suntouched (from Neutral
 // Sect, every 120 seconds), Seraph (out every 120 seconds, with two
-// Consolations) and Tempera Coat (which Tempera Grassa uses up; back in 60
-// to 120 seconds). One a use, as the planner counts them.
+// Consolations), Tempera Coat (which Tempera Grassa uses up; back in 60
+// to 120 seconds), the Lily gauge (one every 20 seconds, up to 3) and the
+// Minor Arcana (every 60 seconds). One a use, as the planner counts them.
 const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
@@ -42,7 +43,9 @@ const CARD_III: ToolPool = { name: 'Play III', gainMs: 60_000, max: 1 };
 const SUNTOUCHED: ToolPool = { name: 'Suntouched', gainMs: 120_000, max: 1 };
 const SERAPH: ToolPool = { name: 'Seraph', gainMs: 60_000, max: 2 };
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
-const POOLS: Record<number, ToolPool> = {
+const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
+const MINOR_ARCANA: ToolPool = { name: 'Minor Arcana', gainMs: 60_000, max: 1 };
+export const POOLS: Record<number, ToolPool> = {
   16546: SERAPH, // Consolation
   16548: SERAPH, // Seraphic Veil
   34685: TEMPERA, // Tempera Coat
@@ -51,17 +54,25 @@ const POOLS: Record<number, ToolPool> = {
   25746: OATH, // Holy Sheltron
   7382: OATH, // Intervention
   188: AETHERFLOW, // Sacred Soil
+  189: AETHERFLOW, // Lustrate
+  3583: AETHERFLOW, // Indomitability
+  24296: ADDERSGALL, // Druochole
   24298: ADDERSGALL, // Kerachole
+  24299: ADDERSGALL, // Ixochole
   24303: ADDERSGALL, // Taurochole
+  16531: LILY, // Afflatus Solace
+  16534: LILY, // Afflatus Rapture
+  7445: MINOR_ARCANA, // Lady of Crowns
   37027: CARD, // the Bole
   37025: CARD_III, // the Spire
+  37028: CARD_III, // the Ewer
   37031: SUNTOUCHED, // Sun Sign
 };
 
 // Conditions the planner can take as met: it assumes everyone stands where
 // the effect lands, and counts an effect's least (Improvised Finish at no
 // stacks).
-const ASSUMED = (condition: string) => condition === 'behind the paladin' || condition.startsWith('up to ');
+export const ASSUMED = (condition: string) => condition === 'behind the paladin' || condition.startsWith('up to ');
 
 // The mitigations and shields each player of the pull has, at their level.
 // A shield's HP comes from its caster's `power` (HP a potency heals) for
@@ -71,15 +82,9 @@ export function mitigationTools(
   catalog: ActionCatalog,
   power: Map<number, number> = new Map(),
 ): MitigationTool[] {
-  const byId = new Map(catalog.actions.map((action) => [action.id, action]));
   const tools: MitigationTool[] = [];
   for (const player of players) {
-    if (!player.job) continue;
-    const level = player.stats?.level ?? 100;
-    for (const action of catalog.actions) {
-      if (!action.jobs.includes(player.job) || action.level > level) continue;
-      const upgrade = byId.get(REPLACED_BY[action.id]);
-      if (upgrade && upgrade.level <= level) continue;
+    for (const action of playerActions(player, catalog)) {
       const effects = [...mitigationEffects(action), ...shieldEffects(action, player, power.get(player.id) ?? null)];
       if (!effects.length) continue;
       tools.push({
@@ -96,6 +101,19 @@ export function mitigationTools(
     }
   }
   return tools;
+}
+
+// The catalog's actions a player has on their hotbar at their level.
+export function playerActions(player: TimelinePlayer, catalog: ActionCatalog): CatalogAction[] {
+  if (!player.job) return [];
+  const job = player.job;
+  const level = player.stats?.level ?? 100;
+  const byId = new Map(catalog.actions.map((action) => [action.id, action]));
+  return catalog.actions.filter((action) => {
+    if (!action.jobs.includes(job) || action.level > level) return false;
+    const upgrade = byId.get(REPLACED_BY[action.id]);
+    return !upgrade || upgrade.level > level;
+  });
 }
 
 const usable = (e: ActionEffect) => !!e.durationMs && (!e.condition || ASSUMED(e.condition));

@@ -19,6 +19,7 @@ const plan: Plan = {
       planned: 90_000,
       asPlayed: 40_000,
       absorbed: 0,
+      hpBefore: 180_000,
       share: 0.45,
       safe: true,
       covers: ['Reprisal'],
@@ -30,6 +31,7 @@ const plan: Plan = {
       planned: 189_000,
       asPlayed: 210_000,
       absorbed: 5_000,
+      hpBefore: 200_000,
       share: 0.945,
       safe: false,
       covers: ['Intervention'],
@@ -38,7 +40,7 @@ const plan: Plan = {
 };
 
 describe('planLog', () => {
-  it("gives a player's hits as the plan leaves them", () => {
+  it("gives a player's hits as the plan leaves them, and their HP before and after", () => {
     expect(planLog(plan, pullTimeline(), 2)).toEqual([
       {
         kind: 'hit',
@@ -49,6 +51,8 @@ describe('planLog', () => {
         asPlayed: 40_000,
         absorbed: 0,
         share: 0.45,
+        before: 0.9,
+        after: 0.45,
         safe: true,
         covers: ['Reprisal'],
       },

@@ -109,6 +109,8 @@ export function planMitigation(
         planned: damage,
         asPlayed: hit.asPlayed,
         absorbed,
+        // At full HP: the heals come after.
+        hpBefore: hp ?? null,
         share: hp ? damage / hp : null,
         safe: damage <= limit(hit.player),
         covers: statuses,
