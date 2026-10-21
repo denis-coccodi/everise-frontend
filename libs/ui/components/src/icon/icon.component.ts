@@ -35,6 +35,7 @@ export const ICON_NAMES = [
   'venue',
   'calendar',
   'check',
+  'shield',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -54,6 +55,10 @@ export type IconName = (typeof ICON_NAMES)[number];
         }
         @case ('check') {
           <path d="M5 12.5l4.5 4.5L19 7" />
+        }
+        @case ('shield') {
+          <path d="M12 3l7.5 3v5.5c0 4.6-3.1 8.3-7.5 9.5-4.4-1.2-7.5-4.9-7.5-9.5V6z" />
+          <path d="M9 12l2 2 4-4" />
         }
         @case ('close') {
           <path d="M6 6l12 12M18 6L6 18" />

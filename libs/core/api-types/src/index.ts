@@ -15,4 +15,5 @@ export * from './lib/roulette';
 export * from './lib/live';
 export * from './lib/notification';
 export * from './lib/waking-sands';
+export * from './lib/planner';
 export * from './lib/schemas';

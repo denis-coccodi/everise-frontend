@@ -39,6 +39,7 @@ export const NAV_GROUPS: NavGroup[] = [
       // imported, so the roulette's code stays out of the main bundle.
       { label: 'Duty Roulette', icon: 'shuffle', path: '/roulette', query: { types: '1,3,6' } },
       { label: 'Market History', icon: 'chart', path: '/market-history' },
+      { label: 'Fight Planner', icon: 'shield', path: '/planner' },
     ],
   },
 ];

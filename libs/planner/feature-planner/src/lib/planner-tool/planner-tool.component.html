@@ -1,0 +1,10 @@
+<cdt-panel heading="Your report" class="report">
+  <cdt-planner-report-form />
+  @if (store.code()) {
+    <cdt-planner-pull-list (picked)="picked($event)" />
+  }
+</cdt-panel>
+
+@if (store.pullId()) {
+  <cdt-planner-pull-view class="pull" />
+}

@@ -1,0 +1,35 @@
+@if (report(); as report) {
+  <h2 class="title">{{ report.title }}</h2>
+  @for (encounter of store.encounters(); track encounter.encounterId) {
+    <section class="encounter" [attr.aria-labelledby]="'encounter-' + encounter.encounterId">
+      <h3 class="xiv-label" [id]="'encounter-' + encounter.encounterId">
+        {{ encounter.name }} ({{ kinds[encounter.kind] }})
+      </h3>
+      <ul class="pulls">
+        @for (pull of encounter.pulls; track pull.id; let n = $index) {
+          <li>
+            <button
+              type="button"
+              cdtButton="chip"
+              size="sm"
+              [attr.aria-pressed]="store.pullId() === pull.id"
+              (click)="pick(pull.id)"
+            >
+              Pull {{ n + 1 }}: {{ outcome(pull) }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  } @empty {
+    <p class="none">This report has no Extreme, Savage or Ultimate pulls.</p>
+  }
+  @if (report.otherPulls) {
+    <p class="others">
+      {{ report.otherPulls }} {{ report.otherPulls === 1 ? 'pull' : 'pulls' }} of other fights left out.
+    </p>
+  }
+} @else if (store.report.isLoading()) {
+  <p class="loading">Reading the report…</p>
+}
+<cdt-message tone="error">{{ store.report.isLoading() ? '' : store.reportError() }}</cdt-message>
