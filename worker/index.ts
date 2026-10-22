@@ -19,7 +19,7 @@ import { Article, articlePage } from './seo/article-page';
 import { SitemapData, robotsTxt, sitemapXml } from './seo/crawling';
 import { ListingFound, listingIdIn, listingPage } from './seo/listing-page';
 import { PageMeta, headTags, rootContent } from './seo/page-meta';
-import { Board, dataCentreIn, partyFinderPage } from './seo/party-finder-page';
+import { Board, dataCentreIn, dataCentrePage, partyFinderPage } from './seo/party-finder-page';
 import { staticPage } from './seo/static-pages';
 
 interface Fetcher {
@@ -48,6 +48,8 @@ interface HtmlRewriter {
 declare const HTMLRewriter: { new (): HtmlRewriter };
 
 const ARTICLE_PAGE = /^\/article\/([^/]+)\/?$/;
+// A data centre's old address, /party-finder/light (now ?dc=light).
+const OLD_DATA_CENTRE_PAGE = /^\/party-finder\/([a-z]+)\/?$/i;
 // How long a page waits for the Party Finder before it's sent without it.
 const BOARD_WAIT_MS = 1500;
 
@@ -60,11 +62,19 @@ export default {
     }
 
     const indexable = env.SEARCH_ENGINES === 'allow';
+    const oldDataCentre = OLD_DATA_CENTRE_PAGE.exec(pathname)?.[1];
     let response: Response;
     if (pathname === '/home' || pathname === '/home/') {
       // The home page's old address: for good at /, its canonical one.
       const url = new URL(request.url);
       response = Response.redirect(`${url.origin}/${url.search}`, 301);
+    } else if (oldDataCentre && oldDataCentre.toLowerCase() !== 'listings') {
+      // A data centre's old address: for good at its page, keeping the rest
+      // of the query string.
+      const url = new URL(request.url);
+      url.searchParams.delete('dc');
+      const rest = url.searchParams.size ? `&${url.searchParams}` : '';
+      response = Response.redirect(`${url.origin}${dataCentrePage(oldDataCentre)}${rest}`, 301);
     } else if (pathname === '/robots.txt') {
       response = textResponse(robotsTxt(env.SITE_URL, indexable), 'text/plain');
     } else if (pathname === '/sitemap.xml') {
