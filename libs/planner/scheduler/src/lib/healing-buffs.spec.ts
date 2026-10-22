@@ -82,8 +82,8 @@ describe('HealingBuffs', () => {
   it("takes buffs the plan doesn't schedule as played, and leaves out those it does", () => {
     const timeline = pull([]);
     timeline.auras = [
-      { status: 1191, source: 1, target: 1, from: 0, to: 20_000 },
-      { status: 317, source: 2, target: 2, from: 0, to: 20_000 },
+      { status: 1191, source: 1, target: 1, from: 0, to: 20_000, stacks: null, shield: null },
+      { status: 317, source: 2, target: 2, from: 0, to: 20_000, stacks: null, shield: null },
     ];
     const b = new HealingBuffs(buffs, [1, 2, 3], timeline, new Set(['1:7532']));
 
@@ -95,8 +95,8 @@ describe('buffedAsPlayed', () => {
   it('says a heal had a potency buff on its caster or a received one on its target', () => {
     const timeline = pull([]);
     timeline.auras = [
-      { status: 2611, source: 2, target: 2, from: 0, to: 10_000 },
-      { status: 1191, source: 1, target: 1, from: 20_000, to: 30_000 },
+      { status: 2611, source: 2, target: 2, from: 0, to: 10_000, stacks: null, shield: null },
+      { status: 1191, source: 1, target: 1, from: 20_000, to: 30_000, stacks: null, shield: null },
     ];
     const buffed = buffedAsPlayed(healingBuffsOf(buffCatalog(), true), timeline);
 

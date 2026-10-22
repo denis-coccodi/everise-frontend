@@ -96,12 +96,17 @@ export function planHeals(
         pool: tool.pool,
         gcd: tool.gcd,
       });
+      // Superbolide takes its user down to 1 HP.
+      if (tool.effects.some((e) => e.invulnerable === 'dropsToOne')) {
+        track.add([{ at: use.at, player: use.player, amount: -(maxHp.get(use.player) ?? 0), floor: 1 }]);
+      }
     }
     const heal = healOf.get(key(use));
     // A mitigation that heals later (Exaltation) heals when it ends.
     if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
   }
   const uses: PlannedUse[] = [];
+  const invulnerable = new Set(plan.hits.filter((h) => h.invulnerable).map((h) => `${h.mechanic}:${h.player}`));
   const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
   const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
   const mechanics = [...plan.mechanics].sort((a, b) => a.at - b.at);
@@ -131,7 +136,9 @@ export function planHeals(
   for (const m of mechanics) {
     // Healing from after the last mechanic there was time to heal after.
     const anchor = mechanics.filter((o) => o.at <= m.at - GAP_MS).at(-1)?.at ?? -1;
+    // A hit an invulnerability is up for needs no healing for.
     const checkpoints = m.hits
+      .filter((h) => !invulnerable.has(`${m.id}:${h.player}`))
       .map((h) => track.checkpoint(h.player, anchor))
       .filter((c): c is HpCheckpoint => c !== null);
     const deficits = (extra: HpEvent[] = []) =>
@@ -176,9 +183,10 @@ export function planHeals(
   const lowered = (hit: PlannedHit): PlannedHit => {
     const m = mechanicOf.get(hit.mechanic) as Mechanic;
     const mechanicHit = m.hits.find((h) => h.player === hit.player) as MechanicHit;
-    const { damage: planned, absorbed, statuses } = projected(m, mechanicHit, mitigating, toolOfUse, facts);
+    const projection = projected(m, mechanicHit, mitigating, toolOfUse, facts);
+    const { damage: planned, absorbed, statuses, invulnerable } = projection;
     const max = maxHp.get(hit.player);
-    return { ...hit, planned, absorbed, covers: statuses, share: max ? planned / max : null };
+    return { ...hit, planned, absorbed, invulnerable, covers: statuses, share: max ? planned / max : null };
   };
   const hits = plan.hits.map((planned) => {
     const changed = damage.get(`${planned.mechanic}:${planned.player}`) !== planned.planned;
@@ -187,7 +195,7 @@ export function planHeals(
     if (!start) return hit;
     const max = maxHp.get(hit.player) as number;
     const hpBefore = Math.round(track.before(start, mechanicOf.get(hit.mechanic)?.at ?? 0));
-    return { ...hit, hpBefore, safe: hpBefore - hit.planned >= options.margin * max - 1 };
+    return { ...hit, hpBefore, safe: hit.invulnerable || hpBefore - hit.planned >= options.margin * max - 1 };
   });
   return {
     mechanics: plan.mechanics,

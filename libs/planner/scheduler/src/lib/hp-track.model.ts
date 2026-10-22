@@ -3,6 +3,8 @@ export interface HpEvent {
   at: number;
   player: number;
   amount: number;
+  // The least HP it can leave (1 under Holmgang); 0 when not given.
+  floor?: number;
 }
 
 // A player's HP once everything up to `at` (inclusive) has happened, and

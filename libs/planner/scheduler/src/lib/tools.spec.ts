@@ -91,6 +91,41 @@ describe('mitigationTools', () => {
       ['Dark Missionary', [[0.05, 0.1]]],
     ]);
   });
+
+  it('knows what each invulnerability does, and leaves out Living Dead', () => {
+    const invulnerable = (id: number, name: string, condition: string | null = null) =>
+      action(id, name, ['PLD'], 300, [
+        {
+          kind: 'invulnerable',
+          target: 'self',
+          status: name,
+          statusId: null,
+          percent: null,
+          physical: null,
+          magic: null,
+          potency: null,
+          of: null,
+          stacks: null,
+          durationMs: 10_000,
+          condition,
+        },
+      ]);
+    const tools = mitigationTools(party(), {
+      ...catalog(),
+      actions: [
+        invulnerable(30, 'Hallowed Ground'),
+        invulnerable(43, 'Holmgang'),
+        invulnerable(16152, 'Superbolide', 'HP drops to 1'),
+        invulnerable(3638, 'Living Dead', 'healed back to full HP within 10s, or KO'),
+      ],
+    });
+
+    expect(tools.map((t) => [t.name, t.effects.map((e) => e.invulnerable)])).toEqual([
+      ['Hallowed Ground', ['immune']],
+      ['Holmgang', ['lastHp']],
+      ['Superbolide', ['dropsToOne']],
+    ]);
+  });
 });
 
 function stats() {

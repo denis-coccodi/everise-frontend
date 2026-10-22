@@ -79,7 +79,7 @@ describe('planHeals', () => {
       ],
       [[1, 2, 189, 60_000]],
     );
-    timeline.auras = [{ status: 102, source: 1, target: 1, from: 20_000, to: 35_000 }];
+    timeline.auras = [{ status: 102, source: 1, target: 1, from: 20_000, to: 35_000, stacks: null, shield: null }];
     const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
     const power = healPower(timeline, cat);
     const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Lustrate');

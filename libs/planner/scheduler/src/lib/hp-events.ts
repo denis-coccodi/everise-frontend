@@ -18,10 +18,12 @@ export function pullEvents(
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const statusName = new Map(timeline.statuses.map((s) => [s.id, s.name]));
   const at = new Map(mechanics.map((m) => [m.id, m.at]));
+  // A hit under an invulnerability that lets it land (Holmgang) leaves 1 HP.
   const events: HpEvent[] = hits.map((hit) => ({
     at: at.get(hit.mechanic) ?? 0,
     player: hit.player,
     amount: -hit.planned,
+    ...(hit.invulnerable ? { floor: 1 } : {}),
   }));
   for (const hit of timeline.damage) {
     if (!isMechanicHit(hit, actionName)) events.push({ at: hit.at, player: hit.target, amount: -hit.amount });

@@ -13,6 +13,7 @@ const effect = (name: string, { share = 0, ...values }: EffectValues): Mitigatio
   durationMs: 15_000,
   status: name,
   stack: name,
+  invulnerable: null,
   ...values,
 });
 const tool = (name: string, values: EffectValues): MitigationTool => ({
@@ -69,6 +70,7 @@ describe('projected', () => {
       damage: 81_000,
       absorbed: 0,
       statuses: ['Reprisal', 'Sacred Soil'],
+      invulnerable: false,
     });
   });
 
@@ -103,7 +105,12 @@ describe('projected', () => {
     // Where the log doesn't say: the smaller.
     expect(at(null).damage).toBe(95_000);
     // Unique damage: no mitigation, but shields still take it.
-    expect(at('unique', shielded)).toEqual({ damage: 70_000, absorbed: 30_000, statuses: ['Divine Benison'] });
+    expect(at('unique', shielded)).toEqual({
+      damage: 70_000,
+      absorbed: 30_000,
+      statuses: ['Divine Benison'],
+      invulnerable: false,
+    });
   });
 
   it('takes shields off what mitigation leaves, sized in HP or by max HP', () => {
@@ -119,6 +126,7 @@ describe('projected', () => {
       damage: 10_000,
       absorbed: 80_000,
       statuses: ['Reprisal', 'Divine Benison', 'Blackest Night'],
+      invulnerable: false,
     });
   });
 
@@ -130,6 +138,30 @@ describe('projected', () => {
     expect(project(12_000, tools, [use('Big shield', 9_000)])).toMatchObject({ damage: 100_000, absorbed: 0 });
     // Renewed once.
     expect(project(12_000, tools, [use('Haima', 9_000)])).toMatchObject({ absorbed: 10_000 });
+  });
+});
+
+describe('projected under an invulnerability', () => {
+  const tools = [
+    tool('Hallowed Ground', { target: 'party', invulnerable: 'immune' }),
+    tool('Holmgang', { target: 'party', invulnerable: 'lastHp' }),
+    tool('Reprisal', { share: 0.1 }),
+  ];
+
+  it('takes the whole hit off, unless it keeps the last HP, where the hit still lands', () => {
+    expect(project(10_000, tools, [use('Hallowed Ground', 5_000), use('Reprisal', 5_000)])).toEqual({
+      damage: 0,
+      absorbed: 0,
+      statuses: ['Hallowed Ground'],
+      invulnerable: true,
+    });
+    expect(project(10_000, tools, [use('Holmgang', 5_000), use('Reprisal', 5_000)])).toEqual({
+      damage: 90_000,
+      absorbed: 0,
+      statuses: ['Reprisal', 'Holmgang'],
+      invulnerable: true,
+    });
+    expect(project(30_000, tools, [use('Hallowed Ground', 5_000)]).invulnerable).toBe(false);
   });
 });
 

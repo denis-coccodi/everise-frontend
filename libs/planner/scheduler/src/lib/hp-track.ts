@@ -1,7 +1,8 @@
 import type { HpEvent, HpCheckpoint } from './hp-track.model';
 
 // Each player's HP over the pull: from full at the start, down with every
-// hit and up with every heal, never below 0 or above their max HP.
+// hit and up with every heal, never below 0 (or an event's floor) or above
+// their max HP.
 export class HpTrack {
   private readonly events = new Map<number, HpEvent[]>();
 
@@ -42,7 +43,7 @@ export class HpTrack {
     const list = this.events.get(player) ?? [];
     let level = start.hp;
     for (let i = start.next; i < list.length && list[i].at <= to; i++) {
-      level = this.step(level, list[i].amount, max);
+      level = this.step(level, list[i], max);
       if (level <= hp) return list[i].at;
     }
     return null;
@@ -54,7 +55,7 @@ export class HpTrack {
     const list = this.events.get(player) ?? [];
     let hp = max;
     let next = 0;
-    for (; next < list.length && list[next].at <= at; next++) hp = this.step(hp, list[next].amount, max);
+    for (; next < list.length && list[next].at <= at; next++) hp = this.step(hp, list[next], max);
     return { player, at, hp, next };
   }
 
@@ -72,16 +73,16 @@ export class HpTrack {
       const added = j < more.length ? more[j] : null;
       if (!own && !added) return hp;
       if (own && (!added || own.at <= added.at)) {
-        hp = this.step(hp, own.amount, max);
+        hp = this.step(hp, own, max);
         i++;
       } else if (added) {
-        hp = this.step(hp, added.amount, max);
+        hp = this.step(hp, added, max);
         j++;
       }
     }
   }
 
-  private step(hp: number, amount: number, max: number) {
-    return Math.min(max, Math.max(0, hp + amount));
+  private step(hp: number, event: HpEvent, max: number) {
+    return Math.min(max, Math.max(event.floor ?? 0, hp + event.amount));
   }
 }

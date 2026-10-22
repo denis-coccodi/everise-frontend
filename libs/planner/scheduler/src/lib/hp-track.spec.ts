@@ -22,6 +22,14 @@ describe('HpTrack', () => {
     expect(t.checkpoint(2, 0)).toBeNull();
   });
 
+  it("leaves an event's floor at least", () => {
+    const t = new HpTrack(new Map([[1, 100_000]]), [{ at: 10_000, player: 1, amount: -150_000, floor: 1 }]);
+    const start = t.checkpoint(1, -1);
+    if (!start) throw new Error('no checkpoint');
+
+    expect(t.before(start, 15_000)).toBe(1);
+  });
+
   it('counts extra events from a checkpoint, and keeps events added later', () => {
     const t = track();
     const after = t.checkpoint(1, 10_000);
