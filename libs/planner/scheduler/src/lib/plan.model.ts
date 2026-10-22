@@ -4,6 +4,10 @@
 export interface PlanOptions {
   // The HP each hit must leave, as a share of max HP (0.1: 10%).
   margin: number;
+  // The players whose actions are planned (ids); everyone else's
+  // mitigations, heals and invulnerabilities stay as they played them.
+  // Left out, everyone's are planned.
+  replan?: number[];
   // The tanks' invulnerabilities the plan must use where they say; left
   // out, those of the pull, where they were used (`playedInvulnerabilities`).
   // Any other the plan uses only where nothing else saves a hit.

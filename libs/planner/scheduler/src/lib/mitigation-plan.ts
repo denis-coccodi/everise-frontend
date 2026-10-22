@@ -21,13 +21,16 @@ interface Candidate {
 // left over where they add the most margin. A GCD (Succor, Adloquium...)
 // costs damage, so it counts for less and isn't spent on spare margin.
 // Each hit is planned as if it landed at full HP; or, replanning `from` an
-// earlier plan, on top of its mitigations, at the HP its heals left.
+// earlier plan, on top of its mitigations, at the HP its heals left. Only
+// the tools of the players `options.replan` names are planned; the `fixed`
+// uses (the others', as played) stay as they are.
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
   maxHp: Map<number, number>,
   options: PlanOptions,
   from?: Plan,
+  fixed: PlannedUse[] = [],
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -50,9 +53,11 @@ export function planMitigation(
     uses.push(candidate.use);
     toolOf.set(candidate.use, candidate.tool);
   };
+  const plannable = tools.filter((t) => !options.replan || options.replan.includes(t.player));
   // An earlier plan's mitigations stay: taking one away would leave its hits
-  // bigger, and the HP after them lower than the plan was made for.
-  for (const use of from?.uses ?? []) {
+  // bigger, and the HP after them lower than the plan was made for. (It has
+  // the fixed ones already.)
+  for (const use of from?.uses ?? fixed) {
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: t, value: 0 });
   }
@@ -62,7 +67,7 @@ export function planMitigation(
   for (const choice of from ? [] : (options.invulnerabilities ?? [])) {
     const m = mechanics.find((o) => o.id === choice.mechanic);
     if (!m) continue;
-    const t = tools.find((o) => o.player === choice.player && o.action === choice.action);
+    const t = plannable.find((o) => o.player === choice.player && o.action === choice.action);
     const at = m.at - LEAD_MS;
     const times = uses.filter((u) => t && tool(u).group === t.group).map((u) => u.at);
     if (!t?.effects.some((e) => e.invulnerable) || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) {
@@ -141,8 +146,8 @@ export function planMitigation(
     const { damage, invulnerable } = project(m, h, uses);
     return !invulnerable && damage > limit(m, h);
   };
-  const others = tools.filter((t) => !t.effects.some((e) => e.invulnerable));
-  const invulnerabilities = tools.filter(
+  const others = plannable.filter((t) => !t.effects.some((e) => e.invulnerable));
+  const invulnerabilities = plannable.filter(
     (t) => t.effects.some((e) => e.invulnerable) && !never.has(`${t.player}:${t.action}`),
   );
   const fill = (m: Mechanic) => {

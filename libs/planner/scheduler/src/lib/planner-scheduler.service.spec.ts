@@ -262,4 +262,32 @@ describe('PlannerScheduler', () => {
       });
     });
   });
+
+  describe('replanning some players only', () => {
+    // A buster Rampart alone leaves 6,000 short; the paladin used only
+    // Rampart for it in the pull.
+    const planFor = (replan: number[]) => {
+      const timeline = pull([[60, 'Buster', 1, 120_000]], healed);
+      timeline.playerCasts = [{ at: 58_000, source: 1, target: 13, action: 7531, castMs: null }];
+      return new PlannerScheduler().plan(timeline, catalog(), { margin: 0.1, replan });
+    };
+    const usesBy = (p: Plan, player: number) => p.uses.filter((u) => u.player === player).map((u) => [u.name, u.at]);
+
+    it("keeps the others' actions as played and plans the rest around them", () => {
+      const p = planFor([2]);
+
+      expect(usesBy(p, 1)).toEqual([['Rampart', 58_000]]);
+      expect(usesBy(p, 2).length).toBeGreaterThan(0);
+      expect(usesBy(p, 3)).toEqual([]);
+      expect(p.hits[0]).toMatchObject({ safe: true });
+      expect(p.hits[0].covers).toContain('Rampart');
+    });
+
+    it("plans nothing for those it doesn't replan", () => {
+      const p = planFor([1]);
+
+      expect(p.uses.every((u) => u.player === 1)).toBe(true);
+      expect(usesBy(p, 1)).not.toContainEqual(['Rampart', 58_000]);
+    });
+  });
 });

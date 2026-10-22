@@ -7,6 +7,7 @@ import { healingBuffsOf } from './healing-buffs';
 import { playedInvulnerabilities } from './invulnerabilities';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
+import { playedUses } from './played-uses';
 import { Plan, PlanOptions } from './plan.model';
 import { mitigationTools } from './tools';
 
@@ -23,23 +24,32 @@ export class PlannerScheduler {
   // cooldowns allow. The mitigations are planned first as if every hit
   // landed at full HP; where a hit is still short, again around the HP the
   // heals leave it, then the heals again, as long as that makes the plan
-  // better. The tanks' invulnerabilities go where `asked` says, or where
-  // the pull had them.
+  // better. Only the players `asked` to replan are planned, the others as
+  // they played; the tanks' invulnerabilities go where `asked` says, or
+  // where the pull had them.
   plan(timeline: PullTimeline, catalog: ActionCatalog, asked: PlanOptions): Plan {
     const maxHp = new Map<number, number>();
     for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
+    const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player);
     const power = healPower(timeline, catalog);
     const mitigation = mitigationTools(timeline.players, catalog, power);
-    const heals = healTools(timeline.players, catalog, mitigation, power);
+    // The others' heals stay in the pull's healing, as played.
+    const heals = healTools(timeline.players, catalog, mitigation, power).filter(replanned);
+    const fixed = playedUses(
+      timeline,
+      mitigation.filter((t) => !replanned(t)),
+    );
     const mechanics = mechanicsOf(timeline);
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
       ...asked,
-      invulnerabilities: asked.invulnerabilities ?? playedInvulnerabilities(timeline, mechanics, mitigation),
+      invulnerabilities: (asked.invulnerabilities ?? playedInvulnerabilities(timeline, mechanics, mitigation)).filter(
+        replanned,
+      ),
     };
     const once = (from?: Plan) =>
       planHeals(
-        planMitigation(mechanics, mitigation, maxHp, options, from),
+        planMitigation(mechanics, mitigation, maxHp, options, from, fixed),
         timeline,
         mitigation,
         heals,
