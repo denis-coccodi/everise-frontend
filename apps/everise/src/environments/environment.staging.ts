@@ -8,4 +8,6 @@ export const environment = {
   turnstileSiteKey: '0x4AAAAAAFROIj4bDEEExZyj',
   // No Web Analytics: staging is behind Cloudflare Access, so only the team visits.
   webAnalyticsToken: '',
+  // Every feature being built is switched on here (the trunk-based skill).
+  features: { planner: true },
 };

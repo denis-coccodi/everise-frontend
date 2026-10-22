@@ -9,4 +9,7 @@ export const environment = {
   // Cloudflare Web Analytics' site token for everise.dev (public); main.ts
   // loads its beacon. The results: Cloudflare dashboard > Web Analytics.
   webAnalyticsToken: '6f486eb5b8e942649ab2ca94caf5e3cf',
+  // Only released features are switched on here (the trunk-based skill);
+  // the fight planner is still being built.
+  features: { planner: false },
 };
