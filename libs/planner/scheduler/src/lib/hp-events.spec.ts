@@ -97,6 +97,7 @@ describe('pullEvents', () => {
       delayed: {
         delaysMs: [20_000, 10_000],
         release: { action: 8324, name: 'Stellar Detonation' },
+        belowShare: null,
         loggedAs: 'Stellar Explosion',
       },
     };

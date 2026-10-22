@@ -56,6 +56,7 @@ export const POOLS: Record<number, ToolPool> = {
   188: AETHERFLOW, // Sacred Soil
   189: AETHERFLOW, // Lustrate
   3583: AETHERFLOW, // Indomitability
+  7434: AETHERFLOW, // Excogitation
   24296: ADDERSGALL, // Druochole
   24298: ADDERSGALL, // Kerachole
   24299: ADDERSGALL, // Ixochole

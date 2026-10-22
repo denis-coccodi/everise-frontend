@@ -81,4 +81,32 @@ describe('healTools', () => {
     // Only with a star out: never a heal of its own.
     expect(byName.has('Stellar Detonation')).toBe(false);
   });
+
+  it('reads the heals that wait for half HP or their end from their condition', () => {
+    const waiting = (status: string, potency: number, seconds: number, condition: string) => ({
+      ...heal(potency),
+      kind: 'delayedHeal' as const,
+      status,
+      durationMs: seconds * 1000,
+      condition,
+    });
+    const c = withHeals();
+    c.actions.push(
+      action(7434, 'Excogitation', ['SCH'], 45, [
+        waiting('Excogitation', 800, 45, 'at 50% HP or below, or when it ends'),
+      ]),
+      action(25873, 'Exaltation', ['SCH'], 60, [waiting('Exaltation', 500, 8, 'when it ends')]),
+      action(24305, 'Haima', ['SCH'], 120, [waiting('Haima', 150, 15, 'each stack left when it ends')]),
+    );
+    const byName = new Map(healTools(party(), c, [], power).map((t) => [t.name, t]));
+
+    expect(byName.get('Excogitation')).toMatchObject({
+      effects: [{ target: 'target', size: { hp: 80_000 } }],
+      pool: { name: 'Aetherflow' },
+      delayed: { delaysMs: [45_000], release: null, belowShare: 0.5, loggedAs: 'Excogitation' },
+    });
+    expect(byName.get('Exaltation')?.delayed).toMatchObject({ delaysMs: [8000], belowShare: null });
+    // Its stacks aren't counted yet.
+    expect(byName.has('Haima')).toBe(false);
+  });
 });

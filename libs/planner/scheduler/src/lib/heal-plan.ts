@@ -69,12 +69,24 @@ export function planHeals(
   const planned = heals.filter((t) => healers.has(t.player));
 
   const track = new HpTrack(maxHp, pullEvents(timeline, plan.mechanics, plan.hits, heals));
+  // The HP a use heals, and when. A triggered heal (Excogitation) goes off
+  // the first time its target drops to its share of max HP, or when it ends.
+  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => {
+    const share = tool.delayed?.belowShare ?? null;
+    if (!tool.delayed || share === null) return healEvents(tool, use, party, maxHp, delayMs);
+    const player = use.target ?? use.player;
+    const from = use.at + tool.castMs;
+    const end = tool.delayed.delaysMs[0];
+    const low = track.firstAtOrBelow(player, from, from + end, share * (maxHp.get(player) ?? 0));
+    return healEvents(tool, use, party, maxHp, low === null ? end : low - from);
+  };
   const spent: Spent[] = [];
   for (const use of plan.uses) {
     const tool = mitigationOf.get(key(use));
     if (tool) spent.push({ player: use.player, at: use.at, group: tool.group, pool: tool.pool, gcd: tool.gcd });
     const heal = healOf.get(key(use));
-    if (heal) track.add(healEvents(heal, use, party, maxHp));
+    // A mitigation that heals later (Exaltation) heals when it ends.
+    if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
   }
   const uses: PlannedUse[] = [];
   const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
@@ -124,7 +136,7 @@ export function planHeals(
       if (![...short.values()].some((d) => d > 0)) break;
       let pick: Candidate | null = null;
       for (const tool of planned) {
-        const eventsOf = (use: PlannedUse, delayMs: number) => healEvents(tool, use, party, maxHp, delayMs);
+        const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
         const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
       }
@@ -135,7 +147,7 @@ export function planHeals(
       if (mitigates) mitigate(pick.use, mitigates);
       // A delayed heal set off sooner than it goes off on its own.
       const { delayed } = pick.tool;
-      if (delayed && pick.delayMs < delayed.delaysMs[0]) {
+      if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
         const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
         uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
       }
@@ -194,11 +206,16 @@ function best(
     ? [...short].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
     : null;
   let found: Candidate | null = null;
-  const moments = [...new Set([earliest, latest])].flatMap((lands) =>
-    (tool.delayed?.delaysMs ?? [0]).map((delayMs) => ({ lands, delayMs })),
-  );
-  for (const { lands, delayMs } of moments) {
-    const at = lands - tool.castMs - delayMs;
+  const end = tool.delayed?.delaysMs[0] ?? 0;
+  const moments =
+    tool.delayed?.belowShare != null
+      ? // A triggered heal goes up before the hit that sets it off: the last
+        // mechanic's, or one after it.
+        [...new Set([anchor - LEAD_MS, earliest])].map((up) => ({ at: up - tool.castMs, delayMs: end }))
+      : [...new Set([earliest, latest])].flatMap((lands) =>
+          (tool.delayed?.delaysMs ?? [0]).map((delayMs) => ({ at: lands - tool.castMs - delayMs, delayMs })),
+        );
+  for (const { at, delayMs } of moments) {
     if (at < 0 || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
     if (
       tool.pool &&

@@ -1,5 +1,5 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
-import { HealEffect, HealTool, MitigationTool } from './plan.model';
+import { DelayedHeal, HealEffect, HealTool, MitigationTool } from './plan.model';
 import { ASSUMED, POOLS, playerActions } from './tools';
 
 // Healing over time ticks this often.
@@ -13,13 +13,19 @@ const DELAYED: Record<number, { delaysMs: number[]; release: number; loggedAs: s
   7439: { delaysMs: [20_000, 10_000], release: 8324, loggedAs: 'Stellar Explosion' },
 };
 
+// The catalog's heals that wait for their target's HP, or their end:
+// Excogitation ("at 50% HP or below, or when it ends"), Catharsis of
+// Corundum and Vigilant ("below 50% HP or when it ends"), Exaltation ("when
+// it ends"). Their log names the heal by its status.
+const TRIGGER = /^(?:(?:at|below) (\d+)% HP(?: or below)?,? or )?when it ends$/;
+
 // The heals the plan can count on: every heal of the healers' actions, and
 // the heals of the mitigations the plan has anyone use. Everyone else's
 // healing (a tank's own sustain, Second Wind, Holy Spirit) stays as it was
-// played. Heals that depend on what happens later (Excogitation, Liturgy of
-// the Bell, Kardia) aren't counted yet, but for the delayed ones above.
-// Sizes come from the caster's `power` (HP a potency heals) or the target's
-// max HP.
+// played. Heals that depend on what happens later aren't counted yet (Haima's
+// stacks, Liturgy of the Bell, Kardia), but for the delayed and triggered
+// ones above. Sizes come from the caster's `power` (HP a potency heals) or the
+// target's max HP.
 export function healTools(
   players: TimelinePlayer[],
   catalog: ActionCatalog,
@@ -31,10 +37,22 @@ export function healTools(
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
       if (player.role !== 'healer' && !planned.has(`${player.id}:${action.id}`)) continue;
-      const delayed = DELAYED[action.id];
-      const effects = healEffects(action, power.get(player.id) ?? null, !!delayed);
+      const own = power.get(player.id) ?? null;
+      const star = DELAYED[action.id];
+      const release = star && catalog.actions.find((a) => a.id === star.release);
+      let effects = healEffects(action, own, !!star);
+      let delayed: DelayedHeal | null =
+        star && release
+          ? {
+              delaysMs: star.delaysMs,
+              release: { action: release.id, name: release.name },
+              belowShare: null,
+              loggedAs: star.loggedAs,
+            }
+          : null;
+      const triggered = effects.length ? null : triggeredHeal(action, own);
+      if (triggered) ({ effects, delayed } = triggered);
       if (!effects.length) continue;
-      const release = delayed && catalog.actions.find((a) => a.id === delayed.release);
       tools.push({
         player: player.id,
         action: action.id,
@@ -46,14 +64,7 @@ export function healTools(
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         effects,
-        delayed:
-          delayed && release
-            ? {
-                delaysMs: delayed.delaysMs,
-                release: { action: release.id, name: release.name },
-                loggedAs: delayed.loggedAs,
-              }
-            : null,
+        delayed,
       });
     }
   }
@@ -74,6 +85,29 @@ function healEffects(action: CatalogAction, power: number | null, delayed: boole
     }
   }
   return effects;
+}
+
+// An action's heal that waits (TRIGGER), for an action with no other heal:
+// at the share of max HP its condition says, or when it ends.
+function triggeredHeal(
+  action: CatalogAction,
+  power: number | null,
+): { effects: HealEffect[]; delayed: DelayedHeal } | null {
+  for (const e of action.effects) {
+    const match = e.kind === 'delayedHeal' && e.condition ? TRIGGER.exec(e.condition) : null;
+    const size = match && sizeOf(e, power);
+    if (!match || !size || !e.durationMs || e.target === 'enemies') continue;
+    return {
+      effects: [{ target: e.target, size, ticks: 1, status: null, statusId: null }],
+      delayed: {
+        delaysMs: [e.durationMs],
+        release: null,
+        belowShare: match[1] ? Number(match[1]) / 100 : null,
+        loggedAs: e.status ?? action.name,
+      },
+    };
+  }
+  return null;
 }
 
 function sizeOf(e: ActionEffect, power: number | null): HealEffect['size'] | null {
