@@ -23,7 +23,7 @@ The backend (`../everise-backend`) works the same way, with its `FEATURES` setti
 
 The three files must name the same features (the build takes its type from `environment.ts`). The flags are read only in the app shell (`apps/everise`), where a feature is reached:
 
-- **its routes** in `app.config.ts`, spread in only when the flag is on (`...(environment.features.<name> ? [ ... ] : [])`). Switched off, its address falls through to the `**` route like any unknown path, and its lazy chunk is never loaded;
+- **its routes' mount** in `app.routes.ts`, spread in only when the flag is on (`...(environment.features.<name> ? [ ... ] : [])`). Switched off, its address falls through to the `**` route like any unknown path, and its library is never loaded;
 - **its navbar link** in `layout/nav-group/nav-groups.ts`, through `navGroups(features)`, with a spec that the link is missing when the flag is off;
 - any other entry point (a home page card, a link from another page) the same way.
 
