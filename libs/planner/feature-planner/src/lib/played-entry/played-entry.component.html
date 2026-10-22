@@ -1,0 +1,25 @@
+@let e = entry();
+@switch (e.kind) {
+  @case ('hit') {
+    <p class="line">
+      <span class="label">Hit</span>{{ ' ' }}<strong>{{ e.action }}</strong> from {{ e.source }}
+    </p>
+    <p class="detail">{{ detail(e) }}</p>
+    <p class="detail">{{ e.covers.length ? 'Covered by ' + e.covers.join(', ') : 'Nothing covered it' }}</p>
+  }
+  @case ('use') {
+    <p class="line">
+      <span class="label">Used</span>{{ ' ' }}<strong>{{ e.action }}</strong>
+    </p>
+    <p class="detail">{{ e.effects }}</p>
+  }
+  @case ('death') {
+    <p class="line">
+      <span class="label">Died</span>
+      @if (e.action) {
+        {{ ' ' }}to <strong>{{ e.action }}</strong>
+      }
+    </p>
+  }
+  @default never(e);
+}

@@ -1,18 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
-import { PlannerStore, playerLog, pullClock } from '@everise/planner/data-access';
+import { PlanStore, PlannerStore, planLog, playerLog, pullClock } from '@everise/planner/data-access';
 import { MessageComponent, PanelComponent, TabComponent, TabsComponent } from '@everise/ui/components';
 import { PlanViewComponent } from '../plan-view/plan-view.component';
-import { PlayerLogComponent } from '../player-log/player-log.component';
+import { PullCompareComponent } from '../pull-compare/pull-compare.component';
 
-// The pull picked, a tab per player, as played (the hits they took, what
-// covered each, the heals and mitigations they used, in time order) or as
-// the plan has it.
+// The pull picked, a tab per player: as played (the hits they took, what
+// covered each, the heals and mitigations they used) and as the plan has it,
+// on one timeline. Laptops and up show both side by side; narrower screens
+// one at a time, from the view tabs.
 @Component({
   selector: 'cdt-planner-pull-view',
   templateUrl: './pull-view.component.html',
   styleUrl: './pull-view.component.scss',
-  imports: [MessageComponent, PanelComponent, PlanViewComponent, PlayerLogComponent, TabComponent, TabsComponent],
+  imports: [MessageComponent, PanelComponent, PlanViewComponent, PullCompareComponent, TabComponent, TabsComponent],
   // Focused when a pull is picked, so it takes its heading as its name.
   // A named group, not a landmark: the panel inside is already a region of
   // that name.
@@ -21,8 +22,9 @@ import { PlayerLogComponent } from '../player-log/player-log.component';
 })
 export class PullViewComponent {
   protected readonly store = inject(PlannerStore);
+  private readonly plans = inject(PlanStore);
   private readonly chosen = signal<number | null>(null);
-  // The pull as played, or the plan.
+  // On narrower screens: the pull as played, or the plan.
   protected readonly view = signal<'played' | 'plan'>('played');
 
   // "Vamp Fatale, 7:46".
@@ -41,6 +43,13 @@ export class PullViewComponent {
     const { pull, catalog } = this.store;
     if (!player || !pull.hasValue() || !catalog.hasValue()) return [];
     return playerLog(pull.value(), catalog.value(), player.id);
+  });
+  // The player's part of the plan, once the pull open is planned.
+  protected readonly planned = computed(() => {
+    const player = this.player();
+    const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
+    const { pull } = this.store;
+    return player && plan && pull.hasValue() ? planLog(plan, pull.value(), player.id) : null;
   });
   protected readonly loading = computed(() => this.store.pull.isLoading() || this.store.catalog.isLoading());
   protected readonly error = computed(() =>

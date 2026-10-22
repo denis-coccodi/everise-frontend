@@ -1,0 +1,12 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+// The rest of its look is the planner's entries', in ../log-entries.scss.
+
+// A death, marked by a line in the danger colour as well as its label.
+:host(.death) {
+  border-left: var(--border-width-strong) solid var(--color-danger);
+  padding-left: 0.75rem;
+
+  .label {
+    color: var(--color-danger-strong);
+  }
+}
