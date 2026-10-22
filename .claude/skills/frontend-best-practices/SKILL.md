@@ -109,6 +109,10 @@ Angular 22's signal forms (`@angular/forms/signals`) only: never `FormBuilder`, 
 - **No `$any()` in templates** (lint: `@angular-eslint/template/no-any`). Read a typed template reference instead: `<input #name (input)="set(name.value)">`, and on a `cdtInput` element `#name="cdtInput"` (a reference there points at the component, which exposes `value`). Event handlers take `Event` and narrow (`event instanceof KeyboardEvent`): strict templates type `(keydown.enter)` as `Event`.
 - Server errors: `serverMessage(error)` from `@everise/core/forms`, never `error.error.errors.body[0]` by hand.
 
+## Feature flags
+
+- A feature that isn't finished goes behind a flag in the environment files' `features` (`false` in `environment.prod.ts`), read only in the app shell: its routes in `app.config.ts` and its links in `nav-groups.ts`. Libraries never read it. See the `trunk-based` skill.
+
 ## UI pieces
 
 - Icons: `<cdt-icon name="…" />` only (inline SVG); no icon fonts, no `<i class="ion-…">`. Every page link in the navbar has one; account links don't.
