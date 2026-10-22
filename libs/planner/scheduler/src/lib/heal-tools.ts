@@ -5,12 +5,21 @@ import { ASSUMED, POOLS, playerActions } from './tools';
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
 
+// Heals that land later than they're used, by action: Earthly Star heals
+// fully once the star has grown, on its own when it runs out (20s) or set
+// off with Stellar Detonation from 10s; its log calls the heal Stellar
+// Explosion. The catalog's potency is the grown star's.
+const DELAYED: Record<number, { delaysMs: number[]; release: number; loggedAs: string }> = {
+  7439: { delaysMs: [20_000, 10_000], release: 8324, loggedAs: 'Stellar Explosion' },
+};
+
 // The heals the plan can count on: every heal of the healers' actions, and
 // the heals of the mitigations the plan has anyone use. Everyone else's
 // healing (a tank's own sustain, Second Wind, Holy Spirit) stays as it was
 // played. Heals that depend on what happens later (Excogitation, Liturgy of
-// the Bell, Kardia) aren't counted yet. Sizes come from the caster's
-// `power` (HP a potency heals) or the target's max HP.
+// the Bell, Kardia) aren't counted yet, but for the delayed ones above.
+// Sizes come from the caster's `power` (HP a potency heals) or the target's
+// max HP.
 export function healTools(
   players: TimelinePlayer[],
   catalog: ActionCatalog,
@@ -22,8 +31,10 @@ export function healTools(
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
       if (player.role !== 'healer' && !planned.has(`${player.id}:${action.id}`)) continue;
-      const effects = healEffects(action, power.get(player.id) ?? null);
+      const delayed = DELAYED[action.id];
+      const effects = healEffects(action, power.get(player.id) ?? null, !!delayed);
       if (!effects.length) continue;
+      const release = delayed && catalog.actions.find((a) => a.id === delayed.release);
       tools.push({
         player: player.id,
         action: action.id,
@@ -35,16 +46,25 @@ export function healTools(
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         effects,
+        delayed:
+          delayed && release
+            ? {
+                delaysMs: delayed.delaysMs,
+                release: { action: release.id, name: release.name },
+                loggedAs: delayed.loggedAs,
+              }
+            : null,
       });
     }
   }
   return tools;
 }
 
-function healEffects(action: CatalogAction, power: number | null): HealEffect[] {
+// A delayed heal's condition is when it lands, which the plan picks.
+function healEffects(action: CatalogAction, power: number | null, delayed: boolean): HealEffect[] {
   const effects: HealEffect[] = [];
   for (const e of action.effects) {
-    if (e.target === 'enemies' || (e.condition && !ASSUMED(e.condition))) continue;
+    if (e.target === 'enemies' || (e.condition && !delayed && !ASSUMED(e.condition))) continue;
     const size = sizeOf(e, power);
     if (!size) continue;
     if (e.kind === 'heal') effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null });

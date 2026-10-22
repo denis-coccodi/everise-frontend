@@ -44,6 +44,8 @@ interface Candidate {
   tool: HealTool;
   events: HpEvent[];
   value: number;
+  // How long after it's used it heals, past its cast (a delayed heal's).
+  delayMs: number;
 }
 
 // The healers' heals planned over the pull, after the mitigations and
@@ -122,7 +124,8 @@ export function planHeals(
       if (![...short.values()].some((d) => d > 0)) break;
       let pick: Candidate | null = null;
       for (const tool of planned) {
-        const candidate = best(tool, m, anchor, short, spent, (use) => healEvents(tool, use, party, maxHp), deficits);
+        const eventsOf = (use: PlannedUse, delayMs: number) => healEvents(tool, use, party, maxHp, delayMs);
+        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
       }
       if (!pick) break;
@@ -130,6 +133,12 @@ export function planHeals(
       uses.push(pick.use);
       const mitigates = mitigationOf.get(key(pick.use));
       if (mitigates) mitigate(pick.use, mitigates);
+      // A delayed heal set off sooner than it goes off on its own.
+      const { delayed } = pick.tool;
+      if (delayed && pick.delayMs < delayed.delaysMs[0]) {
+        const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
+        uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
+      }
       const { group, pool, gcd } = pick.tool;
       spent.push({ player: pick.use.player, at: pick.use.at, group, pool, gcd });
     }
@@ -162,15 +171,16 @@ export function planHeals(
 }
 
 // The most a use of `tool` can make up of the deficits before `m`, at the
-// earliest moment it can heal after the anchor or as late as it can; null
-// when it can't be used or helps no one short.
+// earliest moment it can heal after the anchor or as late as it can (a
+// delayed heal with each of its delays, the one that needs nothing more
+// first); null when it can't be used or helps no one short.
 function best(
   tool: HealTool,
   m: Mechanic,
   anchor: number,
   short: Map<number, number>,
   spent: Spent[],
-  eventsOf: (use: PlannedUse) => HpEvent[],
+  eventsOf: (use: PlannedUse, delayMs: number) => HpEvent[],
   deficits: (extra: HpEvent[]) => Map<number, number>,
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
@@ -184,8 +194,11 @@ function best(
     ? [...short].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
     : null;
   let found: Candidate | null = null;
-  for (const lands of new Set([earliest, latest])) {
-    const at = lands - tool.castMs;
+  const moments = [...new Set([earliest, latest])].flatMap((lands) =>
+    (tool.delayed?.delaysMs ?? [0]).map((delayMs) => ({ lands, delayMs })),
+  );
+  for (const { lands, delayMs } of moments) {
+    const at = lands - tool.castMs - delayMs;
     if (at < 0 || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
     if (
       tool.pool &&
@@ -198,14 +211,14 @@ function best(
       continue;
     if (tool.gcd && !fitsRecast(gcds, at, GCD_MS, 1)) continue;
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };
-    const events = eventsOf(use);
+    const events = eventsOf(use, delayMs);
     const after = deficits(events);
     let value = 0;
     for (const [player, deficit] of short) {
       if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
     }
     if (tool.gcd) value *= GCD_WORTH;
-    if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value };
+    if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs };
   }
   return found;
 }

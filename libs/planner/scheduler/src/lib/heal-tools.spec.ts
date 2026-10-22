@@ -56,4 +56,29 @@ describe('healTools', () => {
     // Adloquium is a shield the plan uses, and heals too.
     expect(names).toContain('Adloquium');
   });
+
+  it('counts the grown Earthly Star as a delayed heal, set off by Stellar Detonation', () => {
+    const c = withHeals();
+    c.actions.push(
+      action(7439, 'Earthly Star', ['SCH'], 60, [
+        { ...heal(720), target: 'party', condition: 'after 10s; 540 if detonated earlier' },
+      ]),
+      action(8324, 'Stellar Detonation', ['SCH'], 1, [
+        { ...heal(540), target: 'party', condition: '720 once the star has grown (10s)' },
+      ]),
+    );
+    const byName = new Map(healTools(party(), c, [], power).map((t) => [t.name, t]));
+
+    expect(byName.get('Earthly Star')).toMatchObject({
+      effects: [{ target: 'party', size: { hp: 72_000 } }],
+      delayed: {
+        delaysMs: [20_000, 10_000],
+        release: { action: 8324, name: 'Stellar Detonation' },
+        loggedAs: 'Stellar Explosion',
+      },
+    });
+    expect(byName.get('Lustrate')?.delayed).toBeNull();
+    // Only with a star out: never a heal of its own.
+    expect(byName.has('Stellar Detonation')).toBe(false);
+  });
 });

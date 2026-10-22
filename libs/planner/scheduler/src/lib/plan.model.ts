@@ -96,6 +96,20 @@ export interface HealTool {
   group: string;
   pool: ToolPool | null;
   effects: HealEffect[];
+  // Null for a heal that lands as it's cast.
+  delayed: DelayedHeal | null;
+}
+
+// A heal that lands later than it's used: Earthly Star's, once the star has
+// grown (10s, set off with Stellar Detonation) or on its own (20s).
+export interface DelayedHeal {
+  // The delays it can be planned with, the one that needs nothing more
+  // first.
+  delaysMs: number[];
+  // What sets it off sooner than the first.
+  release: { action: number; name: string };
+  // Its heal's name in the log.
+  loggedAs: string;
 }
 
 // A heal, or healing over time: `ticks` heals of `size`, every 3 seconds
