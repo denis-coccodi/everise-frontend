@@ -4167,64 +4167,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    NewUser: {
-      user: {
-        /** Format: email */
-        email: string;
-        username: string;
-        password: string;
+    ArticleUpdate: {
+      article: {
+        title?: string;
+        description?: string;
+        body?: string;
+        tagList?: string[];
+        media?: components['schemas']['NewAttachment'][];
       };
-      turnstileToken?: string;
-    };
-    LoginUser: {
-      user: {
-        /** Format: email */
-        email: string;
-        password: string;
-      };
-      turnstileToken?: string;
-    };
-    EmailConfirmationToken: {
-      token: string;
-    };
-    ResendConfirmation: {
-      user: {
-        /** Format: email */
-        email: string;
-      };
-      turnstileToken?: string;
-    };
-    PasswordResetRequest: {
-      user: {
-        /** Format: email */
-        email: string;
-      };
-      turnstileToken?: string;
-    };
-    NewPasswordWithCode: {
-      code: string;
-      password: string;
-      turnstileToken?: string;
-    };
-    UserUpdate: {
-      user: {
-        /** Format: email */
-        email?: string;
-        username?: string;
-        password?: string;
-        currentPassword?: string;
-        bio?: string | null;
-        /** Format: uri */
-        image?: string;
-        darkMode?: boolean;
-      };
-    };
-    NewSandsLine: {
-      text: string;
-    };
-    RoleChange: {
-      /** @enum {string} */
-      role: 'user' | 'staging-tester';
     };
     CharacterUpdate: {
       character: {
@@ -4233,14 +4183,16 @@ export interface components {
         bio?: string | null;
       };
     };
-    NewAttachment: {
-      /** @enum {string} */
-      kind: 'image' | 'gif' | 'video';
-      /** Format: uri */
-      url: string;
-      alt?: string;
-      width?: number;
-      height?: number;
+    EmailConfirmationToken: {
+      token: string;
+    };
+    LoginUser: {
+      user: {
+        /** Format: email */
+        email: string;
+        password: string;
+      };
+      turnstileToken?: string;
     };
     NewArticle: {
       article: {
@@ -4252,14 +4204,14 @@ export interface components {
       };
       shareToDiscord?: boolean;
     };
-    ArticleUpdate: {
-      article: {
-        title?: string;
-        description?: string;
-        body?: string;
-        tagList?: string[];
-        media?: components['schemas']['NewAttachment'][];
-      };
+    NewAttachment: {
+      /** @enum {string} */
+      kind: 'image' | 'gif' | 'video';
+      /** Format: uri */
+      url: string;
+      alt?: string;
+      width?: number;
+      height?: number;
     };
     NewComment: {
       comment: {
@@ -4270,6 +4222,24 @@ export interface components {
     NewEventDiscordShare: {
       eventId: number;
       comment?: string;
+    };
+    NewPartyFinderDiscordShare: {
+      /** @enum {string} */
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
+      listingId: string;
+      comment?: string;
+      pictureId?: string;
     };
     NewPartyFinderPost: {
       /** @enum {string} */
@@ -4290,27 +4260,10 @@ export interface components {
       pictureId?: string;
       shareToDiscord?: boolean;
     };
-    NewPartyFinderDiscordShare: {
-      /** @enum {string} */
-      dataCentre:
-        | 'Light'
-        | 'Chaos'
-        | 'Aether'
-        | 'Crystal'
-        | 'Dynamis'
-        | 'Primal'
-        | 'Elemental'
-        | 'Gaia'
-        | 'Mana'
-        | 'Meteor'
-        | 'Materia';
-      listingId: string;
-      comment?: string;
-      pictureId?: string;
-    };
-    NewVenueDiscordShare: {
-      venueId: string;
-      comment?: string;
+    NewPasswordWithCode: {
+      code: string;
+      password: string;
+      turnstileToken?: string;
     };
     NewRouletteResult: {
       result: {
@@ -4326,103 +4279,101 @@ export interface components {
       comment?: string;
       shareToDiscord?: boolean;
     };
-    ErrorResponse: {
-      errors: {
-        body: string[];
-      };
-      unconfirmedEmail?: string;
-    };
-    User: {
-      id: string;
-      email: string;
-      username: string;
-      token: string;
-      bio: string | null;
-      image: string;
-      darkMode: boolean;
-      /** @enum {string} */
-      role: 'admin' | 'staging-tester' | 'user';
-      signInMethods: ('password' | 'google' | 'discord')[];
-      pendingEmail: string | null;
-    };
-    UserResponse: {
-      user: components['schemas']['User'];
-    };
-    ConfirmationResponse: {
-      confirmation: {
-        email: string;
-      };
-    };
-    RegistrationResponse: components['schemas']['UserResponse'] | components['schemas']['ConfirmationResponse'];
-    PasswordResetResponse: {
-      passwordReset: {
-        email: string;
-      };
-    };
-    SandsLine: {
-      id: string;
-      /** Format: date-time */
-      at: string;
-      from: string;
-      name: string;
-      image?: string;
-      memberId?: string;
+    NewSandsLine: {
       text: string;
     };
-    SandsRoom: {
-      available: boolean;
-      characters: {
-        id: string;
-        name: string;
-        title: string;
-        image?: string;
-      }[];
-      present: string[];
-      lines: components['schemas']['SandsLine'][];
-      limits: {
-        maxPresent: number;
-        maxLineLength: number;
-      };
-    };
-    PresentResponse: {
-      present: string[];
-    };
-    SandsLineResponse: {
-      line: components['schemas']['SandsLine'];
-    };
-    Member: {
-      id: string;
-      username: string;
-      email: string;
-      image: string;
-      /** @enum {string} */
-      role: 'admin' | 'staging-tester' | 'user';
-      signInMethods: ('password' | 'google' | 'discord')[];
-      emailConfirmed: boolean;
-    };
-    StagingAccessSync: {
-      synced: boolean;
-      message: string;
-    };
-    MembersResponse: {
-      users: components['schemas']['Member'][];
-      usersCount: number;
-      stagingAccessConnected: boolean;
-    };
-    RoleChangeResponse: {
-      user: components['schemas']['Member'];
-      stagingAccess: components['schemas']['StagingAccessSync'];
-    };
-    MemberDeletionResponse: {
-      deleted: {
+    NewUser: {
+      user: {
+        /** Format: email */
+        email: string;
         username: string;
-        articles: number;
-        comments: number;
+        password: string;
       };
-      stagingAccess?: components['schemas']['StagingAccessSync'];
+      turnstileToken?: string;
     };
-    StagingAccessResponse: {
-      stagingAccess: components['schemas']['StagingAccessSync'];
+    NewVenueDiscordShare: {
+      venueId: string;
+      comment?: string;
+    };
+    PasswordResetRequest: {
+      user: {
+        /** Format: email */
+        email: string;
+      };
+      turnstileToken?: string;
+    };
+    ResendConfirmation: {
+      user: {
+        /** Format: email */
+        email: string;
+      };
+      turnstileToken?: string;
+    };
+    RoleChange: {
+      /** @enum {string} */
+      role: 'user' | 'staging-tester';
+    };
+    UserUpdate: {
+      user: {
+        /** Format: email */
+        email?: string;
+        username?: string;
+        password?: string;
+        currentPassword?: string;
+        bio?: string | null;
+        /** Format: uri */
+        image?: string;
+        darkMode?: boolean;
+      };
+    };
+    ActionCatalogResponse: {
+      dataVersion: string;
+      /** Format: date-time */
+      builtAt: string;
+      actions: {
+        id: number;
+        name: string;
+        icon: number | null;
+        jobs: string[];
+        level: number;
+        gcd: boolean;
+        castMs: number;
+        recastMs: number;
+        charges: number;
+        cooldownGroup: number;
+        range: number;
+        radius: number;
+        effects: {
+          /** @enum {string} */
+          kind:
+            | 'mitigation'
+            | 'shield'
+            | 'heal'
+            | 'regen'
+            | 'delayedHeal'
+            | 'maxHp'
+            | 'healingReceived'
+            | 'healingPotency'
+            | 'invulnerable';
+          /** @enum {string} */
+          target: 'self' | 'target' | 'party' | 'enemies';
+          status: string | null;
+          statusId: number | null;
+          percent: number | null;
+          physical: number | null;
+          magic: number | null;
+          potency: number | null;
+          of: ('maxHp' | 'casterMaxHp' | 'healed') | null;
+          durationMs: number | null;
+          stacks: number | null;
+          condition: string | null;
+        }[];
+      }[];
+      changed: {
+        id: number;
+        name: string;
+        missing: string[];
+      }[];
     };
     AdminCharacter: {
       id: string;
@@ -4439,6 +4390,9 @@ export interface components {
         image: boolean;
       };
     };
+    AdminCharacterResponse: {
+      character: components['schemas']['AdminCharacter'];
+    };
     AdminCharactersResponse: {
       characters: components['schemas']['AdminCharacter'][];
       limits: {
@@ -4447,31 +4401,34 @@ export interface components {
         bio: number;
       };
     };
-    AdminCharacterResponse: {
-      character: components['schemas']['AdminCharacter'];
+    Article: {
+      id: string;
+      slug?: string;
+      title: string;
+      description: string;
+      body: string;
+      tagList: string[];
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      favorited: boolean;
+      favoritesCount: number;
+      media: components['schemas']['Attachment'][];
+      roulette?: components['schemas']['RouletteCard'];
+      partyFinder?: components['schemas']['PartyFinderPost'];
+      author: components['schemas']['Profile'];
     };
-    MediaResponse: {
-      media: {
-        id: string;
-        url: string;
-        contentType: string;
-        width: number;
-        height: number;
-      };
+    ArticleDiscordShareResponse: {
+      /** @constant */
+      shared: true;
     };
-    GifsAvailableResponse: {
-      available: boolean;
+    ArticleResponse: {
+      article: components['schemas']['Article'];
     };
-    GifsResponse: {
-      gifs: {
-        id: string;
-        title: string;
-        previewUrl: string;
-        url: string;
-        width: number;
-        height: number;
-      }[];
-      next: number | null;
+    ArticlesResponse: {
+      articles: components['schemas']['Article'][];
+      articlesCount: number;
     };
     Attachment:
       | {
@@ -4490,16 +4447,545 @@ export interface components {
           start?: number;
           alt?: string;
         };
-    Profile: {
+    CatalogRefreshResponse: {
+      dataVersion: string;
+      actionCount: number;
+      effectCount: number;
+      changed: {
+        id: number;
+        name: string;
+        missing: string[];
+      }[];
+    };
+    Comment: {
+      id: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      body: string;
+      media: components['schemas']['Attachment'] | null;
+      author: components['schemas']['Profile'];
+    };
+    CommentResponse: {
+      comment: components['schemas']['Comment'];
+    };
+    CommentsResponse: {
+      comments: components['schemas']['Comment'][];
+    };
+    ConfirmationResponse: {
+      confirmation: {
+        email: string;
+      };
+    };
+    DiscordSharingResponse: {
+      available: boolean;
+    };
+    DiscordWidgetResponse: {
+      widget: {
+        name: string;
+        presenceCount: number;
+        members: {
+          name: string;
+          avatarUrl: string;
+          status: string;
+        }[];
+      } | null;
+    };
+    DutiesRefreshResponse: {
+      dataVersion: string;
+      /** Format: date-time */
+      fetchedAt: string;
+      dutyCount: number;
+      rouletteCount: number;
+      jobCount: number;
+      groups: {
+        name: string;
+        count: number;
+      }[];
+      images: {
+        total: number;
+        pending: number;
+        failed: number[];
+      };
+    };
+    Duty: {
+      id: number;
+      name: string;
+      /** @enum {string} */
+      finder: 'Duty Finder' | 'Raid Finder' | '';
+      expansion: string;
+      level: number;
+      levelSync: number;
+      itemLevel: number;
+      itemLevelSync: number;
+      joinPartyInProgress: boolean;
+      unrestrictedParty: boolean;
+      minimumIL: boolean;
+      explorerMode: boolean;
+      dutyRecorder: boolean;
+      highEnd: boolean;
+      pvp: boolean;
+      /** @enum {string} */
+      pvpType: 'Frontline' | 'Rival Wings' | 'Crystalline Conflict' | '';
+      roulettes: string[];
+      sortKey: number;
+      image: number | null;
+      activeFrontline: boolean;
+    };
+    DutyGroupsResponse: {
+      dataVersion: string | null;
+      fetchedAt: string | null;
+      /** Format: date-time */
+      dayEndsAt: string;
+      groups: {
+        id: number;
+        name: string;
+        order: number;
+        icon: number | null;
+        duties: components['schemas']['Duty'][];
+      }[];
+    };
+    ErrorResponse: {
+      errors: {
+        body: string[];
+      };
+      unconfirmedEmail?: string;
+    };
+    EventDiscordShareResponse: {
+      /** @constant */
+      shared: true;
+    };
+    EventPageResponse: {
+      event: {
+        id: number;
+        title: string;
+        summary: string;
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        live: boolean;
+        /** @enum {string} */
+        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
+        dataCentre: string | null;
+        world: string | null;
+        location: string | null;
+        tags: string[];
+        banner: string | null;
+        recurring: boolean;
+        attendees: number;
+        team: {
+          name: string;
+          icon: string | null;
+          discord: string | null;
+          website: string | null;
+        } | null;
+        url: string;
+        description: string;
+      };
+      venue: {
+        id: string;
+        name: string;
+      } | null;
+    };
+    EventsResponse: {
+      /** Format: date-time */
+      fetchedAt: string;
+      events: {
+        id: number;
+        title: string;
+        summary: string;
+        /** Format: date-time */
+        startsAt: string;
+        /** Format: date-time */
+        endsAt: string;
+        live: boolean;
+        /** @enum {string} */
+        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
+        dataCentre: string | null;
+        world: string | null;
+        location: string | null;
+        tags: string[];
+        banner: string | null;
+        recurring: boolean;
+        attendees: number;
+        team: {
+          name: string;
+          icon: string | null;
+          discord: string | null;
+          website: string | null;
+        } | null;
+        url: string;
+      }[];
+    };
+    FightReportResponse: {
+      code: string;
+      title: string;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      endedAt: string;
+      players: {
+        id: number;
+        name: string;
+        server: string | null;
+        job: string | null;
+        role: ('tank' | 'healer' | 'melee' | 'ranged' | 'caster') | null;
+      }[];
+      pulls: {
+        id: number;
+        encounterId: number;
+        name: string;
+        /** @enum {string} */
+        kind: 'extreme' | 'savage' | 'ultimate';
+        kill: boolean;
+        /** Format: date-time */
+        startedAt: string;
+        durationMs: number;
+        bossHpLeft: number | null;
+        fightLeft: number | null;
+        phase: number | null;
+        playerIds: number[];
+      }[];
+      otherPulls: number;
+    };
+    FrontlineDay: {
+      map: string;
+      dutyId: number | null;
+      /** Format: date-time */
+      from: string;
+      /** Format: date-time */
+      until: string;
+    };
+    FrontlineResponse: {
+      active: components['schemas']['FrontlineDay'];
+      schedule: components['schemas']['FrontlineDay'][];
+    };
+    GifsAvailableResponse: {
+      available: boolean;
+    };
+    GifsResponse: {
+      gifs: {
+        id: string;
+        title: string;
+        previewUrl: string;
+        url: string;
+        width: number;
+        height: number;
+      }[];
+      next: number | null;
+    };
+    HuntsResponse: {
+      available: boolean;
+      dataCentres: (
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia'
+      )[];
+      posts: {
+        /** @enum {string} */
+        dataCentre:
+          | 'Light'
+          | 'Chaos'
+          | 'Aether'
+          | 'Crystal'
+          | 'Dynamis'
+          | 'Primal'
+          | 'Elemental'
+          | 'Gaia'
+          | 'Mana'
+          | 'Meteor'
+          | 'Materia';
+        /** Format: date-time */
+        startsAt: string;
+        message: components['schemas']['RelayMessage'];
+      }[];
+    };
+    ImagesRefreshResponse: {
+      total: number;
+      pending: number;
+      failed: number[];
+      downloaded: number;
+    };
+    Job: {
+      id: number;
+      name: string;
+      abbreviation: string;
+      /** @enum {string} */
+      role: 'Tank' | 'Healer' | 'Melee DPS' | 'Physical Ranged DPS' | 'Magical Ranged DPS';
+      startingLevel: number;
+      limited: boolean;
+      icon: number;
+    };
+    JobsResponse: {
+      dataVersion: string | null;
+      fetchedAt: string | null;
+      jobs: components['schemas']['Job'][];
+    };
+    MarketHistoryResponse: {
+      region: {
+        id: string;
+        name: string;
+      };
+      item: number;
+      /** @enum {string} */
+      quality: 'all' | 'nq' | 'hq';
+      from: string;
+      worlds: {
+        id: number;
+        days: {
+          day: string;
+          median: number;
+          min: number;
+          max: number;
+          sales: number;
+          quantity: number;
+        }[];
+      }[];
+      complete: boolean;
+      readBackTo: string | null;
+      refreshedAt: string | null;
+    };
+    MarketItem: {
+      id: number;
+      name: string;
+      icon: number;
+      canBeHq: boolean;
+      category: string;
+    };
+    MarketItemResponse: {
+      item: components['schemas']['MarketItem'];
+    };
+    MarketItemsResponse: {
+      items: components['schemas']['MarketItem'][];
+    };
+    MarketListingsResponse: {
+      region: {
+        id: string;
+        name: string;
+      };
+      item: number;
+      /** @enum {string} */
+      quality: 'all' | 'nq' | 'hq';
+      listings: {
+        world: number;
+        price: number;
+        quantity: number;
+        hq: boolean;
+        /** Format: date-time */
+        reviewedAt: string;
+      }[];
+      updatedAt: string | null;
+    };
+    MarketRegionsResponse: {
+      regions: {
+        id: string;
+        name: string;
+        dataCentres: {
+          name: string;
+          worlds: {
+            id: number;
+            name: string;
+          }[];
+        }[];
+      }[];
+      defaultRegion: string;
+      homeWorld: string;
+      historyStart: string;
+    };
+    MediaResponse: {
+      media: {
+        id: string;
+        url: string;
+        contentType: string;
+        width: number;
+        height: number;
+      };
+    };
+    Member: {
       id: string;
       username: string;
-      following: boolean;
-      bio: string | null;
+      email: string;
       image: string;
-      character?: string;
+      /** @enum {string} */
+      role: 'admin' | 'staging-tester' | 'user';
+      signInMethods: ('password' | 'google' | 'discord')[];
+      emailConfirmed: boolean;
     };
-    ProfileResponse: {
-      profile: components['schemas']['Profile'];
+    MemberDeletionResponse: {
+      deleted: {
+        username: string;
+        articles: number;
+        comments: number;
+      };
+      stagingAccess?: components['schemas']['StagingAccessSync'];
+    };
+    MembersResponse: {
+      users: components['schemas']['Member'][];
+      usersCount: number;
+      stagingAccessConnected: boolean;
+    };
+    NotificationsResponse: {
+      notifications: {
+        id: string;
+        /** @enum {string} */
+        type: 'favorite' | 'comment' | 'follow' | 'pf-ended' | 'role';
+        /** Format: date-time */
+        at: string;
+        seen: boolean;
+        read: boolean;
+        actors: {
+          id: string;
+          username: string;
+          image: string;
+        }[];
+        actorCount: number;
+        article: {
+          id: string;
+          title: string;
+        } | null;
+        comment: {
+          id: string;
+          excerpt: string;
+        } | null;
+        partyFinder: {
+          listingId: string;
+          dataCentre: string;
+          title: string;
+        } | null;
+        role: string | null;
+      }[];
+      unseenCount: number;
+    };
+    PartyFinderDiscordShareResponse: {
+      /** @constant */
+      shared: true;
+    };
+    PartyFinderListingResponse: {
+      /** @enum {string} */
+      dataCentre:
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia';
+      /** Format: date-time */
+      fetchedAt: string;
+      icons: {
+        tank: number;
+        healer: number;
+        dps: number;
+        beginner: number;
+      };
+      listing: {
+        id: string;
+        recruiter: string;
+        description: string;
+        world: {
+          id: number;
+          name: string;
+        };
+        homeWorld: {
+          id: number;
+          name: string;
+        };
+        category: string;
+        duty: string | null;
+        dutyIcon: number | null;
+        level: number | null;
+        sortKey: number | null;
+        highEnd: boolean;
+        worldOnly: boolean;
+        onePlayerPerJob: boolean;
+        beginnersWelcome: boolean;
+        minItemLevel: number;
+        objective: ('completion' | 'practice' | 'loot') | null;
+        dutyComplete: boolean;
+        /** @enum {string} */
+        loot: 'normal' | 'greed-only' | 'lootmaster';
+        parties: number;
+        slots: {
+          job: string | null;
+          icon: number | null;
+          roles: ('tank' | 'healer' | 'dps')[];
+          accepts: {
+            /** @enum {string} */
+            role: 'tank' | 'healer' | 'dps';
+            jobs: string[];
+          }[];
+        }[];
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      };
+    };
+    PartyFinderPost: {
+      dataCentre: string;
+      icons: {
+        tank: number;
+        healer: number;
+        dps: number;
+        beginner: number;
+      };
+      listing: {
+        id: string;
+        recruiter: string;
+        description: string;
+        world: {
+          id: number;
+          name: string;
+        };
+        homeWorld: {
+          id: number;
+          name: string;
+        };
+        category: string;
+        duty: string | null;
+        dutyIcon: number | null;
+        level: number | null;
+        sortKey: number | null;
+        highEnd: boolean;
+        worldOnly: boolean;
+        onePlayerPerJob: boolean;
+        beginnersWelcome: boolean;
+        minItemLevel: number;
+        objective: ('completion' | 'practice' | 'loot') | null;
+        dutyComplete: boolean;
+        /** @enum {string} */
+        loot: 'normal' | 'greed-only' | 'lootmaster';
+        parties: number;
+        slots: {
+          job: string | null;
+          icon: number | null;
+          roles: ('tank' | 'healer' | 'dps')[];
+          accepts: {
+            /** @enum {string} */
+            role: 'tank' | 'healer' | 'dps';
+            jobs: string[];
+          }[];
+        }[];
+        /** Format: date-time */
+        updatedAt: string;
+        /** Format: date-time */
+        expiresAt: string;
+      };
+      picture?: string;
     };
     PartyFinderResponse: {
       /** @enum {string} */
@@ -4586,541 +5072,30 @@ export interface components {
         expiresAt: string;
       }[];
     };
-    PartyFinderListingResponse: {
-      /** @enum {string} */
-      dataCentre:
-        | 'Light'
-        | 'Chaos'
-        | 'Aether'
-        | 'Crystal'
-        | 'Dynamis'
-        | 'Primal'
-        | 'Elemental'
-        | 'Gaia'
-        | 'Mana'
-        | 'Meteor'
-        | 'Materia';
-      /** Format: date-time */
-      fetchedAt: string;
-      icons: {
-        tank: number;
-        healer: number;
-        dps: number;
-        beginner: number;
+    PasswordResetResponse: {
+      passwordReset: {
+        email: string;
       };
-      listing: {
-        id: string;
-        recruiter: string;
-        description: string;
-        world: {
-          id: number;
-          name: string;
-        };
-        homeWorld: {
-          id: number;
-          name: string;
-        };
-        category: string;
-        duty: string | null;
-        dutyIcon: number | null;
-        level: number | null;
-        sortKey: number | null;
-        highEnd: boolean;
-        worldOnly: boolean;
-        onePlayerPerJob: boolean;
-        beginnersWelcome: boolean;
-        minItemLevel: number;
-        objective: ('completion' | 'practice' | 'loot') | null;
-        dutyComplete: boolean;
-        /** @enum {string} */
-        loot: 'normal' | 'greed-only' | 'lootmaster';
-        parties: number;
-        slots: {
-          job: string | null;
-          icon: number | null;
-          roles: ('tank' | 'healer' | 'dps')[];
-          accepts: {
-            /** @enum {string} */
-            role: 'tank' | 'healer' | 'dps';
-            jobs: string[];
-          }[];
-        }[];
-        /** Format: date-time */
-        updatedAt: string;
-        /** Format: date-time */
-        expiresAt: string;
-      };
-    };
-    RouletteCard: {
-      type: string;
-      name: string;
-      detail: string;
-      mode: string;
-      dutyUnknown: boolean;
-      image: number | null;
-      job: {
-        name: string;
-        icon: number;
-      } | null;
-      guest: boolean;
-    };
-    PartyFinderPost: {
-      dataCentre: string;
-      icons: {
-        tank: number;
-        healer: number;
-        dps: number;
-        beginner: number;
-      };
-      listing: {
-        id: string;
-        recruiter: string;
-        description: string;
-        world: {
-          id: number;
-          name: string;
-        };
-        homeWorld: {
-          id: number;
-          name: string;
-        };
-        category: string;
-        duty: string | null;
-        dutyIcon: number | null;
-        level: number | null;
-        sortKey: number | null;
-        highEnd: boolean;
-        worldOnly: boolean;
-        onePlayerPerJob: boolean;
-        beginnersWelcome: boolean;
-        minItemLevel: number;
-        objective: ('completion' | 'practice' | 'loot') | null;
-        dutyComplete: boolean;
-        /** @enum {string} */
-        loot: 'normal' | 'greed-only' | 'lootmaster';
-        parties: number;
-        slots: {
-          job: string | null;
-          icon: number | null;
-          roles: ('tank' | 'healer' | 'dps')[];
-          accepts: {
-            /** @enum {string} */
-            role: 'tank' | 'healer' | 'dps';
-            jobs: string[];
-          }[];
-        }[];
-        /** Format: date-time */
-        updatedAt: string;
-        /** Format: date-time */
-        expiresAt: string;
-      };
-      picture?: string;
-    };
-    Article: {
-      id: string;
-      slug?: string;
-      title: string;
-      description: string;
-      body: string;
-      tagList: string[];
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-      favorited: boolean;
-      favoritesCount: number;
-      media: components['schemas']['Attachment'][];
-      roulette?: components['schemas']['RouletteCard'];
-      partyFinder?: components['schemas']['PartyFinderPost'];
-      author: components['schemas']['Profile'];
-    };
-    ArticleResponse: {
-      article: components['schemas']['Article'];
-    };
-    ArticleDiscordShareResponse: {
-      /** @constant */
-      shared: true;
-    };
-    ArticlesResponse: {
-      articles: components['schemas']['Article'][];
-      articlesCount: number;
-    };
-    Comment: {
-      id: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-      body: string;
-      media: components['schemas']['Attachment'] | null;
-      author: components['schemas']['Profile'];
-    };
-    CommentResponse: {
-      comment: components['schemas']['Comment'];
-    };
-    CommentsResponse: {
-      comments: components['schemas']['Comment'][];
-    };
-    TagsResponse: {
-      tags: string[];
-    };
-    Duty: {
-      id: number;
-      name: string;
-      /** @enum {string} */
-      finder: 'Duty Finder' | 'Raid Finder' | '';
-      expansion: string;
-      level: number;
-      levelSync: number;
-      itemLevel: number;
-      itemLevelSync: number;
-      joinPartyInProgress: boolean;
-      unrestrictedParty: boolean;
-      minimumIL: boolean;
-      explorerMode: boolean;
-      dutyRecorder: boolean;
-      highEnd: boolean;
-      pvp: boolean;
-      /** @enum {string} */
-      pvpType: 'Frontline' | 'Rival Wings' | 'Crystalline Conflict' | '';
-      roulettes: string[];
-      sortKey: number;
-      image: number | null;
-      activeFrontline: boolean;
-    };
-    DutyGroupsResponse: {
-      dataVersion: string | null;
-      fetchedAt: string | null;
-      /** Format: date-time */
-      dayEndsAt: string;
-      groups: {
-        id: number;
-        name: string;
-        order: number;
-        icon: number | null;
-        duties: components['schemas']['Duty'][];
-      }[];
-    };
-    FrontlineDay: {
-      map: string;
-      dutyId: number | null;
-      /** Format: date-time */
-      from: string;
-      /** Format: date-time */
-      until: string;
-    };
-    FrontlineResponse: {
-      active: components['schemas']['FrontlineDay'];
-      schedule: components['schemas']['FrontlineDay'][];
-    };
-    ResetsResponse: {
-      /** Format: date-time */
-      now: string;
-      daily: {
-        /** Format: date-time */
-        from: string;
-        /** Format: date-time */
-        until: string;
-      };
-      weekly: {
-        /** Format: date-time */
-        from: string;
-        /** Format: date-time */
-        until: string;
-      };
-    };
-    Roulette: {
-      id: number;
-      name: string;
-      category: string;
-      dutyType: string;
-      expansion: string;
-      level: number;
-      syncedFromLevel: number;
-      itemLevel: number;
-      itemLevelSync: number;
-      joinPartyInProgress: boolean;
-      timeLimitMinutes: number;
-      pvp: boolean;
-      goldSaucer: boolean;
-      description: string;
-      sortKey: number;
-      image: number | null;
-    };
-    RoulettesResponse: {
-      dataVersion: string | null;
-      fetchedAt: string | null;
-      icon: number | null;
-      roulettes: components['schemas']['Roulette'][];
-    };
-    Job: {
-      id: number;
-      name: string;
-      abbreviation: string;
-      /** @enum {string} */
-      role: 'Tank' | 'Healer' | 'Melee DPS' | 'Physical Ranged DPS' | 'Magical Ranged DPS';
-      startingLevel: number;
-      limited: boolean;
-      icon: number;
-    };
-    JobsResponse: {
-      dataVersion: string | null;
-      fetchedAt: string | null;
-      jobs: components['schemas']['Job'][];
-    };
-    DutiesRefreshResponse: {
-      dataVersion: string;
-      /** Format: date-time */
-      fetchedAt: string;
-      dutyCount: number;
-      rouletteCount: number;
-      jobCount: number;
-      groups: {
-        name: string;
-        count: number;
-      }[];
-      images: {
-        total: number;
-        pending: number;
-        failed: number[];
-      };
-    };
-    ImagesRefreshResponse: {
-      total: number;
-      pending: number;
-      failed: number[];
-      downloaded: number;
-    };
-    EventsResponse: {
-      /** Format: date-time */
-      fetchedAt: string;
-      events: {
-        id: number;
-        title: string;
-        summary: string;
-        /** Format: date-time */
-        startsAt: string;
-        /** Format: date-time */
-        endsAt: string;
-        live: boolean;
-        /** @enum {string} */
-        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
-        dataCentre: string | null;
-        world: string | null;
-        location: string | null;
-        tags: string[];
-        banner: string | null;
-        recurring: boolean;
-        attendees: number;
-        team: {
-          name: string;
-          icon: string | null;
-          discord: string | null;
-          website: string | null;
-        } | null;
-        url: string;
-      }[];
-    };
-    EventPageResponse: {
-      event: {
-        id: number;
-        title: string;
-        summary: string;
-        /** Format: date-time */
-        startsAt: string;
-        /** Format: date-time */
-        endsAt: string;
-        live: boolean;
-        /** @enum {string} */
-        ageRating: 'EVERYONE' | 'TEEN' | 'MATURE';
-        dataCentre: string | null;
-        world: string | null;
-        location: string | null;
-        tags: string[];
-        banner: string | null;
-        recurring: boolean;
-        attendees: number;
-        team: {
-          name: string;
-          icon: string | null;
-          discord: string | null;
-          website: string | null;
-        } | null;
-        url: string;
-        description: string;
-      };
-      venue: {
-        id: string;
-        name: string;
-      } | null;
-    };
-    EventDiscordShareResponse: {
-      /** @constant */
-      shared: true;
-    };
-    MarketItem: {
-      id: number;
-      name: string;
-      icon: number;
-      canBeHq: boolean;
-      category: string;
-    };
-    MarketItemsResponse: {
-      items: components['schemas']['MarketItem'][];
-    };
-    MarketItemResponse: {
-      item: components['schemas']['MarketItem'];
-    };
-    MarketRegionsResponse: {
-      regions: {
-        id: string;
-        name: string;
-        dataCentres: {
-          name: string;
-          worlds: {
-            id: number;
-            name: string;
-          }[];
-        }[];
-      }[];
-      defaultRegion: string;
-      homeWorld: string;
-      historyStart: string;
-    };
-    MarketListingsResponse: {
-      region: {
-        id: string;
-        name: string;
-      };
-      item: number;
-      /** @enum {string} */
-      quality: 'all' | 'nq' | 'hq';
-      listings: {
-        world: number;
-        price: number;
-        quantity: number;
-        hq: boolean;
-        /** Format: date-time */
-        reviewedAt: string;
-      }[];
-      updatedAt: string | null;
-    };
-    MarketHistoryResponse: {
-      region: {
-        id: string;
-        name: string;
-      };
-      item: number;
-      /** @enum {string} */
-      quality: 'all' | 'nq' | 'hq';
-      from: string;
-      worlds: {
-        id: number;
-        days: {
-          day: string;
-          median: number;
-          min: number;
-          max: number;
-          sales: number;
-          quantity: number;
-        }[];
-      }[];
-      complete: boolean;
-      readBackTo: string | null;
-      refreshedAt: string | null;
-    };
-    ActionCatalogResponse: {
-      dataVersion: string;
-      /** Format: date-time */
-      builtAt: string;
-      actions: {
-        id: number;
-        name: string;
-        icon: number | null;
-        jobs: string[];
-        level: number;
-        gcd: boolean;
-        castMs: number;
-        recastMs: number;
-        charges: number;
-        cooldownGroup: number;
-        range: number;
-        radius: number;
-        effects: {
-          /** @enum {string} */
-          kind:
-            | 'mitigation'
-            | 'shield'
-            | 'heal'
-            | 'regen'
-            | 'delayedHeal'
-            | 'maxHp'
-            | 'healingReceived'
-            | 'healingPotency'
-            | 'invulnerable';
-          /** @enum {string} */
-          target: 'self' | 'target' | 'party' | 'enemies';
-          status: string | null;
-          statusId: number | null;
-          percent: number | null;
-          physical: number | null;
-          magic: number | null;
-          potency: number | null;
-          of: ('maxHp' | 'casterMaxHp' | 'healed') | null;
-          durationMs: number | null;
-          stacks: number | null;
-          condition: string | null;
-        }[];
-      }[];
-      changed: {
-        id: number;
-        name: string;
-        missing: string[];
-      }[];
-    };
-    CatalogRefreshResponse: {
-      dataVersion: string;
-      actionCount: number;
-      effectCount: number;
-      changed: {
-        id: number;
-        name: string;
-        missing: string[];
-      }[];
     };
     PlannerAvailableResponse: {
       available: boolean;
     };
-    FightReportResponse: {
-      code: string;
-      title: string;
-      /** Format: date-time */
-      startedAt: string;
-      /** Format: date-time */
-      endedAt: string;
-      players: {
-        id: number;
-        name: string;
-        server: string | null;
-        job: string | null;
-        role: ('tank' | 'healer' | 'melee' | 'ranged' | 'caster') | null;
-      }[];
-      pulls: {
-        id: number;
-        encounterId: number;
-        name: string;
-        /** @enum {string} */
-        kind: 'extreme' | 'savage' | 'ultimate';
-        kill: boolean;
-        /** Format: date-time */
-        startedAt: string;
-        durationMs: number;
-        bossHpLeft: number | null;
-        fightLeft: number | null;
-        phase: number | null;
-        playerIds: number[];
-      }[];
-      otherPulls: number;
+    PresentResponse: {
+      present: string[];
+    };
+    Profile: {
+      id: string;
+      username: string;
+      following: boolean;
+      bio: string | null;
+      image: string;
+      character?: string;
+    };
+    ProfileResponse: {
+      profile: components['schemas']['Profile'];
+    };
+    ProvidersResponse: {
+      providers: ('google' | 'discord')[];
     };
     PullTimelineResponse: {
       code: string;
@@ -5229,16 +5204,7 @@ export interface components {
         source: number | null;
       }[];
     };
-    PartyFinderDiscordShareResponse: {
-      /** @constant */
-      shared: true;
-    };
-    RelayImage: {
-      url: string;
-      file?: string;
-      width?: number;
-      height?: number;
-    };
+    RegistrationResponse: components['schemas']['UserResponse'] | components['schemas']['ConfirmationResponse'];
     RelayEmbed: {
       type: string;
       title?: string;
@@ -5266,6 +5232,12 @@ export interface components {
       /** Format: date-time */
       timestamp?: string;
     };
+    RelayImage: {
+      url: string;
+      file?: string;
+      width?: number;
+      height?: number;
+    };
     RelayMessage: {
       id: string;
       /** Format: date-time */
@@ -5286,66 +5258,90 @@ export interface components {
         contentType?: string;
       }[];
     };
-    WeeklyResponse: {
-      available: boolean;
-      resets: {
-        /** Format: date-time */
-        daily: string;
-        /** Format: date-time */
-        weekly: string;
-        /** Format: date-time */
-        grandCompany: string;
-      };
-      fashionReport: {
-        message: components['schemas']['RelayMessage'];
-        /** Format: date-time */
-        validFrom: string;
-        /** Format: date-time */
-        validUntil: string;
-      } | null;
+    ResetsResponse: {
       /** Format: date-time */
-      nextJudgingAt: string;
-      islandSanctuary: {
-        message: components['schemas']['RelayMessage'];
+      now: string;
+      daily: {
         /** Format: date-time */
-        validFrom: string;
+        from: string;
         /** Format: date-time */
-        validUntil: string;
-      } | null;
+        until: string;
+      };
+      weekly: {
+        /** Format: date-time */
+        from: string;
+        /** Format: date-time */
+        until: string;
+      };
     };
-    HuntsResponse: {
+    RoleChangeResponse: {
+      user: components['schemas']['Member'];
+      stagingAccess: components['schemas']['StagingAccessSync'];
+    };
+    Roulette: {
+      id: number;
+      name: string;
+      category: string;
+      dutyType: string;
+      expansion: string;
+      level: number;
+      syncedFromLevel: number;
+      itemLevel: number;
+      itemLevelSync: number;
+      joinPartyInProgress: boolean;
+      timeLimitMinutes: number;
+      pvp: boolean;
+      goldSaucer: boolean;
+      description: string;
+      sortKey: number;
+      image: number | null;
+    };
+    RouletteCard: {
+      type: string;
+      name: string;
+      detail: string;
+      mode: string;
+      dutyUnknown: boolean;
+      image: number | null;
+      job: {
+        name: string;
+        icon: number;
+      } | null;
+      guest: boolean;
+    };
+    RoulettesResponse: {
+      dataVersion: string | null;
+      fetchedAt: string | null;
+      icon: number | null;
+      roulettes: components['schemas']['Roulette'][];
+    };
+    SandsLine: {
+      id: string;
+      /** Format: date-time */
+      at: string;
+      from: string;
+      name: string;
+      image?: string;
+      memberId?: string;
+      text: string;
+    };
+    SandsLineResponse: {
+      line: components['schemas']['SandsLine'];
+    };
+    SandsRoom: {
       available: boolean;
-      dataCentres: (
-        | 'Light'
-        | 'Chaos'
-        | 'Aether'
-        | 'Crystal'
-        | 'Dynamis'
-        | 'Primal'
-        | 'Elemental'
-        | 'Gaia'
-        | 'Mana'
-        | 'Meteor'
-        | 'Materia'
-      )[];
-      posts: {
-        /** @enum {string} */
-        dataCentre:
-          | 'Light'
-          | 'Chaos'
-          | 'Aether'
-          | 'Crystal'
-          | 'Dynamis'
-          | 'Primal'
-          | 'Elemental'
-          | 'Gaia'
-          | 'Mana'
-          | 'Meteor'
-          | 'Materia';
-        /** Format: date-time */
-        startsAt: string;
-        message: components['schemas']['RelayMessage'];
+      characters: {
+        id: string;
+        name: string;
+        title: string;
+        image?: string;
       }[];
+      present: string[];
+      lines: components['schemas']['SandsLine'][];
+      limits: {
+        maxPresent: number;
+        maxLineLength: number;
+      };
     };
     SitemapResponse: {
       articles: {
@@ -5367,39 +5363,38 @@ export interface components {
         | 'Materia'
       )[];
     };
-    VenueRegionsResponse: {
-      regions: {
-        name: string;
-        dataCentres: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia')[];
-      }[];
+    StagingAccessResponse: {
+      stagingAccess: components['schemas']['StagingAccessSync'];
     };
-    VenuesResponse: {
+    StagingAccessSync: {
+      synced: boolean;
+      message: string;
+    };
+    TagsResponse: {
+      tags: string[];
+    };
+    UnseenNotificationsResponse: {
+      unseenCount: number;
+    };
+    User: {
+      id: string;
+      email: string;
+      username: string;
+      token: string;
+      bio: string | null;
+      image: string;
+      darkMode: boolean;
       /** @enum {string} */
-      dataCentre: 'Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia';
-      regions: {
-        name: string;
-        dataCentres: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia')[];
-      }[];
-      /** Format: date-time */
-      fetchedAt: string;
-      venues: {
-        id: string;
-        name: string;
-        description: string[];
-        banner: string | null;
-        world: string | null;
-        address: string | null;
-        tags: string[];
-        website: string | null;
-        discord: string | null;
-        url: string;
-        notices: string[];
-        /** Format: date-time */
-        opensAt: string;
-        /** Format: date-time */
-        closesAt: string;
-        openNow: boolean;
-      }[];
+      role: 'admin' | 'staging-tester' | 'user';
+      signInMethods: ('password' | 'google' | 'discord')[];
+      pendingEmail: string | null;
+    };
+    UserResponse: {
+      user: components['schemas']['User'];
+    };
+    VenueDiscordShareResponse: {
+      /** @constant */
+      shared: true;
     };
     VenuePageResponse: {
       venue: {
@@ -5467,61 +5462,66 @@ export interface components {
         url: string;
       }[];
     };
-    VenueDiscordShareResponse: {
-      /** @constant */
-      shared: true;
-    };
-    ProvidersResponse: {
-      providers: ('google' | 'discord')[];
-    };
-    DiscordWidgetResponse: {
-      widget: {
+    VenueRegionsResponse: {
+      regions: {
         name: string;
-        presenceCount: number;
-        members: {
-          name: string;
-          avatarUrl: string;
-          status: string;
-        }[];
-      } | null;
-    };
-    DiscordSharingResponse: {
-      available: boolean;
-    };
-    NotificationsResponse: {
-      notifications: {
-        id: string;
-        /** @enum {string} */
-        type: 'favorite' | 'comment' | 'follow' | 'pf-ended' | 'role';
-        /** Format: date-time */
-        at: string;
-        seen: boolean;
-        read: boolean;
-        actors: {
-          id: string;
-          username: string;
-          image: string;
-        }[];
-        actorCount: number;
-        article: {
-          id: string;
-          title: string;
-        } | null;
-        comment: {
-          id: string;
-          excerpt: string;
-        } | null;
-        partyFinder: {
-          listingId: string;
-          dataCentre: string;
-          title: string;
-        } | null;
-        role: string | null;
+        dataCentres: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia')[];
       }[];
-      unseenCount: number;
     };
-    UnseenNotificationsResponse: {
-      unseenCount: number;
+    VenuesResponse: {
+      /** @enum {string} */
+      dataCentre: 'Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia';
+      regions: {
+        name: string;
+        dataCentres: ('Light' | 'Chaos' | 'Aether' | 'Crystal' | 'Dynamis' | 'Primal' | 'Materia')[];
+      }[];
+      /** Format: date-time */
+      fetchedAt: string;
+      venues: {
+        id: string;
+        name: string;
+        description: string[];
+        banner: string | null;
+        world: string | null;
+        address: string | null;
+        tags: string[];
+        website: string | null;
+        discord: string | null;
+        url: string;
+        notices: string[];
+        /** Format: date-time */
+        opensAt: string;
+        /** Format: date-time */
+        closesAt: string;
+        openNow: boolean;
+      }[];
+    };
+    WeeklyResponse: {
+      available: boolean;
+      resets: {
+        /** Format: date-time */
+        daily: string;
+        /** Format: date-time */
+        weekly: string;
+        /** Format: date-time */
+        grandCompany: string;
+      };
+      fashionReport: {
+        message: components['schemas']['RelayMessage'];
+        /** Format: date-time */
+        validFrom: string;
+        /** Format: date-time */
+        validUntil: string;
+      } | null;
+      /** Format: date-time */
+      nextJudgingAt: string;
+      islandSanctuary: {
+        message: components['schemas']['RelayMessage'];
+        /** Format: date-time */
+        validFrom: string;
+        /** Format: date-time */
+        validUntil: string;
+      } | null;
     };
   };
   responses: never;
