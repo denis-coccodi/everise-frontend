@@ -101,8 +101,9 @@ export interface HealTool {
 }
 
 // A heal that lands later than it's used: Earthly Star's, once the star has
-// grown (10s, set off with Stellar Detonation) or on its own (20s); or
-// Excogitation's, when its target drops to half their HP, or when it ends.
+// grown (10s, set off with Stellar Detonation) or on its own (20s);
+// Excogitation's, when its target drops to half their HP, or when it ends;
+// Haima's, for the stacks left when it ends; Macrocosmos's, when it ends.
 export interface DelayedHeal {
   // The delays it can be planned with, the one that needs nothing more
   // first; a triggered heal's is when it ends.
@@ -112,8 +113,25 @@ export interface DelayedHeal {
   // The share of max HP at or below which it goes off at once, before its
   // delay runs out (Excogitation: 0.5); null when it waits for it.
   belowShare: number | null;
+  // The share of the damage each player took meanwhile that it heals on top
+  // (Macrocosmos: 0.5); null when none.
+  damageShare: number | null;
+  // Its heal is for each stack left when it ends; null when it has none.
+  stacks: HealStacks | null;
   // Its heal's name in the log, an action's or a status's.
   loggedAs: string;
+}
+
+// Stacks the hits use up: Haima's and Panhaima's (one a hit on whoever has
+// the barrier), Liturgy of the Bell's (one a hit on the white mage, healing
+// the party then).
+export interface HealStacks {
+  count: number;
+  // Whose hits use them up: the use's target, each member of the party for
+  // themselves, or its user.
+  holder: 'self' | 'target' | 'party';
+  // What a stack used up heals the party; null when it heals nothing then.
+  perHit: ShieldSize | null;
 }
 
 // A heal, or healing over time: `ticks` heals of `size`, every 3 seconds

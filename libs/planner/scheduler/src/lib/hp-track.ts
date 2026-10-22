@@ -24,6 +24,13 @@ export class HpTrack {
     }
   }
 
+  // The damage the player took after `from`, up to `to` (inclusive).
+  damageBetween(player: number, from: number, to: number) {
+    let damage = 0;
+    for (const e of this.events.get(player) ?? []) if (e.at > from && e.at <= to && e.amount < 0) damage -= e.amount;
+    return damage;
+  }
+
   // The first moment from `from` to `to` (inclusive) that leaves the player
   // at `hp` or below: `from` itself when they already are; null when none
   // does.

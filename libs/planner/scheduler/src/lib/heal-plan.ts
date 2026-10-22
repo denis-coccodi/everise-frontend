@@ -1,6 +1,7 @@
 import { PullTimeline } from '@everise/core/api-types';
 import { fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
-import { healEvents, pullEvents } from './hp-events';
+import { delayedEvents } from './delayed-heals';
+import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
   HealTool,
@@ -69,17 +70,13 @@ export function planHeals(
   const planned = heals.filter((t) => healers.has(t.player));
 
   const track = new HpTrack(maxHp, pullEvents(timeline, plan.mechanics, plan.hits, heals));
-  // The HP a use heals, and when. A triggered heal (Excogitation) goes off
-  // the first time its target drops to its share of max HP, or when it ends.
-  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => {
-    const share = tool.delayed?.belowShare ?? null;
-    if (!tool.delayed || share === null) return healEvents(tool, use, party, maxHp, delayMs);
-    const player = use.target ?? use.player;
-    const from = use.at + tool.castMs;
-    const end = tool.delayed.delaysMs[0];
-    const low = track.firstAtOrBelow(player, from, from + end, share * (maxHp.get(player) ?? 0));
-    return healEvents(tool, use, party, maxHp, low === null ? end : low - from);
-  };
+  const hitAt = new Map<number, number[]>();
+  for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);
+  const hitTimes = (player: number, from: number, to: number) =>
+    (hitAt.get(player) ?? []).filter((at) => at > from && at <= to).sort((a, b) => a - b);
+  // The HP a use heals, and when, as the pull goes on (a delayed heal's).
+  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) =>
+    delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes);
   const spent: Spent[] = [];
   for (const use of plan.uses) {
     const tool = mitigationOf.get(key(use));
