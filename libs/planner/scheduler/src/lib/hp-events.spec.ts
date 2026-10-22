@@ -39,6 +39,7 @@ describe('pullEvents', () => {
       status: null,
       amount: 1000,
       overheal: 500,
+      damageType: 'magic',
       tick: false,
       estimated: false,
       hp: null,
@@ -54,7 +55,15 @@ describe('pullEvents', () => {
       healed({ action: 7, pet: 'Eos' }),
       healed({ source: null, action: 4 }),
     ];
-    const mechanic: Mechanic = { id: 0, at: 30_000, action: 100, name: 'Raidwide', kind: 'raidwide', hits: [] };
+    const mechanic: Mechanic = {
+      id: 0,
+      at: 30_000,
+      action: 100,
+      name: 'Raidwide',
+      kind: 'raidwide',
+      damageType: 'magic',
+      hits: [],
+    };
     const hit = (player: number, planned: number) => ({ mechanic: 0, player, planned }) as PlannedHit;
 
     expect(pullEvents(timeline, [mechanic], [hit(1, 70_000), hit(3, 72_000)], [lustrate, dawn])).toEqual([

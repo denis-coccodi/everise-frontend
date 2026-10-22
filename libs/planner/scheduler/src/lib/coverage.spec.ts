@@ -2,9 +2,12 @@ import { fitsPool, fitsRecast, projected } from './coverage';
 import { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
 import type { PullFacts } from './coverage.model';
 
-const effect = (name: string, values: Partial<MitigationEffect>): MitigationEffect => ({
+// `share`: the same share of physical and magic damage.
+type EffectValues = Partial<MitigationEffect> & { share?: number };
+const effect = (name: string, { share = 0, ...values }: EffectValues): MitigationEffect => ({
   target: 'party',
-  share: 0,
+  physical: share,
+  magic: share,
   shield: null,
   hits: 1,
   durationMs: 15_000,
@@ -12,7 +15,7 @@ const effect = (name: string, values: Partial<MitigationEffect>): MitigationEffe
   stack: name,
   ...values,
 });
-const tool = (name: string, values: Partial<MitigationEffect>): MitigationTool => ({
+const tool = (name: string, values: EffectValues): MitigationTool => ({
   player: 1,
   action: name.length,
   name,
@@ -37,6 +40,7 @@ const mechanic = (at: number): Mechanic => ({
   action: 100,
   name: 'Raidwide',
   kind: 'raidwide',
+  damageType: 'magic',
   hits: [{ player: 2, unmitigated: 100_000, asPlayed: 80_000 }],
 });
 // Player 2 has 200,000 HP and was hit at 10s and 12s.
@@ -74,6 +78,31 @@ describe('projected', () => {
     ];
 
     expect(project(10_000, tools, [use('Tactician', 5_000), use('Troubadour', 6_000)]).damage).toBe(85_000);
+  });
+
+  it("takes the share for the hit's damage type: physical or magic, none of unique damage", () => {
+    // Feint: 10% physical, 5% magic.
+    const feint = [tool('Feint', { physical: 0.1, magic: 0.05 })];
+    const shielded = [
+      tool('Feint', { physical: 0.1, magic: 0.05 }),
+      tool('Divine Benison', { shield: { hp: 30_000 } }),
+    ];
+    const uses = [use('Feint', 9_000), use('Divine Benison', 9_000)];
+    const at = (damageType: Mechanic['damageType'], tools = feint) =>
+      projected(
+        { ...mechanic(10_000), damageType },
+        mechanic(10_000).hits[0],
+        uses.slice(0, tools.length),
+        (u) => tools.find((t) => t.name === u.name) as MitigationTool,
+        facts,
+      );
+
+    expect(at('physical').damage).toBe(90_000);
+    expect(at('magic').damage).toBe(95_000);
+    // Where the log doesn't say: the smaller.
+    expect(at(null).damage).toBe(95_000);
+    // Unique damage: no mitigation, but shields still take it.
+    expect(at('unique', shielded)).toEqual({ damage: 70_000, absorbed: 30_000, statuses: ['Divine Benison'] });
   });
 
   it('takes shields off what mitigation leaves, sized in HP or by max HP', () => {

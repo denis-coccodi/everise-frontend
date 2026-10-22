@@ -15,6 +15,8 @@ export interface MechanicHit {
   asPlayed: number;
 }
 
+export type DamageType = 'physical' | 'magic' | 'unique';
+
 // One boss attack landing on one or more players at once: a raidwide, a tank
 // buster, or something aimed at a few.
 export interface Mechanic {
@@ -23,6 +25,9 @@ export interface Mechanic {
   action: number;
   name: string;
   kind: 'raidwide' | 'tankbuster' | 'targeted';
+  // Which share of a mitigation counts: physical or magic, none on unique
+  // damage; null when the log doesn't say.
+  damageType: DamageType | null;
   hits: MechanicHit[];
 }
 
@@ -56,10 +61,10 @@ export interface ToolPool {
 export interface MitigationEffect {
   // `target`: the user or one party member, picked per use.
   target: 'self' | 'target' | 'party' | 'enemies';
-  // The share of damage it takes off (0.1: 10%; 0 for a shield). Where
-  // physical and magic differ, the smaller: the planner doesn't know an
-  // attack's type yet.
-  share: number;
+  // The share of physical and of magic damage it takes off (0.1: 10%; 0
+  // for a shield). None of unique damage.
+  physical: number;
+  magic: number;
   // What a shield absorbs after mitigation; null for a mitigation.
   shield: ShieldSize | null;
   // How many hits on a player a shield absorbs: it breaks on the first (as

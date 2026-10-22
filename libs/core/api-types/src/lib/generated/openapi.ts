@@ -5143,6 +5143,7 @@ export interface components {
         target: number;
         source: number;
         action: number;
+        damageType: ('physical' | 'magic' | 'unique') | null;
         amount: number;
         unmitigated: number | null;
         mitigated: number;
