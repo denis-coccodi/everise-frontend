@@ -1,5 +1,6 @@
-import { PullFacts, fitsPool, fitsRecast, projected } from './coverage';
+import { fitsPool, fitsRecast, projected } from './coverage';
 import { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
+import type { PullFacts } from './coverage.model';
 
 const effect = (name: string, values: Partial<MitigationEffect>): MitigationEffect => ({
   target: 'party',

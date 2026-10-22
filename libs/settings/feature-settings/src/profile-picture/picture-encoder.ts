@@ -1,10 +1,6 @@
 import { SquareCrop } from '@everise/ui/components';
 import { MAX_PICTURE_BYTES, MAX_PICTURE_SIDE } from './profile-picture';
-
-// Draws the chosen square at side × side pixels and encodes it.
-export interface PictureRenderer {
-  encode(side: number, type: string, quality: number): Promise<Blob>;
-}
+import type { PictureRenderer } from './picture-encoder.model';
 
 // Formats the cropped picture can keep; anything else (a GIF) becomes PNG.
 const KEPT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];

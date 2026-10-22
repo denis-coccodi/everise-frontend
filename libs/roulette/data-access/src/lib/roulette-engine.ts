@@ -1,4 +1,5 @@
 import { Duty, DutyGroup, DutyRoulette, Job } from '@everise/core/api-types';
+import type { RouletteSettings, PickOption, TypeOption, RunMode, Candidate } from './roulette.model';
 
 // The rules of the three-reel roulette, kept free of Angular so they can be
 // tested on their own:
@@ -58,36 +59,6 @@ export function awktrailGuideUrl(dutyName: string): string | null {
   if (!tier) return null;
   const tab = AWKTRAIL_SHEET_TAB;
   return `${AWKTRAIL_SHEET}/edit?gid=${tab}#gid=${tab}&range=A${tier.row}`;
-}
-
-export type RunMode =
-  | 'Min IL + Silence Echo'
-  | 'Unsynced'
-  | 'Awktrail'
-  | 'Join Party in Progress'
-  | typeof SAME_JOB
-  | typeof DEALERS_CHOICE
-  | 'Regular';
-
-export interface RouletteSettings {
-  // Duty group names, plus ROULETTES_TYPE.
-  types: string[];
-  // For each picked type, the keys (PickOption.key) of the ticked entries.
-  picks: Record<string, string[]>;
-  minLevel: number | null;
-  maxLevel: number | null;
-}
-
-export type Candidate = { kind: 'duty'; duty: Duty } | { kind: 'roulette'; roulette: DutyRoulette };
-
-export interface PickOption {
-  key: string;
-  candidate: Candidate;
-}
-
-export interface TypeOption {
-  name: string;
-  candidates: Candidate[];
 }
 
 // What each party setting means, shown under it on the third reel.

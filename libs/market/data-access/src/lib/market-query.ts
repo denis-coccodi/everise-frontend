@@ -1,4 +1,5 @@
 import { MarketQuality } from '@everise/core/api-types';
+import type { MarketSelection } from './market-selection.model';
 
 // Everything the market history page shows lives in its query string, so a
 // link (or a bookmark, or Back) brings it along:
@@ -19,22 +20,6 @@ export const MAX_WORLDS = 8;
 
 // Everise's region: where the page starts.
 export const HOME_REGION = 'europe';
-
-export type PriceScale = 'linear' | 'log';
-
-export interface MarketSelection {
-  item: number | null;
-  region: string;
-  oceania: boolean;
-  // World names in lower case.
-  worlds: string[];
-  quality: MarketQuality;
-  // The first and last day shown (YYYY-MM-DD); null: a month ago, today.
-  from: string | null;
-  to: string | null;
-  scale: PriceScale;
-}
-
 const QUALITIES: MarketQuality[] = ['all', 'nq', 'hq'];
 
 // A calendar day, written YYYY-MM-DD.

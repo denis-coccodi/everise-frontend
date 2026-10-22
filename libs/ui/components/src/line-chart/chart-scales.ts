@@ -1,23 +1,9 @@
+import type { Tick, ValueAxis, ChartScale } from './line-chart.model';
+
 // The line chart's arithmetic: where values and times fall, and which round
 // numbers and dates mark its axes.
 
 const DAY = 86_400_000;
-
-export type ChartScale = 'linear' | 'log';
-
-export interface Tick {
-  value: number;
-  label: string;
-}
-
-// A value axis: its ends and its marks.
-export interface ValueAxis {
-  min: number;
-  max: number;
-  scale: ChartScale;
-  ticks: Tick[];
-}
-
 // Short numbers for the axis: 950, 12K, 1.5M.
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 export const fullNumber = new Intl.NumberFormat('en');

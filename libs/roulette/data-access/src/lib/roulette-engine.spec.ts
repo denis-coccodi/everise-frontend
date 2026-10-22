@@ -1,11 +1,9 @@
 import { Duty, DutyGroup, DutyRoulette, Job } from '@everise/core/api-types';
 import {
-  Candidate,
   DEALERS_CHOICE,
   GOLD_SAUCER_TYPE,
   PVP_TYPE,
   ROULETTES_TYPE,
-  RouletteSettings,
   SAME_JOB,
   awktrailGuideUrl,
   candidateDetail,
@@ -23,6 +21,7 @@ import {
   typeCandidates,
   wikiUrl,
 } from './roulette-engine';
+import type { Candidate, RouletteSettings } from './roulette.model';
 
 let nextId = 1;
 

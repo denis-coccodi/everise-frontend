@@ -7,17 +7,11 @@ import {
   CreateArticle,
   EditArticle,
   MultipleCommentsResponse,
-  NewAttachment,
   SingleCommentResponse,
 } from '@everise/core/api-types';
 import { HttpParams } from '@angular/common/http';
 import { ArticlesListConfig, Filters } from './articles-list.model';
-
-// A comment as written: text, and at most one attachment.
-export interface NewComment {
-  body: string;
-  media: NewAttachment[];
-}
+import type { NewComment } from './comment.model';
 
 @Service()
 export class ArticlesService {

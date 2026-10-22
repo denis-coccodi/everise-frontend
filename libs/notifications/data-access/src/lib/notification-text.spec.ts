@@ -1,5 +1,6 @@
 import { Notification } from '@everise/core/api-types';
-import { NotificationPart, notificationAge, notificationLink, notificationParts } from './notification-text';
+import { notificationAge, notificationLink, notificationParts } from './notification-text';
+import type { NotificationPart } from './notification-text.model';
 
 const member = (username: string) => ({ id: `id-${username}`, username, image: `/${username}.png` });
 

@@ -13,27 +13,12 @@ import {
   viewChild,
 } from '@angular/core';
 import { MessageComponent } from '../message/message.component';
+import type { TurnstileApi } from './turnstile.model';
 
 // Cloudflare Turnstile's site key (public), from the app's environment.
 // Empty: no bot check, and the forms don't wait for a token.
 export const TURNSTILE_SITE_KEY = new InjectionToken<string>('TURNSTILE_SITE_KEY', { factory: () => '' });
 
-// The parts of Turnstile's script the component uses.
-interface TurnstileOptions {
-  sitekey: string;
-  action: string;
-  theme: 'light' | 'dark';
-  size: 'flexible' | 'compact';
-  language: 'auto';
-  callback: (token: string) => void;
-  'expired-callback': () => void;
-  'error-callback': () => void;
-}
-export interface TurnstileApi {
-  render(container: HTMLElement, options: TurnstileOptions): string;
-  reset(widgetId: string): void;
-  remove(widgetId: string): void;
-}
 type WithTurnstile = Window & { turnstile?: TurnstileApi };
 
 const SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';

@@ -1,4 +1,5 @@
-import { GIF_TOO_LARGE, ImageRenderer, MAX_UPLOAD_BYTES, fitImage } from './image-fitter';
+import { GIF_TOO_LARGE, MAX_UPLOAD_BYTES, fitImage } from './image-fitter';
+import type { ImageRenderer } from './image-fitter.model';
 
 const MB = 1024 * 1024;
 

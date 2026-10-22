@@ -1,7 +1,8 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DiscordSharingService } from '@everise/articles/data-access';
-import { Commence, DutyFoundComponent, RouletteResult } from './duty-found.component';
+import { DutyFoundComponent } from './duty-found.component';
+import type { Commence, RouletteResult } from './duty-found.model';
 
 const result: RouletteResult = {
   type: 'Raids — Savage',

@@ -1,8 +1,12 @@
 export { effectsText } from './lib/effect-text';
-export { DeathEntry, HitEntry, LogEntry, UseEntry, playerLog } from './lib/player-log';
-export { EncounterPulls, PlannerStore } from './lib/planner.store';
+export { playerLog } from './lib/player-log';
+export { PlannerStore } from './lib/planner.store';
 export { PlannerService } from './lib/planner.service';
-export { ReportLink, readReportLink } from './lib/report-link';
+export { readReportLink } from './lib/report-link';
 export { pullClock } from './lib/pull-time';
-export { PlanEntry, PlanHitEntry, PlanUseEntry, planLog, unsafeHits } from './lib/plan-log';
+export { planLog, unsafeHits } from './lib/plan-log';
 export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';
+export type { PlanEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';
+export type { EncounterPulls } from './lib/planner.model';
+export type { DeathEntry, HitEntry, LogEntry, UseEntry } from './lib/player-log.model';
+export type { ReportLink } from './lib/report-link.model';

@@ -6,10 +6,13 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { DataCentre, PartyFinderBoard } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { fromEvent, interval, pipe, switchMap, tap } from 'rxjs';
-import { PartyFinderFilters, categoriesIn, matchesFilters, worldId } from './listing-filters';
-import { SortOrder, sortListings } from './listing-sort';
-import { PartyFinderSelection, selectionFromQuery, selectionToQuery } from './party-finder-query';
+import { categoriesIn, matchesFilters, worldId } from './listing-filters';
+import { sortListings } from './listing-sort';
+import { selectionFromQuery, selectionToQuery } from './party-finder-query';
 import { PartyFinderService } from './party-finder.service';
+import type { PartyFinderFilters } from './listing-filters.model';
+import type { SortOrder } from './listing-sort.model';
+import type { PartyFinderSelection } from './party-finder-selection.model';
 
 // The page asks again this often while it's in view (the backend reads
 // xivpf at most once a minute, so a minute old at worst).

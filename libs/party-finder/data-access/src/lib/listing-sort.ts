@@ -1,9 +1,6 @@
 import { PartyFinderListing } from '@everise/core/api-types';
 import { HIGH_END, NO_DUTY, kindOf, listingTitle } from './listing-filters';
-
-// The orders the page can list the listings in, by their id in the query
-// string; 'game' is the default.
-export type SortOrder = 'game' | 'ending-soon' | 'recent' | 'fewest-needed' | 'item-level' | 'name';
+import type { SortOrder } from './listing-sort.model';
 
 export const SORT_ORDERS: { value: SortOrder; name: string }[] = [
   { value: 'game', name: 'As in the game' },

@@ -1,23 +1,6 @@
-import { IsActiveMatchOptions, Params } from '@angular/router';
-import { IconName } from '@everise/ui/components';
+import { IsActiveMatchOptions } from '@angular/router';
 import { environment } from '../../../environments/environment';
-
-// The features switched on in this build (environments/).
-export type Features = typeof environment.features;
-
-// A page in the navbar: its name, its icon and where it opens.
-export interface NavPage {
-  label: string;
-  icon: IconName;
-  path: string;
-  query?: Params;
-}
-
-// Pages that go together, under one menu in the bar.
-export interface NavGroup {
-  label: string;
-  pages: NavPage[];
-}
+import type { NavGroup, Features } from './nav-group.model';
 
 // The site's pages after Home, by what they are for: being with other
 // players, and tools for playing. A new page joins a group, so the bar keeps

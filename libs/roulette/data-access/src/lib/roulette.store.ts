@@ -10,8 +10,6 @@ import { DutiesService } from './duties.service';
 import {
   PICKED_TYPES,
   ROULETTES_TYPE,
-  RouletteSettings,
-  RunMode,
   candidateDetail,
   candidateName,
   dealableJobs,
@@ -21,14 +19,12 @@ import {
   todaysFrontline,
   typeCandidates,
 } from './roulette-engine';
-import { RouletteLoadState, withRouletteSettings } from './roulette-settings.feature';
-
+import { withRouletteSettings } from './roulette-settings.feature';
+import type { RouletteSettings, RunMode, RouletteLoadState } from './roulette.model';
 // setTimeout's longest wait (about 24.8 days).
 const MAX_TIMEOUT_MS = 2 ** 31 - 1;
 // A moment after the daily reset, so the backend is on the new day.
 const AFTER_RESET_MS = 2000;
-
-export type { RouletteLoadState };
 
 interface RouletteState {
   loadState: RouletteLoadState;

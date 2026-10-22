@@ -1,13 +1,8 @@
+import type { ReportLink } from './report-link.model';
+
 // An FFLogs report's code: 16 letters and digits, "a:" first for an
 // anonymous report.
 const CODE = /^(a:)?[A-Za-z0-9]{16}$/;
-
-export interface ReportLink {
-  code: string;
-  // The pull the link points at (FFLogs' fight id), when it names one.
-  pull: number | null;
-}
-
 // The report (and pull) a pasted FFLogs link or code names: a report's page
 // (fflogs.com/reports/<code>, with ?fight=<id> or #fight=<id> for a pull),
 // or the code alone. Null when it's neither.

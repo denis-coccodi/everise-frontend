@@ -1,5 +1,6 @@
 import { convertToParamMap } from '@angular/router';
-import { MarketSelection, selectionFromQuery, selectionToQuery } from './market-query';
+import { selectionFromQuery, selectionToQuery } from './market-query';
+import type { MarketSelection } from './market-selection.model';
 
 const query = (params: Record<string, string>) => convertToParamMap(params);
 

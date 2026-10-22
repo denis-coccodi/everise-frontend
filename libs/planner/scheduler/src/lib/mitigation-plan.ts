@@ -1,5 +1,6 @@
-import { PullFacts, fitsPool, fitsRecast, projected, reaches } from './coverage';
+import { fitsPool, fitsRecast, projected, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
+import type { PullFacts } from './coverage.model';
 
 // A mitigation goes up at least this long before the hit it's for.
 const LEAD_MS = 500;

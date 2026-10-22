@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, SecurityContext, computed, inject, 
 import { DomSanitizer } from '@angular/platform-browser';
 import { marked } from 'marked';
 import { YouTubeEmbedComponent } from '../youtube-embed/youtube-embed.component';
-import { RichTextPart, splitRichText } from './rich-text';
+import { splitRichText } from './rich-text';
+import type { RichTextPart } from './rich-text.model';
 
 // A post or comment: Markdown (with images and GIFs), and YouTube videos
 // for links alone on a line. `compact` is the comments' smaller text, where

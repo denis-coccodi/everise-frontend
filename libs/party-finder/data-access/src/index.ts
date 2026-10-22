@@ -1,7 +1,11 @@
 export * from './lib/party-finder-query';
+export * from './lib/party-finder-selection.model';
 export * from './lib/listing-filters';
+export * from './lib/listing-filters.model';
 export * from './lib/listing-sort';
+export * from './lib/listing-sort.model';
 export { PAGE_SIZE, POLL_MS, PartyFinderStore } from './lib/party-finder.store';
 export { PartyFinderService } from './lib/party-finder.service';
 export { PfListingStore } from './lib/pf-listing.store';
-export { PfShareStore, type ShareChoice, type ShareWay } from './lib/pf-share.store';
+export { PfShareStore } from './lib/pf-share.store';
+export type { ShareChoice, ShareWay } from './lib/pf-share.model';

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import type { IconName } from './icon.model';
 
 // Every icon the site draws. One set, one style: 24 × 24 line drawings in
 // the text colour (heart, play and pause are filled, as solid shapes read
@@ -37,9 +38,6 @@ export const ICON_NAMES = [
   'check',
   'shield',
 ] as const;
-
-export type IconName = (typeof ICON_NAMES)[number];
-
 // A small icon drawn in the page itself, so it shows even when no icon font
 // loads (data saving, slow connections, content blockers): the site uses
 // no icon font. It takes the text colour and size around it:

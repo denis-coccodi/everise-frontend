@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ButtonComponent, ButtonVariant } from './button.component';
+import { ButtonComponent } from './button.component';
+import type { ButtonVariant } from './button.model';
 
 @Component({
   imports: [ButtonComponent],

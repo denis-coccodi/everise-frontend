@@ -5,4 +5,5 @@ export { AuthStore } from './auth.store';
 export { AuthService } from './auth.service';
 export { PasswordResetStore } from './password-reset.store';
 export { resetEmail, resetEmailState } from './reset-email';
-export { AccountChangesStore, EmailChange, PasswordChange } from './account-changes.store';
+export { AccountChangesStore } from './account-changes.store';
+export type { EmailChange, PasswordChange } from './account-changes.model';

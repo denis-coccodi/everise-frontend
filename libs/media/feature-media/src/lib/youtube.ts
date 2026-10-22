@@ -1,8 +1,4 @@
-// A YouTube video named by a link: its id, and where to start (seconds).
-export interface YouTubeVideo {
-  id: string;
-  start: number;
-}
+import type { YouTubeVideo } from './youtube.model';
 
 const ID = /^[A-Za-z0-9_-]{11}$/;
 const HOSTS = [

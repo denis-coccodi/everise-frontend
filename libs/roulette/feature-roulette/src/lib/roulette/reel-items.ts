@@ -9,18 +9,13 @@ import {
   runModeDetail,
   wikiUrl,
 } from '@everise/roulette/data-access';
-import { RouletteResult } from '../duty-found/duty-found.component';
-import { ReelItem } from '../reel/reel.component';
+import type { RouletteResult } from '../duty-found/duty-found.model';
+import type { ReelItem } from '../reel/reel.model';
+import type { Day } from './reel-items.model';
 
 // What the reels and the "Duty Found" window show, from the roulette's data.
 // Images are addresses (DutiesService.imageUrl).
 type ImageUrl = (id: number | null | undefined) => string | undefined;
-
-// The day's Frontline map and when it changes, for duty details.
-export interface Day {
-  frontlineMap: string | null;
-  changesAt: string | null;
-}
 
 // A duty type on the first reel, with its icon and how many duties it can
 // land on.

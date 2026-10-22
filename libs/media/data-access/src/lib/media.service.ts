@@ -2,25 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { API_URL } from '@everise/core/http-client';
 import { Observable, catchError, map, of, shareReplay } from 'rxjs';
-
-// An uploaded image or GIF, where it's served.
-export interface UploadedMedia {
-  id: string;
-  url: string;
-  contentType: string;
-  width: number;
-  height: number;
-}
-
-// A GIF from the GIPHY search.
-export interface Gif {
-  id: string;
-  title: string;
-  previewUrl: string;
-  url: string;
-  width: number;
-  height: number;
-}
+import type { UploadedMedia, Gif } from './media.model';
 
 // Uploads and the GIF search, from the backend's /api/media and /api/gifs.
 @Service()

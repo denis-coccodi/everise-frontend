@@ -1,14 +1,9 @@
+import type { ImageRenderer } from './image-fitter.model';
+
 // The largest upload the backend takes, and the largest side kept: wider
 // than any post, so pictures stay sharp.
 export const MAX_UPLOAD_BYTES = 1024 * 1024;
 export const MAX_SIDE = 2048;
-
-// Draws the picture at width × height pixels and encodes it.
-export interface ImageRenderer {
-  readonly width: number;
-  readonly height: number;
-  encode(width: number, height: number, type: string, quality: number): Promise<Blob>;
-}
 
 // Formats a picture can keep; GIFs are handled apart, for their animation.
 const KEPT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];

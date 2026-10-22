@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { discordTime } from '../discord-times';
-import { BlockNode, InlineNode, discordMarkdown, inline } from './discord-markdown';
+import { discordMarkdown, inline } from './discord-markdown';
+import type { BlockNode, InlineNode } from './discord-markdown.model';
 
 // Text written on Discord (a message, an embed's title, description or
 // field), shown as Discord shows it: Markdown, custom emoji, times in the

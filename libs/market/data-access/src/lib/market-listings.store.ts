@@ -2,20 +2,15 @@ import { computed, inject } from '@angular/core';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { MarketListing, MarketListings, MarketQuality } from '@everise/core/api-types';
+import { MarketListings, MarketQuality } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { EMPTY, forkJoin, switchMap } from 'rxjs';
-import { MarketWorld } from './market-series';
 import { MarketStore } from './market.store';
 import { MarketService } from './market.service';
+import type { WorldListing } from './market-listings.model';
 
 // Listings shown: the cheapest first.
 const SHOWN = 5;
-
-// A listing with its world.
-export interface WorldListing extends MarketListing {
-  place: MarketWorld;
-}
 
 interface MarketListingsState {
   // The region's listings, then Oceania's when asked for.

@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input } from '@angular/core';
 import { FORM_FIELD } from '@angular/forms/signals';
-
-export type InputSize = 'sm' | 'md' | 'lg';
+import type { InputSize } from './input.model';
 
 // A themed text field on a native <input>, <textarea> or <select>, so forms,
 // validation and accessibility work as usual: <input cdtInput="lg" ...>. An

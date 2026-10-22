@@ -6,14 +6,7 @@ import { ReportPull } from '@everise/core/api-types';
 import { errorMessageOf } from '@everise/core/data-access';
 import { PlannerService } from './planner.service';
 import { readReportLink } from './report-link';
-
-// The pulls of one fight (an encounter), in the order they were pulled.
-export interface EncounterPulls {
-  encounterId: number;
-  name: string;
-  kind: ReportPull['kind'];
-  pulls: ReportPull[];
-}
+import type { EncounterPulls } from './planner.model';
 
 // The fight planner's tool, for members: the FFLogs report and the pull
 // picked, both in the query string (?report=<code>&pull=<id>) so a link

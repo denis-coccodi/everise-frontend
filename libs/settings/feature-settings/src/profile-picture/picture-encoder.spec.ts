@@ -1,4 +1,5 @@
-import { PictureRenderer, encodePicture } from './picture-encoder';
+import { encodePicture } from './picture-encoder';
+import type { PictureRenderer } from './picture-encoder.model';
 
 // A stand-in for the canvas: a picture's weight grows with its area, and
 // lossy formats get lighter with lower quality.

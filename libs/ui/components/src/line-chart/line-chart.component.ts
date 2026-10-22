@@ -1,19 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
-import { ChartScale, fullNumber, longDay, timeFraction, timeTicks, valueAxis, valueFraction } from './chart-scales';
-
-export interface ChartPoint {
-  // When (ms; a UTC day's start).
-  at: number;
-  value: number;
-  // More about the point, read after its value ("5 sales").
-  detail?: string;
-}
-
-export interface ChartLine {
-  name: string;
-  points: ChartPoint[];
-}
-
+import { fullNumber, longDay, timeFraction, timeTicks, valueAxis, valueFraction } from './chart-scales';
+import type { ChartScale, ChartPoint, ChartLine } from './line-chart.model';
 // The plot's drawing box; the SVG stretches it to the chart's size.
 const WIDTH = 1000;
 const HEIGHT = 400;

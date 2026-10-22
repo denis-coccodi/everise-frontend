@@ -1,8 +1,8 @@
 import { PullTimeline } from '@everise/core/api-types';
 import { TICK_MS } from './heal-tools';
-import { HpEvent } from './hp-track';
 import { isMechanicHit } from './mechanics';
 import { HealTool, Mechanic, PlannedHit, PlannedUse } from './plan.model';
+import type { HpEvent } from './hp-track.model';
 
 // What happens to the party's HP besides the plan's heals: the mechanics'
 // hits as the plan leaves them, every other hit (auto-attacks, damage over

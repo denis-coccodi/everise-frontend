@@ -9,15 +9,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import {
-  ImageSize,
-  SquareCrop,
-  centeredCrop,
-  cropSizeRange,
-  moveCrop,
-  resizeCrop,
-  resizeFromCorner,
-} from './crop-geometry';
+import { centeredCrop, cropSizeRange, moveCrop, resizeCrop, resizeFromCorner } from './crop-geometry';
+import type { ImageSize, SquareCrop } from './image-cropper.model';
 
 type Drag = { mode: 'move' | 'resize'; startX: number; startY: number; start: SquareCrop; scale: number };
 

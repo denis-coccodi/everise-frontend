@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-
-export type MessageTone = 'status' | 'warning' | 'error';
+import type { MessageTone } from './message.model';
 
 // A line that tells the person what happened: <cdt-message>Saved.</cdt-message>,
 // <cdt-message tone="error">{{ error }}</cdt-message>. A status or warning is

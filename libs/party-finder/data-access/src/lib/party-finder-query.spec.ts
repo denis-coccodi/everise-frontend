@@ -1,11 +1,6 @@
 import { convertToParamMap } from '@angular/router';
-import {
-  PartyFinderSelection,
-  dataCentreQuery,
-  listingPage,
-  selectionFromQuery,
-  selectionToQuery,
-} from './party-finder-query';
+import { dataCentreQuery, listingPage, selectionFromQuery, selectionToQuery } from './party-finder-query';
+import type { PartyFinderSelection } from './party-finder-selection.model';
 
 const query = (params: Record<string, string>) => convertToParamMap(params);
 

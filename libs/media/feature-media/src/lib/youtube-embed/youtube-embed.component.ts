@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { YouTubeVideo, youTubeLink } from '../youtube';
+import { youTubeLink } from '../youtube';
+import type { YouTubeVideo } from '../youtube.model';
 
 // A YouTube video in a post or comment: its thumbnail with a play button,
 // and only after a click the player itself, from YouTube's privacy-enhanced

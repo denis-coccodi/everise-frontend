@@ -1,6 +1,7 @@
 import { Component, signal, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReelComponent, ReelItem } from './reel.component';
+import { ReelComponent } from './reel.component';
+import type { ReelItem } from './reel.model';
 
 const item = (title: string): ReelItem => ({ title, detail: '' });
 

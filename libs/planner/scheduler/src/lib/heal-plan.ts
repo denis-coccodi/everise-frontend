@@ -1,8 +1,9 @@
 import { PullTimeline } from '@everise/core/api-types';
 import { fitsPool, fitsRecast } from './coverage';
 import { healEvents, pullEvents } from './hp-events';
-import { HpCheckpoint, HpEvent, HpTrack } from './hp-track';
+import { HpTrack } from './hp-track';
 import { HealTool, Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse, ToolPool } from './plan.model';
+import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
 // A heal lands at least this long before the hit it's for, and at least
 // this long after the hits before it.

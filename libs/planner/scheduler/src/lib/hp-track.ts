@@ -1,18 +1,4 @@
-// A change to one player's HP: damage taken (negative) or healing.
-export interface HpEvent {
-  at: number;
-  player: number;
-  amount: number;
-}
-
-// A player's HP once everything up to `at` (inclusive) has happened, and
-// where the events after it start.
-export interface HpCheckpoint {
-  player: number;
-  at: number;
-  hp: number;
-  next: number;
-}
+import type { HpEvent, HpCheckpoint } from './hp-track.model';
 
 // Each player's HP over the pull: from full at the start, down with every
 // hit and up with every heal, never below 0 or above their max HP.

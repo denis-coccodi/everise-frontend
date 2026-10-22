@@ -1,7 +1,8 @@
 import { convertToParamMap } from '@angular/router';
 import { DutyGroup } from '@everise/core/api-types';
-import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteSettings, defaultSettings } from './roulette-engine';
+import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, defaultSettings } from './roulette-engine';
 import { dutyTypeIds, level, settingsFromQuery, settingsToQuery } from './settings-query';
+import type { RouletteSettings } from './roulette.model';
 
 const group = (id: number, name: string): DutyGroup => ({ id, name, order: id, icon: null, duties: [] });
 const types = dutyTypeIds([

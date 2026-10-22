@@ -3,7 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { IconComponent, MenuComponent, MenuItemComponent } from '@everise/ui/components';
 import { filter, map } from 'rxjs';
-import { NavGroup, PAGE_MATCH } from './nav-groups';
+import { PAGE_MATCH } from './nav-groups';
+import type { NavGroup } from './nav-group.model';
 
 // A group of the navbar's pages. In the bar (from md up), a menu button
 // named after the group, marked while one of its pages is shown; in the

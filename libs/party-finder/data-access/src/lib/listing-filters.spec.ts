@@ -1,12 +1,6 @@
 import { PartyFinderListing } from '@everise/core/api-types';
-import {
-  PartyFinderFilters,
-  categoriesIn,
-  categoryName,
-  kindOf,
-  listingTitle,
-  matchesFilters,
-} from './listing-filters';
+import { categoriesIn, categoryName, kindOf, listingTitle, matchesFilters } from './listing-filters';
+import type { PartyFinderFilters } from './listing-filters.model';
 
 const ODIN = { id: 66, name: 'Odin' };
 const SHIVA = { id: 67, name: 'Shiva' };
