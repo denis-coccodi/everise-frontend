@@ -8,7 +8,7 @@ import { playedInvulnerabilities } from './invulnerabilities';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
-import { Plan, PlanOptions } from './plan.model';
+import { InvulnerabilityOptions, Plan, PlanOptions } from './plan.model';
 import { mitigationTools } from './tools';
 
 // Plans of the pull, at most: the first, and replans around the HP its
@@ -65,6 +65,17 @@ export class PlannerScheduler {
       best = next;
     }
     return best;
+  }
+
+  // What the plan's options offer for the tanks' invulnerabilities.
+  invulnerabilityOptions(timeline: PullTimeline, catalog: ActionCatalog): InvulnerabilityOptions {
+    const tools = mitigationTools(timeline.players, catalog).filter((t) => t.effects.some((e) => e.invulnerable));
+    const mechanics = mechanicsOf(timeline);
+    return {
+      tools: tools.map(({ player, action, name }) => ({ player, action, name })),
+      mechanics: mechanics.map((m) => ({ id: m.id, at: m.at, name: m.name, players: m.hits.map((h) => h.player) })),
+      played: playedInvulnerabilities(timeline, mechanics, tools),
+    };
   }
 }
 

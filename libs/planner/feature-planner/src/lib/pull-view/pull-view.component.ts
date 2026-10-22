@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
 import { PlanStore, PlannerStore, planLog, playerLog, pullClock } from '@everise/planner/data-access';
 import { MessageComponent, PanelComponent, TabComponent, TabsComponent } from '@everise/ui/components';
@@ -22,8 +22,22 @@ import { PullCompareComponent } from '../pull-compare/pull-compare.component';
 })
 export class PullViewComponent {
   protected readonly store = inject(PlannerStore);
-  private readonly plans = inject(PlanStore);
+  protected readonly plans = inject(PlanStore);
   private readonly chosen = signal<number | null>(null);
+
+  constructor() {
+    // A pull just opened gets the plan's options: the member's character
+    // replanned, the invulnerabilities where the pull had them.
+    effect(() => {
+      const { pull, catalog, report, pullId } = this.store;
+      const id = pullId();
+      if (!id || !pull.hasValue() || !catalog.hasValue() || !report.hasValue()) return;
+      const servers = new Map(report.value().players.map((p) => [p.id, p.server]));
+      const players = pull.value().players.map((p) => ({ id: p.id, name: p.name, server: servers.get(p.id) ?? null }));
+      const [timeline, actions] = [pull.value(), catalog.value()];
+      untracked(() => void this.plans.prepare(id, timeline, actions, players));
+    });
+  }
   // On narrower screens: the pull as played, or the plan.
   protected readonly view = signal<'played' | 'plan'>('played');
 
