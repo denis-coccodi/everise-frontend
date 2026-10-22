@@ -11,6 +11,9 @@
 // - Routes in their own files: a library's routes in <feature>.routes.ts, and
 //   the app only mounts libraries (loadChildren), never a page of its own
 //   (loadComponent).
+// - Types in model files: an exported interface or type lives in a
+//   <name>.model.ts next to the code that owns it (the API types in
+//   core/api-types aside).
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join, relative, sep } from 'node:path';
 
@@ -89,6 +92,10 @@ for (const [dir, files] of folders) {
     if (/export const \w+_ROUTES\b/.test(source) && !file.endsWith('.routes.ts')) {
       problems.push(`${shown}/${file}: routes go in their own <feature>.routes.ts`);
     }
+    const ownsTypes = !file.endsWith('.model.ts') && file !== 'index.ts' && !shown.startsWith('libs/core/api-types/');
+    if (ownsTypes && /^export (interface|type|enum)\b|^export type \{/m.test(source)) {
+      problems.push(`${shown}/${file}: exported types go in a model file (<name>.model.ts)`);
+    }
     if (shown.startsWith('apps/') && /\bloadComponent\b/.test(source)) {
       problems.push(`${shown}/${file}: the app mounts a library's routes (loadChildren), not a page (loadComponent)`);
     }
@@ -106,5 +113,5 @@ if (problems.length > 0) {
   process.exit(1);
 }
 console.log(
-  `Structure: ${folders.size} folders, one component per folder, stores and services in data-access, routes in their own files.`,
+  `Structure: ${folders.size} folders, one component per folder, stores and services in data-access, routes and types in their own files.`,
 );
