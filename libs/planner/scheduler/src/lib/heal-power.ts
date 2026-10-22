@@ -1,8 +1,10 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
+import { buffedAsPlayed, healingBuffsOf } from './healing-buffs';
 
 // What one potency of healing restored for each player in the pull: the
 // lower quarter of their direct heals' HP over their potency, which leaves
-// out most critical heals and healing buffs. Players with no such heals
+// out most critical heals, from heals no healing buff was up for (the plan
+// multiplies them in where it has them up). Players with no such heals
 // take the median of their role's (healers, or everyone else), then of
 // the party.
 export function healPower(timeline: PullTimeline, catalog: ActionCatalog): Map<number, number> {
@@ -11,9 +13,11 @@ export function healPower(timeline: PullTimeline, catalog: ActionCatalog): Map<n
     const heal = action.effects.find((e) => e.kind === 'heal' && e.potency && !e.condition);
     if (heal?.potency) potency.set(action.id, heal.potency);
   }
+  const buffed = buffedAsPlayed(healingBuffsOf(catalog, true), timeline);
   const samples = new Map<number, number[]>();
   for (const heal of timeline.heals) {
     if (heal.tick || heal.source === null || heal.action === null || heal.pet) continue;
+    if (buffed(heal.source, heal.target, heal.at)) continue;
     const per = potency.get(heal.action);
     if (!per) continue;
     samples.set(heal.source, [...(samples.get(heal.source) ?? []), (heal.amount + heal.overheal) / per]);

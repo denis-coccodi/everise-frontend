@@ -2,6 +2,7 @@ import { ActionEffect } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
 import { healTools } from './heal-tools';
+import { healingBuffsOf } from './healing-buffs';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { action, catalog, heal, pull } from './scheduler-fixtures';
@@ -50,6 +51,52 @@ describe('planHeals', () => {
     expect(plan.uses).toEqual([expect.objectContaining({ name: 'Soothing Field', covers: [1] })]);
     expect(plan.hits[1]).toMatchObject({ planned: 54_000, safe: true, covers: ['Soothing Field'] });
     expect(plan.hits[1].hpBefore).toBe(65_000);
+  });
+
+  it('heals for more under a healing buff', () => {
+    // The tank lands on 15,000 after the first buster, with +20% healing
+    // received from 20s as played: one Lustrate heals 72,000 instead of
+    // 60,000.
+    const cat = catalog();
+    cat.actions.push(
+      action(65, 'Mantra', ['PLD'], 90, [
+        {
+          ...heal(0),
+          kind: 'healingReceived',
+          target: 'party',
+          status: 'Mantra',
+          statusId: 102,
+          percent: 20,
+          potency: null,
+          durationMs: 15_000,
+        },
+      ]),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    timeline.auras = [{ status: 102, source: 1, target: 1, from: 20_000, to: 35_000 }];
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Lustrate');
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+      healingBuffsOf(cat),
+    );
+
+    expect(plan.uses.map((u) => u.name)).toEqual(['Lustrate']);
+    expect(plan.hits[1].hpBefore).toBe(87_000);
   });
 
   describe('Earthly Star', () => {

@@ -1,6 +1,7 @@
 import { PullTimeline } from '@everise/core/api-types';
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
+import { HealingBuffs } from './healing-buffs';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
@@ -14,6 +15,7 @@ import {
   PlannedUse,
   ToolPool,
 } from './plan.model';
+import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
 // A heal lands at least this long before the hit it's for, and at least
@@ -54,8 +56,8 @@ interface Candidate {
 // The healers' heals planned over the pull, after the mitigations and
 // shields: in time order, before each mechanic, enough heals that every hit
 // leaves the margin of the HP its player has then (as far as the healers'
-// cooldowns allow), oGCDs first. Then each hit is judged by the HP it
-// leaves.
+// cooldowns allow), oGCDs first, each heal times the healing `buffs` (by
+// action) up for it. Then each hit is judged by the HP it leaves.
 export function planHeals(
   plan: Plan,
   timeline: PullTimeline,
@@ -63,6 +65,7 @@ export function planHeals(
   heals: HealTool[],
   maxHp: Map<number, number>,
   options: PlanOptions,
+  buffs = new Map<number, HealingBuff[]>(),
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -76,9 +79,11 @@ export function planHeals(
   for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);
   const hitTimes = (player: number, from: number, to: number) =>
     (hitAt.get(player) ?? []).filter((at) => at > from && at <= to).sort((a, b) => a - b);
+  const boosts = new HealingBuffs(buffs, party, timeline, new Set([...healOf.keys(), ...mitigationOf.keys()]));
+  for (const use of plan.uses) boosts.add(use);
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
   const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) =>
-    delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes);
+    boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
   const spent: Spent[] = [];
   for (const use of plan.uses) {
     const tool = mitigationOf.get(key(use));
@@ -151,6 +156,7 @@ export function planHeals(
       if (!pick) break;
       track.add(pick.events);
       uses.push(pick.use);
+      boosts.add(pick.use);
       const mitigates = mitigationOf.get(key(pick.use));
       if (mitigates) mitigate(pick.use, mitigates);
       // A delayed heal set off sooner than it goes off on its own.
