@@ -18,10 +18,12 @@ export function effectsText(effects: ActionEffect[]): string {
   return [...byWho].map(([who, parts]) => `${who}: ${parts.join(', ')}`).join('; ');
 }
 
+// "regen 200 potency (15s, when the barrier ends)": the catalog's conditions
+// are phrases of their own ("combo", "each weaponskill", "when hit"), so they
+// go with the duration rather than after a "when" of ours.
 function effectText(e: ActionEffect): string {
-  const time = e.durationMs ? ` (${e.durationMs / 1000}s)` : '';
-  const when = e.condition ? ` when ${e.condition}` : '';
-  return `${core(e)}${time}${when}`;
+  const notes = [e.durationMs ? `${e.durationMs / 1000}s` : '', e.condition ?? ''].filter(Boolean);
+  return notes.length ? `${core(e)} (${notes.join(', ')})` : core(e);
 }
 
 function core(e: ActionEffect): string {
