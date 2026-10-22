@@ -10,6 +10,7 @@ module.exports = {
   roulette: '#0e7490',
   'waking-sands': '#a16207',
   market: '#15803d',
+  planner: '#a21caf',
   profile: '#c2410c',
   settings: '#be185d',
   auth: '#7c3aed',

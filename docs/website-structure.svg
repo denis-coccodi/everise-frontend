@@ -1,35 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1560" height="2079" viewBox="0 0 1560 2079" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif">
 <rect width="1560" height="2079" fill="#ffffff"/>
 <text x="40" y="38" font-size="22" font-weight="700" fill="#1e293b">Everise website — pages and navigation</text>
-<text x="40" y="60" font-size="13" font-weight="400" fill="#475569">Every route of the Angular app (21), what the page shows and where it leads, grouped as the navbar groups them.</text>
+<text x="40" y="60" font-size="13" font-weight="400" fill="#475569">Every route of the Angular app (22), what the page shows and where it leads, grouped as the navbar groups them.</text>
 <text x="40" y="84" font-size="11" font-weight="700" fill="#64748b">NAVBAR · SIGNED OUT</text>
 <rect x="40" y="94" width="725" height="56" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
 <text x="58" y="130" font-size="20" font-weight="700" fill="#073a8c">everise</text>
 <text x="160" y="116" font-size="12.5" font-weight="700" fill="#1e293b">Home</text>
 <text x="160" y="134" font-size="10.5" font-weight="400" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/</text>
-<text x="205.5" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Community ▾</text>
-<text x="205.5" y="134" font-size="10.5" font-weight="400" fill="#334155" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">4 pages</text>
-<text x="292.125" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Tools ▾</text>
-<text x="292.125" y="134" font-size="10.5" font-weight="400" fill="#334155" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">2 pages</text>
-<text x="358.225" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Sign in</text>
-<text x="358.225" y="134" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/login</text>
-<text x="421.35" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Sign up</text>
-<text x="421.35" y="134" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/register</text>
+<text x="205.5" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Sign in</text>
+<text x="205.5" y="134" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/login</text>
+<text x="268.625" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Sign up</text>
+<text x="268.625" y="134" font-size="10.5" font-weight="400" fill="#7c3aed" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/register</text>
 <text x="40" y="170" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">First Tab: "Skip to main content". On a phone the links fold under Menu. Footer on every page: crest → /, privacy policy.</text>
 <text x="795" y="84" font-size="11" font-weight="700" fill="#64748b">NAVBAR · SIGNED IN</text>
 <rect x="795" y="94" width="725" height="56" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
 <text x="813" y="130" font-size="20" font-weight="700" fill="#073a8c">everise</text>
 <text x="915" y="116" font-size="12.5" font-weight="700" fill="#1e293b">Home</text>
 <text x="915" y="134" font-size="10.5" font-weight="400" fill="#059669" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/</text>
-<text x="960.5" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Community ▾</text>
-<text x="960.5" y="134" font-size="10.5" font-weight="400" fill="#334155" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">4 pages</text>
-<text x="1047.125" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Tools ▾</text>
-<text x="1047.125" y="134" font-size="10.5" font-weight="400" fill="#334155" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">2 pages</text>
-<text x="1113.225" y="116" font-size="12.5" font-weight="400" fill="#1e293b">🔔</text>
-<text x="1113.225" y="134" font-size="10.5" font-weight="400" fill="#dc2626" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">notifications</text>
-<text x="1217.125" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Account ▾</text>
-<text x="1217.125" y="134" font-size="10.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">profile · settings</text>
-<text x="795" y="170" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic">Community: Party Finder, Venues, Events, The Waking Sands  ·  Tools: Duty Roulette, Market History</text>
+<text x="960.5" y="116" font-size="12.5" font-weight="400" fill="#1e293b">🔔</text>
+<text x="960.5" y="134" font-size="10.5" font-weight="400" fill="#dc2626" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">notifications</text>
+<text x="1064.4" y="116" font-size="12.5" font-weight="400" fill="#1e293b">Account ▾</text>
+<text x="1064.4" y="134" font-size="10.5" font-weight="400" fill="#c2410c" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">profile · settings</text>
+<text x="795" y="170" font-size="11.5" font-weight="400" fill="#64748b" font-style="italic"></text>
 <rect x="24" y="196" width="1512" height="338" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
 <text x="40" y="222" font-size="12" font-weight="700" fill="#64748b">HOME AND POSTS</text>
 <rect x="40" y="236" width="482.6666666666667" height="280" rx="10" fill="#0596690d" stroke="#059669" stroke-width="1.8"/>
@@ -161,6 +153,17 @@
 <text x="552.6666666666667" y="1246" font-size="12.5" font-weight="400" fill="#334155">• Item, region, quality, days and worlds in the address</text>
 <text x="552.6666666666667" y="1265" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
 <text x="552.6666666666667" y="1284" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ guests: sign up </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/register</tspan></text>
+<rect x="1037.3333333333335" y="1164" width="482.6666666666667" height="166" rx="10" fill="#a21caf0d" stroke="#a21caf" stroke-width="1.8"/>
+<text x="1051.3333333333335" y="1188" font-size="14" font-weight="600" fill="#a21caf" font-family="Consolas, SFMono-Regular, Menlo, monospace" xml:space="preserve">/planner</text>
+<text x="1506.0000000000002" y="1188" font-size="14" font-weight="700" fill="#1e293b" text-anchor="end">Fight Planner</text>
+<rect x="1457.1000000000001" y="1196" width="48.9" height="17" rx="8.5" fill="#64748b"/>
+<text x="1481.5500000000002" y="1208.5" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">members</text>
+<text x="1051.3333333333335" y="1227" font-size="12.5" font-weight="400" fill="#334155">• A pull of an FFLogs report, hit by hit, with what covered each; the</text>
+<text x="1063.3333333333335" y="1246" font-size="12.5" font-weight="400" fill="#334155">party's heals and mitigations planned</text>
+<text x="1051.3333333333335" y="1265" font-size="12.5" font-weight="400" fill="#334155">• Report and pull in the address · still being built: on staging only (the</text>
+<text x="1063.3333333333335" y="1284" font-size="12.5" font-weight="400" fill="#334155">planner feature flag)</text>
+<text x="1051.3333333333335" y="1303" font-size="10.5" font-weight="700" fill="#64748b">GOES TO</text>
+<text x="1051.3333333333335" y="1322" font-size="12.5" xml:space="preserve"><tspan fill="#1e293b">→ guests: sign up </tspan><tspan font-family="Consolas, SFMono-Regular, Menlo, monospace" font-size="12" fill="#7c3aed">/register</tspan></text>
 <rect x="24" y="1387" width="1512" height="398" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>
 <text x="40" y="1413" font-size="12" font-weight="700" fill="#64748b">ACCOUNT</text>
 <rect x="40" y="1427" width="482.6666666666667" height="147" rx="10" fill="#7c3aed0d" stroke="#7c3aed" stroke-width="1.8"/>
