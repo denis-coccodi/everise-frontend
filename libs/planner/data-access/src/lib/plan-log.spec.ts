@@ -39,6 +39,7 @@ const plan: Plan = {
       covers: ['Intervention'],
     },
   ],
+  unplaced: [],
 };
 
 describe('planLog', () => {

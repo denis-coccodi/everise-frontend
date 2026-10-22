@@ -1,4 +1,5 @@
 export type {
+  InvulnerabilityChoice,
   Mechanic,
   MechanicHit,
   MitigationEffect,

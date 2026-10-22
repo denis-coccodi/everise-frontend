@@ -1,3 +1,4 @@
+import { Plan, PlanOptions } from './plan.model';
 import { PlannerScheduler } from './planner-scheduler.service';
 import { action, catalog, heal, pull } from './scheduler-fixtures';
 
@@ -211,6 +212,54 @@ describe('PlannerScheduler', () => {
       expect(lustrate?.at).toBeGreaterThan(60_000);
       expect(lustrate?.at).toBeLessThan(80_000);
       expect(p.hits[1]).toMatchObject({ hpBefore: 60_001, safe: true });
+    });
+
+    describe('where the group has them', () => {
+      // Two busters mitigation can handle, Hallowed Ground used for the
+      // first in the pull, and one nothing but an invulnerability saves.
+      const planAs = (options: Partial<PlanOptions> = {}) => {
+        const cat = catalog();
+        cat.actions.push(invulnerable(30, 'Hallowed Ground'));
+        const timeline = pull(
+          [
+            [60, 'Buster', 1, 95_000],
+            [120, 'Buster', 1, 95_000],
+            [600, 'Big buster', 1, 2_000_000],
+          ],
+          healed,
+        );
+        timeline.playerCasts = [{ at: 58_000, source: 1, target: null, action: 30, castMs: null }];
+        return new PlannerScheduler().plan(timeline, cat, { margin: 0.1, ...options });
+      };
+      const grounds = (p: Plan) => p.uses.filter((u) => u.name === 'Hallowed Ground').map((u) => u.at);
+
+      it('keeps them as played, and adds one where nothing else saves a hit', () => {
+        const p = planAs();
+
+        expect(grounds(p)).toEqual([59_500, 599_500]);
+        expect(p.hits[0]).toMatchObject({ planned: 0, invulnerable: true });
+        expect(p.unplaced).toEqual([]);
+      });
+
+      it('moves one to the mechanic asked for, or never uses it', () => {
+        expect(grounds(planAs({ invulnerabilities: [{ player: 1, action: 30, mechanic: 1 }] }))).toEqual([
+          119_500, 599_500,
+        ]);
+        const never = planAs({ invulnerabilities: [{ player: 1, action: 30, mechanic: null }] });
+        expect(grounds(never)).toEqual([]);
+        expect(never.hits[2].safe).toBe(false);
+      });
+
+      it("says which it couldn't use where asked", () => {
+        const asked = [
+          { player: 1, action: 30, mechanic: 0 },
+          { player: 1, action: 30, mechanic: 1 },
+        ];
+        const p = planAs({ invulnerabilities: asked });
+
+        expect(grounds(p)).toEqual([59_500, 599_500]);
+        expect(p.unplaced).toEqual([asked[1]]);
+      });
     });
   });
 });

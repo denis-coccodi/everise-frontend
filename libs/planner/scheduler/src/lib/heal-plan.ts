@@ -201,6 +201,7 @@ export function planHeals(
     mechanics: plan.mechanics,
     uses: [...plan.uses, ...uses].sort((a, b) => a.at - b.at || a.player - b.player),
     hits,
+    unplaced: plan.unplaced,
   };
 }
 

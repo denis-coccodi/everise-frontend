@@ -4,6 +4,19 @@
 export interface PlanOptions {
   // The HP each hit must leave, as a share of max HP (0.1: 10%).
   margin: number;
+  // The tanks' invulnerabilities the plan must use where they say; left
+  // out, those of the pull, where they were used (`playedInvulnerabilities`).
+  // Any other the plan uses only where nothing else saves a hit.
+  invulnerabilities?: InvulnerabilityChoice[];
+}
+
+// An invulnerability on a mechanic, as a group's strategy has it (one tank
+// taking a mechanic the two would trade, or standing where it makes the
+// mechanic simpler); `mechanic` null: never this one.
+export interface InvulnerabilityChoice {
+  player: number;
+  action: number;
+  mechanic: number | null;
 }
 
 // One player's part of a mechanic.
@@ -204,4 +217,7 @@ export interface Plan {
   mechanics: Mechanic[];
   uses: PlannedUse[];
   hits: PlannedHit[];
+  // The invulnerabilities asked for that the plan couldn't use there: one
+  // the tank doesn't have, or that its recast doesn't allow.
+  unplaced: InvulnerabilityChoice[];
 }

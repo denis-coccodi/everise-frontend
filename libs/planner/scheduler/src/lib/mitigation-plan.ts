@@ -56,6 +56,25 @@ export function planMitigation(
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: t, value: 0 });
   }
+  // The invulnerabilities asked for go first, just before their mechanic,
+  // as their recast allows (an earlier plan has them already).
+  const unplaced = [...(from?.unplaced ?? [])];
+  for (const choice of from ? [] : (options.invulnerabilities ?? [])) {
+    const m = mechanics.find((o) => o.id === choice.mechanic);
+    if (!m) continue;
+    const t = tools.find((o) => o.player === choice.player && o.action === choice.action);
+    const at = m.at - LEAD_MS;
+    const times = uses.filter((u) => t && tool(u).group === t.group).map((u) => u.at);
+    if (!t?.effects.some((e) => e.invulnerable) || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) {
+      unplaced.push(choice);
+      continue;
+    }
+    add({ use: { player: t.player, action: t.action, name: t.name, at, target: null, covers: [] }, tool: t, value: 0 });
+  }
+  // One never to use isn't the plan's to use either.
+  const never = new Set(
+    (options.invulnerabilities ?? []).filter((c) => c.mechanic === null).map((c) => `${c.player}:${c.action}`),
+  );
 
   // When a player has one action planned.
   const timesOf = (player: number, action: number) =>
@@ -123,7 +142,9 @@ export function planMitigation(
     return !invulnerable && damage > limit(m, h);
   };
   const others = tools.filter((t) => !t.effects.some((e) => e.invulnerable));
-  const invulnerabilities = tools.filter((t) => t.effects.some((e) => e.invulnerable));
+  const invulnerabilities = tools.filter(
+    (t) => t.effects.some((e) => e.invulnerable) && !never.has(`${t.player}:${t.action}`),
+  );
   const fill = (m: Mechanic) => {
     for (;;) {
       if (!m.hits.some(short(m))) return;
@@ -185,7 +206,7 @@ export function planMitigation(
   for (const use of uses) {
     use.covers = mechanics.filter((m) => m.hits.some((h) => reaches(tool(use), use, m, h).length)).map((m) => m.id);
   }
-  return { mechanics, uses: [...uses].sort((a, b) => a.at - b.at || a.player - b.player), hits };
+  return { mechanics, uses: [...uses].sort((a, b) => a.at - b.at || a.player - b.player), hits, unplaced };
 }
 
 // When a use could go up for `m`: as late as it can, and earlier where its
