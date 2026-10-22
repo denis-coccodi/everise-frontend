@@ -1,5 +1,5 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
@@ -31,9 +31,11 @@ const GCD_WORTH = 0.4;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
-// What an action already planned uses up: its recast, its pool, a GCD.
+// What an action already planned uses up: its recast, its pool, a GCD (and
+// the grant it uses, or gives).
 interface Spent {
   player: number;
+  action: number;
   at: number;
   group: string;
   pool: ToolPool | null;
@@ -80,7 +82,16 @@ export function planHeals(
   const spent: Spent[] = [];
   for (const use of plan.uses) {
     const tool = mitigationOf.get(key(use));
-    if (tool) spent.push({ player: use.player, at: use.at, group: tool.group, pool: tool.pool, gcd: tool.gcd });
+    if (tool) {
+      spent.push({
+        player: use.player,
+        action: use.action,
+        at: use.at,
+        group: tool.group,
+        pool: tool.pool,
+        gcd: tool.gcd,
+      });
+    }
     const heal = healOf.get(key(use));
     // A mitigation that heals later (Exaltation) heals when it ends.
     if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
@@ -149,7 +160,7 @@ export function planHeals(
         uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
       }
       const { group, pool, gcd } = pick.tool;
-      spent.push({ player: pick.use.player, at: pick.use.at, group, pool, gcd });
+      spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd });
     }
   }
 
@@ -198,6 +209,8 @@ function best(
   const times = spent.filter((s) => s.group === tool.group).map((s) => s.at);
   const pooled = tool.pool ? spent.filter((s) => s.player === tool.player && s.pool?.name === tool.pool?.name) : [];
   const gcds = spent.filter((s) => s.player === tool.player && s.gcd).map((s) => s.at);
+  const timesOf = (action: number) =>
+    spent.filter((s) => s.player === tool.player && s.action === action).map((s) => s.at);
   // A heal on one member goes to whoever is shortest.
   const target = tool.effects.some((e) => e.target === 'target')
     ? [...short].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
@@ -224,6 +237,8 @@ function best(
     )
       continue;
     if (tool.gcd && !fitsRecast(gcds, at, GCD_MS, 1)) continue;
+    const { grantedBy } = tool;
+    if (grantedBy && !fitsGrant(timesOf(tool.action), timesOf(grantedBy.action), at, grantedBy)) continue;
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };
     const events = eventsOf(use, delayMs);
     const after = deficits(events);

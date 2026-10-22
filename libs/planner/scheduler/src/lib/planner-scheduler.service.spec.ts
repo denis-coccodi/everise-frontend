@@ -1,5 +1,5 @@
 import { PlannerScheduler } from './planner-scheduler.service';
-import { catalog, pull } from './scheduler-fixtures';
+import { action, catalog, heal, pull } from './scheduler-fixtures';
 
 describe('PlannerScheduler', () => {
   // The scholar healed 60,000 with a 600 potency Lustrate: 100 HP a potency.
@@ -139,5 +139,39 @@ describe('PlannerScheduler', () => {
     expect(buster).toMatchObject({ hpBefore: 50_000, safe: true });
     expect(buster.planned).toBeLessThanOrEqual(40_000);
     expect(p.uses.find((u) => u.name === 'Guardian')?.at).toBe(49_500);
+  });
+
+  it('uses Divine Caress only once after each Temperance, whatever its own recast', () => {
+    // The scholar as a white mage, with Divine Caress's 1s recast.
+    const cat = catalog();
+    cat.actions.push(
+      action(16536, 'Temperance', ['SCH'], 120, [
+        {
+          ...heal(0),
+          kind: 'mitigation',
+          target: 'party',
+          status: 'Temperance',
+          potency: null,
+          percent: 10,
+          durationMs: 20_000,
+        },
+      ]),
+      action(37011, 'Divine Caress', ['SCH'], 1, [
+        { ...heal(0), kind: 'shield', target: 'party', status: 'Divine Grace', potency: 400, durationMs: 10_000 },
+      ]),
+    );
+    const raidwide = (at: number): [number, string, number, number][] =>
+      [1, 2, 3].map((player) => [at, `Raidwide ${at}`, player, 95_000]);
+    const p = new PlannerScheduler().plan(
+      pull([...raidwide(30), ...raidwide(40), ...raidwide(50), ...raidwide(60)], healed),
+      cat,
+      { margin: 0.1 },
+    );
+
+    const at = (name: string) => p.uses.filter((u) => u.name === name).map((u) => u.at);
+    expect(at('Divine Caress')).toHaveLength(1);
+    const [temperance] = at('Temperance');
+    expect(at('Divine Caress')[0] - temperance).toBeGreaterThanOrEqual(0);
+    expect(at('Divine Caress')[0] - temperance).toBeLessThanOrEqual(30_000);
   });
 });
