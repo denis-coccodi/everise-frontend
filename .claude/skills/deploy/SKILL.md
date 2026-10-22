@@ -35,7 +35,8 @@ Changes reach `main` through pull requests (see the `feature-branch` skill). Mer
 `.github/workflows/deploy-production.yaml` (**Deploy production**, `workflow_dispatch` only):
 
 - Fails unless started from `main`, then checks that `GITHUB_SHA` has a successful Test and deploy staging push run; otherwise fails without deploying.
-- Then builds with `--configuration=production`, `wrangler deploy`, and `scripts/smoke.sh read` (read-only).
+- Then builds with `--configuration=production`, `wrangler deploy`, and `scripts/smoke.sh read` (read-only), and finally tags the commit `prod-YYYY-MM-DD-HHMM` (UTC) and pushes the tag (`contents: write`).
+- The latest `prod-*` tag is what production runs: `git fetch --tags && git tag --list 'prod-*' --sort=-creatordate | head -1`; `git log --oneline <tag>..origin/main` is what the next deploy would add. Features still being built are `false` in `environment.prod.ts` (the `trunk-based` skill), so deploying `main` doesn't release them.
 
 Production deploys are the user's decision: they start it from Actions → Deploy production → **Run workflow**. Only start it yourself (`gh workflow run deploy-production.yaml --ref main`) when the user explicitly asks for a production deploy, and only after the commit's Test and deploy staging run is green.
 
@@ -53,7 +54,7 @@ gh run rerun <id> --failed
 
 ## Manual deploy
 
-Wrangler on this machine is logged in with OAuth (`npx wrangler whoami`). Build with the matching configuration first (`npm run deploy:staging` / `npm run deploy` do both). Deploying production by hand skips the "passed staging" check, so only do it when the user explicitly asks for a manual production deploy. `npx wrangler deploy --dry-run [--env staging]` checks the config without deploying.
+Wrangler on this machine is logged in with OAuth (`npx wrangler whoami`). Build with the matching configuration first (`npm run deploy:staging` / `npm run deploy` do both). Deploying production by hand skips the "passed staging" check, so only do it when the user explicitly asks for a manual production deploy. Deploy with `--message "<branch>@<short sha>"`, run `sh scripts/smoke.sh read https://everise.dev` (it needs the address), and tag the commit `prod-YYYY-MM-DD-HHMM` yourself, as the workflow would (a hotfix from a `prod-*` tag: the `trunk-based` skill). `npx wrangler deploy --dry-run [--env staging]` checks the config without deploying.
 
 ## Secrets
 

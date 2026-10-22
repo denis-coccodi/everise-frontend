@@ -17,7 +17,8 @@ jobs:
       name: production
       url: https://everise.dev
     permissions:
-      contents: read
+      # write: to push the release tag.
+      contents: write
       actions: read
     steps:
       - name: Check this is main
@@ -53,3 +54,10 @@ jobs:
       # Read-only: writes no data to production.
       - name: Smoke test production
         run: sh scripts/smoke.sh read https://everise.dev
+      # Marks what production runs now; a hotfix can start from the latest one.
+      - name: Tag the release
+        run: |
+          tag="prod-$(date -u +%Y-%m-%d-%H%M)"
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "$tag"
+          echo "Production runs ${GITHUB_SHA::7}, tagged $tag." >> "$GITHUB_STEP_SUMMARY"

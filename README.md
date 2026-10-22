@@ -162,6 +162,7 @@ How work is done here is written down for people and AI assistants alike, as ski
 | Skill                     | For                                                                                                                                            |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `feature-branch`          | Every change: a `bugfix/`, `hotfix/` or `feature/` branch, Conventional Commits, a pull request, merging once `test` passes; line-ending traps |
+| `trunk-based`             | Trunk-based development: feature flags (`features`), releasing a feature, `prod-*` tags, hotfixing production                                  |
 | `frontend-best-practices` | Code and structure: libraries, components, stores, types, specs, size limits                                                                   |
 | `theme`                   | Looks: tokens, the UI building blocks (`building-blocks.md`), where styles live (`scripts/check-theme.sh`)                                     |
 | `mobile-first`            | Styles written for phones first, wider screens from a width up                                                                                 |
@@ -216,6 +217,16 @@ Staging is behind [Cloudflare Access](https://developers.cloudflare.com/cloudfla
 The bot check ([Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/)) on sign-up, sign-in and resending a confirmation link uses `turnstileSiteKey` from the environment: the Everise widget's site key on staging and production (public; the backend holds the secret, `TURNSTILE_SECRET_KEY`), and locally Cloudflare's test key, which always passes and shows "For testing only". The forms wait for the widget's pass, send it as `turnstileToken`, and ask for a new one after each try (a pass works once). An empty key turns the check off.
 
 Dependabot ([.github/dependabot.yml](.github/dependabot.yml)) opens pull requests every Monday that update the npm packages and the GitHub Actions: one for Angular, Nx and NgRx's minor and patch updates, one for every other minor and patch update, one per other major. Angular, Nx and NgRx majors go through `npx nx migrate latest` instead. The PRs come from `dependabot/…` branches, the one exception to the branch names, and are merged like any other once **test** passes.
+
+### Branches and releases
+
+The repo follows **trunk-based development**: there is one long-lived branch, `main`, and it must always be fine to deploy to production. Branches are short-lived (a day or two) and merge straight into `main` through a pull request; there is no `develop` branch and there are no release branches.
+
+A feature that takes more than one pull request merges each of them **switched off in production** behind a feature flag, so a fix never waits behind unfinished work. Each environment file has `features`, one `true`/`false` per feature still being built: `true` locally and on staging, `false` in `environment.prod.ts` until it's released. Only the app shell reads them, to leave out the feature's routes and navbar links. The backend has the same flags (`FEATURES`). Today the fight planner is behind `planner`.
+
+To release a feature, set it to `true` in `environment.prod.ts` (and in the backend's production `FEATURES`) and deploy production; once it has settled, remove the flag.
+
+Each **Deploy production** run tags the commit it deployed `prod-YYYY-MM-DD-HHMM`, so the latest `prod-*` tag is always what production runs. A fix for production is normally a `hotfix/` branch merged into `main` and deployed like any change; only if `main` holds something that can't go to production yet does the hotfix start from the latest `prod-*` tag and get deployed by hand. Details in the `trunk-based` skill.
 
 ### Search engines
 

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { NavGroupComponent } from './nav-group.component';
-import { NAV_GROUPS } from './nav-groups';
+import { NAV_GROUPS, navGroups } from './nav-groups';
 
 @Component({ template: '' })
 class BlankComponent {}
@@ -27,6 +27,13 @@ describe('NavGroupComponent', () => {
   }
 
   afterEach(() => document.body.replaceChildren());
+
+  it('leaves out the pages of features switched off', () => {
+    const tools = (planner: boolean) => navGroups({ planner })[1].pages.map((page) => page.label);
+
+    expect(tools(true)).toContain('Fight Planner');
+    expect(tools(false)).not.toContain('Fight Planner');
+  });
 
   it("is a menu named after the group, holding its pages' links", async () => {
     const { host, links } = await render('menu');

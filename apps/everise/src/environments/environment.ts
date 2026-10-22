@@ -17,4 +17,7 @@ export const environment = {
   turnstileSiteKey: '1x00000000000000000000AA',
   // Cloudflare Web Analytics' site token; only production counts visits.
   webAnalyticsToken: '',
+  // Features still being built, switched on where they may be seen (the
+  // trunk-based skill): here and on staging, in production once released.
+  features: { planner: true },
 };
