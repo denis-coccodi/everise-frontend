@@ -68,6 +68,19 @@ export function shareAgainst(effect: MitigationEffect, type: DamageType | null) 
   return effect[type];
 }
 
+// Each player's max HP, and how many hits landed on them between two
+// moments (from, inclusive, to the second, exclusive).
+export function pullFacts(mechanics: Mechanic[], maxHp: Map<number, number>): PullFacts {
+  const times = new Map<number, number[]>();
+  for (const m of mechanics) {
+    for (const hit of m.hits) times.set(hit.player, [...(times.get(hit.player) ?? []), m.at]);
+  }
+  return {
+    maxHp,
+    hitsBetween: (player, from, to) => (times.get(player) ?? []).filter((at) => at >= from && at < to).length,
+  };
+}
+
 function shieldHp(size: ShieldSize, player: number, facts: PullFacts) {
   return 'hp' in size ? size.hp : size.maxHpShare * (facts.maxHp.get(player) ?? 0);
 }

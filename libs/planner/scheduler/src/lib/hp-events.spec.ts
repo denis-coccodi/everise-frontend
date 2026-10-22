@@ -39,7 +39,6 @@ describe('pullEvents', () => {
       status: null,
       amount: 1000,
       overheal: 500,
-      damageType: 'magic',
       tick: false,
       estimated: false,
       hp: null,

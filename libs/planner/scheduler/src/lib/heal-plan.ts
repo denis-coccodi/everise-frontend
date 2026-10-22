@@ -1,8 +1,18 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { fitsPool, fitsRecast } from './coverage';
+import { fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { healEvents, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
-import { HealTool, Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse, ToolPool } from './plan.model';
+import {
+  HealTool,
+  Mechanic,
+  MechanicHit,
+  MitigationTool,
+  Plan,
+  PlanOptions,
+  PlannedHit,
+  PlannedUse,
+  ToolPool,
+} from './plan.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
 // A heal lands at least this long before the hit it's for, and at least
@@ -69,6 +79,28 @@ export function planHeals(
   const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
   const mechanics = [...plan.mechanics].sort((a, b) => a.at - b.at);
 
+  // The mitigations up: the plan's, and the heals picked here that also
+  // mitigate (Kerachole, Holos, Temperance).
+  const facts = pullFacts(plan.mechanics, maxHp);
+  const mitigating = plan.uses.filter((u) => mitigationOf.has(key(u)));
+  const toolOfUse = (u: PlannedUse) => mitigationOf.get(key(u)) as MitigationTool;
+  // Such a heal lowers the hits it reaches, and the HP track gets back what
+  // they no longer take.
+  const mitigate = (use: PlannedUse, tool: MitigationTool) => {
+    mitigating.push(use);
+    for (const m of plan.mechanics) {
+      for (const h of m.hits) {
+        if (!reaches(tool, use, m, h).length) continue;
+        const was = damageOf(m, h);
+        const now = projected(m, h, mitigating, toolOfUse, facts).damage;
+        if (now >= was) continue;
+        damage.set(`${m.id}:${h.player}`, now);
+        track.add([{ at: m.at, player: h.player, amount: was - now }]);
+        if (!use.covers.includes(m.id)) use.covers.push(m.id);
+      }
+    }
+  };
+
   for (const m of mechanics) {
     // Healing from after the last mechanic there was time to heal after.
     const anchor = mechanics.filter((o) => o.at <= m.at - GAP_MS).at(-1)?.at ?? -1;
@@ -96,17 +128,30 @@ export function planHeals(
       if (!pick) break;
       track.add(pick.events);
       uses.push(pick.use);
+      const mitigates = mitigationOf.get(key(pick.use));
+      if (mitigates) mitigate(pick.use, mitigates);
       const { group, pool, gcd } = pick.tool;
       spent.push({ player: pick.use.player, at: pick.use.at, group, pool, gcd });
     }
   }
 
-  const at = new Map(plan.mechanics.map((m) => [m.id, m.at]));
-  const hits = plan.hits.map((hit) => {
+  const mechanicOf = new Map(plan.mechanics.map((m) => [m.id, m]));
+  // A hit a heal's mitigation lowered, projected again with every
+  // mitigation up.
+  const lowered = (hit: PlannedHit): PlannedHit => {
+    const m = mechanicOf.get(hit.mechanic) as Mechanic;
+    const mechanicHit = m.hits.find((h) => h.player === hit.player) as MechanicHit;
+    const { damage: planned, absorbed, statuses } = projected(m, mechanicHit, mitigating, toolOfUse, facts);
+    const max = maxHp.get(hit.player);
+    return { ...hit, planned, absorbed, covers: statuses, share: max ? planned / max : null };
+  };
+  const hits = plan.hits.map((planned) => {
+    const changed = damage.get(`${planned.mechanic}:${planned.player}`) !== planned.planned;
+    const hit = changed ? lowered(planned) : planned;
     const start = track.checkpoint(hit.player, -1);
     if (!start) return hit;
     const max = maxHp.get(hit.player) as number;
-    const hpBefore = Math.round(track.before(start, at.get(hit.mechanic) ?? 0));
+    const hpBefore = Math.round(track.before(start, mechanicOf.get(hit.mechanic)?.at ?? 0));
     return { ...hit, hpBefore, safe: hpBefore - hit.planned >= options.margin * max - 1 };
   });
   return {
