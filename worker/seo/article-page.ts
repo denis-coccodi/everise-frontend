@@ -34,7 +34,7 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
   const thumbnail = video ? `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` : undefined;
   const picture = roulette?.image
     ? `${siteUrl}/api/images/${roulette.image}`
-    : article.partyFinder?.picture ?? firstImage ?? thumbnail;
+    : (article.partyFinder?.picture ?? firstImage ?? thumbnail);
   // Always the id, even when an old link was followed.
   const path = `/article/${encodeURIComponent(article.id)}`;
   const author = article.author.username;

@@ -1,9 +1,9 @@
 import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from './api-url.token';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly api_url = inject(API_URL);

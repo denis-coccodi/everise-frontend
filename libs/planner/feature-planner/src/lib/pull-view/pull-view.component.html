@@ -1,0 +1,30 @@
+<cdt-panel [heading]="heading()">
+  @if (store.pull.hasValue() && store.catalog.hasValue()) {
+    <ul cdtTabs aria-label="Players" class="players">
+      @for (p of players(); track p.id) {
+        <li>
+          <button type="button" cdtTab [active]="player()?.id === p.id" (click)="choose(p.id)">
+            {{ p.job ?? 'Unknown job' }} {{ p.name }}
+          </button>
+        </li>
+      }
+    </ul>
+    <ul cdtTabs aria-label="View" class="views">
+      <li>
+        <button type="button" cdtTab [active]="view() === 'played'" (click)="view.set('played')">As played</button>
+      </li>
+      <li><button type="button" cdtTab [active]="view() === 'plan'" (click)="view.set('plan')">Plan</button></li>
+    </ul>
+    @if (player(); as p) {
+      <h3 class="visually-hidden">{{ p.name }}'s {{ view() === 'plan' ? 'plan' : 'pull' }}</h3>
+      @if (view() === 'plan') {
+        <cdt-planner-plan-view [player]="p" />
+      } @else {
+        <cdt-planner-player-log [entries]="log()" />
+      }
+    }
+  } @else if (loading()) {
+    <p class="loading">Reading the pull…</p>
+  }
+  <cdt-message tone="error">{{ error() }}</cdt-message>
+</cdt-panel>

@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { API_URL } from '@everise/core/http-client';
 import { Observable, catchError, map, of, shareReplay } from 'rxjs';
 
@@ -23,7 +23,7 @@ export interface Gif {
 }
 
 // Uploads and the GIF search, from the backend's /api/media and /api/gifs.
-@Injectable({ providedIn: 'root' })
+@Service()
 export class MediaService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(API_URL);

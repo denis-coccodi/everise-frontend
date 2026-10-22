@@ -1,4 +1,4 @@
-import { Injectable, InjectionToken, inject } from '@angular/core';
+import { InjectionToken, inject, Service } from '@angular/core';
 import { Observable, Subject, defer, filter, ignoreElements, interval, merge, retry, share, tap, timer } from 'rxjs';
 import { WebSocketSubject, WebSocketSubjectConfig, webSocket } from 'rxjs/webSocket';
 import { ArticleCreatedEvent, SandsEvent } from '@everise/core/api-types';
@@ -32,7 +32,7 @@ export const WEB_SOCKET = new InjectionToken<<T>(config: WebSocketSubjectConfig<
 // subscriber. The socket opens with the first subscriber and closes after
 // the last; a lost connection is retried with growing delays. Messages that
 // aren't events (the heartbeat's 'pong') are skipped.
-@Injectable({ providedIn: 'root' })
+@Service()
 export class LiveUpdates {
   private readonly url = liveUrl(inject(API_URL));
   private readonly openSocket = inject(WEB_SOCKET);

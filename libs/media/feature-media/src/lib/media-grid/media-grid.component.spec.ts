@@ -61,8 +61,8 @@ describe('MediaGridComponent', () => {
     expect(dialog().textContent).toContain('Image 2 of 3');
     expect(dialog().querySelector('img')?.getAttribute('src')).toBe('https://x/dog.png');
 
-    const next = [...dialog().querySelectorAll('button')].find(
-      (b) => b.textContent?.includes('Next'),
+    const next = [...dialog().querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Next'),
     ) as HTMLButtonElement;
     next.click();
     await fixture.whenStable();

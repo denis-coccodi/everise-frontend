@@ -93,8 +93,8 @@ describe('AdminCharactersComponent', () => {
 
     expect(page.querySelector('h3')?.textContent).toBe('Barnaby Rostnsthalsyn');
     expect(field('character-persona')?.value).toBe('You are Barnaby, and you swear.');
-    const restore = [...page.querySelectorAll('button')].find(
-      (b) => b.textContent?.includes('Restore the original'),
+    const restore = [...page.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Restore the original'),
     ) as HTMLButtonElement;
     expect(restore.disabled).toBe(false);
 

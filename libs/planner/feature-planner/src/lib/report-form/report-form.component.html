@@ -1,0 +1,20 @@
+<form [formRoot]="form" class="report-form">
+  <cdt-field
+    label="FFLogs report link"
+    for="planner-report"
+    required
+    hint="The report's address on fflogs.com, or its code. Public and unlisted reports."
+  >
+    <input
+      id="planner-report"
+      type="text"
+      cdtInput
+      autocomplete="off"
+      placeholder="https://www.fflogs.com/reports/…"
+      [formField]="form.link"
+    />
+    <cdt-input-errors [field]="form.link" />
+  </cdt-field>
+  <button cdtButton type="submit" [disabled]="form().invalid()">Load report</button>
+</form>
+<cdt-message tone="error">{{ problem() }}</cdt-message>

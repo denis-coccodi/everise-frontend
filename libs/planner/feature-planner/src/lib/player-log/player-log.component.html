@@ -1,0 +1,38 @@
+<ol class="log">
+  @for (entry of entries(); track $index) {
+    <li class="entry" [class]="entry.kind">
+      <span class="time">{{ clock(entry.at) }}</span
+      >{{ ' ' }}
+      <div class="what">
+        @switch (entry.kind) {
+          @case ('hit') {
+            <p class="line">
+              <span class="label">Hit</span>{{ ' ' }}<strong>{{ entry.action }}</strong> from {{ entry.source }}
+            </p>
+            <p class="detail">{{ detail(entry) }}</p>
+            <p class="detail covers">
+              {{ entry.covers.length ? 'Covered by ' + entry.covers.join(', ') : 'Nothing covered it' }}
+            </p>
+          }
+          @case ('use') {
+            <p class="line">
+              <span class="label">Used</span>{{ ' ' }}<strong>{{ entry.action }}</strong>
+            </p>
+            <p class="detail">{{ entry.effects }}</p>
+          }
+          @case ('death') {
+            <p class="line">
+              <span class="label">Died</span>
+              @if (entry.action) {
+                {{ ' ' }}to <strong>{{ entry.action }}</strong>
+              }
+            </p>
+          }
+          @default never(entry);
+        }
+      </div>
+    </li>
+  } @empty {
+    <li class="empty">Nothing happened to this player in the pull.</li>
+  }
+</ol>

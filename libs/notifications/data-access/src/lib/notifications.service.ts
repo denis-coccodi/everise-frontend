@@ -1,10 +1,10 @@
 import { HttpContext } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { NotificationsResponse, UnseenNotificationsResponse } from '@everise/core/api-types';
 import { SKIP_LOGIN_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class NotificationsService {
   private readonly api = inject(ApiService);
 

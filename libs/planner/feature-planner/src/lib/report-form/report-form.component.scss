@@ -1,0 +1,24 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+// The phone: the button under the field.
+.report-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+// Wider: the button beside it, level with the field.
+@include bp.up(md) {
+  .report-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+
+    button {
+      margin-top: 1.75rem;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import {
   MarketHistory,
   MarketItemResponse,
@@ -10,7 +10,7 @@ import {
 } from '@everise/core/api-types';
 import { ApiService } from '@everise/core/http-client';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class MarketService {
   private readonly api = inject(ApiService);
 

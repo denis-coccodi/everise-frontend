@@ -35,6 +35,7 @@ export const ICON_NAMES = [
   'venue',
   'calendar',
   'check',
+  'shield',
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -48,12 +49,17 @@ export type IconName = (typeof ICON_NAMES)[number];
   selector: 'cdt-icon',
   template: `
     <svg viewBox="0 0 24 24" focusable="false">
-      @switch (name()) {
+      @let drawn = name();
+      @switch (drawn) {
         @case ('menu') {
           <path d="M4 7h16M4 12h16M4 17h16" />
         }
         @case ('check') {
           <path d="M5 12.5l4.5 4.5L19 7" />
+        }
+        @case ('shield') {
+          <path d="M12 3l7.5 3v5.5c0 4.6-3.1 8.3-7.5 9.5-4.4-1.2-7.5-4.9-7.5-9.5V6z" />
+          <path d="M9 12l2 2 4-4" />
         }
         @case ('close') {
           <path d="M6 6l12 12M18 6L6 18" />
@@ -165,6 +171,7 @@ export type IconName = (typeof ICON_NAMES)[number];
           <circle cx="12" cy="12" r="9" />
           <path d="M12 11v5M12 8h.01" />
         }
+        @default never;
       }
     </svg>
   `,

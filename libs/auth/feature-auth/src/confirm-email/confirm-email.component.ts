@@ -18,7 +18,8 @@ type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | 
           <div class="col-md-6 offset-md-3 col-xs-12 text-xs-center">
             <h1>Confirm your email</h1>
             <div role="status">
-              @switch (state().kind) {
+              @let current = state();
+              @switch (current.kind) {
                 @case ('confirming') {
                   <p>Confirming…</p>
                 }
@@ -30,6 +31,7 @@ type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | 
                   <p>{{ message() }}</p>
                   <a cdtButton="outline-secondary" routerLink="/login">Sign in</a>
                 }
+                @default never(current);
               }
             </div>
           </div>

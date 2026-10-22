@@ -1,9 +1,9 @@
-import { Injectable, effect, inject } from '@angular/core';
+import { effect, inject, Service } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { AuthStore } from './auth.store';
 import { finalize, map, Observable, ReplaySubject, skipWhile, take } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AuthGuard implements CanActivate {
   private router = inject(Router);
   private authStore = inject(AuthStore);
