@@ -101,14 +101,18 @@ export interface HealTool {
 }
 
 // A heal that lands later than it's used: Earthly Star's, once the star has
-// grown (10s, set off with Stellar Detonation) or on its own (20s).
+// grown (10s, set off with Stellar Detonation) or on its own (20s); or
+// Excogitation's, when its target drops to half their HP, or when it ends.
 export interface DelayedHeal {
   // The delays it can be planned with, the one that needs nothing more
-  // first.
+  // first; a triggered heal's is when it ends.
   delaysMs: number[];
-  // What sets it off sooner than the first.
-  release: { action: number; name: string };
-  // Its heal's name in the log.
+  // What sets it off sooner than the first; null when nothing does.
+  release: { action: number; name: string } | null;
+  // The share of max HP at or below which it goes off at once, before its
+  // delay runs out (Excogitation: 0.5); null when it waits for it.
+  belowShare: number | null;
+  // Its heal's name in the log, an action's or a status's.
   loggedAs: string;
 }
 

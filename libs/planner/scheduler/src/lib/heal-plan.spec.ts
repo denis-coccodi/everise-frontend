@@ -99,4 +99,44 @@ describe('planHeals', () => {
       expect(plan.hits[1]).toMatchObject({ hpBefore: 87_000, safe: true });
     });
   });
+
+  it('puts Excogitation up before a hit that takes its target to half HP, healing them for the next', () => {
+    const cat = catalog();
+    cat.actions.push(
+      action(7434, 'Excogitation', ['SCH'], 45, [
+        {
+          ...heal(800),
+          kind: 'delayedHeal',
+          status: 'Excogitation',
+          durationMs: 45_000,
+          condition: 'at 50% HP or below, or when it ends',
+        },
+      ]),
+    );
+    // The first buster leaves the tank on 15,000: Excogitation, up before
+    // it, heals 80,000 right after.
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Excogitation');
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+    );
+
+    expect(plan.uses).toEqual([expect.objectContaining({ name: 'Excogitation', at: 29_500, target: 1, covers: [1] })]);
+    expect(plan.hits[1]).toMatchObject({ hpBefore: 95_000, safe: true });
+  });
 });

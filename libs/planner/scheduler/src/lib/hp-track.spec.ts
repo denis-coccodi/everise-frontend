@@ -33,4 +33,15 @@ describe('HpTrack', () => {
     t.add([{ at: 15_000, player: 1, amount: 40_000 }]);
     expect(t.before(after, 25_000)).toBe(20_000);
   });
+
+  it('finds when the HP first drops to a level, within a window', () => {
+    const t = track();
+
+    expect(t.firstAtOrBelow(1, 0, 60_000, 50_000)).toBe(10_000);
+    // Already at 30,000 when the window opens.
+    expect(t.firstAtOrBelow(1, 10_000, 60_000, 50_000)).toBe(10_000);
+    expect(t.firstAtOrBelow(1, 30_000, 60_000, 50_000)).toBeNull();
+    expect(t.firstAtOrBelow(1, 0, 5000, 50_000)).toBeNull();
+    expect(t.firstAtOrBelow(2, 0, 60_000, 50_000)).toBeNull();
+  });
 });

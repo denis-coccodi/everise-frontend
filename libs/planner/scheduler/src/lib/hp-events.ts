@@ -32,7 +32,7 @@ export function pullEvents(
   const own = new Set<string>();
   for (const t of heals) {
     own.add(`${t.player}:${t.action}`).add(`${t.player}:${t.name}`);
-    if (t.delayed) own.add(`${t.player}:${t.delayed.loggedAs}`);
+    if (t.delayed) own.add(`${t.player}:${t.delayed.loggedAs}`).add(`${t.player}:status ${t.delayed.loggedAs}`);
     for (const e of t.effects) {
       if (e.statusId) own.add(`${t.player}:status ${e.statusId}`);
       if (e.status) own.add(`${t.player}:status ${e.status}`);

@@ -24,6 +24,23 @@ export class HpTrack {
     }
   }
 
+  // The first moment from `from` to `to` (inclusive) that leaves the player
+  // at `hp` or below: `from` itself when they already are; null when none
+  // does.
+  firstAtOrBelow(player: number, from: number, to: number, hp: number): number | null {
+    const start = this.checkpoint(player, from);
+    if (!start) return null;
+    if (start.hp <= hp) return from;
+    const max = this.maxHp.get(player) as number;
+    const list = this.events.get(player) ?? [];
+    let level = start.hp;
+    for (let i = start.next; i < list.length && list[i].at <= to; i++) {
+      level = this.step(level, list[i].amount, max);
+      if (level <= hp) return list[i].at;
+    }
+    return null;
+  }
+
   checkpoint(player: number, at: number): HpCheckpoint | null {
     const max = this.maxHp.get(player);
     if (max === undefined) return null;
