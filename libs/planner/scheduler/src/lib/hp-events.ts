@@ -32,6 +32,7 @@ export function pullEvents(
   const own = new Set<string>();
   for (const t of heals) {
     own.add(`${t.player}:${t.action}`).add(`${t.player}:${t.name}`);
+    if (t.delayed) own.add(`${t.player}:${t.delayed.loggedAs}`);
     for (const e of t.effects) {
       if (e.statusId) own.add(`${t.player}:status ${e.statusId}`);
       if (e.status) own.add(`${t.player}:status ${e.status}`);
@@ -56,9 +57,16 @@ export function pullEvents(
 }
 
 // The HP a use of a heal tool restores, and when: a heal as it lands (after
-// its cast), healing over time every 3 seconds from 3 seconds later.
-export function healEvents(tool: HealTool, use: PlannedUse, party: number[], maxHp: Map<number, number>): HpEvent[] {
-  const lands = use.at + tool.castMs;
+// its cast, and `delayMs` more for a delayed heal), healing over time every
+// 3 seconds from 3 seconds later.
+export function healEvents(
+  tool: HealTool,
+  use: PlannedUse,
+  party: number[],
+  maxHp: Map<number, number>,
+  delayMs = 0,
+): HpEvent[] {
+  const lands = use.at + tool.castMs + delayMs;
   const events: HpEvent[] = [];
   for (const effect of tool.effects) {
     const players =

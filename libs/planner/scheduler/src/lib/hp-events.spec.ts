@@ -15,6 +15,7 @@ describe('pullEvents', () => {
     group: '2:189',
     pool: null,
     effects: [{ target: 'target', size: { hp: 60_000 }, ticks: 1, status: null, statusId: null }],
+    delayed: null,
   };
   const dawn: HealTool = {
     ...lustrate,
@@ -85,5 +86,27 @@ describe('pullEvents', () => {
     expect(healEvents(lustrate, { ...use, action: 189, target: 3 }, [1, 2, 3], new Map())).toEqual([
       { at: 10_000, player: 3, amount: 60_000 },
     ]);
+  });
+
+  it("heals a delayed heal's delay later, and leaves out its heals as played", () => {
+    const star: HealTool = {
+      ...lustrate,
+      action: 7439,
+      name: 'Earthly Star',
+      effects: [{ target: 'party', size: { hp: 72_000 }, ticks: 1, status: null, statusId: null }],
+      delayed: {
+        delaysMs: [20_000, 10_000],
+        release: { action: 8324, name: 'Stellar Detonation' },
+        loggedAs: 'Stellar Explosion',
+      },
+    };
+    const use = { player: 2, action: 7439, name: 'Earthly Star', at: 10_000, target: null, covers: [] };
+    // The star as played: its heal, which the log calls Stellar Explosion.
+    const timeline = pull([], [[30, 2, 7441, 9000]]);
+    timeline.actions.push({ id: 7441, name: 'Stellar Explosion' });
+
+    expect(healEvents(star, use, [1], new Map(), 20_000)).toEqual([{ at: 30_000, player: 1, amount: 72_000 }]);
+    expect(pullEvents(timeline, [], [], [star])).toEqual([]);
+    expect(pullEvents(timeline, [], [], [lustrate])).toEqual([{ at: 30_000, player: 1, amount: 9000 }]);
   });
 });
