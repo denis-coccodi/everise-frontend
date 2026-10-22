@@ -29,7 +29,7 @@ describe('healPower', () => {
         [50, 2, 189, 72_000],
       ],
     );
-    timeline.auras = [{ status: 1873, source: 2, target: 2, from: 35_000, to: 55_000 }];
+    timeline.auras = [{ status: 1873, source: 2, target: 2, from: 35_000, to: 55_000, stacks: null, shield: null }];
     const cat = catalog();
     cat.actions.push(
       action(16536, 'Temperance', ['SCH'], 120, [
