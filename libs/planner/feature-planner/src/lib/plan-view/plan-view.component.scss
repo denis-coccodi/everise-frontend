@@ -5,36 +5,10 @@
   display: block;
 }
 
-// The phone: the button under the field.
-.plan-form {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.scope {
-  margin: 0.5rem 0;
-  color: var(--color-contrast-muted);
-}
-
-// Whether this player is replanned, and the shortcuts for the party.
-.replan {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  align-items: center;
-  margin-top: 0.75rem;
-}
-
-.shortcuts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
 .invulnerabilities {
   display: grid;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
 
   legend {
     margin-bottom: 0.25rem;
@@ -46,19 +20,7 @@
   }
 }
 
-// Wider: the button beside the field.
 @include bp.up(sm) {
-  .plan-form {
-    grid-template-columns: minmax(0, 14rem) auto;
-    // The button keeps its own width rather than the rest of the row.
-    justify-content: start;
-    align-items: start;
-
-    button {
-      margin-top: 1.75rem;
-    }
-  }
-
   .invulnerabilities {
     grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   }

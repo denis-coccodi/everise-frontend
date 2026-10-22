@@ -9,11 +9,12 @@ import type { InvulnerabilitySetting, PlanPlayer } from './plan.model';
 export const DEFAULT_MARGIN = 10;
 export const MARGIN_RANGE = { min: 0, max: 50 };
 
-// The member's own character, remembered in this browser so the next
-// report replans them by default: "<name>@<server>".
-const ME_KEY = 'planner.me';
+// The players last replanned, remembered in this browser so the next
+// report replans them by default (the member's own character, mostly):
+// "<name>@<server>" each, as JSON.
+const REPLAN_KEY = 'planner.replan';
 
-export const characterKey = (p: { name: string; server: string | null }) => `${p.name}@${p.server ?? ''}`;
+const characterKey = (p: { name: string; server: string | null }) => `${p.name}@${p.server ?? ''}`;
 
 const LOAD_ERROR = "The planner couldn't be loaded. Check your connection, then try again.";
 
@@ -24,11 +25,10 @@ interface PlanState {
   // invulnerabilities where the plan must use them, and what there is to
   // choose from.
   preparedFor: number | null;
+  players: PlanPlayer[];
   replan: number[];
   invulnerabilities: InvulnerabilityChoice[];
   invulnerabilityOptions: InvulnerabilityOptions | null;
-  // The member's own character, once they've said which it is.
-  me: string | null;
   // The last plan, and the pull it's for.
   plan: Plan | null;
   pullId: number | null;
@@ -44,10 +44,10 @@ export const PlanStore = signalStore(
   withState<PlanState>({
     margin: DEFAULT_MARGIN,
     preparedFor: null,
+    players: [],
     replan: [],
     invulnerabilities: [],
     invulnerabilityOptions: null,
-    me: storedMe(),
     plan: null,
     pullId: null,
     planning: false,
@@ -59,23 +59,32 @@ export const PlanStore = signalStore(
     }),
   })),
   withMethods((store) => {
-    const setReplanned = (playerId: number, on: boolean) => {
-      const others = store.replan().filter((id) => id !== playerId);
-      patchState(store, { replan: on ? [...others, playerId] : others });
+    // Who to replan, remembered for the next reports.
+    const replanOnly = (playerIds: number[]) => {
+      const keys = store
+        .players()
+        .filter((p) => playerIds.includes(p.id))
+        .map(characterKey);
+      try {
+        localStorage.setItem(REPLAN_KEY, JSON.stringify(keys));
+      } catch {
+        // Not remembered; it still applies to this visit.
+      }
+      patchState(store, { replan: playerIds });
     };
     return {
       setMargin(margin: number) {
         patchState(store, { margin });
       },
-      // The options for a pull just opened: the member's own character
-      // replanned (once they've said which it is), the invulnerabilities
-      // where the pull had them.
+      // The options for a pull just opened: those last replanned replanned
+      // again, the invulnerabilities where the pull had them.
       async prepare(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, players: PlanPlayer[]) {
         if (store.preparedFor() === pullId) return;
-        const me = players.find((p) => characterKey(p) === store.me());
+        const remembered = storedReplan();
         patchState(store, {
           preparedFor: pullId,
-          replan: me ? [me.id] : [],
+          players,
+          replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
           invulnerabilities: [],
           invulnerabilityOptions: null,
         });
@@ -87,24 +96,11 @@ export const PlanStore = signalStore(
           patchState(store, { error: LOAD_ERROR });
         }
       },
-      setReplanned,
-      replanOnly(playerIds: number[]) {
-        patchState(store, { replan: playerIds });
+      setReplanned(playerId: number, on: boolean) {
+        const others = store.replan().filter((id) => id !== playerId);
+        replanOnly(on ? [...others, playerId] : others);
       },
-      // The member says this character is theirs, or isn't: remembered for
-      // the next reports, and theirs is replanned.
-      setMe(player: PlanPlayer, mine: boolean) {
-        const key = characterKey(player);
-        const me = mine ? key : store.me() === key ? null : store.me();
-        try {
-          if (me) localStorage.setItem(ME_KEY, me);
-          else localStorage.removeItem(ME_KEY);
-        } catch {
-          // Not remembered; it still applies to this visit.
-        }
-        patchState(store, { me });
-        if (mine) setReplanned(player.id, true);
-      },
+      replanOnly,
       // One of a tank's invulnerability choices (`index` in the list), or a
       // new one for an invulnerability that has none.
       setInvulnerability(player: number, action: number, index: number | null, setting: InvulnerabilitySetting) {
@@ -137,10 +133,11 @@ export const PlanStore = signalStore(
   }),
 );
 
-function storedMe(): string | null {
+function storedReplan(): string[] {
   try {
-    return localStorage.getItem(ME_KEY);
+    const keys: unknown = JSON.parse(localStorage.getItem(REPLAN_KEY) ?? '[]');
+    return Array.isArray(keys) ? keys.filter((k): k is string => typeof k === 'string') : [];
   } catch {
-    return null;
+    return [];
   }
 }
