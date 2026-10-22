@@ -10,18 +10,14 @@
   margin-bottom: 1rem;
 }
 
-// A player the plan replans: a dot after their name.
-.replanned {
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-left: 0.375rem;
-  vertical-align: middle;
-  border-radius: 50%;
-  background: currentColor;
+// A player's tab, with the tick that replans them before it.
+.player {
+  display: flex;
+  align-items: center;
 }
 
-// The phone and tablet: planning shows on the plan's tab only.
+// The phone and tablet: the player's part of planning shows on the plan's
+// tab only.
 cdt-planner-plan-view {
   display: none;
   margin-bottom: 1rem;
@@ -36,8 +32,8 @@ cdt-planner-plan-view.shown {
   color: var(--color-contrast-muted);
 }
 
-// Laptops: the pull and the plan side by side, so no view tabs; planning
-// above them.
+// Laptops: the pull and the plan side by side, so no view tabs; the
+// player's part of planning above them.
 @include bp.up(lg) {
   .views {
     display: none;

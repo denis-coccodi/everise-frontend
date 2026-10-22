@@ -1,0 +1,28 @@
+<form [formRoot]="form" class="plan-form">
+  <cdt-field
+    label="HP margin (%)"
+    for="planner-margin"
+    required
+    hint="The share of max HP each hit must leave, at least."
+  >
+    <input id="planner-margin" type="number" cdtInput inputmode="numeric" [formField]="form.margin" />
+    <cdt-input-errors [field]="form.margin" />
+  </cdt-field>
+  <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning() || !plans.replan().length">
+    {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
+  </button>
+</form>
+<div class="shortcuts">
+  <span class="label">Replan</span>
+  <button cdtButton="chip" type="button" (click)="replanEveryone()">Everyone</button>
+  <button cdtButton="chip" type="button" (click)="plans.replanOnly([])">Nobody</button>
+</div>
+<p class="scope">
+  Plans the mitigations, shields and invulnerabilities of the players ticked on their tabs, the biggest hits first, then
+  their heals in time order: when to use each one so every hit leaves the margin of the HP its player has then, with
+  GCDs only where nothing else will do. Everyone else's actions stay as they were played.
+</p>
+<cdt-message [tone]="plans.replan().length ? 'status' : 'warning'">{{
+  plans.replan().length ? summary() : 'Tick who to replan on their tab, or replan everyone.'
+}}</cdt-message>
+<cdt-message tone="error">{{ plans.error() }}</cdt-message>

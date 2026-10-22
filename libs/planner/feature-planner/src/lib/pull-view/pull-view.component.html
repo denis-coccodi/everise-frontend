@@ -1,13 +1,17 @@
 <cdt-panel [heading]="heading()">
   @if (store.pull.hasValue() && store.catalog.hasValue()) {
+    <cdt-planner-plan-form />
     <ul cdtTabs aria-label="Players" class="players">
       @for (p of players(); track p.id) {
-        <li>
+        <li class="player">
+          <cdt-checkbox
+            class="replan"
+            [checked]="plans.replan().includes(p.id)"
+            (checkedChange)="plans.setReplanned(p.id, $event)"
+            ><span class="visually-hidden">Replan {{ p.name }}</span></cdt-checkbox
+          >
           <button type="button" cdtTab [active]="player()?.id === p.id" (click)="choose(p.id)">
             {{ p.job ?? 'Unknown job' }} {{ p.name }}
-            @if (plans.replan().includes(p.id)) {
-              <span class="replanned" aria-hidden="true"></span><span class="visually-hidden">, replanned</span>
-            }
           </button>
         </li>
       }

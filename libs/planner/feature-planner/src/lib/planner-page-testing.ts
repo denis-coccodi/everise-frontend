@@ -235,3 +235,85 @@ export async function renderPull(timeline = pullTimeline(), catalog = actionCata
   await rendered.settle();
   return rendered;
 }
+
+type RenderedPull = Awaited<ReturnType<typeof renderPull>>;
+
+// The pull with the plan's view open (its tab, below laptops).
+export async function openPlan(timeline = pullTimeline(), catalog = actionCatalog()) {
+  const rendered = await renderPull(timeline, catalog);
+  click(rendered, rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=View] button')[1]);
+  return rendered;
+}
+
+// What the scheduler (imported on first use, outside what Angular waits
+// for) gives: checked until `done`.
+export async function waitFor(rendered: RenderedPull, done: () => boolean) {
+  for (let tries = 0; tries < 100 && !done(); tries++) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    rendered.fixture.detectChanges();
+  }
+}
+
+export function click(rendered: RenderedPull, element: HTMLElement) {
+  element.click();
+  rendered.fixture.detectChanges();
+}
+
+// A player's "Replan" tick, on their tab.
+export const replanTick = (page: HTMLElement, name: string) =>
+  [...page.querySelectorAll('[aria-label=Players] cdt-checkbox')]
+    .find((c) => c.textContent?.includes(`Replan ${name}`))
+    ?.querySelector('input') as HTMLInputElement;
+
+export const formButton = (page: HTMLElement, text: string) =>
+  [...page.querySelectorAll<HTMLButtonElement>('cdt-planner-plan-form button')].find((b) =>
+    b.textContent?.includes(text),
+  ) as HTMLButtonElement;
+
+// Plans the pull with everyone replanned (and the margin, when given), and
+// waits for the plan.
+export async function planEveryone(rendered: RenderedPull, margin?: string) {
+  click(rendered, formButton(rendered.page, 'Everyone'));
+  const input = rendered.page.querySelector<HTMLInputElement>('#planner-margin');
+  if (!input) throw new Error('no margin field');
+  if (margin !== undefined) {
+    input.value = margin;
+    input.dispatchEvent(new Event('input'));
+    rendered.fixture.detectChanges();
+  }
+  rendered.page.querySelector<HTMLButtonElement>('cdt-planner-plan-form button[type=submit]')?.click();
+  const summary = () => rendered.page.querySelector('cdt-planner-plan-form cdt-message')?.textContent?.trim();
+  await waitFor(
+    rendered,
+    () => !!summary() || !!rendered.page.querySelector('cdt-planner-plan-form [role=alert]')?.textContent?.trim(),
+  );
+}
+
+// The catalog with the paladin's Hallowed Ground.
+export function withHallowedGround() {
+  const catalog = actionCatalog();
+  catalog.actions.push({
+    ...catalog.actions[0],
+    id: 30,
+    name: 'Hallowed Ground',
+    recastMs: 420_000,
+    cooldownGroup: 30,
+    effects: [
+      {
+        kind: 'invulnerable',
+        target: 'self',
+        status: 'Hallowed Ground',
+        statusId: null,
+        percent: null,
+        physical: null,
+        magic: null,
+        potency: null,
+        of: null,
+        durationMs: 10_000,
+        stacks: null,
+        condition: null,
+      },
+    ],
+  });
+  return catalog;
+}

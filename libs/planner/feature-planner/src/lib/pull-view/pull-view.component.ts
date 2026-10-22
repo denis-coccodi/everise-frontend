@@ -1,19 +1,36 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
 import { PlanStore, PlannerStore, planLog, playerLog, pullClock } from '@everise/planner/data-access';
-import { MessageComponent, PanelComponent, TabComponent, TabsComponent } from '@everise/ui/components';
+import {
+  CheckboxComponent,
+  MessageComponent,
+  PanelComponent,
+  TabComponent,
+  TabsComponent,
+} from '@everise/ui/components';
+import { PlanFormComponent } from '../plan-form/plan-form.component';
 import { PlanViewComponent } from '../plan-view/plan-view.component';
 import { PullCompareComponent } from '../pull-compare/pull-compare.component';
 
-// The pull picked, a tab per player: as played (the hits they took, what
-// covered each, the heals and mitigations they used) and as the plan has it,
-// on one timeline. Laptops and up show both side by side; narrower screens
-// one at a time, from the view tabs.
+// The pull picked: planning it for everyone (the margin and the button),
+// then a tab per player, with the tick that replans them, as played (the
+// hits they took, what covered each, the heals and mitigations they used)
+// and as the plan has it, on one timeline. Laptops and up show both side by
+// side; narrower screens one at a time, from the view tabs.
 @Component({
   selector: 'cdt-planner-pull-view',
   templateUrl: './pull-view.component.html',
   styleUrl: './pull-view.component.scss',
-  imports: [MessageComponent, PanelComponent, PlanViewComponent, PullCompareComponent, TabComponent, TabsComponent],
+  imports: [
+    CheckboxComponent,
+    MessageComponent,
+    PanelComponent,
+    PlanFormComponent,
+    PlanViewComponent,
+    PullCompareComponent,
+    TabComponent,
+    TabsComponent,
+  ],
   // Focused when a pull is picked, so it takes its heading as its name.
   // A named group, not a landmark: the panel inside is already a region of
   // that name.
@@ -26,8 +43,8 @@ export class PullViewComponent {
   private readonly chosen = signal<number | null>(null);
 
   constructor() {
-    // A pull just opened gets the plan's options: the member's character
-    // replanned, the invulnerabilities where the pull had them.
+    // A pull just opened gets the plan's options: those last replanned
+    // again, the invulnerabilities where the pull had them.
     effect(() => {
       const { pull, catalog, report, pullId } = this.store;
       const id = pullId();

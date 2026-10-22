@@ -1,30 +1,3 @@
-<form [formRoot]="form" class="plan-form">
-  <cdt-field
-    label="HP margin (%)"
-    for="planner-margin"
-    required
-    hint="The share of max HP each hit must leave, at least."
-  >
-    <input id="planner-margin" type="number" cdtInput inputmode="numeric" [formField]="form.margin" />
-    <cdt-input-errors [field]="form.margin" />
-  </cdt-field>
-  <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning() || !plans.replan().length">
-    {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
-  </button>
-</form>
-
-<fieldset class="replan">
-  <legend class="visually-hidden">{{ player().name }} in the plan</legend>
-  <cdt-checkbox [checked]="replanned()" (checkedChange)="plans.setReplanned(player().id, $event)">
-    Replan {{ player().name }}
-  </cdt-checkbox>
-  <cdt-checkbox [checked]="mine()" (checkedChange)="setMine($event)">This is my character</cdt-checkbox>
-  <div class="shortcuts">
-    <button cdtButton="chip" type="button" (click)="plans.replanOnly([player().id])">Only {{ player().name }}</button>
-    <button cdtButton="chip" type="button" (click)="replanEveryone()">Everyone</button>
-  </div>
-</fieldset>
-
 @if (replanned() && invulnerabilities().length) {
   <fieldset class="invulnerabilities">
     <legend>Invulnerabilities</legend>
@@ -50,16 +23,4 @@
     }
   </fieldset>
 }
-
-<p class="scope">
-  Plans the mitigations, shields and invulnerabilities of those replanned, the biggest hits first, then their heals in
-  time order: when to use each one so every hit leaves the margin of the HP its player has then, with GCDs only where
-  nothing else will do. Everyone else's actions stay as they were played.
-</p>
-<cdt-message>{{ summary() }}</cdt-message>
-<cdt-message tone="warning">{{
-  plans.replan().length
-    ? unplaced()
-    : 'Choose who to replan: tick "Replan" in their tab, or "This is my character" in yours.'
-}}</cdt-message>
-<cdt-message tone="error">{{ plans.error() }}</cdt-message>
+<cdt-message [tone]="unplaced() ? 'warning' : 'status'">{{ summary() }} {{ unplaced() }}</cdt-message>

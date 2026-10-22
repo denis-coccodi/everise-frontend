@@ -1,24 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
-import { InputErrorsComponent } from '@everise/core/forms';
-import {
-  InvulnerabilitySetting,
-  MARGIN_RANGE,
-  PlanPlayer,
-  PlanStore,
-  PlannerStore,
-  characterKey,
-  pullClock,
-  unsafeHits,
-} from '@everise/planner/data-access';
-import {
-  ButtonComponent,
-  CheckboxComponent,
-  FieldComponent,
-  InputComponent,
-  MessageComponent,
-} from '@everise/ui/components';
+import { InvulnerabilitySetting, PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
+import { FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
 // One of a tank's invulnerabilities in the form: a choice the plan has
 // (`index` in the options' list), or none yet.
@@ -30,25 +13,15 @@ interface InvulnerabilityRow {
   setting: InvulnerabilitySetting;
 }
 
-// Planning the pull open, from the player's tab: the HP margin to keep
-// (for everyone), whether this player is replanned or kept as played,
-// whether they're the member's own character, a tank's invulnerabilities,
-// and how the plan went for the party and for the player (their part of it
-// is in the pull view's timeline).
+// The player's own part of planning, in their tab: a replanned tank's
+// invulnerabilities, and how the plan went for them (their part of it is in
+// the pull view's timeline). The margin and the button are the plan form's,
+// above the tabs.
 @Component({
   selector: 'cdt-planner-plan-view',
   templateUrl: './plan-view.component.html',
   styleUrl: './plan-view.component.scss',
-  imports: [
-    ButtonComponent,
-    CheckboxComponent,
-    FieldComponent,
-    FormField,
-    FormRoot,
-    InputComponent,
-    InputErrorsComponent,
-    MessageComponent,
-  ],
+  imports: [FieldComponent, InputComponent, MessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlanViewComponent {
@@ -57,25 +30,7 @@ export class PlanViewComponent {
   protected readonly plans = inject(PlanStore);
   protected readonly clock = pullClock;
 
-  private readonly model = signal({ margin: this.plans.margin() });
-  protected readonly form = form(
-    this.model,
-    (path) => {
-      required(path.margin);
-      min(path.margin, MARGIN_RANGE.min);
-      max(path.margin, MARGIN_RANGE.max);
-    },
-    { submission: { action: async () => this.run() } },
-  );
-
-  // The player as the report has them (with their server).
-  private readonly planPlayer = computed<PlanPlayer>(() => {
-    const { id, name } = this.player();
-    const report = this.store.report.hasValue() ? this.store.report.value() : null;
-    return { id, name, server: report?.players.find((p) => p.id === id)?.server ?? null };
-  });
   protected readonly replanned = computed(() => this.plans.replan().includes(this.player().id));
-  protected readonly mine = computed(() => this.plans.me() === characterKey(this.planPlayer()));
   // The tank's invulnerabilities: each choice the plan has, and one row for
   // each with none.
   protected readonly invulnerabilities = computed<InvulnerabilityRow[]>(() => {
@@ -103,17 +58,15 @@ export class PlanViewComponent {
   );
 
   // The plan, when it's for the pull open.
-  protected readonly current = computed(() => (this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null));
-  // How the plan went: for the party, then for this player.
+  private readonly current = computed(() => (this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null));
+  // How the plan went for this player.
   protected readonly summary = computed(() => {
     const plan = this.current();
     if (!plan) return '';
-    const margin = this.plans.margin();
-    const party = unsafeHits(plan);
-    const mine = unsafeHits(plan, this.player().id);
-    if (!party)
-      return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations, shields and heals.`;
-    return `${party} ${party === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free (${mine} of them on ${this.player().name}).`;
+    const short = unsafeHits(plan, this.player().id);
+    const { name } = this.player();
+    if (!short) return `Every hit on ${name} leaves at least ${this.plans.margin()}% of their max HP.`;
+    return `${short} ${short === 1 ? 'hit' : 'hits'} on ${name} ${short === 1 ? 'leaves' : 'leave'} less than ${this.plans.margin()}% of their max HP.`;
   });
   // This player's invulnerabilities the plan couldn't use where asked.
   protected readonly unplaced = computed(() => {
@@ -131,24 +84,8 @@ export class PlanViewComponent {
     return names.length ? `The plan couldn't use ${names.join(', ')}: the recast doesn't allow it.` : '';
   });
 
-  protected setMine(mine: boolean) {
-    this.plans.setMe(this.planPlayer(), mine);
-  }
-
-  protected replanEveryone() {
-    this.plans.replanOnly(this.store.pull.hasValue() ? this.store.pull.value().players.map((p) => p.id) : []);
-  }
-
   protected setInvulnerability(row: InvulnerabilityRow, value: string) {
     const setting: InvulnerabilitySetting = value === 'never' || value === 'planner' ? value : Number(value);
     this.plans.setInvulnerability(this.player().id, row.action, row.index, setting);
-  }
-
-  private async run() {
-    const { pull, catalog, pullId } = this.store;
-    const id = pullId();
-    if (!id || !pull.hasValue() || !catalog.hasValue() || !this.plans.replan().length) return;
-    this.plans.setMargin(this.model().margin);
-    await this.plans.run(id, pull.value(), catalog.value());
   }
 }

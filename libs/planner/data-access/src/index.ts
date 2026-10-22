@@ -6,7 +6,7 @@ export { PlannerService } from './lib/planner.service';
 export { readReportLink } from './lib/report-link';
 export { pullClock } from './lib/pull-time';
 export { planLog, unsafeHits } from './lib/plan-log';
-export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore, characterKey } from './lib/plan.store';
+export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';
 export type { InvulnerabilitySetting, PlanPlayer } from './lib/plan.model';
 export type { PlanEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';
 export type { CompareRow } from './lib/compare-log.model';
