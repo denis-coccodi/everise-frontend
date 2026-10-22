@@ -3,6 +3,7 @@ import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
 import { healTools } from './heal-tools';
+import { healingBuffsOf } from './healing-buffs';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { Plan, PlanOptions } from './plan.model';
@@ -29,6 +30,7 @@ export class PlannerScheduler {
     const mitigation = mitigationTools(timeline.players, catalog, power);
     const heals = healTools(timeline.players, catalog, mitigation, power);
     const mechanics = mechanicsOf(timeline);
+    const buffs = healingBuffsOf(catalog);
     const once = (from?: Plan) =>
       planHeals(
         planMitigation(mechanics, mitigation, maxHp, options, from),
@@ -37,6 +39,7 @@ export class PlannerScheduler {
         heals,
         maxHp,
         options,
+        buffs,
       );
 
     let best = once();
