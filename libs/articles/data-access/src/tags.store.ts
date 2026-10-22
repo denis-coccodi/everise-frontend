@@ -4,10 +4,7 @@ import { inject } from '@angular/core';
 import { pipe, switchMap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { TagsService } from './tags.service';
-
-export interface TagsState {
-  tags: string[];
-}
+import type { TagsState } from './tags.model';
 
 // The popular tags. Provided by the page that shows them (the home page), so
 // they load when it opens.

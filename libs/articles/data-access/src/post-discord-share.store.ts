@@ -5,11 +5,7 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { serverMessage } from '@everise/core/forms';
 import { exhaustMap, pipe, tap } from 'rxjs';
 import { ActionsService } from './actions.service';
-
-export interface PostDiscordShareState {
-  status: 'idle' | 'sending' | 'shared' | 'error';
-  error: string | null;
-}
+import type { PostDiscordShareState } from './post-discord-share.model';
 
 // One post's "Share to Discord" button: sends it to the Everise Discord and
 // says how it went. Provided by the button, so each post has its own.

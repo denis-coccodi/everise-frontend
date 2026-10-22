@@ -1,17 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-
-export type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'outline-primary'
-  | 'outline-secondary'
-  | 'outline-danger'
-  // The big call to action ("Commence").
-  | 'cta'
-  // A small pill button (All / None).
-  | 'chip';
-
-export type ButtonSize = 'sm' | 'md' | 'lg';
+import type { ButtonVariant, ButtonSize } from './button.model';
 
 // A themed button or button-styled link on the native element:
 // <button cdtButton="outline-danger" size="sm">. An empty cdtButton is a

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { ChartLine, LineChartComponent } from './line-chart.component';
+import { LineChartComponent } from './line-chart.component';
+import type { ChartLine } from './line-chart.model';
 
 const day = (date: string) => Date.parse(`${date}T00:00:00Z`);
 

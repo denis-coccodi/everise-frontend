@@ -23,12 +23,15 @@ import {
   spreadSample,
 } from '@everise/roulette/data-access';
 import { ButtonComponent, MessageComponent, PanelComponent, SwitchComponent } from '@everise/ui/components';
-import { Commence, DutyFoundComponent, RouletteResult } from '../duty-found/duty-found.component';
+import { DutyFoundComponent } from '../duty-found/duty-found.component';
 import { PAUSE_BEFORE_DEAL_MS, PAUSE_BETWEEN_REELS_MS, REEL_PREVIEW_MAX, wait } from '../motion';
-import { ReelComponent, ReelItem } from '../reel/reel.component';
-import { Day, bannerOf, dutyItem, jobItem, modeItem, toResult, toSpunCandidate, typeItem } from './reel-items';
+import { ReelComponent } from '../reel/reel.component';
+import { bannerOf, dutyItem, jobItem, modeItem, toResult, toSpunCandidate, typeItem } from './reel-items';
 import { RoulettePicksComponent } from '../roulette-picks/roulette-picks.component';
 import { RouletteSettingsComponent } from '../roulette-settings/roulette-settings.component';
+import type { Commence, RouletteResult } from '../duty-found/duty-found.model';
+import type { ReelItem } from '../reel/reel.model';
+import type { Day } from './reel-items.model';
 
 // The Duty Roulette page: three reels pick the duty type, the duty and the
 // party settings, then the "Duty Found" window offers to post the result.

@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import type { AvatarFrame } from './avatar.model';
 
 // The picture shown for someone without one (as the backend's own default).
 export const DEFAULT_AVATAR = '/assets/images/avatar-profile.png';
-
-export type AvatarFrame = 'none' | 'soft' | 'line' | 'strong' | 'highlight';
-
 // A round profile picture, `size` pixels across, on the avatar disc (the
 // default picture is a dark outline): <cdt-avatar [src]="user.image" [size]="36" />.
 // Without a picture it shows the default one. Decorative by default (it sits

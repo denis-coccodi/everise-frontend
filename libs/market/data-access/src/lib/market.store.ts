@@ -3,10 +3,10 @@ import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { MarketHistory, MarketItem, MarketRegions } from '@everise/core/api-types';
+import { MarketItem } from '@everise/core/api-types';
 import { serverMessage } from '@everise/core/forms';
 import { EMPTY, forkJoin, pipe, retry, switchMap, tap, timer } from 'rxjs';
-import { MAX_WORLDS, MarketSelection, selectionFromQuery, selectionToQuery } from './market-query';
+import { MAX_WORLDS, selectionFromQuery, selectionToQuery } from './market-query';
 import {
   chosenWorlds,
   daysBefore,
@@ -20,6 +20,8 @@ import {
   worldDays,
 } from './market-series';
 import { MarketService } from './market.service';
+import type { MarketState } from './market.model';
+import type { MarketSelection } from './market-selection.model';
 
 // While older days are still being read, the page asks again this often,
 // for the days it doesn't have yet only.
@@ -28,16 +30,6 @@ export const MARKET_POLL_MS = 2000;
 export const DEFAULT_DAYS = 30;
 // Before the regions are known: the first day of Universalis' history.
 const HISTORY_START = '2022-10-01';
-
-interface MarketState extends MarketSelection {
-  // The item picked, once known.
-  known: MarketItem | null;
-  // The region's history, then Oceania's when asked for.
-  histories: MarketHistory[];
-  loadState: 'idle' | 'loading' | 'ready' | 'error';
-  error: string;
-  regions: MarketRegions | null;
-}
 
 function initialState(): MarketState {
   const query = inject(ActivatedRoute, { optional: true })?.snapshot.queryParamMap;

@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SquareCrop } from './crop-geometry';
 import { ImageCropperComponent } from './image-cropper.component';
+import type { SquareCrop } from './image-cropper.model';
 
 @Component({
   imports: [ImageCropperComponent],

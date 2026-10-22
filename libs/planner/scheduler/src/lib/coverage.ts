@@ -7,6 +7,7 @@ import {
   ShieldSize,
   ToolPool,
 } from './plan.model';
+import type { PullFacts } from './coverage.model';
 
 // A use's effects reach a hit: on the party, from the enemy, on its user,
 // or on the member it was given to; while they last.
@@ -17,14 +18,6 @@ export function reaches(tool: MitigationTool, use: PlannedUse, mechanic: Mechani
     if (effect.target === 'target') return hit.player === use.target;
     return true;
   });
-}
-
-// What the projection needs to know of the pull: each player's max HP, and
-// how many hits landed on a player from one moment to another (a shield
-// breaks on the first of them).
-export interface PullFacts {
-  maxHp: Map<number, number>;
-  hitsBetween(player: number, from: number, to: number): number;
 }
 
 // What a hit does with the planned uses up: the mitigations first (each

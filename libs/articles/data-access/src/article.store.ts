@@ -10,7 +10,8 @@ import { FormErrorsStore } from '@everise/core/forms';
 import { concatMap, pipe, switchMap, tap } from 'rxjs';
 import { ArticleState, articleInitialState } from './article.model';
 import { ActionsService } from './actions.service';
-import { ArticlesService, NewComment } from './articles.service';
+import { ArticlesService } from './articles.service';
+import type { NewComment } from './comment.model';
 
 export const ArticleStore = signalStore(
   { providedIn: 'root' },

@@ -1,8 +1,4 @@
-// A piece of an owner's text: words, or a web address to link.
-export interface TextPart {
-  text: string;
-  url?: string;
-}
+import type { TextPart } from './text-links.model';
 
 // Web addresses in text, up to a space or a bracket.
 const ADDRESS = /https?:\/\/[^\s<>()[\]{}"']+/g;

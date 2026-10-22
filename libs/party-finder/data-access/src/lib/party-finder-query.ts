@@ -1,6 +1,7 @@
 import { DataCentre, PartyRole } from '@everise/core/api-types';
-import { PartyFinderFilters, categoryFromId, categoryId } from './listing-filters';
-import { SortOrder, isSortOrder } from './listing-sort';
+import { categoryFromId, categoryId } from './listing-filters';
+import { isSortOrder } from './listing-sort';
+import type { PartyFinderSelection } from './party-finder-selection.model';
 
 // Everything the Party Finder page shows lives in its query string, and only
 // there: what the page shows is what the query says, so a link (or a
@@ -16,14 +17,6 @@ import { SortOrder, isSortOrder } from './listing-sort';
 // without one is someone arriving at /party-finder: they get Everise's own
 // view, Light from Odin. Picking a data centre, Light too, shows all its
 // worlds.
-
-export interface PartyFinderSelection {
-  dataCentre: DataCentre;
-  filters: PartyFinderFilters;
-  sort: SortOrder;
-  page: number;
-}
-
 // Everise's home: where /party-finder starts.
 const HOME_DATA_CENTRE = 'Light';
 const HOME_WORLD = 'odin';

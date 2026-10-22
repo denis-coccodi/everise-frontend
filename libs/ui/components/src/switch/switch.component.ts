@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
-import { IconComponent, IconName } from '../icon/icon.component';
+import { IconComponent } from '../icon/icon.component';
+import type { IconName } from '../icon/icon.model';
 
 // An on/off switch for a setting that takes effect at once:
 // <cdt-switch [(checked)]="dark" onIcon="moon" offIcon="sun">Dark mode</cdt-switch>.

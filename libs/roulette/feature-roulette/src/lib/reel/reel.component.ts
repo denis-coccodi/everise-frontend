@@ -13,18 +13,7 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { reducedMotion, wait } from '../motion';
-
-export interface ReelItem {
-  title: string;
-  detail: string;
-  // An image shown after the title, e.g. a job icon.
-  icon?: string;
-  // A small image before the text, e.g. the duty type's icon.
-  thumb?: string;
-  // An image shown faintly behind the row once it has won, e.g. the duty's
-  // banner. Only the winner's is loaded.
-  backdrop?: string;
-}
+import type { ReelItem } from './reel.model';
 
 // Rows scrolled past before the winner, and the row height in the template.
 const FILLER_ROWS = 34;

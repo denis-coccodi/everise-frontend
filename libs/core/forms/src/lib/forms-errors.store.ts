@@ -1,12 +1,7 @@
 import { computed } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-
-// The API's errors: {"body": ["…"]} for messages written for the reader, or
-// a field name with its problems, e.g. {"email": ["is invalid"]}.
-export interface Errors {
-  [key: string]: string | string[];
-}
+import type { Errors } from './forms-errors.model';
 
 // What to say when the server sent no message of its own.
 export const UNREACHABLE_MESSAGE = "Can't reach the server. Check your connection and try again.";

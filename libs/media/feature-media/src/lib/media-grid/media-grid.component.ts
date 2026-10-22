@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { Attachment } from '@everise/core/api-types';
-import { YouTubeVideo } from '../youtube';
 import { YouTubeEmbedComponent } from '../youtube-embed/youtube-embed.component';
 import { GifComponent } from '../gif/gif.component';
 import { MediaViewerComponent } from '../media-viewer/media-viewer.component';
+import type { YouTubeVideo } from '../youtube.model';
 
 // A post's or comment's images, GIFs and videos, laid out as X does: one
 // large, keeping its shape between 2:1 and 1:2; two side by side; three as

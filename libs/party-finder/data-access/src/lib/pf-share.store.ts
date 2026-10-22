@@ -9,18 +9,7 @@ import { MediaService } from '@everise/media/data-access';
 import { catchError, exhaustMap, map, of, pipe, switchMap, tap } from 'rxjs';
 import { PartyFinderService } from './party-finder.service';
 import { PartyFinderStore } from './party-finder.store';
-
-// How a member shares a listing: as a post in the feeds, or in the Everise
-// Discord only.
-export type ShareWay = 'post' | 'discord';
-
-// What the member wrote, whether a post goes to Discord too, and the
-// picture of the listing's card for Discord, when the browser made one.
-export interface ShareChoice {
-  comment: string;
-  shareToDiscord: boolean;
-  picture?: Blob;
-}
+import type { ShareChoice, ShareWay } from './pf-share.model';
 
 interface PfShareState {
   // The listing in the share window, the way it's shared, its data centre

@@ -1,6 +1,5 @@
-import { YouTubeVideo, youTubeVideo } from '../youtube';
-
-export type RichTextPart = { kind: 'markdown'; text: string } | { kind: 'youtube'; video: YouTubeVideo };
+import { youTubeVideo } from '../youtube';
+import type { RichTextPart } from './rich-text.model';
 
 // Splits a post or comment into Markdown and YouTube videos: a YouTube link
 // alone on its line (optionally in <angle brackets>) becomes a video.

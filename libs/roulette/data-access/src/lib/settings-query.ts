@@ -1,6 +1,6 @@
 import { DutyGroup } from '@everise/core/api-types';
-import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteSettings } from './roulette-engine';
-
+import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE } from './roulette-engine';
+import type { RouletteSettings, DutyTypeId } from './roulette.model';
 // The Duty Finder settings live in the page's query string, and only there:
 // the page shows what the query says, so a link (or a bookmark, or Back)
 // brings them along, and plain /roulette is nothing ticked. Everything is
@@ -12,12 +12,6 @@ import { GOLD_SAUCER_TYPE, PVP_TYPE, ROULETTES_TYPE, RouletteSettings } from './
 //   min=50  max=90                   the level range
 
 export const ROULETTES_TYPE_ID = 0;
-
-// A duty type's name and the id the query string knows it by.
-export interface DutyTypeId {
-  id: number;
-  name: string;
-}
 
 // The query value for each picked type.
 const PICK_PARAMS: Record<string, string> = {

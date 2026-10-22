@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ICON_NAMES, IconComponent, IconName } from './icon.component';
+import { ICON_NAMES, IconComponent } from './icon.component';
+import type { IconName } from './icon.model';
 
 @Component({
   imports: [IconComponent],

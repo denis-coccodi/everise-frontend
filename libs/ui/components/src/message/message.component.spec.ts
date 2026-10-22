@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MessageComponent, MessageTone } from './message.component';
+import { MessageComponent } from './message.component';
+import type { MessageTone } from './message.model';
 
 @Component({
   imports: [MessageComponent],

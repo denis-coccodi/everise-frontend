@@ -4,11 +4,9 @@ import { patchState, signalStoreFeature, type, withComputed, withMethods } from 
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tap } from 'rxjs';
 import { DutyGroup, DutyRoulette } from '@everise/core/api-types';
-import { PICKED_TYPES, RouletteSettings, RunMode, pickOptions, tidySettings, usualPicks } from './roulette-engine';
+import { PICKED_TYPES, pickOptions, tidySettings, usualPicks } from './roulette-engine';
 import { dutyTypeIds, level, settingsFromQuery, settingsToQuery } from './settings-query';
-
-export type RouletteLoadState = 'loading' | 'ready' | 'empty' | 'error';
-
+import type { RouletteSettings, RunMode, RouletteLoadState } from './roulette.model';
 // The Duty Finder settings of the roulette's store, a mirror of the page's
 // query string (settings-query.ts). Every change, a tick or a new query
 // (Back, Forward, a link), goes through show(): the settings are tidied,

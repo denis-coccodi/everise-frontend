@@ -10,13 +10,7 @@ import { exhaustMap, pipe, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { AuthStore } from './auth.store';
 import { resetEmailState } from './reset-email';
-
-export type PasswordResetState = {
-  // Asking for a code, or setting the password, right now.
-  busy: boolean;
-  // The new password is set; every device was signed out.
-  done: boolean;
-};
+import type { PasswordResetState } from './password-reset.model';
 
 // "Forgot password?": asking for a code by email, which goes on to the page
 // for entering it, then setting a new password with it. Provided by those

@@ -1,6 +1,7 @@
 import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { TURNSTILE_SITE_KEY, TurnstileApi, TurnstileComponent } from './turnstile.component';
+import { TURNSTILE_SITE_KEY, TurnstileComponent } from './turnstile.component';
+import type { TurnstileApi } from './turnstile.model';
 
 @Component({
   imports: [TurnstileComponent],

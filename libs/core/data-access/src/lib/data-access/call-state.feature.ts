@@ -1,30 +1,13 @@
 /* eslint-disable */
 import { Signal, computed } from '@angular/core';
 import { SignalStoreFeature, signalStoreFeature, withComputed, withState } from '@ngrx/signals';
-
-export type CallState = 'init' | 'loading' | 'loaded' | { error: string };
-
-export type NamedCallStateSlice<Collection extends string> = {
-  [K in Collection as `${K}CallState`]: CallState;
-};
-
-export type CallStateSlice = {
-  callState: CallState;
-};
-
-export type NamedCallStateSignals<Prop extends string> = {
-  [K in Prop as `${K}Loading`]: Signal<boolean>;
-} & {
-  [K in Prop as `${K}Loaded`]: Signal<boolean>;
-} & {
-  [K in Prop as `${K}Error`]: Signal<string | null>;
-};
-
-export type CallStateSignals = {
-  loading: Signal<boolean>;
-  loaded: Signal<boolean>;
-  error: Signal<string | null>;
-};
+import type {
+  CallState,
+  NamedCallStateSlice,
+  CallStateSlice,
+  NamedCallStateSignals,
+  CallStateSignals,
+} from './call-state.model';
 
 export function getCallStateKeys(config?: { collection?: string }) {
   const prop = config?.collection;

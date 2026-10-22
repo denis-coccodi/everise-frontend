@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { AvatarComponent, AvatarFrame, DEFAULT_AVATAR } from './avatar.component';
+import { AvatarComponent, DEFAULT_AVATAR } from './avatar.component';
+import type { AvatarFrame } from './avatar.model';
 
 @Component({
   imports: [AvatarComponent],
