@@ -47,6 +47,8 @@ export interface MitigationTool {
   // What it spends besides its recast, when that's what really limits it
   // (a gauge, a card, a buff another action grants).
   pool: ToolPool | null;
+  // For an action another grants, which and how; null for any other.
+  grantedBy: Grant | null;
   effects: MitigationEffect[];
 }
 
@@ -56,6 +58,15 @@ export interface ToolPool {
   name: string;
   gainMs: number;
   max: number;
+}
+
+// An action another grants: usable only after a use of that one, up to
+// `uses` times in the `withinMs` after it (Divine Caress: once in the 30s
+// after Temperance; Accession, as often as it fits in Seraphism's 20s).
+export interface Grant {
+  action: number;
+  withinMs: number;
+  uses: number;
 }
 
 export interface MitigationEffect {
@@ -95,6 +106,7 @@ export interface HealTool {
   castMs: number;
   group: string;
   pool: ToolPool | null;
+  grantedBy: Grant | null;
   effects: HealEffect[];
   // Null for a heal that lands as it's cast.
   delayed: DelayedHeal | null;

@@ -14,6 +14,7 @@ describe('pullEvents', () => {
     castMs: 0,
     group: '2:189',
     pool: null,
+    grantedBy: null,
     effects: [{ target: 'target', size: { hp: 60_000 }, ticks: 1, status: null, statusId: null }],
     delayed: null,
   };

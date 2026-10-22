@@ -1,4 +1,4 @@
-import { fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 
 // A mitigation goes up at least this long before the hit it's for.
@@ -57,6 +57,10 @@ export function planMitigation(
     if (t) add({ use: { ...use, covers: [] }, tool: t, value: 0 });
   }
 
+  // When a player has one action planned.
+  const timesOf = (player: number, action: number) =>
+    uses.filter((u) => u.player === player && u.action === action).map((u) => u.at);
+
   // What one more use of `t` for `m` would add, at its best moment; null
   // when it can't be used for it.
   const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean): Candidate | null => {
@@ -70,6 +74,12 @@ export function planMitigation(
     for (const at of momentsFor(m, t, mechanics)) {
       if (!fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
+      if (
+        t.grantedBy &&
+        !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy)
+      ) {
+        continue;
+      }
       const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
       // Only what's up around its window can change what it adds.
       const window = mechanics.filter((o) => o.at >= at && o.at <= at + lasts);

@@ -17,6 +17,7 @@ describe('delayedEvents', () => {
     castMs: 0,
     group: '2:1',
     pool: null,
+    grantedBy: null,
     effects: [{ target, size: { hp: 10_000 }, ticks: 1, status: null, statusId: null }],
     delayed: {
       delaysMs: [15_000],
