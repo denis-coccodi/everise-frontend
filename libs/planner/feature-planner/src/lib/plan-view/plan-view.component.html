@@ -58,6 +58,8 @@
 </p>
 <cdt-message>{{ summary() }}</cdt-message>
 <cdt-message tone="warning">{{
-  plans.replan().length ? '' : 'Choose who to replan: tick "Replan" in their tab, or "This is my character" in yours.'
+  plans.replan().length
+    ? unplaced()
+    : 'Choose who to replan: tick "Replan" in their tab, or "This is my character" in yours.'
 }}</cdt-message>
 <cdt-message tone="error">{{ plans.error() }}</cdt-message>

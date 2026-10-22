@@ -115,6 +115,21 @@ export class PlanViewComponent {
       return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations, shields and heals.`;
     return `${party} ${party === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free (${mine} of them on ${this.player().name}).`;
   });
+  // This player's invulnerabilities the plan couldn't use where asked.
+  protected readonly unplaced = computed(() => {
+    const plan = this.current();
+    const options = this.plans.invulnerabilityOptions();
+    if (!plan || !options) return '';
+    const names = plan.unplaced
+      .filter((c) => c.player === this.player().id && c.mechanic !== null)
+      .map((c) => {
+        const tool =
+          options.tools.find((t) => t.player === c.player && t.action === c.action)?.name ?? 'An invulnerability';
+        const m = options.mechanics.find((o) => o.id === c.mechanic);
+        return `${tool} at ${m ? `${pullClock(m.at)} ${m.name}` : 'that mechanic'}`;
+      });
+    return names.length ? `The plan couldn't use ${names.join(', ')}: the recast doesn't allow it.` : '';
+  });
 
   protected setMine(mine: boolean) {
     this.plans.setMe(this.planPlayer(), mine);

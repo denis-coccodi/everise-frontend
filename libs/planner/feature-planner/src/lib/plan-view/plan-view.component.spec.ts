@@ -156,30 +156,7 @@ describe('PlanViewComponent', () => {
   });
 
   it("offers a replanned tank's invulnerabilities, where the pull had them by default", async () => {
-    const catalog = actionCatalog();
-    catalog.actions.push({
-      ...catalog.actions[0],
-      id: 30,
-      name: 'Hallowed Ground',
-      recastMs: 420_000,
-      cooldownGroup: 30,
-      effects: [
-        {
-          kind: 'invulnerable',
-          target: 'self',
-          status: 'Hallowed Ground',
-          statusId: null,
-          percent: null,
-          physical: null,
-          magic: null,
-          potency: null,
-          of: null,
-          durationMs: 10_000,
-          stacks: null,
-          condition: null,
-        },
-      ],
-    });
+    const catalog = withHallowedGround();
     const timeline = pullTimeline();
     timeline.playerCasts.push({ at: 62_000, source: 1, target: null, action: 30, castMs: null });
     const rendered = await openPlan(timeline, catalog);
@@ -204,6 +181,23 @@ describe('PlanViewComponent', () => {
     expect(select()?.selectedOptions[0].textContent).toBe('Never');
   });
 
+  it("says which invulnerability the plan couldn't use where asked", async () => {
+    // Hallowed Ground twice for one hit: the second is within its recast.
+    const timeline = pullTimeline();
+    timeline.playerCasts.push(
+      { at: 62_000, source: 1, target: null, action: 30, castMs: null },
+      { at: 63_000, source: 1, target: null, action: 30, castMs: null },
+    );
+    const rendered = await openPlan(timeline, withHallowedGround());
+    await waitFor(rendered, () => !!rendered.page.querySelector('cdt-planner-plan-view .invulnerabilities'));
+
+    await plan(rendered);
+
+    expect(
+      rendered.page.querySelector('cdt-planner-plan-view cdt-message[data-tone=warning]')?.textContent?.trim(),
+    ).toBe("The plan couldn't use Hallowed Ground at 1:05 Killer Voice: the recast doesn't allow it.");
+  });
+
   it('keeps the plan when another player is picked, showing their part', async () => {
     const rendered = await openPlan(overwhelming());
     await plan(rendered);
@@ -217,3 +211,32 @@ describe('PlanViewComponent', () => {
     expect(log).toContain('took 210,000 as played');
   });
 });
+
+// The catalog with the paladin's Hallowed Ground.
+function withHallowedGround() {
+  const catalog = actionCatalog();
+  catalog.actions.push({
+    ...catalog.actions[0],
+    id: 30,
+    name: 'Hallowed Ground',
+    recastMs: 420_000,
+    cooldownGroup: 30,
+    effects: [
+      {
+        kind: 'invulnerable',
+        target: 'self',
+        status: 'Hallowed Ground',
+        statusId: null,
+        percent: null,
+        physical: null,
+        magic: null,
+        potency: null,
+        of: null,
+        durationMs: 10_000,
+        stacks: null,
+        condition: null,
+      },
+    ],
+  });
+  return catalog;
+}
