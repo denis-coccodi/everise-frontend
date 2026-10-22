@@ -1,4 +1,5 @@
 import {
+  DamageType,
   Mechanic,
   MechanicHit,
   MitigationEffect,
@@ -32,7 +33,7 @@ export function projected(
   toolOf: (use: PlannedUse) => MitigationTool,
   facts: PullFacts,
 ): { damage: number; absorbed: number; statuses: string[] } {
-  const strongest = new Map<string, MitigationEffect>();
+  const strongest = new Map<string, { share: number; status: string }>();
   const shields = new Map<string, { hp: number; status: string }>();
   for (const use of uses) {
     for (const effect of reaches(toolOf(use), use, mechanic, hit)) {
@@ -40,8 +41,10 @@ export function projected(
         if (facts.hitsBetween(hit.player, use.at, mechanic.at) >= effect.hits) continue;
         const hp = shieldHp(effect.shield, hit.player, facts);
         if (hp > (shields.get(effect.stack)?.hp ?? 0)) shields.set(effect.stack, { hp, status: effect.status });
-      } else if (effect.share > (strongest.get(effect.stack)?.share ?? 0)) {
-        strongest.set(effect.stack, effect);
+      } else {
+        const share = shareAgainst(effect, mechanic.damageType);
+        if (share > (strongest.get(effect.stack)?.share ?? 0))
+          strongest.set(effect.stack, { share, status: effect.status });
       }
     }
   }
@@ -55,6 +58,14 @@ export function projected(
     absorbed: Math.round(absorbed),
     statuses: [...[...strongest.values()].map((e) => e.status), ...[...shields.values()].map((s) => s.status)],
   };
+}
+
+// The share a mitigation takes off a hit of this type: none of unique
+// damage; where the log doesn't say, the smaller of the two.
+export function shareAgainst(effect: MitigationEffect, type: DamageType | null) {
+  if (type === 'unique') return 0;
+  if (type === null) return Math.min(effect.physical, effect.magic);
+  return effect[type];
 }
 
 function shieldHp(size: ShieldSize, player: number, facts: PullFacts) {

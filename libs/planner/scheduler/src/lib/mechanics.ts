@@ -35,6 +35,8 @@ export function mechanicsOf(timeline: PullTimeline): Mechanic[] {
       action: group.action,
       name: actionName.get(group.action) ?? 'Unknown',
       kind,
+      // One attack: one damage type.
+      damageType: group.hits[0].damageType,
       hits: group.hits.map((hit) => ({ player: hit.target, unmitigated: unmitigated(hit), asPlayed: hit.amount })),
     };
   });

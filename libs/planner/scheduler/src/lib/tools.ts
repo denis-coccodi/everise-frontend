@@ -125,7 +125,9 @@ function mitigationEffects(action: CatalogAction): MitigationEffect[] {
       const status = e.status ?? action.name;
       return {
         target: e.target,
-        share: shareOf(e) / 100,
+        // One percent for both, or each its own.
+        physical: (e.percent ?? e.physical ?? 0) / 100,
+        magic: (e.percent ?? e.magic ?? 0) / 100,
         shield: null,
         hits: 1,
         durationMs: e.durationMs as number,
@@ -133,7 +135,7 @@ function mitigationEffects(action: CatalogAction): MitigationEffect[] {
         stack: SAME_STACK[status] ?? status,
       };
     })
-    .filter((e) => e.share > 0);
+    .filter((e) => e.physical > 0 || e.magic > 0);
 }
 
 // A shield's size: a potency (at its caster's power), a share of the heal
@@ -154,7 +156,8 @@ function shieldEffects(action: CatalogAction, player: TimelinePlayer, power: num
     const status = e.status ?? action.name;
     effects.push({
       target: e.target,
-      share: 0,
+      physical: 0,
+      magic: 0,
       shield,
       hits: e.stacks ?? 1,
       durationMs: e.durationMs as number,
@@ -163,10 +166,4 @@ function shieldEffects(action: CatalogAction, player: TimelinePlayer, power: num
     });
   }
   return effects;
-}
-
-// The share taken off; where physical and magic differ, the smaller.
-function shareOf(e: ActionEffect) {
-  if (e.percent !== null) return e.percent;
-  return Math.min(e.physical ?? 0, e.magic ?? 0);
 }

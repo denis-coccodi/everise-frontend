@@ -24,7 +24,14 @@ describe('mitigationTools', () => {
 
     // 300 potency × 100 HP a potency × 180%.
     expect(adloquium?.effects).toEqual([
-      expect.objectContaining({ target: 'target', share: 0, shield: { hp: 54_000 }, hits: 1, status: 'Galvanize' }),
+      expect.objectContaining({
+        target: 'target',
+        physical: 0,
+        magic: 0,
+        shield: { hp: 54_000 },
+        hits: 1,
+        status: 'Galvanize',
+      }),
     ]);
     expect(adloquium?.gcd).toBe(true);
     // 10% of the paladin's 100,000 HP.
@@ -52,11 +59,12 @@ describe('mitigationTools', () => {
     expect(troubadour?.effects[0]).toMatchObject({
       status: 'Troubadour',
       stack: 'ranged party mitigation',
-      share: 0.15,
+      physical: 0.15,
+      magic: 0.15,
     });
   });
 
-  it('takes the smaller share where physical and magic differ, and leaves out conditional effects', () => {
+  it('keeps the physical and magic shares apart, and leaves out conditional effects', () => {
     const effect = {
       kind: 'mitigation' as const,
       target: 'party' as const,
@@ -79,7 +87,9 @@ describe('mitigationTools', () => {
       ],
     });
 
-    expect(tools.map((t) => [t.name, t.effects.map((e) => e.share)])).toEqual([['Dark Missionary', [0.05]]]);
+    expect(tools.map((t) => [t.name, t.effects.map((e) => [e.physical, e.magic])])).toEqual([
+      ['Dark Missionary', [[0.05, 0.1]]],
+    ]);
   });
 });
 

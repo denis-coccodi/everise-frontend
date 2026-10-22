@@ -4,8 +4,8 @@ import { planLog, unsafeHits } from './plan-log';
 
 const plan: Plan = {
   mechanics: [
-    { id: 0, at: 65_000, action: 45956, name: 'Killer Voice', kind: 'raidwide', hits: [] },
-    { id: 1, at: 200_000, action: 45956, name: 'Killer Voice', kind: 'raidwide', hits: [] },
+    { id: 0, at: 65_000, action: 45956, name: 'Killer Voice', kind: 'raidwide', damageType: 'magic', hits: [] },
+    { id: 1, at: 200_000, action: 45956, name: 'Killer Voice', kind: 'raidwide', damageType: 'magic', hits: [] },
   ],
   uses: [
     { player: 1, action: 7535, name: 'Reprisal', at: 64_500, target: null, covers: [0] },
