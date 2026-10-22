@@ -123,4 +123,21 @@ describe('PlannerScheduler', () => {
   it("uses nothing on hits that don't need it", () => {
     expect(usesOf(plan([[30, 'Tickle', 3, 20_000]]))).toEqual([]);
   });
+
+  it('plans again around the HP a hit lands on when no heal can fill it', () => {
+    // A gaze no mitigation lowers, then a buster that would be fine at full
+    // HP: nothing heals in between, so it lands on 50,000.
+    const timeline = pull([
+      [30, 'Gaze', 1, 60_000],
+      [50, 'Buster', 1, 44_000],
+    ]);
+    timeline.damage[0].damageType = 'unique';
+
+    const p = new PlannerScheduler().plan(timeline, catalog(), { margin: 0.1 });
+
+    const buster = p.hits[1];
+    expect(buster).toMatchObject({ hpBefore: 50_000, safe: true });
+    expect(buster.planned).toBeLessThanOrEqual(40_000);
+    expect(p.uses.find((u) => u.name === 'Guardian')?.at).toBe(49_500);
+  });
 });

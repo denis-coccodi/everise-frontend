@@ -1,6 +1,5 @@
-import { fitsPool, fitsRecast, projected, reaches } from './coverage';
+import { fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
-import type { PullFacts } from './coverage.model';
 
 // A mitigation goes up at least this long before the hit it's for.
 const LEAD_MS = 500;
@@ -21,19 +20,29 @@ interface Candidate {
 // margin, so big cooldowns aren't spent early on small hits; then the oGCDs
 // left over where they add the most margin. A GCD (Succor, Adloquium...)
 // costs damage, so it counts for less and isn't spent on spare margin.
+// Each hit is planned as if it landed at full HP; or, replanning `from` an
+// earlier plan, on top of its mitigations, at the HP its heals left.
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
   maxHp: Map<number, number>,
   options: PlanOptions,
+  from?: Plan,
 ): Plan {
   const uses: PlannedUse[] = [];
+  // The HP each hit lands on, by "<mechanic>:<player>".
+  const hpAt = new Map<string, number>();
+  for (const hit of from?.hits ?? [])
+    if (hit.hpBefore !== null) hpAt.set(`${hit.mechanic}:${hit.player}`, hit.hpBefore);
   const toolOf = new Map<PlannedUse, MitigationTool>();
   const tool = (use: PlannedUse) => toolOf.get(use) as MitigationTool;
   const facts = pullFacts(mechanics, maxHp);
   const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) => projected(m, h, list, of, facts);
-  const limit = (player: number) => (maxHp.get(player) ?? Infinity) * (1 - options.margin);
-  const danger = (m: Mechanic) => Math.max(...m.hits.map((h) => h.unmitigated / (maxHp.get(h.player) ?? Infinity)));
+  const max = (h: MechanicHit) => maxHp.get(h.player) ?? Infinity;
+  // The HP a hit lands on, and the most it may take and leave the margin.
+  const hpOf = (m: Mechanic, h: MechanicHit) => Math.min(max(h), hpAt.get(`${m.id}:${h.player}`) ?? Infinity);
+  const limit = (m: Mechanic, h: MechanicHit) => hpOf(m, h) - options.margin * max(h);
+  const danger = (m: Mechanic) => Math.max(...m.hits.map((h) => h.unmitigated / hpOf(m, h)));
   const order = [...mechanics].sort((a, b) => danger(b) - danger(a) || a.at - b.at);
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
@@ -41,6 +50,12 @@ export function planMitigation(
     uses.push(candidate.use);
     toolOf.set(candidate.use, candidate.tool);
   };
+  // An earlier plan's mitigations stay: taking one away would leave its hits
+  // bigger, and the HP after them lower than the plan was made for.
+  for (const use of from?.uses ?? []) {
+    const t = tools.find((o) => o.player === use.player && o.action === use.action);
+    if (t) add({ use: { ...use, covers: [] }, tool: t, value: 0 });
+  }
 
   // What one more use of `t` for `m` would add, at its best moment; null
   // when it can't be used for it.
@@ -49,7 +64,7 @@ export function planMitigation(
     const spent = t.pool
       ? uses.filter((u) => u.player === t.player && tool(u).pool?.name === t.pool?.name).map((u) => u.at)
       : [];
-    const target = t.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, maxHp) : null;
+    const target = t.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
     const lasts = Math.max(...t.effects.map((e) => e.durationMs));
     let found: Candidate | null = null;
     for (const at of momentsFor(m, t, mechanics)) {
@@ -80,7 +95,7 @@ export function planMitigation(
   // Every hit within the margin, the most dangerous mechanics first.
   for (const m of order) {
     for (;;) {
-      const short = (h: MechanicHit) => project(m, h, uses).damage > limit(h.player);
+      const short = (h: MechanicHit) => project(m, h, uses).damage > limit(m, h);
       if (!m.hits.some(short)) break;
       const pick = pickBest(tools.map((t) => best(m, t, short)));
       if (!pick) break;
@@ -91,7 +106,7 @@ export function planMitigation(
   // taking more than half of what the margin allows.
   const spare = tools.filter((t) => !t.gcd);
   for (const m of order) {
-    const heavy = (h: MechanicHit) => project(m, h, uses).damage > limit(h.player) / 2;
+    const heavy = (h: MechanicHit) => project(m, h, uses).damage > limit(m, h) / 2;
     for (let n = 0; n < SPARE_PER_MECHANIC && m.hits.some(heavy); n++) {
       const pick = pickBest(spare.map((t) => best(m, t, heavy)));
       if (!pick) break;
@@ -113,7 +128,7 @@ export function planMitigation(
         // At full HP: the heals come after.
         hpBefore: hp ?? null,
         share: hp ? damage / hp : null,
-        safe: damage <= limit(hit.player),
+        safe: damage <= limit(m, hit),
         covers: statuses,
       };
     }),
@@ -122,19 +137,6 @@ export function planMitigation(
     use.covers = mechanics.filter((m) => m.hits.some((h) => reaches(tool(use), use, m, h).length)).map((m) => m.id);
   }
   return { mechanics, uses: [...uses].sort((a, b) => a.at - b.at || a.player - b.player), hits };
-}
-
-// Each player's max HP, and how many hits landed on them between two
-// moments (from, inclusive, to the second, exclusive).
-function pullFacts(mechanics: Mechanic[], maxHp: Map<number, number>): PullFacts {
-  const times = new Map<number, number[]>();
-  for (const m of mechanics) {
-    for (const hit of m.hits) times.set(hit.player, [...(times.get(hit.player) ?? []), m.at]);
-  }
-  return {
-    maxHp,
-    hitsBetween: (player, from, to) => (times.get(player) ?? []).filter((at) => at >= from && at < to).length,
-  };
 }
 
 // When a use could go up for `m`: as late as it can, and earlier where its
@@ -151,16 +153,17 @@ function momentsFor(m: Mechanic, t: MitigationTool, mechanics: Mechanic[]) {
   return [...moments].filter((at) => at >= 0);
 }
 
-// The hit of `m` that the plan so far leaves the most of the player's HP to.
+// The hit of `m` the plan so far leaves taking the most of the HP it lands
+// on.
 function mostEndangered(
   m: Mechanic,
   uses: PlannedUse[],
   project: (m: Mechanic, h: MechanicHit, list: PlannedUse[]) => { damage: number },
-  maxHp: Map<number, number>,
+  hpOf: (m: Mechanic, h: MechanicHit) => number,
 ) {
   let worst: { player: number; share: number } | null = null;
   for (const hit of m.hits) {
-    const share = project(m, hit, uses).damage / (maxHp.get(hit.player) ?? Infinity);
+    const share = project(m, hit, uses).damage / hpOf(m, hit);
     if (!worst || share > worst.share) worst = { player: hit.player, share };
   }
   return worst?.player ?? null;
