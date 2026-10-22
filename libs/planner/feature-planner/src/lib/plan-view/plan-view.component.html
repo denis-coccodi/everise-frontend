@@ -8,14 +8,56 @@
     <input id="planner-margin" type="number" cdtInput inputmode="numeric" [formField]="form.margin" />
     <cdt-input-errors [field]="form.margin" />
   </cdt-field>
-  <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning()">
+  <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning() || !plans.replan().length">
     {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
   </button>
 </form>
+
+<fieldset class="replan">
+  <legend class="visually-hidden">{{ player().name }} in the plan</legend>
+  <cdt-checkbox [checked]="replanned()" (checkedChange)="plans.setReplanned(player().id, $event)">
+    Replan {{ player().name }}
+  </cdt-checkbox>
+  <cdt-checkbox [checked]="mine()" (checkedChange)="setMine($event)">This is my character</cdt-checkbox>
+  <div class="shortcuts">
+    <button cdtButton="chip" type="button" (click)="plans.replanOnly([player().id])">Only {{ player().name }}</button>
+    <button cdtButton="chip" type="button" (click)="replanEveryone()">Everyone</button>
+  </div>
+</fieldset>
+
+@if (replanned() && invulnerabilities().length) {
+  <fieldset class="invulnerabilities">
+    <legend>Invulnerabilities</legend>
+    @for (row of invulnerabilities(); track row.key) {
+      <cdt-field
+        [label]="row.name"
+        [for]="'planner-invulnerability-' + row.key"
+        hint="Where the group uses it, as in the pull by default: a mechanic one tank takes alone, or makes simpler. Only if needed: where nothing else saves a hit."
+      >
+        <select
+          #choice
+          cdtInput
+          [id]="'planner-invulnerability-' + row.key"
+          (change)="setInvulnerability(row, choice.value)"
+        >
+          <option value="planner" [selected]="row.setting === 'planner'">Only if needed</option>
+          <option value="never" [selected]="row.setting === 'never'">Never</option>
+          @for (m of mechanics(); track m.id) {
+            <option [value]="m.id" [selected]="row.setting === m.id">{{ clock(m.at) }} {{ m.name }}</option>
+          }
+        </select>
+      </cdt-field>
+    }
+  </fieldset>
+}
+
 <p class="scope">
-  Plans the party's mitigations and shields, the biggest hits first, then the healers' heals in time order: when to use
-  each one so every hit leaves the margin of the HP its player has then, with GCDs only where nothing else will do.
-  Everyone else's healing stays as it was played.
+  Plans the mitigations, shields and invulnerabilities of those replanned, the biggest hits first, then their heals in
+  time order: when to use each one so every hit leaves the margin of the HP its player has then, with GCDs only where
+  nothing else will do. Everyone else's actions stay as they were played.
 </p>
 <cdt-message>{{ summary() }}</cdt-message>
+<cdt-message tone="warning">{{
+  plans.replan().length ? '' : 'Choose who to replan: tick "Replan" in their tab, or "This is my character" in yours.'
+}}</cdt-message>
 <cdt-message tone="error">{{ plans.error() }}</cdt-message>

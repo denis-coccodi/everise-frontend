@@ -5,6 +5,9 @@
         <li>
           <button type="button" cdtTab [active]="player()?.id === p.id" (click)="choose(p.id)">
             {{ p.job ?? 'Unknown job' }} {{ p.name }}
+            @if (plans.replan().includes(p.id)) {
+              <span class="replanned" aria-hidden="true"></span><span class="visually-hidden">, replanned</span>
+            }
           </button>
         </li>
       }

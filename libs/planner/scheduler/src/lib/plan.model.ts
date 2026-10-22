@@ -23,6 +23,14 @@ export interface InvulnerabilityChoice {
   mechanic: number | null;
 }
 
+// What there is to choose from for the tanks' invulnerabilities: each
+// tank's, the mechanics that hit each player, and where the pull had them.
+export interface InvulnerabilityOptions {
+  tools: { player: number; action: number; name: string }[];
+  mechanics: { id: number; at: number; name: string; players: number[] }[];
+  played: InvulnerabilityChoice[];
+}
+
 // One player's part of a mechanic.
 export interface MechanicHit {
   player: number;

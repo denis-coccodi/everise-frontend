@@ -1,4 +1,4 @@
-import { pullTimeline, renderPull } from '../planner-page-testing';
+import { actionCatalog, pullTimeline, renderPull } from '../planner-page-testing';
 
 // The pull with the scholar's last hit far past what any mitigation could
 // bring within the margin.
@@ -17,15 +17,40 @@ function survivable() {
 }
 
 describe('PlanViewComponent', () => {
-  async function openPlan(timeline = pullTimeline()) {
-    const rendered = await renderPull(timeline);
+  beforeEach(() => localStorage.clear());
+
+  async function openPlan(timeline = pullTimeline(), catalog = actionCatalog()) {
+    const rendered = await renderPull(timeline, catalog);
     const viewTabs = rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=View] button');
     viewTabs[1].click();
     rendered.fixture.detectChanges();
+    // The scheduler (imported on first use) gives the plan's options.
+    await waitFor(rendered, () => !!rendered.page.querySelector('cdt-planner-plan-view .replan'));
     return rendered;
   }
 
+  async function waitFor(rendered: Awaited<ReturnType<typeof renderPull>>, done: () => boolean) {
+    for (let tries = 0; tries < 100 && !done(); tries++) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      rendered.fixture.detectChanges();
+    }
+  }
+
+  const button = (page: HTMLElement, text: string) =>
+    [...page.querySelectorAll<HTMLButtonElement>('cdt-planner-plan-view button')].find((b) =>
+      b.textContent?.includes(text),
+    ) as HTMLButtonElement;
+  const checkbox = (page: HTMLElement, text: string) =>
+    [...page.querySelectorAll('cdt-planner-plan-view cdt-checkbox')]
+      .find((c) => c.textContent?.includes(text))
+      ?.querySelector('input') as HTMLInputElement;
+  const click = (rendered: Awaited<ReturnType<typeof renderPull>>, element: HTMLElement) => {
+    element.click();
+    rendered.fixture.detectChanges();
+  };
+
   async function plan(rendered: Awaited<ReturnType<typeof openPlan>>, margin?: string) {
+    click(rendered, button(rendered.page, 'Everyone'));
     const input = rendered.page.querySelector<HTMLInputElement>('#planner-margin');
     if (!input) throw new Error('no margin field');
     if (margin !== undefined) {
@@ -56,7 +81,7 @@ describe('PlanViewComponent', () => {
     expect(page.querySelector<HTMLInputElement>('#planner-margin')?.value).toBe('10');
     expect(page.querySelector('label[for=planner-margin]')?.textContent).toContain('HP margin (%)');
     expect(page.querySelector('cdt-planner-plan-view')?.textContent).toContain(
-      "Plans the party's mitigations and shields",
+      'Plans the mitigations, shields and invulnerabilities of those replanned',
     );
     // Not planned yet: nothing on the plan's side.
     expect(page.querySelector('cdt-planner-plan-entry')).toBeNull();
@@ -70,7 +95,7 @@ describe('PlanViewComponent', () => {
     // The scholar's 300,000 hit is more than any mitigation can bring
     // within 90% of their 200,000 HP.
     expect(summary(rendered.page)).toBe(
-      '1 hit leaves less than 10% of max HP even with every mitigation, shield and heal the party has free (0 of them on Tank Main).',
+      '1 hit leaves less than 10% of max HP, even with everything those replanned have free (0 of them on Tank Main).',
     );
     const log = planSide(rendered.page);
     expect(log).toContain('Use Reprisal');
@@ -103,6 +128,80 @@ describe('PlanViewComponent', () => {
     expect(rendered.page.querySelector<HTMLButtonElement>('cdt-planner-plan-view button[type=submit]')?.disabled).toBe(
       true,
     );
+  });
+
+  it('asks who to replan before planning, and marks them in their tab', async () => {
+    const rendered = await openPlan();
+    const submit = () => rendered.page.querySelector<HTMLButtonElement>('cdt-planner-plan-view button[type=submit]');
+
+    expect(submit()?.disabled).toBe(true);
+    expect(rendered.page.querySelector('cdt-planner-plan-view cdt-message[data-tone=warning]')?.textContent).toContain(
+      'Choose who to replan',
+    );
+
+    click(rendered, checkbox(rendered.page, 'Replan Tank Main'));
+
+    expect(submit()?.disabled).toBe(false);
+    expect(rendered.page.querySelector('[aria-label=Players] button .visually-hidden')?.textContent).toBe(
+      ', replanned',
+    );
+  });
+
+  it("remembers the member's own character, replanned by default from then on", async () => {
+    const first = await openPlan();
+    click(first, checkbox(first.page, 'This is my character'));
+
+    expect(localStorage.getItem('planner.me')).toBe('Tank Main@Phoenix');
+    expect(checkbox(first.page, 'Replan Tank Main').checked).toBe(true);
+  });
+
+  it("offers a replanned tank's invulnerabilities, where the pull had them by default", async () => {
+    const catalog = actionCatalog();
+    catalog.actions.push({
+      ...catalog.actions[0],
+      id: 30,
+      name: 'Hallowed Ground',
+      recastMs: 420_000,
+      cooldownGroup: 30,
+      effects: [
+        {
+          kind: 'invulnerable',
+          target: 'self',
+          status: 'Hallowed Ground',
+          statusId: null,
+          percent: null,
+          physical: null,
+          magic: null,
+          potency: null,
+          of: null,
+          durationMs: 10_000,
+          stacks: null,
+          condition: null,
+        },
+      ],
+    });
+    const timeline = pullTimeline();
+    timeline.playerCasts.push({ at: 62_000, source: 1, target: null, action: 30, castMs: null });
+    const rendered = await openPlan(timeline, catalog);
+    const select = () =>
+      rendered.page.querySelector<HTMLSelectElement>('cdt-planner-plan-view .invulnerabilities select');
+
+    expect(select()).toBeNull();
+    click(rendered, checkbox(rendered.page, 'Replan Tank Main'));
+    await waitFor(rendered, () => !!select());
+
+    expect(rendered.page.querySelector('label[for^=planner-invulnerability]')?.textContent).toContain(
+      'Hallowed Ground',
+    );
+    const options = [...(select()?.options ?? [])].map((o) => o.textContent?.trim());
+    expect(options).toEqual(['Only if needed', 'Never', '1:05 Killer Voice']);
+    expect(select()?.selectedOptions[0].textContent).toBe('1:05 Killer Voice');
+
+    const field = select() as HTMLSelectElement;
+    field.value = 'never';
+    field.dispatchEvent(new Event('change'));
+    rendered.fixture.detectChanges();
+    expect(select()?.selectedOptions[0].textContent).toBe('Never');
   });
 
   it('keeps the plan when another player is picked, showing their part', async () => {
