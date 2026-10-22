@@ -151,7 +151,6 @@ export function pull(
       status: null,
       amount,
       overheal: 0,
-      damageType: 'magic',
       tick: false,
       estimated: false,
       hp: null,

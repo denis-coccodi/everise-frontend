@@ -127,7 +127,7 @@ export function pullTimeline(): PullTimeline {
     absorbed: 26_000,
     overkill: 0,
     multiplier: 0.66,
-    damageType: 'magic',
+    damageType: 'magic' as const,
     tick: false,
     statuses: [1191, 297, 48],
     hp: 285_090,
