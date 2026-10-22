@@ -96,7 +96,14 @@ describe('healTools', () => {
         waiting('Excogitation', 800, 45, 'at 50% HP or below, or when it ends'),
       ]),
       action(25873, 'Exaltation', ['SCH'], 60, [waiting('Exaltation', 500, 8, 'when it ends')]),
-      action(24305, 'Haima', ['SCH'], 120, [waiting('Haima', 150, 15, 'each stack left when it ends')]),
+      action(16557, 'Horoscope', ['SCH'], 60, [
+        waiting('Horoscope', 200, 10, '400 (and 30s) after a Helios; when read again or it ends'),
+      ]),
+      action(25874, 'Macrocosmos', ['SCH'], 180, [
+        waiting('Macrocosmos', 200, 15, 'plus 50% of damage taken meanwhile; when it ends or on Microcosmos'),
+      ]),
+      // A condition the plan can't count.
+      action(1, 'Riddle', ['SCH'], 60, [waiting('Riddle', 100, 10, 'when someone guesses it')]),
     );
     const byName = new Map(healTools(party(), c, [], power).map((t) => [t.name, t]));
 
@@ -106,7 +113,51 @@ describe('healTools', () => {
       delayed: { delaysMs: [45_000], release: null, belowShare: 0.5, loggedAs: 'Excogitation' },
     });
     expect(byName.get('Exaltation')?.delayed).toMatchObject({ delaysMs: [8000], belowShare: null });
-    // Its stacks aren't counted yet.
-    expect(byName.has('Haima')).toBe(false);
+    expect(byName.get('Horoscope')?.delayed).toMatchObject({ delaysMs: [10_000], belowShare: null, damageShare: null });
+    expect(byName.get('Macrocosmos')?.delayed).toMatchObject({ delaysMs: [15_000], damageShare: 0.5 });
+    expect(byName.has('Riddle')).toBe(false);
+  });
+
+  it('heals for the stacks left: by barrier, or by the white mage taking damage', () => {
+    const left = (potency: number) => ({
+      ...heal(potency),
+      kind: 'delayedHeal' as const,
+      condition: 'each stack left when it ends',
+    });
+    const c = withHeals();
+    c.actions.push(
+      action(24305, 'Haima', ['SCH'], 120, [
+        {
+          ...heal(0),
+          kind: 'shield',
+          status: 'Haima',
+          potency: 300,
+          stacks: 5,
+          durationMs: 15_000,
+          condition: 'renewed each time it breaks',
+        },
+        { ...left(150), status: 'Haima' },
+      ]),
+      action(25862, 'Liturgy of the Bell', ['SCH'], 180, [
+        {
+          ...heal(400),
+          target: 'party',
+          stacks: 5,
+          durationMs: 20_000,
+          condition: 'each time the white mage takes damage',
+        },
+        { ...left(200), target: 'party', status: 'Liturgy of the Bell' },
+      ]),
+    );
+    const byName = new Map(healTools(party(), c, [], power).map((t) => [t.name, t]));
+
+    expect(byName.get('Haima')).toMatchObject({
+      effects: [{ target: 'target', size: { hp: 15_000 } }],
+      delayed: { delaysMs: [15_000], stacks: { count: 5, holder: 'target', perHit: null } },
+    });
+    expect(byName.get('Liturgy of the Bell')).toMatchObject({
+      effects: [{ target: 'party', size: { hp: 20_000 } }],
+      delayed: { delaysMs: [20_000], stacks: { count: 5, holder: 'self', perHit: { hp: 40_000 } } },
+    });
   });
 });
