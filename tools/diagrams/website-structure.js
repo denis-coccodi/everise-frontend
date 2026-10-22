@@ -1,22 +1,70 @@
 // Generates docs/website-structure.svg: the pages (routes) of the Everise site,
 // what each shows, where it leads, the navbar, and the site-wide rules.
 // Run: node tools/diagrams/website-structure.js docs/website-structure.svg (then render the PNG, see README).
-// The navbar's groups are read from nav-groups.ts; every route in
-// app.config.ts must be on a card in SECTIONS, or the run fails.
+// The navbar's groups are read from nav-groups.ts; every page the routes
+// lead to (app.routes.ts, and each feature library's <feature>.routes.ts it
+// loads) must be on a card in SECTIONS, or the run fails.
 const fs = require('fs');
+const path = require('path');
 const out = process.argv[2];
 const COLOURS = require('./colours');
 
 // --- What the code says
-const config = fs.readFileSync('apps/everise/src/app/app.config.ts', 'utf8');
-const ROUTES = [...config.matchAll(/path: '([^']*)'/g)].map((m) => `/${m[1]}`).filter((p) => p !== '/**');
+// The routes (objects) at the top of the route array `name` in `src`:
+// those in its own list (and in a spread of one), not a route's children.
+function topRoutes(src, name) {
+  const start = src.indexOf('[', src.search(new RegExp(`export const ${name}\\b`)));
+  const found = [];
+  const stack = [];
+  let from = -1;
+  for (let i = start; i < src.length; i++) {
+    const c = src[i];
+    if (c === "'" || c === '`' || c === '"') {
+      for (i++; src[i] !== c; i++) if (src[i] === '\\') i++;
+    } else if (c === '/' && src[i + 1] === '/') {
+      i = src.indexOf('\n', i);
+    } else if (c === '[' || c === '{') {
+      if (c === '{' && !stack.includes('{')) from = i;
+      stack.push(c);
+    } else if (c === ']' || c === '}') {
+      stack.pop();
+      if (c === '}' && !stack.includes('{')) found.push(src.slice(from, i + 1));
+      if (stack.length === 0) break;
+    }
+  }
+  return found;
+}
+// A route's own path, not its children's.
+const ownPath = (route) =>
+  /^\{\s*(?:\/\/.*\n\s*)*path: '([^']*)'/.exec(route)?.[1] ?? /\bpath: '([^']*)'/.exec(route)[1];
+// Where an @everise/… library's files are, from tsconfig.base.json.
+const LIBRARIES = JSON.parse(fs.readFileSync('tsconfig.base.json', 'utf8')).compilerOptions.paths;
+// The route array `name` in the library `lib`: its <feature>.routes.ts.
+function libraryRoutes(lib, name) {
+  const dir = path.dirname(LIBRARIES[lib][0]);
+  const file = fs
+    .readdirSync(dir, { recursive: true })
+    .filter((f) => f.endsWith('.routes.ts'))
+    .map((f) => fs.readFileSync(path.join(dir, f), 'utf8'))
+    .find((src) => new RegExp(`export const ${name}\\b`).test(src));
+  return topRoutes(file, name);
+}
+const join = (...parts) => '/' + parts.filter(Boolean).join('/');
+const appRoutes = fs.readFileSync('apps/everise/src/app/app.routes.ts', 'utf8');
+const ROUTES = topRoutes(appRoutes, 'APP_ROUTES')
+  .flatMap((route) => {
+    const lazy = /import\('([^']+)'\)\.then\(\((\w+)\) => \2\.(\w+)\)/.exec(route);
+    if (!lazy) return [join(ownPath(route))];
+    return libraryRoutes(lazy[1], lazy[3]).map((child) => join(ownPath(route), ownPath(child)));
+  })
+  .filter((p) => p !== '/**');
 const navSource = fs.readFileSync('apps/everise/src/app/layout/nav-group/nav-groups.ts', 'utf8');
 const NAV = [...navSource.matchAll(/label: '([^']+)',\s*pages: \[([\s\S]*?)\n {4}\]/g)].map(([, label, pages]) => ({
   label,
   pages: [...pages.matchAll(/label: '([^']+)'[^}]*path: '([^']+)'/g)].map(([, t, path]) => ({ t, path })),
 }));
 
-// --- The pages. `routes`: the app.config.ts paths a card covers. `access`:
+// --- The pages. `routes`: the addresses (ROUTES) a card covers. `access`:
 // 'guarded' (AuthGuard), 'members' (guests get a pitch), 'discord' (a link
 // from the Discord asks guests to sign in first). `to`: where it leads.
 const SECTIONS = [
@@ -45,7 +93,7 @@ const SECTIONS = [
         title: 'Post',
         domain: 'articles',
         access: 'discord',
-        routes: ['/article'],
+        routes: ['/article/:articleId'],
         lines: [
           "Title, author, date; a roulette result's duty card or a listing's card",
           'The body from Markdown, with pictures, GIFs and YouTube',
@@ -192,6 +240,18 @@ const SECTIONS = [
         ],
         to: [['guests: sign up', '/register', 'auth']],
       },
+      {
+        path: '/planner',
+        title: 'Fight Planner',
+        domain: 'planner',
+        access: 'members',
+        routes: ['/planner'],
+        lines: [
+          "A pull of an FFLogs report, hit by hit, with what covered each; the party's heals and mitigations planned",
+          'Report and pull in the address · still being built: on staging only (the planner feature flag)',
+        ],
+        to: [['guests: sign up', '/register', 'auth']],
+      },
     ],
   },
   {
@@ -240,7 +300,7 @@ const SECTIONS = [
         title: 'Profile',
         domain: 'profile',
         access: 'guarded',
-        routes: ['/profile'],
+        routes: ['/profile/:id'],
         lines: [
           'Picture and bio; Follow (others) or Edit settings (yours)',
           'Tabs: their posts, and favourited (…/favorites)',

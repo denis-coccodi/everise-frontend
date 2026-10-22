@@ -8,6 +8,9 @@
 //   core's util libraries).
 // - No folders by kind of file (components/, services/, models/…): folders are
 //   named after what they hold, as Angular's style guide asks.
+// - Routes in their own files: a library's routes in <feature>.routes.ts, and
+//   the app only mounts libraries (loadChildren), never a page of its own
+//   (loadComponent).
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, dirname, join, relative, sep } from 'node:path';
 
@@ -79,6 +82,19 @@ for (const dir of new Set([...folders.keys()].flatMap((d) => ancestors(d)))) {
   }
 }
 
+for (const [dir, files] of folders) {
+  const shown = relative('.', dir).split(sep).join('/');
+  for (const file of files) {
+    const source = readFileSync(join(dir, file), 'utf8');
+    if (/export const \w+_ROUTES\b/.test(source) && !file.endsWith('.routes.ts')) {
+      problems.push(`${shown}/${file}: routes go in their own <feature>.routes.ts`);
+    }
+    if (shown.startsWith('apps/') && /\bloadComponent\b/.test(source)) {
+      problems.push(`${shown}/${file}: the app mounts a library's routes (loadChildren), not a page (loadComponent)`);
+    }
+  }
+}
+
 function ancestors(dir) {
   const all = [];
   for (let d = dir; d !== '.' && d !== dirname(d); d = dirname(d)) all.push(d);
@@ -89,4 +105,6 @@ if (problems.length > 0) {
   console.error('Code in the wrong place (frontend-best-practices, "Where code goes"):\n  ' + problems.join('\n  '));
   process.exit(1);
 }
-console.log(`Structure: ${folders.size} folders, one component per folder, stores and services in data-access.`);
+console.log(
+  `Structure: ${folders.size} folders, one component per folder, stores and services in data-access, routes in their own files.`,
+);
