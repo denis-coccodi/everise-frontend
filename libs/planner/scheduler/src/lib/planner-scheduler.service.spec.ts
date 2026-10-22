@@ -174,4 +174,43 @@ describe('PlannerScheduler', () => {
     expect(at('Divine Caress')[0] - temperance).toBeGreaterThanOrEqual(0);
     expect(at('Divine Caress')[0] - temperance).toBeLessThanOrEqual(30_000);
   });
+
+  describe('tank invulnerabilities', () => {
+    const invulnerable = (id: number, name: string): ReturnType<typeof action> =>
+      action(id, name, ['PLD'], 420, [
+        { ...heal(0), kind: 'invulnerable', target: 'self', status: name, potency: null, durationMs: 10_000 },
+      ]);
+    const planWith = (tool: ReturnType<typeof action>, hits: [number, string, number, number][]) => {
+      const cat = catalog();
+      cat.actions.push(tool);
+      return new PlannerScheduler().plan(pull(hits, healed), cat, { margin: 0.1 });
+    };
+
+    it('uses one only where nothing else will do, and nothing else for that hit', () => {
+      // Twenty times the tank's HP, then a buster mitigation can handle.
+      const p = planWith(invulnerable(30, 'Hallowed Ground'), [
+        [60, 'Big buster', 1, 2_000_000],
+        [90, 'Buster', 1, 95_000],
+      ]);
+
+      expect(p.hits[0]).toMatchObject({ planned: 0, safe: true, invulnerable: true, covers: ['Hallowed Ground'] });
+      expect(p.uses.filter((u) => u.covers.includes(0)).map((u) => [u.name, u.at])).toEqual([
+        ['Hallowed Ground', 59_500],
+      ]);
+      expect(p.hits[1]).toMatchObject({ safe: true, invulnerable: false });
+    });
+
+    it('heals the tank back up from the 1 HP Superbolide leaves', () => {
+      const p = planWith(invulnerable(16152, 'Superbolide'), [
+        [60, 'Big buster', 1, 2_000_000],
+        [80, 'Buster', 1, 50_000],
+      ]);
+
+      expect(p.hits[0]).toMatchObject({ planned: 0, safe: true });
+      const lustrate = p.uses.find((u) => u.name === 'Lustrate');
+      expect(lustrate?.at).toBeGreaterThan(60_000);
+      expect(lustrate?.at).toBeLessThan(80_000);
+      expect(p.hits[1]).toMatchObject({ hpBefore: 60_001, safe: true });
+    });
+  });
 });

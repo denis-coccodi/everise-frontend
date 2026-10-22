@@ -26,19 +26,24 @@ export function reaches(tool: MitigationTool, use: PlannedUse, mechanic: Mechani
 // status counts once, its strongest, and they multiply), then what the
 // shields absorb of the rest (each status once, its biggest; a shield only
 // on its first hits on that player since it went up). Also what the shields
-// took and which statuses were up.
+// took, which statuses were up, and whether an invulnerability was: under
+// one that keeps the last HP (Holmgang) the hit still lands; under any
+// other it does nothing.
 export function projected(
   mechanic: Mechanic,
   hit: MechanicHit,
   uses: PlannedUse[],
   toolOf: (use: PlannedUse) => MitigationTool,
   facts: PullFacts,
-): { damage: number; absorbed: number; statuses: string[] } {
+): { damage: number; absorbed: number; statuses: string[]; invulnerable: boolean } {
   const strongest = new Map<string, { share: number; status: string }>();
   const shields = new Map<string, { hp: number; status: string }>();
+  let invulnerable: MitigationEffect | null = null;
   for (const use of uses) {
     for (const effect of reaches(toolOf(use), use, mechanic, hit)) {
-      if (effect.shield) {
+      if (effect.invulnerable) {
+        if (!invulnerable || invulnerable.invulnerable === 'lastHp') invulnerable = effect;
+      } else if (effect.shield) {
         if (facts.hitsBetween(hit.player, use.at, mechanic.at) >= effect.hits) continue;
         const hp = shieldHp(effect.shield, hit.player, facts);
         if (hp > (shields.get(effect.stack)?.hp ?? 0)) shields.set(effect.stack, { hp, status: effect.status });
@@ -49,6 +54,9 @@ export function projected(
       }
     }
   }
+  if (invulnerable && invulnerable.invulnerable !== 'lastHp') {
+    return { damage: 0, absorbed: 0, statuses: [invulnerable.status], invulnerable: true };
+  }
   let damage = hit.unmitigated;
   for (const { share } of strongest.values()) damage *= 1 - share;
   let absorbed = 0;
@@ -57,7 +65,12 @@ export function projected(
   return {
     damage: Math.round(damage - absorbed),
     absorbed: Math.round(absorbed),
-    statuses: [...[...strongest.values()].map((e) => e.status), ...[...shields.values()].map((s) => s.status)],
+    statuses: [
+      ...[...strongest.values()].map((e) => e.status),
+      ...[...shields.values()].map((s) => s.status),
+      ...(invulnerable ? [invulnerable.status] : []),
+    ],
+    invulnerable: !!invulnerable,
   };
 }
 

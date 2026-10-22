@@ -22,6 +22,7 @@ const plan: Plan = {
       hpBefore: 180_000,
       share: 0.45,
       safe: true,
+      invulnerable: false,
       covers: ['Reprisal'],
     },
     {
@@ -34,6 +35,7 @@ const plan: Plan = {
       hpBefore: 200_000,
       share: 0.945,
       safe: false,
+      invulnerable: false,
       covers: ['Intervention'],
     },
   ],

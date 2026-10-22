@@ -22,7 +22,11 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): P
         absorbed: hit.absorbed,
         share: hit.share,
         before: maxHp && hit.hpBefore !== null ? hit.hpBefore / maxHp : null,
-        after: maxHp && hit.hpBefore !== null ? Math.max(0, hit.hpBefore - hit.planned) / maxHp : null,
+        // An invulnerability that lets the hit land (Holmgang) leaves 1 HP.
+        after:
+          maxHp && hit.hpBefore !== null
+            ? Math.max(hit.invulnerable ? 1 : 0, hit.hpBefore - hit.planned) / maxHp
+            : null,
         safe: hit.safe,
         covers: hit.covers,
       };

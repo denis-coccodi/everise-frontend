@@ -1,5 +1,5 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
-import { Grant, MitigationEffect, MitigationTool, ToolPool } from './plan.model';
+import { Grant, Invulnerability, MitigationEffect, MitigationTool, ToolPool } from './plan.model';
 
 // Actions a trait replaces, and what with: from that action's level, the
 // old one is gone from the hotbar. (The catalog lists both, for lower-level
@@ -86,6 +86,15 @@ export const GRANTED: Record<number, Grant> = {
   36944: { action: 7394, withinMs: 30_000, uses: 1 }, // Earth's Reply, after Riddle of Earth
 };
 
+// The tanks' invulnerabilities, by action: the catalog says only that
+// attacks can't kill. Living Dead isn't planned yet (it needs the tank
+// healed back to full in the 10s after it's taken them to 0).
+const INVULNERABLE: Record<number, Invulnerability> = {
+  30: 'immune', // Hallowed Ground
+  43: 'lastHp', // Holmgang
+  16152: 'dropsToOne', // Superbolide
+};
+
 // Conditions the planner can take as met: it assumes everyone stands where
 // the effect lands, and counts an effect's least (Improvised Finish at no
 // stacks).
@@ -102,7 +111,11 @@ export function mitigationTools(
   const tools: MitigationTool[] = [];
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
-      const effects = [...mitigationEffects(action), ...shieldEffects(action, player, power.get(player.id) ?? null)];
+      const effects = [
+        ...mitigationEffects(action),
+        ...shieldEffects(action, player, power.get(player.id) ?? null),
+        ...invulnerableEffects(action),
+      ];
       if (!effects.length) continue;
       tools.push({
         player: player.id,
@@ -151,9 +164,32 @@ function mitigationEffects(action: CatalogAction): MitigationEffect[] {
         durationMs: e.durationMs as number,
         status,
         stack: SAME_STACK[status] ?? status,
+        invulnerable: null,
       };
     })
     .filter((e) => e.physical > 0 || e.magic > 0);
+}
+
+// An invulnerability's effect, for those the planner knows (above); its
+// condition is what it does, which the table says.
+function invulnerableEffects(action: CatalogAction): MitigationEffect[] {
+  const invulnerable = INVULNERABLE[action.id];
+  const e = action.effects.find((o) => o.kind === 'invulnerable' && o.durationMs);
+  if (!invulnerable || !e) return [];
+  const status = e.status ?? action.name;
+  return [
+    {
+      target: 'self',
+      physical: 0,
+      magic: 0,
+      shield: null,
+      hits: 1,
+      durationMs: e.durationMs as number,
+      status,
+      stack: status,
+      invulnerable,
+    },
+  ];
 }
 
 // A shield's size: a potency (at its caster's power), a share of the heal
@@ -181,6 +217,7 @@ function shieldEffects(action: CatalogAction, player: TimelinePlayer, power: num
       durationMs: e.durationMs as number,
       status,
       stack: status,
+      invulnerable: null,
     });
   }
   return effects;

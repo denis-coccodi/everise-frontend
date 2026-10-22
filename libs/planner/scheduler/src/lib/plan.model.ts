@@ -88,7 +88,15 @@ export interface MitigationEffect {
   // Effects with one key don't stack: two Reprisals count once, and so do
   // Troubadour and Tactician.
   stack: string;
+  // A tank's invulnerability; null for anything else.
+  invulnerable: Invulnerability | null;
 }
+
+// What a tank's invulnerability does to the hits while it lasts: nothing
+// at all (`immune`: Hallowed Ground); they land but can't take the last HP
+// (`lastHp`: Holmgang); nothing, once it has taken the tank's HP down to 1
+// as it's used (`dropsToOne`: Superbolide).
+export type Invulnerability = 'immune' | 'lastHp' | 'dropsToOne';
 
 // A set amount of HP, or a share of the max HP of whoever gets it.
 export type ShieldSize = { hp: number } | { maxHpShare: number };
@@ -184,8 +192,10 @@ export interface PlannedHit {
   // The planned damage as a share of their max HP; null when the pull
   // doesn't say their max HP.
   share: number | null;
-  // Whether it leaves at least the margin of their HP.
+  // Whether it leaves at least the margin of their HP, or can't kill them
+  // (an invulnerability is up).
   safe: boolean;
+  invulnerable: boolean;
   // The mitigations and shields the plan has up for it.
   covers: string[];
 }

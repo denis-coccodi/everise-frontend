@@ -102,21 +102,59 @@ export function planMitigation(
     return found;
   };
 
-  // Every hit within the margin, the most dangerous mechanics first.
-  for (const m of order) {
+  // A tank's invulnerability for `m`, at the first moment it fits; null
+  // when it doesn't.
+  const invulnerabilityFor = (m: Mechanic, t: MitigationTool): Candidate | null => {
+    const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
+    const at = momentsFor(m, t, mechanics).find((moment) => fitsRecast(times, moment, t.recastMs, t.charges));
+    if (at === undefined) return null;
+    return {
+      use: { player: t.player, action: t.action, name: t.name, at, target: null, covers: [] },
+      tool: t,
+      value: 0,
+    };
+  };
+
+  // Every hit within the margin, the most dangerous mechanics first. A
+  // tank's invulnerability only where nothing else will do: the uses tried
+  // for that mechanic then go back, for later ones.
+  const short = (m: Mechanic) => (h: MechanicHit) => {
+    const { damage, invulnerable } = project(m, h, uses);
+    return !invulnerable && damage > limit(m, h);
+  };
+  const others = tools.filter((t) => !t.effects.some((e) => e.invulnerable));
+  const invulnerabilities = tools.filter((t) => t.effects.some((e) => e.invulnerable));
+  const fill = (m: Mechanic) => {
     for (;;) {
-      const short = (h: MechanicHit) => project(m, h, uses).damage > limit(m, h);
-      if (!m.hits.some(short)) break;
-      const pick = pickBest(tools.map((t) => best(m, t, short)));
-      if (!pick) break;
+      if (!m.hits.some(short(m))) return;
+      const pick = pickBest(others.map((t) => best(m, t, short(m))));
+      if (!pick) return;
       add(pick);
     }
+  };
+  for (const m of order) {
+    const tried = uses.length;
+    fill(m);
+    const saves = m.hits.filter(short(m)).flatMap((h) => {
+      const own = invulnerabilities.filter((t) => t.player === h.player);
+      return own
+        .map((t) => invulnerabilityFor(m, t))
+        .filter((c): c is Candidate => c !== null)
+        .slice(0, 1);
+    });
+    if (!saves.length) continue;
+    uses.splice(tried);
+    for (const save of saves) add(save);
+    fill(m);
   }
   // The oGCDs left, where they add the most margin: on the hits still
   // taking more than half of what the margin allows.
-  const spare = tools.filter((t) => !t.gcd);
+  const spare = others.filter((t) => !t.gcd);
   for (const m of order) {
-    const heavy = (h: MechanicHit) => project(m, h, uses).damage > limit(m, h) / 2;
+    const heavy = (h: MechanicHit) => {
+      const { damage, invulnerable } = project(m, h, uses);
+      return !invulnerable && damage > limit(m, h) / 2;
+    };
     for (let n = 0; n < SPARE_PER_MECHANIC && m.hits.some(heavy); n++) {
       const pick = pickBest(spare.map((t) => best(m, t, heavy)));
       if (!pick) break;
@@ -126,7 +164,7 @@ export function planMitigation(
 
   const hits = mechanics.flatMap((m) =>
     m.hits.map((hit) => {
-      const { damage, absorbed, statuses } = project(m, hit, uses);
+      const { damage, absorbed, statuses, invulnerable } = project(m, hit, uses);
       const hp = maxHp.get(hit.player);
       return {
         mechanic: m.id,
@@ -138,7 +176,8 @@ export function planMitigation(
         // At full HP: the heals come after.
         hpBefore: hp ?? null,
         share: hp ? damage / hp : null,
-        safe: damage <= limit(m, hit),
+        safe: invulnerable || damage <= limit(m, hit),
+        invulnerable,
         covers: statuses,
       };
     }),
