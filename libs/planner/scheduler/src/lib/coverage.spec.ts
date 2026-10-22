@@ -1,4 +1,4 @@
-import { fitsPool, fitsRecast, projected } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, projected } from './coverage';
 import { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
 import type { PullFacts } from './coverage.model';
 
@@ -24,6 +24,7 @@ const tool = (name: string, values: EffectValues): MitigationTool => ({
   gcd: false,
   group: name,
   pool: null,
+  grantedBy: null,
   effects: [effect(name, values)],
 });
 const use = (name: string, at: number): PlannedUse => ({
@@ -148,5 +149,25 @@ describe('fitsPool', () => {
     expect(fitsPool([0, 1_000], 2_000, pool)).toBe(true);
     expect(fitsPool([0, 1_000, 2_000], 3_000, pool)).toBe(false);
     expect(fitsPool([0, 1_000, 2_000], 23_000, pool)).toBe(true);
+  });
+});
+
+describe('fitsGrant', () => {
+  // Divine Caress: once in the 30s after each Temperance.
+  const once = { action: 16536, withinMs: 30_000, uses: 1 };
+
+  it('needs a grant before each use, used once each', () => {
+    expect(fitsGrant([], [10_000], 25_000, once)).toBe(true);
+    expect(fitsGrant([], [10_000], 45_000, once)).toBe(false);
+    expect(fitsGrant([], [], 25_000, once)).toBe(false);
+    expect(fitsGrant([25_000], [10_000], 30_000, once)).toBe(false);
+    expect(fitsGrant([25_000], [10_000, 130_000], 140_000, once)).toBe(true);
+  });
+
+  it('allows as many as fit in a window that grants any number', () => {
+    const seraphism = { action: 37014, withinMs: 20_000, uses: Infinity };
+
+    expect(fitsGrant([1_000, 3_500, 6_000], [0], 8_500, seraphism)).toBe(true);
+    expect(fitsGrant([1_000], [0], 21_000, seraphism)).toBe(false);
   });
 });

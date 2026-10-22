@@ -1,5 +1,5 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
-import { MitigationEffect, MitigationTool, ToolPool } from './plan.model';
+import { Grant, MitigationEffect, MitigationTool, ToolPool } from './plan.model';
 
 // Actions a trait replaces, and what with: from that action's level, the
 // old one is gone from the hotbar. (The catalog lists both, for lower-level
@@ -33,8 +33,10 @@ const SAME_STACK: Record<string, string> = {
 // Astrologian's card draw (every 60 seconds), Suntouched (from Neutral
 // Sect, every 120 seconds), Seraph (out every 120 seconds, with two
 // Consolations), Tempera Coat (which Tempera Grassa uses up; back in 60
-// to 120 seconds), the Lily gauge (one every 20 seconds, up to 3) and the
-// Minor Arcana (every 60 seconds). One a use, as the planner counts them.
+// to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), the
+// Minor Arcana (every 60 seconds) and Improvisation's finish (every 120
+// seconds: Improvisation itself isn't planned). One a use, as the planner
+// counts them.
 const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
@@ -45,7 +47,9 @@ const SERAPH: ToolPool = { name: 'Seraph', gainMs: 60_000, max: 2 };
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
 const MINOR_ARCANA: ToolPool = { name: 'Minor Arcana', gainMs: 60_000, max: 1 };
+const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 120_000, max: 1 };
 export const POOLS: Record<number, ToolPool> = {
+  25789: IMPROVISATION, // Improvised Finish
   16546: SERAPH, // Consolation
   16548: SERAPH, // Seraphic Veil
   34685: TEMPERA, // Tempera Coat
@@ -68,6 +72,18 @@ export const POOLS: Record<number, ToolPool> = {
   37025: CARD_III, // the Spire
   37028: CARD_III, // the Ewer
   37031: SUNTOUCHED, // Sun Sign
+  37024: CARD, // the Arrow
+};
+
+// Actions another grants, by action, as the game has them: the catalog
+// gives them a recast of their own (a second or so), which isn't what limits
+// them. The plan uses one only after it has the action that grants it.
+const SERAPHISM = { action: 37014, withinMs: 20_000, uses: Infinity };
+export const GRANTED: Record<number, Grant> = {
+  37011: { action: 16536, withinMs: 30_000, uses: 1 }, // Divine Caress, after Temperance
+  37015: SERAPHISM, // Manifestation
+  37016: SERAPHISM, // Accession
+  36944: { action: 7394, withinMs: 30_000, uses: 1 }, // Earth's Reply, after Riddle of Earth
 };
 
 // Conditions the planner can take as met: it assumes everyone stands where
@@ -97,6 +113,7 @@ export function mitigationTools(
         gcd: action.gcd,
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
+        grantedBy: GRANTED[action.id] ?? null,
         effects,
       });
     }

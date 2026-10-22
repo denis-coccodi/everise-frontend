@@ -1,5 +1,6 @@
 import {
   DamageType,
+  Grant,
   Mechanic,
   MechanicHit,
   MitigationEffect,
@@ -95,6 +96,19 @@ export function fitsPool(times: number[], at: number, pool: ToolPool) {
     last = time;
     if (level < 1) return false;
     level -= 1;
+  }
+  return true;
+}
+
+// Whether one more use at `at` of an action another grants still has a
+// grant for every use: up to `uses` in the `withinMs` after each of `grants`
+// (the times the granting action is used).
+export function fitsGrant(granted: number[], grants: number[], at: number, grant: Grant) {
+  const windows = [...grants].sort((a, b) => a - b).map((from) => ({ from, left: grant.uses }));
+  for (const time of [...granted, at].sort((a, b) => a - b)) {
+    const window = windows.find((w) => w.left > 0 && time >= w.from && time <= w.from + grant.withinMs);
+    if (!window) return false;
+    window.left--;
   }
   return true;
 }
