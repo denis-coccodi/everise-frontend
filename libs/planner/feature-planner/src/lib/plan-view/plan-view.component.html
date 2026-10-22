@@ -19,6 +19,3 @@
 </p>
 <cdt-message>{{ summary() }}</cdt-message>
 <cdt-message tone="error">{{ plans.error() }}</cdt-message>
-@if (current()) {
-  <cdt-planner-plan-log [entries]="log()" />
-}

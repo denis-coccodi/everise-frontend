@@ -16,12 +16,9 @@
       <li><button type="button" cdtTab [active]="view() === 'plan'" (click)="view.set('plan')">Plan</button></li>
     </ul>
     @if (player(); as p) {
-      <h3 class="visually-hidden">{{ p.name }}'s {{ view() === 'plan' ? 'plan' : 'pull' }}</h3>
-      @if (view() === 'plan') {
-        <cdt-planner-plan-view [player]="p" />
-      } @else {
-        <cdt-planner-player-log [entries]="log()" />
-      }
+      <h3 class="visually-hidden">{{ p.name }}'s pull{{ planned() ? ' and plan' : '' }}</h3>
+      <cdt-planner-plan-view [player]="p" [class.shown]="view() === 'plan'" />
+      <cdt-planner-pull-compare [player]="p.name" [played]="log()" [planned]="planned()" [shown]="view()" />
     }
   } @else if (loading()) {
     <p class="loading">Reading the pull…</p>

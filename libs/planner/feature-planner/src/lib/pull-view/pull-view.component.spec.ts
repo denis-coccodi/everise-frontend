@@ -7,7 +7,7 @@ describe('PullViewComponent', () => {
     expect(page.querySelector('cdt-planner-pull-view')?.textContent).toContain('Vamp Fatale, 5:03');
     const tabs = [...page.querySelectorAll('[aria-label=Players] button')];
     expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['PLD Tank Main', 'SCH Heal Main']);
-    expect(page.querySelector('cdt-planner-player-log')?.textContent).toContain('Rampart');
+    expect(page.querySelector('cdt-planner-pull-compare tbody')?.textContent).toContain('Rampart');
     // Opened from a link, not picked: the focus stays where it was.
     expect(document.activeElement?.tagName).not.toBe('CDT-PLANNER-PULL-VIEW');
   });
@@ -19,7 +19,7 @@ describe('PullViewComponent', () => {
     fixture.detectChanges();
 
     expect(page.querySelector('cdt-planner-pull-view h3')?.textContent).toBe("Heal Main's pull");
-    expect(page.querySelector('cdt-planner-player-log')?.textContent).toContain('Adloquium');
+    expect(page.querySelector('cdt-planner-pull-compare tbody')?.textContent).toContain('Adloquium');
   });
 
   it("says why a pull can't be read", async () => {

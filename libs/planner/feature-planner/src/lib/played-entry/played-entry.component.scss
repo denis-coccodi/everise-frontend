@@ -1,9 +1,8 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
-// The rest of its look is the planner's logs', in ../log-entries.scss.
+// The rest of its look is the planner's entries', in ../log-entries.scss.
 
-// A hit the plan can't bring within the margin, marked by a line in the
-// danger colour as well as its label ("Short").
-.unsafe {
+// A death, marked by a line in the danger colour as well as its label.
+:host(.death) {
   border-left: var(--border-width-strong) solid var(--color-danger);
   padding-left: 0.75rem;
 

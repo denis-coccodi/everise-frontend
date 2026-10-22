@@ -1,0 +1,40 @@
+@let plan = planned();
+<table class="compare">
+  <caption class="visually-hidden">
+    {{
+      player()
+    }}'s pull{{
+      plan === null ? '' : ' and plan'
+    }}, in time order
+  </caption>
+  <thead>
+    <tr>
+      <th scope="col" class="time">Time</th>
+      <th scope="col" class="played">As played</th>
+      <th scope="col" class="plan">Plan</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows(); track row.at) {
+      <tr [class.only-played]="!row.planned.length" [class.only-plan]="!row.played.length">
+        <th scope="row" class="time">{{ clock(row.at) }}</th>
+        <td class="played">
+          @for (entry of row.played; track $index) {
+            <cdt-planner-played-entry [entry]="entry" />
+          }
+        </td>
+        <td class="plan">
+          @for (entry of row.planned; track $index) {
+            <cdt-planner-plan-entry [entry]="entry" />
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+@if (!played().length) {
+  <p class="empty played">Nothing happened to this player in the pull.</p>
+}
+@if (plan !== null && !plan.length) {
+  <p class="empty plan">The plan has nothing for this player.</p>
+}

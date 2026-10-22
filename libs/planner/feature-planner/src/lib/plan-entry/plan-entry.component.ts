@@ -1,21 +1,25 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { PlanEntry, PlanHitEntry, pullClock } from '@everise/planner/data-access';
+import { PlanEntry, PlanHitEntry } from '@everise/planner/data-access';
 
 const number = new Intl.NumberFormat('en');
 const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 });
 
-// One player's part of the plan, in time order: what to use when, and how
-// each hit lands with the plan's mitigations, shields and heals, against
-// how it went.
+// One thing in a player's part of the plan: what to use, or how a hit lands
+// with the plan's mitigations, shields and heals, against how it went.
 @Component({
-  selector: 'cdt-planner-plan-log',
-  templateUrl: './plan-log.component.html',
-  styleUrls: ['../log-entries.scss', './plan-log.component.scss'],
+  selector: 'cdt-planner-plan-entry',
+  templateUrl: './plan-entry.component.html',
+  styleUrls: ['../log-entries.scss', './plan-entry.component.scss'],
+  host: { '[class]': 'entry().kind', '[class.unsafe]': "entry().kind === 'hit' && !safe()" },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlanLogComponent {
-  readonly entries = input.required<PlanEntry[]>();
-  protected readonly clock = pullClock;
+export class PlanEntryComponent {
+  readonly entry = input.required<PlanEntry>();
+
+  protected safe() {
+    const entry = this.entry();
+    return entry.kind !== 'hit' || entry.safe;
+  }
 
   // What the plan has up for a hit.
   protected covered(hit: PlanHitEntry) {

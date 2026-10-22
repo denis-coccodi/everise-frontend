@@ -1,3 +1,4 @@
+export { compareLog } from './lib/compare-log';
 export { effectsText } from './lib/effect-text';
 export { playerLog } from './lib/player-log';
 export { PlannerStore } from './lib/planner.store';
@@ -7,6 +8,7 @@ export { pullClock } from './lib/pull-time';
 export { planLog, unsafeHits } from './lib/plan-log';
 export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';
 export type { PlanEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';
+export type { CompareRow } from './lib/compare-log.model';
 export type { EncounterPulls } from './lib/planner.model';
 export type { DeathEntry, HitEntry, LogEntry, UseEntry } from './lib/player-log.model';
 export type { ReportLink } from './lib/report-link.model';

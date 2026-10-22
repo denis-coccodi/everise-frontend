@@ -45,10 +45,14 @@ describe('effectsText', () => {
           condition: 'critical heal',
         }),
       ]),
-    ).toBe('Target: heal 300 potency, shield 180% of the heal (30s), shield 180% of the heal (30s) when critical heal');
+    ).toBe('Target: heal 300 potency, shield 180% of the heal (30s), shield 180% of the heal (30s, critical heal)');
     expect(effectsText([effect({ kind: 'shield', target: 'party', percent: 10, of: 'casterMaxHp' })])).toBe(
       "Party: shield 10% of the caster's max HP",
     );
+    // The catalog writes its own "when" where it has one.
+    expect(
+      effectsText([effect({ kind: 'regen', target: 'party', potency: 200, condition: 'when the barrier ends' })]),
+    ).toBe('Party: regen 200 potency (when the barrier ends)');
   });
 
   it('names the other kinds', () => {

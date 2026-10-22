@@ -1,0 +1,123 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th,
+td {
+  padding: 0.6rem 0.75rem 0.6rem 0;
+  border-bottom: var(--border-width) solid var(--color-divider);
+  text-align: left;
+  vertical-align: top;
+}
+
+thead th {
+  color: var(--color-label);
+  font-size: 0.8rem;
+  font-weight: normal;
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.time {
+  width: 3.5rem;
+}
+
+tbody .time {
+  color: var(--color-contrast-muted);
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+// Several things at one moment: a gap between them.
+td > * + * {
+  margin-top: 0.5rem;
+}
+
+.empty {
+  margin: 0.6rem 0;
+  color: var(--color-contrast-muted);
+}
+
+// The phone and tablet: one side at a time, the one its tab shows, and only
+// the moments that side has something at.
+th.plan,
+td.plan,
+p.plan,
+tr.only-plan {
+  display: none;
+}
+
+:host(.show-plan) {
+  th.played,
+  td.played,
+  p.played,
+  tr.only-played {
+    display: none;
+  }
+
+  th.plan,
+  td.plan {
+    display: table-cell;
+  }
+
+  p.plan {
+    display: block;
+  }
+
+  tr.only-plan {
+    display: table-row;
+  }
+}
+
+// Before the pull is planned, its side has nothing to show.
+:host(.no-plan.show-plan) .compare {
+  display: none;
+}
+
+// Laptops: both sides, every moment, what happened beside what the plan has.
+@include bp.up(lg) {
+  :host {
+    th.played,
+    td.played,
+    th.plan,
+    td.plan {
+      display: table-cell;
+    }
+
+    p.played,
+    p.plan {
+      display: block;
+    }
+
+    tr.only-played,
+    tr.only-plan {
+      display: table-row;
+    }
+  }
+
+  :host(.no-plan.show-plan) .compare {
+    display: table;
+  }
+
+  // Still no plan: only the pull as played.
+  :host(.no-plan) {
+    th.plan,
+    td.plan {
+      display: none;
+    }
+  }
+
+  td.played,
+  th.played {
+    padding-right: 1.5rem;
+  }
+}

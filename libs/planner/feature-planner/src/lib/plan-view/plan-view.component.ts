@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
 import { TimelinePlayer } from '@everise/core/api-types';
 import { InputErrorsComponent } from '@everise/core/forms';
-import { MARGIN_RANGE, PlanStore, PlannerStore, planLog, unsafeHits } from '@everise/planner/data-access';
+import { MARGIN_RANGE, PlanStore, PlannerStore, unsafeHits } from '@everise/planner/data-access';
 import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
-import { PlanLogComponent } from '../plan-log/plan-log.component';
 
-// The plan for the pull open: the HP margin to keep, planning it, how it
-// went for the party, and the player's part of it.
+// Planning the pull open: the HP margin to keep, and how the plan went for
+// the party and for the player (their part of it is in the pull view's
+// timeline).
 @Component({
   selector: 'cdt-planner-plan-view',
   templateUrl: './plan-view.component.html',
@@ -20,7 +20,6 @@ import { PlanLogComponent } from '../plan-log/plan-log.component';
     InputComponent,
     InputErrorsComponent,
     MessageComponent,
-    PlanLogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -42,11 +41,6 @@ export class PlanViewComponent {
 
   // The plan, when it's for the pull open.
   protected readonly current = computed(() => (this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null));
-  protected readonly log = computed(() => {
-    const plan = this.current();
-    const pull = this.store.pull;
-    return plan && pull.hasValue() ? planLog(plan, pull.value(), this.player().id) : [];
-  });
   // How the plan went: for the party, then for this player.
   protected readonly summary = computed(() => {
     const plan = this.current();

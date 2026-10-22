@@ -45,6 +45,9 @@ describe('PlanViewComponent', () => {
     throw new Error('no plan');
   }
 
+  // What the plan's side of the timeline has.
+  const planSide = (page: HTMLElement) =>
+    [...page.querySelectorAll('cdt-planner-pull-compare td.plan')].map((td) => td.textContent).join(' ');
   const summary = (page: HTMLElement) => page.querySelector('cdt-planner-plan-view cdt-message')?.textContent?.trim();
 
   it('starts with the margin at 10% and says what it plans', async () => {
@@ -55,7 +58,8 @@ describe('PlanViewComponent', () => {
     expect(page.querySelector('cdt-planner-plan-view')?.textContent).toContain(
       "Plans the party's mitigations and shields",
     );
-    expect(page.querySelector('cdt-planner-plan-log')).toBeNull();
+    // Not planned yet: nothing on the plan's side.
+    expect(page.querySelector('cdt-planner-plan-entry')).toBeNull();
   });
 
   it("plans the pull, says how it went, and gives the player's part", async () => {
@@ -68,7 +72,7 @@ describe('PlanViewComponent', () => {
     expect(summary(rendered.page)).toBe(
       '1 hit leaves less than 10% of max HP even with every mitigation, shield and heal the party has free (0 of them on Tank Main).',
     );
-    const log = rendered.page.querySelector('cdt-planner-plan-log')?.textContent ?? '';
+    const log = planSide(rendered.page);
     expect(log).toContain('Use Reprisal');
     expect(
       rendered.page.querySelector<HTMLButtonElement>('cdt-planner-plan-view button[type=submit]')?.textContent?.trim(),
@@ -108,8 +112,8 @@ describe('PlanViewComponent', () => {
     rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1].click();
     rendered.fixture.detectChanges();
 
-    expect(rendered.page.querySelector('cdt-planner-pull-view h3')?.textContent).toBe("Heal Main's plan");
-    const log = rendered.page.querySelector('cdt-planner-plan-log')?.textContent ?? '';
+    expect(rendered.page.querySelector('cdt-planner-pull-view h3')?.textContent).toBe("Heal Main's pull and plan");
+    const log = planSide(rendered.page);
     expect(log).toContain('Short');
     expect(log).toContain('took 210,000 as played');
   });

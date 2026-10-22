@@ -1,0 +1,21 @@
+@let e = entry();
+@switch (e.kind) {
+  @case ('use') {
+    <p class="line">
+      <span class="label">Use</span>{{ ' ' }}<strong>{{ e.action }}</strong>
+      @if (e.target) {
+        {{ ' ' }}on {{ e.target }}
+      }
+    </p>
+    <p class="detail">For {{ e.covers.join(', ') }}</p>
+  }
+  @case ('hit') {
+    <p class="line">
+      <span class="label">{{ e.safe ? 'Hit' : 'Short' }}</span
+      >{{ ' ' }}<strong>{{ e.action }}</strong>
+    </p>
+    <p class="detail">{{ detail(e) }}</p>
+    <p class="detail">{{ covered(e) }}</p>
+  }
+  @default never(e);
+}

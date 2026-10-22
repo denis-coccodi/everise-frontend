@@ -1,20 +1,20 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { HitEntry, LogEntry, pullClock } from '@everise/planner/data-access';
+import { HitEntry, LogEntry } from '@everise/planner/data-access';
 
 const number = new Intl.NumberFormat('en');
 const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 });
 
-// One player's pull, in time order: each hit, what it did and what covered
-// it; each heal or mitigation used; each death.
+// One thing that happened to a player in the pull: a hit, what it did and
+// what covered it; a heal or mitigation they used; their death.
 @Component({
-  selector: 'cdt-planner-player-log',
-  templateUrl: './player-log.component.html',
-  styleUrls: ['../log-entries.scss', './player-log.component.scss'],
+  selector: 'cdt-planner-played-entry',
+  templateUrl: './played-entry.component.html',
+  styleUrls: ['../log-entries.scss', './played-entry.component.scss'],
+  host: { '[class]': 'entry().kind' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlayerLogComponent {
-  readonly entries = input.required<LogEntry[]>();
-  protected readonly clock = pullClock;
+export class PlayedEntryComponent {
+  readonly entry = input.required<LogEntry>();
 
   // "Took 40,000 of 100,000: 34% mitigated, 26,000 shielded. HP 88%."
   protected detail(hit: HitEntry) {
