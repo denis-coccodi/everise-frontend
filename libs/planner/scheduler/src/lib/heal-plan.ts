@@ -1,7 +1,8 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { fitsGrant, fitsPool, fitsRecast, poolFull, projected, pullFacts, reaches } from './coverage';
+import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
+import { best, better } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { spareHeals } from './spare-heals';
 import { Weaving } from './weaving';
@@ -9,7 +10,6 @@ import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
   Favour,
-  HealCost,
   HealPairing,
   HealTool,
   Mechanic,
@@ -19,30 +19,14 @@ import {
   PlanOptions,
   PlannedHit,
   PlannedUse,
-  ToolPool,
 } from './plan.model';
-import type { Candidate, Paired, Spent } from './heal-plan.model';
+import type { Candidate, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
-// A heal lands at least this long before the hit it's for, and at least
-// this long after the hits before it.
-const LEAD_MS = 500;
-const AFTER_MS = 1000;
 // Mechanics this close together are healed for at once: there's no time to
 // heal between them.
 const GAP_MS = 2000;
-// What a heal's healing is worth for what it costs (`HealCost`): a free
-// oGCD first, then one spending Aetherflow, a GCD that costs no damage
-// (Afflatus Solace), then any other GCD, which costs a GCD of damage. One
-// whose pool is full costs nothing, so it goes before the free ones: lilies
-// and Addersgall are spent rather than left to overcap. A healer favouring
-// healing over damage (`Favour`) minds a GCD's damage less.
-const WORTH: Record<Favour, Record<HealCost, number>> = {
-  dps: { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4 },
-  healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8 },
-};
-const FULL_WORTH = 1.05;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
@@ -247,104 +231,4 @@ export function planHeals(
     hits,
     unplaced: plan.unplaced,
   };
-}
-
-// The most a use of `tool` can make up of the deficits before `m`, at the
-// earliest moment it can heal after the anchor or as late as it can (a
-// delayed heal with each of its delays, the one that needs nothing more
-// first); null when it can't be used or helps no one short.
-function best(
-  tool: HealTool,
-  m: Mechanic,
-  anchor: number,
-  short: Map<number, number>,
-  spent: Spent[],
-  eventsOf: (use: PlannedUse, delayMs: number) => HpEvent[],
-  deficits: (extra: HpEvent[]) => Map<number, number>,
-  weaving: Weaving,
-  pairWith: (use: PlannedUse, events: HpEvent[]) => Paired[],
-  favourOf: (player: number) => Favour,
-): Candidate | null {
-  const latest = m.at - LEAD_MS;
-  const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
-  if (latest <= anchor) return null;
-  const times = spent.filter((s) => s.group === tool.group).map((s) => s.at);
-  const pooled = tool.pool ? spent.filter((s) => s.player === tool.player && s.pool?.name === tool.pool?.name) : [];
-  const occupied = spent.filter((s) => s.player === tool.player);
-  const timesOf = (action: number) =>
-    spent.filter((s) => s.player === tool.player && s.action === action).map((s) => s.at);
-  // A heal on one member goes to whoever is shortest.
-  const target = tool.effects.some((e) => e.target === 'target')
-    ? [...short].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-    : null;
-  let found: Candidate | null = null;
-  const end = tool.delayed?.delaysMs[0] ?? 0;
-  // Each moment as early or as late as it can be, then where the healer can
-  // act: the first chance from it on, or the last up to it.
-  const moments =
-    tool.delayed?.belowShare != null
-      ? // A triggered heal goes up before the hit that sets it off: the last
-        // mechanic's, or one after it.
-        [...new Set([anchor - LEAD_MS, earliest])].map((up) => ({ at: up - tool.castMs, delayMs: end, late: true }))
-      : [...new Set([earliest, latest])].flatMap((lands) =>
-          (tool.delayed?.delaysMs ?? [0]).map((delayMs) => ({
-            at: lands - tool.castMs - delayMs,
-            delayMs,
-            late: lands === latest,
-          })),
-        );
-  for (const moment of moments) {
-    const { delayMs } = moment;
-    const lo = Math.max(0, earliest - tool.castMs - delayMs);
-    const hi = latest - tool.castMs - delayMs;
-    const at = tool.gcd
-      ? moment.late
-        ? weaving.gcdBefore(tool.player, moment.at, lo, tool.castMs, occupied)
-        : weaving.gcdAfter(tool.player, moment.at, hi, tool.castMs, occupied)
-      : moment.late
-        ? weaving.ogcdBefore(tool.player, moment.at, lo, occupied)
-        : weaving.ogcdAfter(tool.player, moment.at, hi, occupied);
-    if (at === null || at < 0 || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
-    if (
-      tool.pool &&
-      !fitsPool(
-        pooled.map((s) => s.at),
-        at,
-        tool.pool,
-      )
-    )
-      continue;
-    const { grantedBy } = tool;
-    if (grantedBy && !fitsGrant(timesOf(tool.action), timesOf(grantedBy.action), at, grantedBy)) continue;
-    const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };
-    const full =
-      tool.pool &&
-      poolFull(
-        pooled.map((s) => s.at),
-        at,
-        tool.pool,
-      );
-    const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][tool.cost];
-    // On its own, or with each oGCD that can go with it.
-    const alone = eventsOf(use, delayMs);
-    const options = [
-      { events: alone, paired: null },
-      ...pairWith(use, alone).map((p) => ({ events: p.events, paired: p })),
-    ];
-    for (const { events, paired } of options) {
-      const after = deficits(events);
-      let value = 0;
-      for (const [player, deficit] of short) {
-        if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
-      }
-      value *= worth;
-      if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs, paired };
-    }
-  }
-  return found;
-}
-
-// The most made up; on a tie, the cooldown that comes back soonest.
-function better(a: Candidate, b: Candidate) {
-  return a.value > b.value || (a.value === b.value && a.tool.recastMs < b.tool.recastMs);
 }
