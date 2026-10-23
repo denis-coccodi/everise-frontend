@@ -33,12 +33,18 @@ describe('PlannerScheduler', () => {
     expect(p.uses.map((u) => u.name)).not.toContain('Adloquium');
   });
 
-  it('mitigates a tank buster until it leaves the margin, half a second before it lands', () => {
+  it("mitigates a tank buster until it leaves the margin, each of a player's a weave apart", () => {
     const p = plan([[60, 'Buster', 1, 120_000]]);
 
     expect(p.hits[0]).toMatchObject({ player: 1, unmitigated: 120_000, safe: true });
     expect(p.hits[0].planned).toBeLessThanOrEqual(90_000);
-    expect(p.uses.every((u) => u.at === 59_500 && u.covers.includes(0))).toBe(true);
+    expect(p.uses.every((u) => u.at <= 59_500 && u.covers.includes(0))).toBe(true);
+    // One oGCD at a time: none of a player's within 0.7s of another.
+    for (const player of [1, 2, 3]) {
+      const times = p.uses.filter((u) => u.player === player).map((u) => u.at);
+      for (const a of times) for (const b of times) if (a !== b) expect(Math.abs(a - b)).toBeGreaterThanOrEqual(700);
+    }
+    expect(Math.max(...p.uses.map((u) => u.at))).toBe(59_500);
     expect(p.hits[0].covers.length).toBeGreaterThan(0);
   });
 
