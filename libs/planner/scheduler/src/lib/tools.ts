@@ -83,7 +83,13 @@ export const GRANTED: Record<number, Grant> = {
   37015: SERAPHISM, // Manifestation
   37016: SERAPHISM, // Accession
   36944: { action: 7394, withinMs: 30_000, uses: 1 }, // Earth's Reply, after Riddle of Earth
+  3585: { action: 185, withinMs: 30_000, uses: 1 }, // Deployment Tactics, on an Adloquium's Galvanize
 };
+
+// Shields an action copies from another's to the whole party, by action:
+// Deployment Tactics, an Adloquium's Galvanize (for what's left of it; the
+// plan has it go up as the Adloquium lands).
+const SPREADS: Record<number, number> = { 3585: 185 };
 
 // The tanks' invulnerabilities, by action: the catalog says only that
 // attacks can't kill.
@@ -108,12 +114,20 @@ export function mitigationTools(
   power: Map<number, number> = new Map(),
 ): MitigationTool[] {
   const tools: MitigationTool[] = [];
+  const byId = new Map(catalog.actions.map((action) => [action.id, action]));
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
+      const own = power.get(player.id) ?? null;
+      const from = byId.get(SPREADS[action.id]);
+      const spread = action.effects.find((e) => e.kind === 'shield')?.status;
       const effects = [
         ...mitigationEffects(action),
-        ...shieldEffects(action, player, power.get(player.id) ?? null),
-        ...invulnerableEffects(action, power.get(player.id) ?? null),
+        ...(from
+          ? shieldEffects(from, player, own)
+              .filter((e) => e.status === spread)
+              .map((e) => ({ ...e, target: 'party' as const }))
+          : shieldEffects(action, player, own)),
+        ...invulnerableEffects(action, own),
       ];
       if (!effects.length) continue;
       tools.push({

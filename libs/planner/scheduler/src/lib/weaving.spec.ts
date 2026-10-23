@@ -98,5 +98,7 @@ describe('Weaving', () => {
     expect(free.ogcdBefore(2, 30_000, 0, [])).toBe(30_000);
     expect(free.ogcdBefore(2, 30_000, 0, [ogcd(30_000)])).toBe(29_300);
     expect(free.gcdBefore(2, 30_000, 0, 0, [{ at: 29_000, gcd: true, castMs: 0 }])).toBe(26_500);
+    // Or just before an oGCD that takes the moment asked.
+    expect(free.gcdBefore(2, 30_000, 0, 0, [ogcd(30_000)])).toBe(29_400);
   });
 });

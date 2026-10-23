@@ -1,6 +1,6 @@
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
-import { Weaving } from './weaving';
+import { WEAVE_MS, Weaving } from './weaving';
 import type { PullFacts } from './coverage.model';
 
 // A mitigation goes up at least this long before the hit it's for.
@@ -17,6 +17,9 @@ interface Candidate {
   use: PlannedUse;
   tool: MitigationTool;
   value: number;
+  // The use that grants it, planned with it (an Adloquium before Deployment
+  // Tactics).
+  granted?: { use: PlannedUse; tool: MitigationTool };
 }
 
 // The party's mitigations and shields planned over the pull: the most
@@ -63,6 +66,7 @@ export function planMitigation(
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
   const add = (candidate: Candidate) => {
+    if (candidate.granted) add({ ...candidate.granted, value: 0 });
     uses.push(candidate.use);
     toolOf.set(candidate.use, candidate.tool);
   };
@@ -114,8 +118,56 @@ export function planMitigation(
   const timesOf = (player: number, action: number) =>
     uses.filter((u) => u.player === player && u.action === action).map((u) => u.at);
 
+  // The damage `added` uses take off the hits `wanted` of `m`, and a little
+  // for every other mechanic in their window, from `at` for `lasts`.
+  const valueOf = (
+    m: Mechanic,
+    added: { use: PlannedUse; tool: MitigationTool }[],
+    at: number,
+    lasts: number,
+    wanted: (h: MechanicHit) => boolean,
+  ) => {
+    // Only what's up around its window can change what it adds.
+    const window = mechanics.filter((o) => o.at >= at && o.at <= at + lasts);
+    const near = uses.filter((u) => u.at >= at - longest && u.at <= at + lasts);
+    const withIt = (u: PlannedUse) => added.find((a) => a.use === u)?.tool ?? tool(u);
+    let value = 0;
+    for (const other of window) {
+      for (const hit of other.hits) {
+        if (!added.some((a) => reaches(a.tool, a.use, other, hit).length)) continue;
+        const before = project(other, hit, near).damage;
+        const after = project(other, hit, [...near, ...added.map((a) => a.use)], withIt).damage;
+        value += (before - after) * (other === m && wanted(hit) ? 1 : 0.25);
+      }
+    }
+    return value;
+  };
+
+  // The use of the action granting `t` that would let it go up at `at`,
+  // landing before it; null when there's none (or no tool for it).
+  const granting = (m: Mechanic, t: MitigationTool, at: number) => {
+    const grant = t.grantedBy;
+    const g = grant && plannable.find((o) => o.player === t.player && o.action === grant.action);
+    if (!g || !grant) return null;
+    const occupied = uses
+      .filter((u) => u.player === t.player)
+      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
+    const lands = at - g.castMs;
+    const from = Math.max(0, at - grant.withinMs);
+    const gAt = g.gcd
+      ? weaving.gcdBefore(t.player, lands, from, g.castMs, occupied)
+      : weaving.ogcdBefore(t.player, lands - WEAVE_MS, from, occupied);
+    const times = uses.filter((u) => tool(u).group === g.group).map((u) => u.at);
+    if (gAt === null || gAt < 0 || !fitsRecast(times, gAt, g.recastMs, g.charges)) return null;
+    if (!fitsGrant(timesOf(t.player, t.action), [...timesOf(t.player, g.action), gAt], at, grant)) return null;
+    const target = g.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
+    return { use: { player: g.player, action: g.action, name: g.name, at: gAt, target, covers: [] }, tool: g };
+  };
+
   // What one more use of `t` for `m` would add, at its best moment; null
-  // when it can't be used for it.
+  // when it can't be used for it. One another grants comes with a use of
+  // that one where it has none, the two worth what they add together, the
+  // other's GCD counted as one.
   const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const spent = t.pool
@@ -128,30 +180,21 @@ export function planMitigation(
       const at = fit(m, t, moment);
       if (at === null || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
+      let granted: Candidate['granted'];
       if (
         t.grantedBy &&
         !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy)
       ) {
-        continue;
+        granted = granting(m, t, at) ?? undefined;
+        if (!granted) continue;
       }
       const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
-      // Only what's up around its window can change what it adds.
-      const window = mechanics.filter((o) => o.at >= at && o.at <= at + lasts);
-      const near = uses.filter((u) => u.at >= at - longest && u.at <= at + lasts);
-      const withIt = (u: PlannedUse) => (u === use ? t : tool(u));
-      // The damage it takes off the hits wanted here, and a little for every
-      // other mechanic its window also covers.
-      let value = 0;
-      for (const other of window) {
-        for (const hit of other.hits) {
-          if (!reaches(t, use, other, hit).length) continue;
-          const before = project(other, hit, near).damage;
-          const after = project(other, hit, [...near, use], withIt).damage;
-          value += (before - after) * (other === m && wanted(hit) ? 1 : 0.25);
-        }
-      }
+      const added = [{ use, tool: t }, ...(granted ? [granted] : [])];
+      const start = granted?.use.at ?? at;
+      let value = valueOf(m, added, start, lasts + (at - start), wanted);
       if (t.gcd) value *= GCD_WORTH;
-      if (value > 0 && (!found || value > found.value)) found = { use, tool: t, value };
+      if (granted?.tool.gcd) value -= (1 - GCD_WORTH) * valueOf(m, [granted], start, lasts, wanted);
+      if (value > 0 && (!found || value > found.value)) found = { use, tool: t, value, granted };
     }
     return found;
   };
