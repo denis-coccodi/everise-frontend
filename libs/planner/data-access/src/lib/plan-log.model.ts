@@ -36,10 +36,13 @@ export interface PlanUseEntry {
 
 // One of the player's GCDs as played, which a planned oGCD is woven after:
 // a damage GCD, the plan placing only heals and mitigations (it stands in
-// for whichever they cast there).
+// for whichever they cast there). Their first, when they began casting it in
+// the countdown, shows either way.
 export interface PlanGcdEntry {
   kind: 'gcd';
   at: number;
+  // Cast in the countdown: `at` is when it lands.
+  prepull: boolean;
 }
 
 export type PlanEntry = PlanHitEntry | PlanUseEntry | PlanGcdEntry;

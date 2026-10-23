@@ -73,9 +73,25 @@ describe('planLog', () => {
     for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
 
     expect(planLog(plan, pullTimeline(), 1, catalog).slice(0, 2)).toEqual([
-      { kind: 'gcd', at: 62_000 },
+      { kind: 'gcd', at: 62_000, prepull: false },
       expect.objectContaining({ kind: 'use', action: 'Reprisal' }),
     ]);
+  });
+
+  it('shows their first GCD when they cast it in the countdown', () => {
+    // Landing at 0.8s, 1.5s before the next (their GCD: 2.3s).
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+    const timeline = pullTimeline();
+    timeline.playerCasts = [800, 2300, 4600, 6900].map((at) => ({
+      at,
+      source: 1,
+      target: null,
+      action: 9,
+      castMs: null,
+    }));
+
+    expect(planLog(plan, timeline, 1, catalog)[0]).toEqual({ kind: 'gcd', at: 800, prepull: true });
   });
 
   it('names the target of a single-target use, themselves included', () => {

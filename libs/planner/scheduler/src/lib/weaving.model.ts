@@ -7,6 +7,9 @@ export interface GcdCast {
   // the next GCD comes sooner than one GCD after `at`. The plan can't put a
   // GCD of its own there.
   landed?: boolean;
+  // Instant by a buff (Swiftcast, Lightspeed...) though it has a cast time:
+  // a GCD the plan puts there is instant too.
+  instant?: boolean;
 }
 
 // An action the plan already has a player use: an oGCD takes a weave slot,

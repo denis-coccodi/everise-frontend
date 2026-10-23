@@ -70,6 +70,28 @@ describe('Weaving', () => {
     expect(precast.ogcdAfter(1, 0, 2_300, [])).toBe(1_400);
   });
 
+  it('makes a GCD instant where theirs was, by Swiftcast or in Lightspeed', () => {
+    // Glare III (190, a 1.5s cast) instant at 12.5s (Swiftcast); Lightspeed
+    // from 17s to 32s.
+    const buffed = new Weaving(
+      [cast(10_000, 9), cast(12_500, 190), cast(15_000, 190, 1500), cast(17_500, 9), cast(20_000, 190)],
+      gcdOf,
+      () => true,
+      new Map([[190, 1500]]),
+      [{ status: 841, source: 1, target: 1, from: 17_000, to: 32_000, stacks: null, shield: null }],
+    );
+    const heal = (at: number) => ({ at, gcd: true, castMs: 2000 });
+
+    // A 2s heal at the Swiftcast GCD leaves room for two oGCDs after it.
+    expect(buffed.castAt(1, 12_500, 2000)).toBe(0);
+    expect(buffed.ogcdAfter(1, 12_500, 15_000, [heal(12_500)])).toBe(13_100);
+    // At a cast one, none.
+    expect(buffed.ogcdAfter(1, 15_000, 17_500, [heal(15_000)])).toBeNull();
+    // In Lightspeed, any GCD.
+    expect([17_500, 20_000].map((at) => buffed.castAt(1, at, 2000))).toEqual([0, 0]);
+    expect(buffed.castAt(1, 10_000, 2000)).toBe(2000);
+  });
+
   it('lets a player the pull has no GCDs of act freely, an oGCD a weave and a GCD 2.5s apart', () => {
     const free = new Weaving();
 
