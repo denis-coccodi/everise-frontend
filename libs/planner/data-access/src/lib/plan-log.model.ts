@@ -32,4 +32,12 @@ export interface PlanUseEntry {
   damage: boolean;
 }
 
-export type PlanEntry = PlanHitEntry | PlanUseEntry;
+// One of the player's GCDs as played, which a planned oGCD is woven after:
+// a damage GCD, the plan placing only heals and mitigations (it stands in
+// for whichever they cast there).
+export interface PlanGcdEntry {
+  kind: 'gcd';
+  at: number;
+}
+
+export type PlanEntry = PlanHitEntry | PlanUseEntry | PlanGcdEntry;

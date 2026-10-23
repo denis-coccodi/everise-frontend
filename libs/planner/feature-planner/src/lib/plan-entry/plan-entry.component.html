@@ -26,5 +26,9 @@
     <p class="detail">{{ detail(e) }}</p>
     <p class="detail">{{ covered(e) }}</p>
   }
+  @case ('gcd') {
+    <!-- The damage GCD a planned oGCD is woven after. -->
+    <p class="line"><span class="label">GCD</span>{{ ' ' }}Damage</p>
+  }
   @default never(e);
 }

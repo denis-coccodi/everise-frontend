@@ -19,7 +19,13 @@ describe('compareLog', () => {
       [plannedUse(65_000, 'Reprisal'), plannedUse(90_000, 'Feint')],
     );
 
-    expect(rows.map((row) => [row.at, row.played.map((e) => e.action), row.planned.map((e) => e.action)])).toEqual([
+    expect(
+      rows.map((row) => [
+        row.at,
+        row.played.map((e) => e.action),
+        row.planned.map((e) => (e.kind === 'gcd' ? 'GCD' : e.action)),
+      ]),
+    ).toEqual([
       [60_000, ['Rampart'], []],
       // 0.4s apart: one moment.
       [65_000, ['Vengeance'], ['Reprisal']],

@@ -1,5 +1,5 @@
 import type { Plan } from '@everise/planner/scheduler';
-import { pullTimeline } from './planner-fixtures';
+import { actionCatalog, pullTimeline } from './planner-fixtures';
 import { planLog, unsafeHits } from './plan-log';
 
 const plan: Plan = {
@@ -63,6 +63,17 @@ describe('planLog', () => {
         covers: ['Reprisal'],
       },
       expect.objectContaining({ kind: 'hit', at: 200_000, safe: false }),
+    ]);
+  });
+
+  it('shows the damage GCD of theirs a planned oGCD is woven after', () => {
+    // Their Fast Blade at 62s, as played, before the Reprisal at 64.5s.
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+
+    expect(planLog(plan, pullTimeline(), 1, catalog).slice(0, 2)).toEqual([
+      { kind: 'gcd', at: 62_000 },
+      expect.objectContaining({ kind: 'use', action: 'Reprisal' }),
     ]);
   });
 
