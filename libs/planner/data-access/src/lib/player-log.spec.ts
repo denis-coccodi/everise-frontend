@@ -14,8 +14,18 @@ describe('playerLog', () => {
       kind: 'use',
       at: 60_000,
       action: 'Rampart',
+      target: null,
       effects: 'Self: −20% damage taken (20s), +15% healing received (20s)',
     });
+  });
+
+  it('says who a single-target heal or shield went on', () => {
+    const timeline = pullTimeline();
+    timeline.playerCasts[3].target = 1;
+
+    expect(playerLog(timeline, actionCatalog(), 2)[0]).toEqual(
+      expect.objectContaining({ action: 'Adloquium', target: 'Tank Main' }),
+    );
   });
 
   it('says what each hit did, and what covered it, the debuffs on the boss included', () => {

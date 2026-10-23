@@ -9,6 +9,10 @@ export const WEAVE_MS = 700;
 const INSTANT_LOCK_MS = 600;
 // A player the pull has no GCDs of: one GCD at a time, this far apart.
 const GCD_MS = 2500;
+// A GCD this much sooner than the player's usual one after the last only
+// landed then: its cast bar began earlier, about this long before.
+const LANDED_SHARE = 0.75;
+const CAST_BAR_MS = 1500;
 
 // A stretch of a player's time an action takes.
 interface Busy {
@@ -21,7 +25,8 @@ interface Busy {
 // room between two GCDs, after the first's cast bar (or its lock, for an
 // instant one) and before the second starts, beside the other oGCDs there;
 // a GCD the plan has them use takes the place of one of theirs, its cast
-// bar the room after it. The oGCDs they used that the plan doesn't schedule
+// bar the room after it (never of one that only landed then, its cast begun
+// before). The oGCDs they used that the plan doesn't schedule
 // (`planned` says which do) keep their place.
 export class Weaving {
   private readonly gcds = new Map<number, GcdCast[]>();
@@ -40,7 +45,14 @@ export class Weaving {
       if (gcd) push(this.gcds, cast.source, { at: cast.at, castMs: cast.castMs ?? 0 });
       else if (!planned(cast.source, cast.action)) push(this.kept, cast.source, cast.at);
     }
-    for (const list of this.gcds.values()) list.sort((a, b) => a.at - b.at);
+    for (const list of this.gcds.values()) {
+      list.sort((a, b) => a.at - b.at);
+      const gaps = list.slice(1).map((g, i) => g.at - list[i].at);
+      const usual = [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)];
+      list.forEach((g, i) => {
+        if (g.castMs === 0 && i < gaps.length && gaps[i] < usual * LANDED_SHARE) g.landed = true;
+      });
+    }
   }
 
   static of(timeline: PullTimeline, catalog: ActionCatalog, planned: (player: number, action: number) => boolean) {
@@ -117,6 +129,7 @@ export class Weaving {
       const taken = new Set(occupied.filter((o) => o.gcd).map((o) => o.at));
       return (
         played
+          .filter((g) => !g.landed)
           .map((g) => g.at)
           .filter((t) => within(t) && !taken.has(t) && clear(t))
           .sort(order)[0] ?? null
@@ -135,12 +148,17 @@ export class Weaving {
     const planned = new Map(occupied.filter((o) => o.gcd).map((o) => [o.at, o.castMs]));
     const played = this.gcds.get(player) ?? [];
     const gcds = [
-      ...played.map((g) => ({ at: g.at, castMs: planned.get(g.at) ?? g.castMs })),
-      ...[...planned].filter(([at]) => !played.some((g) => g.at === at)).map(([at, castMs]) => ({ at, castMs })),
+      ...played.map((g) => ({ at: g.at, castMs: planned.get(g.at) ?? g.castMs, landed: g.landed })),
+      ...[...planned]
+        .filter(([at]) => !played.some((g) => g.at === at))
+        .map(([at, castMs]) => ({ at, castMs, landed: false })),
     ];
     const ogcds = [...(this.kept.get(player) ?? []), ...occupied.filter((o) => !o.gcd).map((o) => o.at)];
     return {
-      gcds: gcds.map((g) => ({ from: g.at, to: g.at + Math.max(g.castMs, INSTANT_LOCK_MS) })),
+      gcds: gcds.map((g) => ({
+        from: g.landed ? g.at - CAST_BAR_MS : g.at,
+        to: g.at + Math.max(g.castMs, INSTANT_LOCK_MS),
+      })),
       ogcds: ogcds.map((at) => ({ from: at, to: at + WEAVE_MS })),
     };
   }

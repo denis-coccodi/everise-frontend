@@ -3,6 +3,10 @@
 export interface GcdCast {
   at: number;
   castMs: number;
+  // Only where it landed: its cast bar began before (in the countdown), so
+  // the next GCD comes sooner than one GCD after `at`. The plan can't put a
+  // GCD of its own there.
+  landed?: boolean;
 }
 
 // An action the plan already has a player use: an oGCD takes a weave slot,

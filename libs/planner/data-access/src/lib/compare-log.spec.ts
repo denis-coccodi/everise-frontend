@@ -2,7 +2,7 @@ import { compareLog } from './compare-log';
 import type { PlanEntry } from './plan-log.model';
 import type { LogEntry } from './player-log.model';
 
-const used = (at: number, action: string): LogEntry => ({ kind: 'use', at, action, effects: '' });
+const used = (at: number, action: string): LogEntry => ({ kind: 'use', at, action, target: null, effects: '' });
 const plannedUse = (at: number, action: string): PlanEntry => ({
   kind: 'use',
   at,

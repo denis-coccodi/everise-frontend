@@ -40,7 +40,9 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       kind: 'use',
       at: use.at,
       action: use.name,
-      target: use.target !== null && use.target !== playerId ? (playerName.get(use.target) ?? null) : null,
+      // Named even when it's themselves: a single-target heal or shield says
+      // who it's for.
+      target: use.target === null ? null : (playerName.get(use.target) ?? null),
       covers: [...new Set(use.covers.map((id) => mechanic.get(id)?.name ?? 'Unknown'))],
       damage: use.damage ?? false,
     }));

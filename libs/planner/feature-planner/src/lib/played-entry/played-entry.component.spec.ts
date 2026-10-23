@@ -54,10 +54,13 @@ describe('PlayedEntryComponent', () => {
   });
 
   it('gives what the player used, and their death', () => {
-    expect(render({ kind: 'use', at: 60_000, action: 'Rampart', effects: 'Self: −20% damage taken (20s)' })).toEqual({
-      text: 'Used Rampart Self: −20% damage taken (20s)',
-      kind: 'use',
-    });
+    expect(
+      render({ kind: 'use', at: 60_000, action: 'Rampart', target: null, effects: 'Self: −20% damage taken (20s)' }),
+    ).toEqual({ text: 'Used Rampart Self: −20% damage taken (20s)', kind: 'use' });
+    expect(
+      render({ kind: 'use', at: 63_000, action: 'Adloquium', target: 'Tank Main', effects: 'Target: heal 300 potency' })
+        .text,
+    ).toBe('Used Adloquium on Tank Main Target: heal 300 potency');
     expect(render({ kind: 'death', at: 200_000, action: 'Killer Voice' })).toEqual({
       text: 'Died to Killer Voice',
       kind: 'death',

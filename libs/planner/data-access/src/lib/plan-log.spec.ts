@@ -78,6 +78,14 @@ describe('planLog', () => {
     ]);
   });
 
+  it('names the target of a single-target use, themselves included', () => {
+    const self = { ...plan, uses: [{ ...plan.uses[1], player: 2, target: 2 }] };
+
+    expect(planLog(self, pullTimeline(), 2).find((e) => e.kind === 'use')).toEqual(
+      expect.objectContaining({ target: 'Heal Main' }),
+    );
+  });
+
   it('gives what the plan has a player use, and who for, before the hits it covers', () => {
     expect(planLog(plan, pullTimeline(), 1)).toEqual([
       { kind: 'use', at: 64_500, action: 'Reprisal', target: null, covers: ['Killer Voice'], damage: false },
