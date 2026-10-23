@@ -226,22 +226,32 @@ describe('planHeals', () => {
       return planHeals(planMitigation(mechanicsOf(timeline), [], maxHp, options), timeline, [], heals, maxHp, options);
     };
 
-    // Favouring healing: only the heal the buster needs.
-    expect(plan('healing').uses.map((u) => u.name)).toEqual(['Afflatus Solace']);
+    // Favouring healing: only the heal the buster needs, and Afflatus Misery
+    // at the pull, the Blood Lily being in full bloom (since 7.4).
+    expect(plan('healing').uses.map((u) => [u.name, u.damage ?? false])).toEqual([
+      ['Afflatus Misery', true],
+      ['Afflatus Solace', false],
+    ]);
     expect(heals.map((t) => [t.name, t.cost])).toEqual([
       ['Adloquium', 'gcd'],
       ['Cure II', 'gcd'],
       ['Afflatus Solace', 'neutral'],
     ]);
-    // Favouring damage: the third lily spent as it comes in, two kept. They
-    // start full (since 7.4), so the first goes at the pull, and fill one
-    // every 20s.
-    const dumps = plan('dps')
-      .uses.filter((u) => u.name === 'Afflatus Solace' && !u.covers.length)
-      .map((u) => u.at);
-    expect(dumps[0]).toBe(0);
+    // Favouring damage: Misery first, then the third lily spent as it comes
+    // in, two kept, and Misery again each time three lilies have gone.
+    const uses = plan('dps').uses;
+    const at = (name: string) => uses.filter((u) => u.name === name).map((u) => u.at);
+    const dumps = uses.filter((u) => u.name === 'Afflatus Solace' && !u.covers.length).map((u) => u.at);
+    const [first, ...miseries] = at('Afflatus Misery');
+    expect(first).toBe(0);
+    expect(dumps[0]).toBeGreaterThan(first);
     for (let i = 1; i < dumps.length; i++) expect(dumps[i] - dumps[i - 1]).toBeGreaterThanOrEqual(19_000);
     expect(dumps.length).toBeGreaterThan(20);
+    const lilies = at('Afflatus Solace');
+    for (const misery of miseries) {
+      const since = Math.max(...[first, ...miseries].filter((m) => m < misery));
+      expect(lilies.filter((l) => l > since && l < misery)).toHaveLength(3);
+    }
   });
 
   describe('Earthly Star', () => {

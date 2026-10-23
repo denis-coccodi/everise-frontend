@@ -9,7 +9,13 @@
     </p>
     <!-- A use for no hit: a heal on cooldown, a lily that would overcap. -->
     <p class="detail">
-      {{ e.covers.length ? 'For ' + e.covers.join(', ') : 'On cooldown, or before it would go to waste' }}
+      {{
+        e.covers.length
+          ? 'For ' + e.covers.join(', ')
+          : e.damage
+            ? 'Damage: the Blood Lily is in full bloom'
+            : 'On cooldown, or before it would go to waste'
+      }}
     </p>
   }
   @case ('hit') {

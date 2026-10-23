@@ -32,14 +32,27 @@ describe('PlanEntryComponent', () => {
 
   it('says what to use, who for, and for which mechanics', () => {
     expect(
-      render({ kind: 'use', at: 199_500, action: 'Intervention', target: 'Heal Main', covers: ['Killer Voice'] }),
+      render({
+        kind: 'use',
+        at: 199_500,
+        action: 'Intervention',
+        target: 'Heal Main',
+        covers: ['Killer Voice'],
+        damage: false,
+      }),
     ).toEqual({ text: 'Use Intervention on Heal Main For Killer Voice', unsafe: false });
   });
 
   it('says why a use for no hit is there', () => {
-    expect(render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [] }).text).toBe(
+    expect(render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [], damage: false }).text).toBe(
       'Use Assize On cooldown, or before it would go to waste',
     );
+  });
+
+  it('says a damage action is there for the Blood Lily', () => {
+    const misery = { kind: 'use' as const, at: 0, action: 'Afflatus Misery', target: null, covers: [], damage: true };
+
+    expect(render(misery).text).toBe('Use Afflatus Misery Damage: the Blood Lily is in full bloom');
   });
 
   it('says how a hit lands with the plan, against how it went', () => {
