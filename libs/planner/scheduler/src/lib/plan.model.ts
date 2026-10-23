@@ -157,6 +157,27 @@ export interface HealTool {
 // GCD heal).
 export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd';
 
+// An oGCD that only pays with one of its user's GCD heals after it:
+// Plenary Indulgence before a Medica, Cure III or Afflatus Rapture (its
+// Confession heals each member the heal reaches), Zoe before a Sage's GCD
+// heal (50% more), Neutral Sect before an Aspected Benefic or Helios
+// Conjunction (20% more). The plan uses it only with one.
+export interface HealPairing {
+  player: number;
+  action: number;
+  name: string;
+  recastMs: number;
+  charges: number;
+  group: string;
+  // The heals it goes with, and how long before one it can go up.
+  heals: number[];
+  withinMs: number;
+  // What the heal's healing is multiplied by, and the HP each member it
+  // reaches gets on top.
+  times: number;
+  extra: ShieldSize | null;
+}
+
 // A heal that lands later than it's used: Earthly Star's, once the star has
 // grown (10s, set off with Stellar Detonation) or on its own (20s);
 // Excogitation's, when its target drops to half their HP, or when it ends;

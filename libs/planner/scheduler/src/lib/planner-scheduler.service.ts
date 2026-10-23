@@ -2,7 +2,7 @@ import { Service } from '@angular/core';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
-import { healTools } from './heal-tools';
+import { healPairings, healTools } from './heal-tools';
 import { healingBuffsOf } from './healing-buffs';
 import { playedInvulnerabilities } from './invulnerabilities';
 import { mechanicsOf } from './mechanics';
@@ -48,13 +48,19 @@ export class PlannerScheduler {
         replanned,
       ),
     };
+    // The oGCDs that only pay with a GCD heal (Plenary Indulgence) are
+    // planned with one, by the heals, never on their own.
+    const pairings = healPairings(timeline.players, catalog, power).filter(replanned);
+    const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
+    const paired = new Set(pairings.map(key));
+    const alone = mitigation.filter((t) => !paired.has(key(t)));
     // Where each player can act: their GCDs as played, and the oGCDs they
     // used that the plan doesn't schedule.
-    const scheduled = new Set([...mitigation.filter(replanned), ...heals].map((t) => `${t.player}:${t.action}`));
+    const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const once = (from?: Plan) =>
       planHeals(
-        planMitigation(mechanics, mitigation, maxHp, options, from, fixed, weaving),
+        planMitigation(mechanics, alone, maxHp, options, from, fixed, weaving),
         timeline,
         mitigation,
         heals,
@@ -62,6 +68,7 @@ export class PlannerScheduler {
         options,
         buffs,
         weaving,
+        pairings,
       );
 
     let best = once();

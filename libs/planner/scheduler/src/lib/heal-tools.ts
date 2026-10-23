@@ -1,5 +1,5 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
-import { DelayedHeal, HealCost, HealEffect, HealTool, MitigationTool } from './plan.model';
+import { DelayedHeal, HealCost, HealEffect, HealPairing, HealTool, MitigationTool } from './plan.model';
 import { ASSUMED, GRANTED, POOLS, playerActions } from './tools';
 
 // Healing over time ticks this often.
@@ -33,6 +33,48 @@ const DAMAGE_SHARE = /^plus (\d+)% of damage taken meanwhile; when it ends/;
 //   hits.
 const STACKS_LEFT = 'each stack left when it ends';
 const ON_HIT = /^each time the .+ takes damage$/;
+
+// The oGCDs that only pay with a GCD heal after them, by action, and how:
+// Plenary Indulgence's Confession heals 200 potency on each member a Medica,
+// Cure III or Afflatus Rapture reaches in its 10s; Zoe makes the next GCD
+// heal 50% bigger (Pneuma, the Eukrasian ones) in 30s; Neutral Sect, an
+// Aspected Benefic's or Helios Conjunction's 20% in 20s (their barriers
+// meanwhile aren't counted yet).
+const PAIRED: Record<number, { heals: number[]; withinMs: number; times: number; potency: number }> = {
+  7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
+  24300: { heals: [24318, 24292, 37034, 24291], withinMs: 30_000, times: 1.5, potency: 0 },
+  16559: { heals: [3595, 37030], withinMs: 20_000, times: 1.2, potency: 0 },
+};
+
+// The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
+// HP they add from the caster's `power`.
+export function healPairings(
+  players: TimelinePlayer[],
+  catalog: ActionCatalog,
+  power: Map<number, number>,
+): HealPairing[] {
+  const pairings: HealPairing[] = [];
+  for (const player of players.filter((p) => p.role === 'healer')) {
+    for (const action of playerActions(player, catalog)) {
+      const paired = PAIRED[action.id];
+      if (!paired) continue;
+      const own = power.get(player.id);
+      pairings.push({
+        player: player.id,
+        action: action.id,
+        name: action.name,
+        recastMs: action.recastMs,
+        charges: action.charges,
+        group: `${player.id}:${action.cooldownGroup}`,
+        heals: paired.heals,
+        withinMs: paired.withinMs,
+        times: paired.times,
+        extra: paired.potency && own ? { hp: paired.potency * own } : null,
+      });
+    }
+  }
+  return pairings;
+}
 
 // The heals the plan can count on: every heal of the healers' actions, and
 // the heals of the mitigations the plan has anyone use. Everyone else's

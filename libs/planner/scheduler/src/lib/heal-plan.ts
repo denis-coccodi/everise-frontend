@@ -2,11 +2,13 @@ import { PullTimeline } from '@everise/core/api-types';
 import { fitsGrant, fitsPool, fitsRecast, poolFull, projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
+import { pairingsFor } from './paired-heals';
 import { Weaving } from './weaving';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
   HealCost,
+  HealPairing,
   HealTool,
   Mechanic,
   MechanicHit,
@@ -17,6 +19,7 @@ import {
   PlannedUse,
   ToolPool,
 } from './plan.model';
+import type { Candidate, Paired, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
@@ -37,34 +40,15 @@ const FULL_WORTH = 1.05;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
-// What an action already planned uses up: its recast, its pool, a GCD or a
-// weave slot (and the grant it uses, or gives).
-interface Spent {
-  player: number;
-  action: number;
-  at: number;
-  group: string;
-  pool: ToolPool | null;
-  gcd: boolean;
-  castMs: number;
-}
-
-interface Candidate {
-  use: PlannedUse;
-  tool: HealTool;
-  events: HpEvent[];
-  value: number;
-  // How long after it's used it heals, past its cast (a delayed heal's).
-  delayMs: number;
-}
-
 // The healers' heals planned over the pull, after the mitigations and
 // shields: in time order, before each mechanic, enough heals that every hit
 // leaves the margin of the HP its player has then (as far as the healers'
 // cooldowns allow), oGCDs first, each heal times the healing `buffs` (by
 // action) up for it, and where its healer can act (`weaving`): an oGCD in a
-// weave slot, a GCD in place of one of theirs. Then each hit is judged by
-// the HP it leaves.
+// weave slot, a GCD in place of one of theirs. A GCD heal can go with the
+// oGCD that pays only with one (`pairings`: Plenary Indulgence before a
+// Medica), the two planned together. Then each hit is judged by the HP it
+// leaves.
 export function planHeals(
   plan: Plan,
   timeline: PullTimeline,
@@ -74,6 +58,7 @@ export function planHeals(
   options: PlanOptions,
   buffs = new Map<number, HealingBuff[]>(),
   weaving = new Weaving(),
+  pairings: HealPairing[] = [],
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -87,7 +72,8 @@ export function planHeals(
   for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);
   const hitTimes = (player: number, from: number, to: number) =>
     (hitAt.get(player) ?? []).filter((at) => at > from && at <= to).sort((a, b) => a - b);
-  const boosts = new HealingBuffs(buffs, party, timeline, new Set([...healOf.keys(), ...mitigationOf.keys()]));
+  const scheduled = new Set([...healOf.keys(), ...mitigationOf.keys(), ...pairings.map(key)]);
+  const boosts = new HealingBuffs(buffs, party, timeline, scheduled);
   for (const use of plan.uses) boosts.add(use);
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
   const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) =>
@@ -166,7 +152,18 @@ export function planHeals(
       let pick: Candidate | null = null;
       for (const tool of planned) {
         const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
-        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving);
+        const pairWith = (use: PlannedUse, events: HpEvent[]) =>
+          pairingsFor(
+            pairings,
+            tool,
+            use,
+            events,
+            spent.filter((s) => s.player === use.player),
+            (group) => spent.filter((s) => s.group === group).map((s) => s.at),
+            weaving,
+            maxHp,
+          );
+        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
       }
       if (!pick) break;
@@ -175,6 +172,22 @@ export function planHeals(
       boosts.add(pick.use);
       const mitigates = mitigationOf.get(key(pick.use));
       if (mitigates) mitigate(pick.use, mitigates);
+      if (pick.paired) {
+        const { use, pairing } = pick.paired;
+        uses.push(use);
+        boosts.add(use);
+        const confession = mitigationOf.get(key(use));
+        if (confession) mitigate(use, confession);
+        spent.push({
+          player: use.player,
+          action: use.action,
+          at: use.at,
+          group: pairing.group,
+          pool: null,
+          gcd: false,
+          castMs: 0,
+        });
+      }
       // A delayed heal set off sooner than it goes off on its own.
       const { delayed } = pick.tool;
       if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
@@ -230,6 +243,7 @@ function best(
   eventsOf: (use: PlannedUse, delayMs: number) => HpEvent[],
   deficits: (extra: HpEvent[]) => Map<number, number>,
   weaving: Weaving,
+  pairWith: (use: PlannedUse, events: HpEvent[]) => Paired[],
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
   const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
@@ -283,12 +297,6 @@ function best(
     const { grantedBy } = tool;
     if (grantedBy && !fitsGrant(timesOf(tool.action), timesOf(grantedBy.action), at, grantedBy)) continue;
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };
-    const events = eventsOf(use, delayMs);
-    const after = deficits(events);
-    let value = 0;
-    for (const [player, deficit] of short) {
-      if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
-    }
     const full =
       tool.pool &&
       poolFull(
@@ -296,8 +304,22 @@ function best(
         at,
         tool.pool,
       );
-    value *= full ? FULL_WORTH : WORTH[tool.cost];
-    if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs };
+    const worth = full ? FULL_WORTH : WORTH[tool.cost];
+    // On its own, or with each oGCD that can go with it.
+    const alone = eventsOf(use, delayMs);
+    const options = [
+      { events: alone, paired: null },
+      ...pairWith(use, alone).map((p) => ({ events: p.events, paired: p })),
+    ];
+    for (const { events, paired } of options) {
+      const after = deficits(events);
+      let value = 0;
+      for (const [player, deficit] of short) {
+        if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
+      }
+      value *= worth;
+      if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs, paired };
+    }
   }
   return found;
 }
