@@ -113,10 +113,11 @@ tr.only-plan {
 }
 
 // Laptops: both sides, every moment, what happened beside what the plan has,
-// scrolling on their own within the screen's height.
+// scrolling on their own in about two thirds of the screen's height.
 @include bp.up(lg) {
   .scroller {
-    max-height: calc(100dvh - 4rem);
+    // About two thirds of the screen: room for the page around it.
+    max-height: max(20rem, 65dvh);
     overflow-y: auto;
   }
 

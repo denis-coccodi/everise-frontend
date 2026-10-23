@@ -6,7 +6,7 @@ import { PlayedEntryComponent } from '../played-entry/played-entry.component';
 // A player's pull as played and as planned, on one timeline: a row per
 // moment, what happened then beside what the plan has then. Laptops and up
 // show both sides; narrower screens the one `shown` (the pull view's tabs).
-// On laptops it scrolls on its own, never taller than the screen, its
+// On laptops it scrolls on its own, in about two thirds of the screen, its
 // headings kept in view; elsewhere the page scrolls, the headings still
 // kept in view.
 @Component({
