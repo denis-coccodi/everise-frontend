@@ -44,7 +44,7 @@ const mechanic = (at: number): Mechanic => ({
   name: 'Raidwide',
   kind: 'raidwide',
   damageType: 'magic',
-  hits: [{ player: 2, unmitigated: 100_000, asPlayed: 80_000 }],
+  hits: [{ player: 2, unmitigated: 100_000, asPlayed: 80_000, avoidable: false }],
 });
 // Player 2 has 200,000 HP and was hit at 10s and 12s.
 const facts: PullFacts = {

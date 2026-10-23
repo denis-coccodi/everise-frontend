@@ -14,7 +14,7 @@
   }
   @case ('hit') {
     <p class="line">
-      <span class="label">{{ e.safe ? 'Hit' : 'Short' }}</span
+      <span class="label">{{ e.avoidable ? 'Avoidable' : e.safe ? 'Hit' : 'Short' }}</span
       >{{ ' ' }}<strong>{{ e.action }}</strong>
     </p>
     <p class="detail">{{ detail(e) }}</p>

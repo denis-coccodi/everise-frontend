@@ -4,6 +4,8 @@ import { Weaving } from './weaving';
 
 // A mitigation goes up at least this long before the hit it's for.
 const LEAD_MS = 500;
+// What an avoided hit does.
+const AVOIDED = { damage: 0, absorbed: 0, statuses: [], invulnerable: false };
 // The spare pass adds at most this many uses to one mechanic.
 const SPARE_PER_MECHANIC = 4;
 // What a weaponskill or spell is worth next to an oGCD doing as much: it
@@ -44,12 +46,16 @@ export function planMitigation(
   const toolOf = new Map<PlannedUse, MitigationTool>();
   const tool = (use: PlannedUse) => toolOf.get(use) as MitigationTool;
   const facts = pullFacts(mechanics, maxHp);
-  const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) => projected(m, h, list, of, facts);
+  // A failed mechanic is taken as avoided: it takes nothing, and nothing is
+  // spent on it.
+  const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) =>
+    h.avoidable ? AVOIDED : projected(m, h, list, of, facts);
   const max = (h: MechanicHit) => maxHp.get(h.player) ?? Infinity;
   // The HP a hit lands on, and the most it may take and leave the margin.
   const hpOf = (m: Mechanic, h: MechanicHit) => Math.min(max(h), hpAt.get(`${m.id}:${h.player}`) ?? Infinity);
   const limit = (m: Mechanic, h: MechanicHit) => hpOf(m, h) - options.margin * max(h);
-  const danger = (m: Mechanic) => Math.max(...m.hits.map((h) => h.unmitigated / hpOf(m, h)));
+  const danger = (m: Mechanic) =>
+    Math.max(0, ...m.hits.filter((h) => !h.avoidable).map((h) => h.unmitigated / hpOf(m, h)));
   const order = [...mechanics].sort((a, b) => danger(b) - danger(a) || a.at - b.at);
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
@@ -236,6 +242,7 @@ export function planMitigation(
         share: hp ? damage / hp : null,
         safe: invulnerable || damage <= limit(m, hit),
         invulnerable,
+        avoidable: hit.avoidable,
         covers: statuses,
       };
     }),

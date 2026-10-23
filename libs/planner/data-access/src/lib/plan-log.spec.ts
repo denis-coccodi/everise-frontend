@@ -23,6 +23,7 @@ const plan: Plan = {
       share: 0.45,
       safe: true,
       invulnerable: false,
+      avoidable: false,
       covers: ['Reprisal'],
     },
     {
@@ -36,6 +37,7 @@ const plan: Plan = {
       share: 0.945,
       safe: false,
       invulnerable: false,
+      avoidable: false,
       covers: ['Intervention'],
     },
   ],
@@ -57,6 +59,7 @@ describe('planLog', () => {
         before: 0.9,
         after: 0.45,
         safe: true,
+        avoidable: false,
         covers: ['Reprisal'],
       },
       expect.objectContaining({ kind: 'hit', at: 200_000, safe: false }),

@@ -14,6 +14,8 @@ export interface PlanHitEntry {
   before: number | null;
   after: number | null;
   safe: boolean;
+  // A failed mechanic, which the plan takes as avoided.
+  avoidable: boolean;
   covers: string[];
 }
 
