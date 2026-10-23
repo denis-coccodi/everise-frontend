@@ -83,9 +83,9 @@ export function planHeals(
         gcd: tool.gcd,
         castMs: tool.castMs,
       });
-      // Superbolide takes its user down to 1 HP.
-      if (tool.effects.some((e) => e.invulnerable === 'dropsToOne')) {
-        track.add([{ at: use.at, player: use.player, amount: -(maxHp.get(use.player) ?? 0), floor: 1 }]);
+      // Superbolide takes half its user's max HP off (to 1 HP at least).
+      if (tool.effects.some((e) => e.invulnerable === 'halvesHp')) {
+        track.add([{ at: use.at, player: use.player, amount: -(maxHp.get(use.player) ?? 0) / 2, floor: 1 }]);
       }
     }
     const heal = healOf.get(key(use));

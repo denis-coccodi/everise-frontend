@@ -30,23 +30,22 @@ const SAME_STACK: Record<string, string> = {
 // What really limits some actions, rather than their recast: the Oath
 // gauge (50 of it about every 25 seconds of auto-attacks, up to 100),
 // Aetherflow and Addersgall (about one every 20 seconds, up to 3), the
-// Astrologian's card draw (every 60 seconds), Suntouched (from Neutral
+// Astrologian's cards (Astral and Umbral Draw take turns every 55 seconds,
+// each giving one of its own, so a card comes every 110), Suntouched (from Neutral
 // Sect, every 120 seconds), Seraph (out every 120 seconds, with two
 // Consolations), Tempera Coat (which Tempera Grassa uses up; back in 60
-// to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), the
-// Minor Arcana (every 60 seconds) and Improvisation's finish (every 120
+// to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), Lady of
+// Crowns (Umbral Draw's Minor Arcana, every 110 seconds) and Improvisation's finish (every 120
 // seconds: Improvisation itself isn't planned). One a use, as the planner
 // counts them.
 const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
-const CARD: ToolPool = { name: 'Play II', gainMs: 60_000, max: 1 };
-const CARD_III: ToolPool = { name: 'Play III', gainMs: 60_000, max: 1 };
+const card = (name: string): ToolPool => ({ name, gainMs: 110_000, max: 1 });
 const SUNTOUCHED: ToolPool = { name: 'Suntouched', gainMs: 120_000, max: 1 };
 const SERAPH: ToolPool = { name: 'Seraph', gainMs: 60_000, max: 2 };
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
-const MINOR_ARCANA: ToolPool = { name: 'Minor Arcana', gainMs: 60_000, max: 1 };
 const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 120_000, max: 1 };
 export const POOLS: Record<number, ToolPool> = {
   25789: IMPROVISATION, // Improvised Finish
@@ -67,12 +66,12 @@ export const POOLS: Record<number, ToolPool> = {
   24303: ADDERSGALL, // Taurochole
   16531: LILY, // Afflatus Solace
   16534: LILY, // Afflatus Rapture
-  7445: MINOR_ARCANA, // Lady of Crowns
-  37027: CARD, // the Bole
-  37025: CARD_III, // the Spire
-  37028: CARD_III, // the Ewer
+  7445: card('Lady of Crowns'),
+  37027: card('the Bole'),
+  37025: card('the Spire'),
+  37028: card('the Ewer'),
   37031: SUNTOUCHED, // Sun Sign
-  37024: CARD, // the Arrow
+  37024: card('the Arrow'),
 };
 
 // Actions another grants, by action, as the game has them: the catalog
@@ -91,7 +90,7 @@ export const GRANTED: Record<number, Grant> = {
 const INVULNERABLE: Record<number, Invulnerability> = {
   30: 'immune', // Hallowed Ground
   43: 'lastHp', // Holmgang
-  16152: 'dropsToOne', // Superbolide
+  16152: 'halvesHp', // Superbolide
   3638: 'walkingDead', // Living Dead
 };
 
