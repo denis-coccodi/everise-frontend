@@ -30,7 +30,7 @@
   }
   @case ('gcd') {
     <!-- The damage GCD a planned oGCD is woven after. -->
-    <p class="line"><span class="label">GCD</span>{{ ' ' }}Damage</p>
+    <p class="line"><span class="label">GCD</span>{{ ' ' }}Damage{{ e.prepull ? ', cast in the countdown' : '' }}</p>
   }
   @default never(e);
 }

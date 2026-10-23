@@ -68,7 +68,8 @@ describe('PlanEntryComponent', () => {
   });
 
   it('shows a damage GCD a planned oGCD is woven after', () => {
-    expect(render({ kind: 'gcd', at: 62_000 }).text).toBe('GCD Damage');
+    expect(render({ kind: 'gcd', at: 62_000, prepull: false }).text).toBe('GCD Damage');
+    expect(render({ kind: 'gcd', at: 800, prepull: true }).text).toBe('GCD Damage, cast in the countdown');
   });
 
   it('says a damage action is there for the Blood Lily', () => {

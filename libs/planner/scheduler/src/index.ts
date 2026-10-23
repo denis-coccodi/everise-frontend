@@ -13,3 +13,4 @@ export type {
   PlannedUse,
 } from './lib/plan.model';
 export { PlannerScheduler } from './lib/planner-scheduler.service';
+export { landedGcds } from './lib/weaving';

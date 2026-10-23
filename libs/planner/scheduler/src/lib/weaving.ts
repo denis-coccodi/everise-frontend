@@ -1,4 +1,4 @@
-import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
+import { ActionCatalog, PullTimeline, TimelineAura } from '@everise/core/api-types';
 import type { GcdCast, Occupied } from './weaving.model';
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
@@ -13,6 +13,8 @@ const GCD_MS = 2500;
 // landed then: its cast bar began earlier, about this long before.
 const LANDED_SHARE = 0.75;
 const CAST_BAR_MS = 1500;
+// Lightspeed: every spell cast in it is instant (2.5s off each cast).
+const LIGHTSPEED = 841;
 
 // A stretch of a player's time an action takes.
 interface Busy {
@@ -26,37 +28,59 @@ interface Busy {
 // instant one) and before the second starts, beside the other oGCDs there;
 // a GCD the plan has them use takes the place of one of theirs, its cast
 // bar the room after it (never of one that only landed then, its cast begun
-// before). The oGCDs they used that the plan doesn't schedule
+// before). A GCD in place of one of theirs that was instant though it has a
+// cast time (Swiftcast, Dualcast...), or of any in their Lightspeed, is
+// instant too. The oGCDs they used that the plan doesn't schedule
 // (`planned` says which do) keep their place.
 export class Weaving {
   private readonly gcds = new Map<number, GcdCast[]>();
   private readonly kept = new Map<number, number[]>();
 
   // Players' casts, the GCDs among their actions, and which the plan
-  // schedules; with none, everyone acts freely.
+  // schedules; with none, everyone acts freely. `castOf` gives each
+  // action's cast time, `auras` the statuses on players (Lightspeed).
   constructor(
     casts: PullTimeline['playerCasts'] = [],
     gcdOf = new Map<number, boolean>(),
     planned: (player: number, action: number) => boolean = () => true,
+    castOf = new Map<number, number>(),
+    auras: TimelineAura[] = [],
   ) {
+    const lightspeed = auras.filter((a) => a.status === LIGHTSPEED && a.target === a.source);
     for (const cast of casts) {
       const gcd = gcdOf.get(cast.action);
       if (gcd === undefined) continue;
-      if (gcd) push(this.gcds, cast.source, { at: cast.at, castMs: cast.castMs ?? 0 });
-      else if (!planned(cast.source, cast.action)) push(this.kept, cast.source, cast.at);
+      if (gcd) {
+        const castMs = cast.castMs ?? 0;
+        const inLightspeed = lightspeed.some((a) => a.target === cast.source && a.from <= cast.at && cast.at <= a.to);
+        const instant = inLightspeed || (castMs === 0 && (castOf.get(cast.action) ?? 0) > 0);
+        push(this.gcds, cast.source, { at: cast.at, castMs, ...(instant ? { instant } : {}) });
+      } else if (!planned(cast.source, cast.action)) push(this.kept, cast.source, cast.at);
     }
     for (const list of this.gcds.values()) {
       list.sort((a, b) => a.at - b.at);
-      const gaps = list.slice(1).map((g, i) => g.at - list[i].at);
-      const usual = [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)];
-      list.forEach((g, i) => {
-        if (g.castMs === 0 && i < gaps.length && gaps[i] < usual * LANDED_SHARE) g.landed = true;
-      });
+      for (const i of landedGcds(list)) {
+        list[i].landed = true;
+        // Its cast was only begun before, not made instant.
+        delete list[i].instant;
+      }
     }
   }
 
   static of(timeline: PullTimeline, catalog: ActionCatalog, planned: (player: number, action: number) => boolean) {
-    return new Weaving(timeline.playerCasts, new Map(catalog.actions.map((a) => [a.id, a.gcd])), planned);
+    return new Weaving(
+      timeline.playerCasts,
+      new Map(catalog.actions.map((a) => [a.id, a.gcd])),
+      planned,
+      new Map(catalog.actions.map((a) => [a.id, a.castMs])),
+      timeline.auras,
+    );
+  }
+
+  // How long a GCD of this cast takes at one of the player's GCDs: none
+  // where theirs was instant by a buff.
+  castAt(player: number, at: number, castMs: number) {
+    return this.gcds.get(player)?.find((g) => g.at === at)?.instant ? 0 : castMs;
   }
 
   // When the player's GCDs as played start, from `from` to `to`.
@@ -121,9 +145,9 @@ export class Weaving {
     order: (a: number, b: number) => number,
     at: number,
   ) {
-    const lock = Math.max(castMs, INSTANT_LOCK_MS);
+    const lock = (t: number) => Math.max(this.castAt(player, t, castMs), INSTANT_LOCK_MS);
     const { ogcds } = this.busy(player, occupied);
-    const clear = (t: number) => !ogcds.some((b) => b.from < t + lock && b.to > t);
+    const clear = (t: number) => !ogcds.some((b) => b.from < t + lock(t) && b.to > t);
     const played = this.gcds.get(player);
     if (played?.length) {
       const taken = new Set(occupied.filter((o) => o.gcd).map((o) => o.at));
@@ -148,7 +172,10 @@ export class Weaving {
     const planned = new Map(occupied.filter((o) => o.gcd).map((o) => [o.at, o.castMs]));
     const played = this.gcds.get(player) ?? [];
     const gcds = [
-      ...played.map((g) => ({ at: g.at, castMs: planned.get(g.at) ?? g.castMs, landed: g.landed })),
+      ...played.map((g) => {
+        const mine = planned.get(g.at);
+        return { at: g.at, castMs: mine === undefined ? g.castMs : g.instant ? 0 : mine, landed: g.landed };
+      }),
       ...[...planned]
         .filter(([at]) => !played.some((g) => g.at === at))
         .map(([at, castMs]) => ({ at, castMs, landed: false })),
@@ -167,6 +194,15 @@ export class Weaving {
     const { gcds, ogcds } = this.busy(player, occupied);
     return [...gcds, ...ogcds];
   }
+}
+
+// Which of a player's GCDs as played (in time order) only landed then: an
+// instant one sooner than three quarters of their usual GCD before the
+// next, its cast begun earlier (in the countdown).
+export function landedGcds(gcds: { at: number; castMs: number | null }[]) {
+  const gaps = gcds.slice(1).map((g, i) => g.at - gcds[i].at);
+  const usual = [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)];
+  return gcds.flatMap((g, i) => (!g.castMs && i < gaps.length && gaps[i] < usual * LANDED_SHARE ? [i] : []));
 }
 
 // The first of `candidates` where an action this long overlaps nothing busy.

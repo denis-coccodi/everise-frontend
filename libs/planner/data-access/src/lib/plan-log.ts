@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { Plan } from '@everise/planner/scheduler';
+import { landedGcds, type Plan } from '@everise/planner/scheduler';
 import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 
 // One player's part of the plan, in time order: what to use when, and how
@@ -52,14 +52,16 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
 }
 
 // The player's GCDs as played that the plan's oGCDs are woven after, where
-// the plan has no GCD of its own there.
+// the plan has no GCD of its own there, and their first if it was cast in
+// the countdown.
 function damageGcds(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanGcdEntry[] {
   if (!catalog) return [];
   const gcd = new Map(catalog.actions.map((a) => [a.id, a.gcd]));
-  const played = timeline.playerCasts
+  const casts = timeline.playerCasts
     .filter((c) => c.source === playerId && gcd.get(c.action))
-    .map((c) => c.at)
-    .sort((a, b) => a - b);
+    .sort((a, b) => a.at - b.at);
+  const played = casts.map((c) => c.at);
+  const prepull = landedGcds(casts).includes(0) ? played[0] : null;
   const mine = plan.uses.filter((u) => u.player === playerId);
   const planned = new Set(mine.filter((u) => gcd.get(u.action)).map((u) => u.at));
   const after = new Set<number>();
@@ -68,7 +70,8 @@ function damageGcds(plan: Plan, timeline: PullTimeline, playerId: number, catalo
     const before = played.filter((at) => at <= use.at).at(-1);
     if (before !== undefined && !planned.has(before)) after.add(before);
   }
-  return [...after].map((at) => ({ kind: 'gcd', at }));
+  if (prepull !== null && !planned.has(prepull)) after.add(prepull);
+  return [...after].sort((a, b) => a - b).map((at) => ({ kind: 'gcd', at, prepull: at === prepull }));
 }
 
 // How many hits the plan leaves short of the margin.
