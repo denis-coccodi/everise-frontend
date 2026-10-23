@@ -26,8 +26,9 @@ import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
 // Mechanics this close together are healed for at once: there's no time to
-// heal between them.
-const GAP_MS = 2000;
+// heal between them. A second is time for an oGCD heal (a burst's hits come
+// about that far apart).
+const GAP_MS = 1000;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
