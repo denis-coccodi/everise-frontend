@@ -2,6 +2,7 @@
 // is the accent (--color-chart-1), the pull as played the de-emphasis grey
 // (--color-chart-8); gridlines are recessive hairlines.
 @use '../../../../../ui/components/src/theme/breakpoints' as bp;
+@use 'hp-chart-marks';
 
 :host {
   display: block;
@@ -162,43 +163,6 @@
 
 .planned {
   stroke: var(--color-chart-1);
-}
-
-.cursor {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 0;
-  border-left: var(--border-width) solid var(--color-contrast-soft);
-  pointer-events: none;
-}
-
-// A mark: a death as played (a cross), a hit short with the plan (a dot in
-// the danger colour), a failed mechanic taken as avoided (a ring).
-.mark {
-  position: absolute;
-  width: 0.6rem;
-  height: 0.6rem;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--color-surface);
-
-  &.short {
-    background: var(--color-danger);
-  }
-
-  &.avoided {
-    border: 2px solid var(--color-chart-1);
-    background: var(--color-surface);
-  }
-
-  &.death {
-    border-radius: 0;
-    box-shadow: none;
-    background:
-      linear-gradient(45deg, transparent 40%, var(--color-contrast) 40% 60%, transparent 60%),
-      linear-gradient(-45deg, transparent 40%, var(--color-contrast) 40% 60%, transparent 60%);
-  }
 }
 
 .x-ticks {
