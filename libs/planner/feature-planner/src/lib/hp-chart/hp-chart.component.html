@@ -36,12 +36,12 @@
   (keydown.escape)="at.set(null)"
 >
   @for (curve of shown(); track curve.id) {
-    <section class="panel">
+    <section class="panel" [class.focused]="curve.id === focused()">
       <div class="head">
         <h4 class="name">{{ curve.job ?? '' }} {{ curve.name }}</h4>
         <span class="readout">{{ readout(curve) }}</span>
       </div>
-      <div class="plot" (pointermove)="point($event)" (pointerleave)="at.set(null)">
+      <div class="plot" (pointermove)="point($event)" (pointerleave)="at.set(null)" (click)="pick()">
         <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
           <line class="grid" x1="0" x2="1000" y1="50" y2="50" />
           <line class="margin" x1="0" x2="1000" [attr.y1]="marginTop()" [attr.y2]="marginTop()" />
@@ -73,9 +73,24 @@
       </ul>
     </section>
   }
-  <div class="x-ticks" aria-hidden="true">
-    @for (tick of ticks(); track tick.left) {
-      <span [style.left.%]="tick.left">{{ tick.label }}</span>
-    }
-  </div>
+  <!-- Under each column of panels. -->
+  @for (column of [0, 1]; track column) {
+    <div class="x-ticks" [class.second]="column" aria-hidden="true">
+      @for (tick of ticks(); track tick.left; let odd = $odd) {
+        <span [class.minor]="odd" [style.left.%]="tick.left">{{ tick.label }}</span>
+      }
+    </div>
+  }
 </div>
+@if (focusedName(); as name) {
+  <button
+    cdtButton="outline-secondary"
+    size="sm"
+    type="button"
+    class="everyone-toggle"
+    (click)="everyone.set(!everyone())"
+  >
+    {{ everyone() ? 'Show only ' + name : "Show everyone's HP" }}
+  </button>
+}
+<p class="hint">Click a moment, or press Enter on it, to see it in the timeline.</p>

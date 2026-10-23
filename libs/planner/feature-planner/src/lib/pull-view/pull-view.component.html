@@ -1,10 +1,6 @@
 <cdt-panel [heading]="heading()">
   @if (store.pull.hasValue() && store.catalog.hasValue()) {
     <cdt-planner-plan-form />
-    <section class="hp" aria-labelledby="planner-hp-heading">
-      <h3 id="planner-hp-heading" class="hp-heading">HP over the pull</h3>
-      <cdt-planner-hp-chart [curves]="curves()" [durationMs]="store.pull.value().durationMs" [margin]="chartMargin()" />
-    </section>
     <ul cdtTabs aria-label="Players" class="players">
       @for (p of players(); track p.id) {
         <li class="player">
@@ -29,7 +25,17 @@
     @if (player(); as p) {
       <h3 class="visually-hidden">{{ p.name }}'s pull{{ planned() ? ' and plan' : '' }}</h3>
       <cdt-planner-plan-view [player]="p" [class.shown]="view() === 'plan'" />
-      <cdt-planner-pull-compare [player]="p.name" [played]="log()" [planned]="planned()" [shown]="view()" />
+      <cdt-planner-pull-compare #compare [player]="p.name" [played]="log()" [planned]="planned()" [shown]="view()" />
+      <section class="hp" aria-labelledby="planner-hp-heading">
+        <h3 id="planner-hp-heading" class="hp-heading">HP over the pull</h3>
+        <cdt-planner-hp-chart
+          [curves]="curves()"
+          [durationMs]="store.pull.value().durationMs"
+          [margin]="chartMargin()"
+          [focused]="p.id"
+          (picked)="compare.reveal($event)"
+        />
+      </section>
     }
   } @else if (loading()) {
     <p class="loading">Reading the pull…</p>

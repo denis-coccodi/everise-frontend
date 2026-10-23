@@ -70,4 +70,24 @@ describe('PullCompareComponent', () => {
       'The plan has nothing for this player.',
     ]);
   });
+
+  it('opens at a moment: the first from then on, scrolled to and marked', () => {
+    const fixture = TestBed.createComponent(PullCompareComponent);
+    fixture.componentRef.setInput('player', 'Tank Main');
+    fixture.componentRef.setInput('played', [used(60_000, 'Rampart'), used(90_000, 'Reprisal')]);
+    fixture.componentRef.setInput('planned', null);
+    fixture.detectChanges();
+    const scrolled: string[] = [];
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this.getAttribute('data-at') ?? '');
+    };
+
+    fixture.componentInstance.reveal(70_000);
+    fixture.detectChanges();
+
+    expect(scrolled).toEqual(['90000']);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('tr.revealed th')?.textContent?.trim()).toBe('1:30');
+    expect(host.querySelector('.scroller')?.getAttribute('aria-label')).toBe("Tank Main's timeline");
+  });
 });

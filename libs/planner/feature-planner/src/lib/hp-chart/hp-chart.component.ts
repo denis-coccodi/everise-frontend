@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { HpCurve, HpPoint, lowest, lowestPerBucket, pullClock, shareAt } from '@everise/planner/data-access';
 import { ButtonComponent, CheckboxComponent } from '@everise/ui/components';
 
@@ -21,11 +21,15 @@ const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionD
 // member, can be hidden. A cursor shared by every panel (the pointer, or
 // the arrow keys: the plot is a slider) says each member's HP then; without
 // it, each panel says its lowest, so the chart reads without seeing it.
+// Clicking a moment, or Enter at the cursor, picks it (`picked`: the
+// timeline opens there). Below laptops only the `focused` member's panel
+// shows, until everyone's is asked for.
 @Component({
   selector: 'cdt-planner-hp-chart',
   templateUrl: './hp-chart.component.html',
   styleUrl: './hp-chart.component.scss',
   imports: [ButtonComponent, CheckboxComponent],
+  host: { '[class.everyone]': 'everyone() || focused() === null' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HpChartComponent {
@@ -33,6 +37,11 @@ export class HpChartComponent {
   readonly durationMs = input.required<number>();
   // The HP each hit must leave, as a share of max HP.
   readonly margin = input(0);
+  readonly picked = output<number>();
+  // The member whose tab is open.
+  readonly focused = input<number | null>(null);
+  protected readonly everyone = signal(false);
+  protected readonly focusedName = computed(() => this.curves().find((c) => c.id === this.focused())?.name ?? null);
 
   protected readonly showPlayed = signal(true);
   protected readonly showPlanned = signal(true);
@@ -115,8 +124,17 @@ export class HpChartComponent {
     this.at.set(Math.round(fraction * this.durationMs()));
   }
 
+  protected pick() {
+    const at = this.at();
+    if (at !== null) this.picked.emit(at);
+  }
+
   protected key(event: KeyboardEvent) {
     const at = this.at() ?? 0;
+    if (event.key === 'Enter') {
+      this.pick();
+      return;
+    }
     const moves: Record<string, number> = {
       ArrowRight: at + STEP_MS,
       ArrowLeft: at - STEP_MS,

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
 import { LogEntry, PlanEntry, compareLog, pullClock } from '@everise/planner/data-access';
 import { PlanEntryComponent } from '../plan-entry/plan-entry.component';
 import { PlayedEntryComponent } from '../played-entry/played-entry.component';
@@ -6,6 +6,9 @@ import { PlayedEntryComponent } from '../played-entry/played-entry.component';
 // A player's pull as played and as planned, on one timeline: a row per
 // moment, what happened then beside what the plan has then. Laptops and up
 // show both sides; narrower screens the one `shown` (the pull view's tabs).
+// On laptops it scrolls on its own, never taller than the screen, its
+// headings kept in view; elsewhere the page scrolls, the headings still
+// kept in view.
 @Component({
   selector: 'cdt-planner-pull-compare',
   templateUrl: './pull-compare.component.html',
@@ -23,4 +26,17 @@ export class PullCompareComponent {
 
   protected readonly clock = pullClock;
   protected readonly rows = computed(() => compareLog(this.played(), this.planned() ?? []));
+  // The moment last opened from elsewhere (the HP chart), marked.
+  protected readonly revealed = signal<number | null>(null);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  // Scrolls to the first moment from `at` on (or the last one), and marks it.
+  reveal(at: number) {
+    const rows = this.rows();
+    const row = rows.find((r) => r.at >= at) ?? rows.at(-1);
+    if (!row) return;
+    this.revealed.set(row.at);
+    const element = this.host.nativeElement.querySelector(`tr[data-at="${row.at}"]`);
+    element?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
 }
