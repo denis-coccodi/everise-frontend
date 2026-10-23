@@ -43,4 +43,22 @@ describe('mechanicsOf', () => {
 
     expect(mechanicsOf(timeline).map((m) => m.name)).toEqual(['Raidwide']);
   });
+
+  it('marks a failed mechanic: many times what the attack does to others, and more than their HP', () => {
+    // The bard missed a tower: 2.8M where the others took 90,000. The
+    // paladin's 300,000 buster, alone of its kind, is no failure.
+    const mechanics = mechanicsOf(
+      pull([
+        [10, 'Tower', 1, 90_000],
+        [10, 'Tower', 2, 90_000],
+        [10, 'Tower', 3, 2_800_000],
+        [40, 'Tower', 2, 90_000],
+        [70, 'Buster', 1, 300_000],
+      ]),
+    );
+
+    expect(mechanics.flatMap((m) => m.hits.filter((h) => h.avoidable).map((h) => [m.name, h.player]))).toEqual([
+      ['Tower', 3],
+    ]);
+  });
 });

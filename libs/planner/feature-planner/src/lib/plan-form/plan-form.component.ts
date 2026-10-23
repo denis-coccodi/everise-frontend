@@ -47,9 +47,13 @@ export class PlanFormComponent {
     if (!plan) return '';
     const margin = this.plans.margin();
     const short = unsafeHits(plan);
+    const failed = plan.hits.filter((h) => h.avoidable).length;
+    const avoided = failed
+      ? ` ${failed} ${failed === 1 ? 'hit is a failed mechanic' : 'hits are failed mechanics'}, taken as avoided.`
+      : '';
     if (!short)
-      return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations, shields and heals.`;
-    return `${short} ${short === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free.`;
+      return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations, shields and heals.${avoided}`;
+    return `${short} ${short === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free.${avoided}`;
   });
 
   protected replanEveryone() {

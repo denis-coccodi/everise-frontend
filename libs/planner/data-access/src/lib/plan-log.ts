@@ -28,6 +28,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): P
             ? Math.max(hit.invulnerable ? 1 : 0, hit.hpBefore - hit.planned) / maxHp
             : null,
         safe: hit.safe,
+        avoidable: hit.avoidable,
         covers: hit.covers,
       };
     });

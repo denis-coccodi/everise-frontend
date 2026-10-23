@@ -14,6 +14,7 @@ const hit = (values: Partial<PlanHitEntry> = {}): PlanHitEntry => ({
   before: 0.9,
   after: 0.45,
   safe: true,
+  avoidable: false,
   covers: ['Reprisal'],
   ...values,
 });
@@ -66,6 +67,22 @@ describe('PlanEntryComponent', () => {
     expect(render(short)).toEqual({
       text: 'Short Wall Takes 270,000 of 300,000 (135% of max HP); took 210,000 as played. No mitigation, shield or heal was free for it',
       unsafe: true,
+    });
+  });
+
+  it('says a failed mechanic is taken as avoided, not short', () => {
+    const failed = hit({
+      unmitigated: 2_751_033,
+      planned: 0,
+      asPlayed: 194_883,
+      safe: true,
+      avoidable: true,
+      covers: [],
+    });
+
+    expect(render(failed)).toEqual({
+      text: 'Avoidable Killer Voice A failed mechanic: 2,751,033 before mitigation, more than their HP; took 194,883 as played. Not planned for: the plan takes it as avoided',
+      unsafe: false,
     });
   });
 });

@@ -47,6 +47,10 @@ export interface MechanicHit {
   unmitigated: number;
   // What they took in the pull, after what was up then.
   asPlayed: number;
+  // A failed mechanic (an unsoaked tower, a missed stack): many times what
+  // the attack does to everyone else, and more than the player's HP. The
+  // plan takes it as avoided.
+  avoidable: boolean;
 }
 
 export type DamageType = 'physical' | 'magic' | 'unique';
@@ -262,9 +266,11 @@ export interface PlannedHit {
   // doesn't say their max HP.
   share: number | null;
   // Whether it leaves at least the margin of their HP, or can't kill them
-  // (an invulnerability is up).
+  // (an invulnerability is up), or is avoided (a failed mechanic, taking
+  // nothing in the plan).
   safe: boolean;
   invulnerable: boolean;
+  avoidable: boolean;
   // The mitigations and shields the plan has up for it.
   covers: string[];
 }

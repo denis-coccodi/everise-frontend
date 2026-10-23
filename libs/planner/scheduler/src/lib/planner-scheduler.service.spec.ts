@@ -182,6 +182,17 @@ describe('PlannerScheduler', () => {
     expect(at('Divine Caress')[0] - temperance).toBeLessThanOrEqual(30_000);
   });
 
+  it('spends nothing on a failed mechanic, and counts it as avoided, not short', () => {
+    const p = plan([
+      [30, 'Tower', 1, 20_000],
+      [30, 'Tower', 2, 20_000],
+      [30, 'Tower', 3, 2_800_000],
+    ]);
+
+    expect(p.hits[2]).toMatchObject({ player: 3, avoidable: true, safe: true, planned: 0 });
+    expect(p.uses.filter((u) => u.covers.includes(0))).toEqual([]);
+  });
+
   describe('tank invulnerabilities', () => {
     const invulnerable = (id: number, name: string): ReturnType<typeof action> =>
       action(id, name, ['PLD'], 420, [

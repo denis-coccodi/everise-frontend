@@ -108,7 +108,10 @@ export function planHeals(
     if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
   }
   const uses: PlannedUse[] = [];
-  const invulnerable = new Set(plan.hits.filter((h) => h.invulnerable).map((h) => `${h.mechanic}:${h.player}`));
+  // Hits that need no healing for: under an invulnerability, or avoided.
+  const invulnerable = new Set(
+    plan.hits.filter((h) => h.invulnerable || h.avoidable).map((h) => `${h.mechanic}:${h.player}`),
+  );
   const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
   const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
   const mechanics = [...plan.mechanics].sort((a, b) => a.at - b.at);
@@ -235,7 +238,8 @@ export function planHeals(
     if (!start) return hit;
     const max = maxHp.get(hit.player) as number;
     const hpBefore = Math.round(track.before(start, mechanicOf.get(hit.mechanic)?.at ?? 0));
-    return { ...hit, hpBefore, safe: hit.invulnerable || hpBefore - hit.planned >= options.margin * max - 1 };
+    const safe = hit.invulnerable || hit.avoidable || hpBefore - hit.planned >= options.margin * max - 1;
+    return { ...hit, hpBefore, safe };
   });
   return {
     mechanics: plan.mechanics,
