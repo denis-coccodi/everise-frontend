@@ -1,0 +1,13 @@
+@if (description(); as text) {
+  <cdt-tooltip [text]="text" [focusable]="true">
+    @if (src(); as url) {
+      <img [src]="url" alt="" width="24" height="24" loading="lazy" (error)="failed.set(true)" />
+    }
+    <strong>{{ name() }}</strong>
+  </cdt-tooltip>
+} @else {
+  @if (src(); as url) {
+    <img [src]="url" alt="" width="24" height="24" loading="lazy" (error)="failed.set(true)" />
+  }
+  <strong>{{ name() }}</strong>
+}

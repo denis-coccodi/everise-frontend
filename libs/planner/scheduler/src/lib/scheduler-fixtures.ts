@@ -62,6 +62,7 @@ export function action(
     id,
     name,
     icon: null,
+    description: null,
     jobs,
     level: 50,
     gcd: false,

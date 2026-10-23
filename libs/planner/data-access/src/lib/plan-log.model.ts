@@ -24,6 +24,9 @@ export interface PlanUseEntry {
   kind: 'use';
   at: number;
   action: string;
+  // Its icon (the game's id) and tooltip, when the catalog has them.
+  icon?: number | null;
+  description?: string | null;
   // The party member it goes on, when it goes on one.
   target: string | null;
   // The mechanics it covers.

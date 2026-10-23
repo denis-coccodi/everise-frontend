@@ -52,6 +52,7 @@ export function actionCatalog(): ActionCatalog {
     id,
     name,
     icon: 800,
+    description: null,
     jobs: ['PLD'],
     level: 50,
     gcd: false,

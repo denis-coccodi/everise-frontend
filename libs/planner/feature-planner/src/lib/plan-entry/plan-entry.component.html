@@ -2,7 +2,8 @@
 @switch (e.kind) {
   @case ('use') {
     <p class="line">
-      <span class="label">Use</span>{{ ' ' }}<strong>{{ e.action }}</strong>
+      <span class="label">Use</span>{{ ' '
+      }}<cdt-planner-action-name [name]="e.action" [icon]="e.icon" [description]="e.description" />
       @if (e.target) {
         {{ ' ' }}on {{ e.target }}
       }

@@ -4334,6 +4334,7 @@ export interface components {
         id: number;
         name: string;
         icon: number | null;
+        description: string | null;
         jobs: string[];
         level: number;
         gcd: boolean;

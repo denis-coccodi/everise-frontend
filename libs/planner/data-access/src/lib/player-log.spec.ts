@@ -14,6 +14,8 @@ describe('playerLog', () => {
       kind: 'use',
       at: 60_000,
       action: 'Rampart',
+      icon: 800,
+      description: null,
       target: null,
       effects: 'Self: −20% damage taken (20s), +15% healing received (20s)',
     });

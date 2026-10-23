@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { API_URL } from '@everise/core/http-client';
 import { PlanEntry, PlanHitEntry } from '@everise/planner/data-access';
 import { PlanEntryComponent } from './plan-entry.component';
 
@@ -20,6 +21,8 @@ const hit = (values: Partial<PlanHitEntry> = {}): PlanHitEntry => ({
 });
 
 describe('PlanEntryComponent', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: API_URL, useValue: '' }] }));
+
   // The entry's lines, a space between, and whether it's marked short.
   function render(entry: PlanEntry) {
     const fixture = TestBed.createComponent(PlanEntryComponent);

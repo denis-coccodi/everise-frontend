@@ -48,7 +48,15 @@ export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, player
       // Who a single-target heal, shield or mitigation went on.
       const targeted = action.effects.some((effect) => effect.target === 'target');
       const target = targeted && cast.target !== null ? (playerName.get(cast.target) ?? null) : null;
-      return { kind: 'use', at: cast.at, action: action.name, target, effects: effectsText(action.effects) };
+      return {
+        kind: 'use',
+        at: cast.at,
+        action: action.name,
+        icon: action.icon,
+        description: action.description ?? null,
+        target,
+        effects: effectsText(action.effects),
+      };
     });
 
   const deaths: DeathEntry[] = timeline.deaths

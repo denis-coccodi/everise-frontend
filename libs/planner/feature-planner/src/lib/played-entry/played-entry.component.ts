@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { HitEntry, LogEntry } from '@everise/planner/data-access';
+import { ActionNameComponent } from '../action-name/action-name.component';
 
 const number = new Intl.NumberFormat('en');
 const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 });
@@ -8,6 +9,7 @@ const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionD
 // what covered it; a heal or mitigation they used; their death.
 @Component({
   selector: 'cdt-planner-played-entry',
+  imports: [ActionNameComponent],
   templateUrl: './played-entry.component.html',
   styleUrls: ['../log-entries.scss', './played-entry.component.scss'],
   host: { '[class]': 'entry().kind' },
