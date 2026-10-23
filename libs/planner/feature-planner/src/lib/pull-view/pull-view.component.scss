@@ -49,13 +49,13 @@ cdt-planner-plan-view.shown {
   margin-top: 1.5rem;
 }
 
-.hp-heading {
+.fold-heading {
   margin: 0 0 0.5rem;
   font-size: 1rem;
 }
 
-// The heading opens and folds the chart: a chevron before it, pointing down
-// when open.
+// A heading that opens and folds what's under it (the timeline, the chart):
+// a chevron before it, pointing down when open.
 .disclosure {
   display: inline-flex;
   gap: 0.5rem;
