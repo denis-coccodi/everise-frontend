@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
-import { PlanStore, PlannerStore, planLog, playerLog, pullClock } from '@everise/planner/data-access';
+import { PlanStore, PlannerStore, hpCurves, planLog, playerLog, pullClock } from '@everise/planner/data-access';
 import {
   CheckboxComponent,
   MessageComponent,
@@ -8,6 +8,7 @@ import {
   TabComponent,
   TabsComponent,
 } from '@everise/ui/components';
+import { HpChartComponent } from '../hp-chart/hp-chart.component';
 import { PlanFormComponent } from '../plan-form/plan-form.component';
 import { PlanViewComponent } from '../plan-view/plan-view.component';
 import { PullCompareComponent } from '../pull-compare/pull-compare.component';
@@ -23,6 +24,7 @@ import { PullCompareComponent } from '../pull-compare/pull-compare.component';
   styleUrl: './pull-view.component.scss',
   imports: [
     CheckboxComponent,
+    HpChartComponent,
     MessageComponent,
     PanelComponent,
     PlanFormComponent,
@@ -76,6 +78,14 @@ export class PullViewComponent {
     return playerLog(pull.value(), catalog.value(), player.id);
   });
   // The player's part of the plan, once the pull open is planned.
+  // Everyone's HP over the pull, as played and with the plan once there's one.
+  protected readonly curves = computed(() => {
+    const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
+    return this.store.pull.hasValue() ? hpCurves(this.store.pull.value(), plan) : [];
+  });
+  protected readonly chartMargin = computed(() =>
+    this.plans.pullId() === this.store.pullId() && this.plans.plan() ? this.plans.margin() / 100 : 0,
+  );
   protected readonly planned = computed(() => {
     const player = this.player();
     const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;

@@ -30,6 +30,16 @@ describe('HpTrack', () => {
     expect(t.before(start, 15_000)).toBe(1);
   });
 
+  it('gives the HP after each moment it changes, from full', () => {
+    expect(track().points(1)).toEqual([
+      { at: 0, hp: 100_000 },
+      { at: 10_000, hp: 30_000 },
+      { at: 20_000, hp: 0 },
+      { at: 30_000, hp: 100_000 },
+    ]);
+    expect(track().points(2)).toEqual([]);
+  });
+
   it('counts extra events from a checkpoint, and keeps events added later', () => {
     const t = track();
     const after = t.checkpoint(1, 10_000);

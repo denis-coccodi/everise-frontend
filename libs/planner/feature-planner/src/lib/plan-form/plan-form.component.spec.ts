@@ -41,7 +41,7 @@ describe('PlanFormComponent', () => {
 
     expect(page.querySelector<HTMLInputElement>('#planner-margin')?.value).toBe('10');
     expect(page.querySelector('label[for=planner-margin]')?.textContent).toContain('HP margin (%)');
-    expect(page.querySelector('cdt-planner-plan-form + [aria-label=Players]')).not.toBeNull();
+    expect(page.querySelector('cdt-planner-plan-form ~ [aria-label=Players]')).not.toBeNull();
     expect(page.querySelector('cdt-planner-plan-form')?.textContent).toContain(
       'Plans the mitigations, shields and invulnerabilities of the players ticked on their tabs',
     );

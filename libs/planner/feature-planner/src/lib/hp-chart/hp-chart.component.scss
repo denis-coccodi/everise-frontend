@@ -1,0 +1,198 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme). The plan
+// is the accent (--color-chart-1), the pull as played the de-emphasis grey
+// (--color-chart-8); gridlines are recessive hairlines.
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.controls {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.lines,
+.members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: center;
+}
+
+.members {
+  gap: 0.4rem;
+}
+
+// A line's key: a short stroke of its colour, as the line is drawn.
+.key {
+  display: inline-block;
+  width: 1.25rem;
+  height: 0;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  border-top: 2px solid;
+
+  &.played {
+    border-color: var(--color-chart-8);
+  }
+
+  &.planned {
+    border-color: var(--color-chart-1);
+  }
+
+  &.margin {
+    border-top-width: 1px;
+    border-color: var(--color-contrast-muted);
+  }
+}
+
+.margin-key {
+  color: var(--color-contrast-muted);
+  font-size: 0.9rem;
+}
+
+.panels {
+  border-radius: var(--radius-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 4px;
+  }
+}
+
+.panel + .panel {
+  margin-top: 0.75rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  align-items: baseline;
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.name {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-contrast);
+}
+
+.readout {
+  color: var(--color-contrast-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+// The plot: the SVG's lines, and the cursor and marks over it as HTML, so
+// they keep their shape while the SVG stretches.
+.plot {
+  position: relative;
+  height: 4.5rem;
+  border-bottom: var(--border-width) solid var(--color-border-soft);
+  touch-action: pan-y;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+}
+
+.grid,
+.margin {
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.grid {
+  stroke: var(--color-border-faint);
+}
+
+.margin {
+  stroke: var(--color-contrast-muted);
+}
+
+.played,
+.planned {
+  fill: none;
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.played {
+  stroke: var(--color-chart-8);
+}
+
+.planned {
+  stroke: var(--color-chart-1);
+}
+
+.cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: var(--border-width) solid var(--color-contrast-soft);
+  pointer-events: none;
+}
+
+// A mark: a death as played (a cross), a hit short with the plan (a dot in
+// the danger colour), a failed mechanic taken as avoided (a ring).
+.mark {
+  position: absolute;
+  width: 0.6rem;
+  height: 0.6rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--color-surface);
+
+  &.short {
+    background: var(--color-danger);
+  }
+
+  &.avoided {
+    border: 2px solid var(--color-chart-1);
+    background: var(--color-surface);
+  }
+
+  &.death {
+    border-radius: 0;
+    box-shadow: none;
+    background:
+      linear-gradient(45deg, transparent 40%, var(--color-contrast) 40% 60%, transparent 60%),
+      linear-gradient(-45deg, transparent 40%, var(--color-contrast) 40% 60%, transparent 60%);
+  }
+}
+
+.x-ticks {
+  position: relative;
+  height: 1.25rem;
+  margin-top: 0.25rem;
+  color: var(--color-contrast-muted);
+  font-size: 0.75rem;
+
+  span {
+    position: absolute;
+    transform: translateX(-50%);
+    white-space: nowrap;
+
+    &:first-child {
+      transform: none;
+    }
+
+    &:last-child:not(:first-child) {
+      transform: translateX(-100%);
+    }
+  }
+}
+
+@include bp.up(md) {
+  .plot {
+    height: 5.5rem;
+  }
+}

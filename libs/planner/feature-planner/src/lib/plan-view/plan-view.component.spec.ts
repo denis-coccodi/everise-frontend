@@ -88,7 +88,9 @@ describe('PlanViewComponent', () => {
 
     click(rendered, rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1]);
 
-    expect(rendered.page.querySelector('cdt-planner-pull-view h3')?.textContent).toBe("Heal Main's pull and plan");
+    expect(rendered.page.querySelector('cdt-planner-pull-view h3.visually-hidden')?.textContent).toBe(
+      "Heal Main's pull and plan",
+    );
     expect(messages(rendered.page)[0]).toBe('1 hit on Heal Main leaves less than 10% of their max HP.');
     const log = [...rendered.page.querySelectorAll('cdt-planner-pull-compare td.plan')].map((td) => td.textContent);
     expect(log.join(' ')).toContain('Short');

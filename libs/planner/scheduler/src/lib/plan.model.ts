@@ -299,4 +299,14 @@ export interface Plan {
   // The invulnerabilities asked for that the plan couldn't use there: one
   // the tank doesn't have, or that its recast doesn't allow.
   unplaced: InvulnerabilityChoice[];
+  // Each player's HP over the pull with the plan; none before the heals
+  // are planned.
+  hp: PlannedHp[];
+}
+
+// A player's HP with the plan: what it is after each moment something
+// changes it, in time order.
+export interface PlannedHp {
+  player: number;
+  points: { at: number; hp: number }[];
 }

@@ -18,7 +18,7 @@ describe('PullViewComponent', () => {
     page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1].click();
     fixture.detectChanges();
 
-    expect(page.querySelector('cdt-planner-pull-view h3')?.textContent).toBe("Heal Main's pull");
+    expect(page.querySelector('cdt-planner-pull-view h3.visually-hidden')?.textContent).toBe("Heal Main's pull");
     expect(page.querySelector('cdt-planner-pull-compare tbody')?.textContent).toContain('Adloquium');
   });
 

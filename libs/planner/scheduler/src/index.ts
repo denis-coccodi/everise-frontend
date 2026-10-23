@@ -7,6 +7,7 @@ export type {
   MitigationEffect,
   MitigationTool,
   Plan,
+  PlannedHp,
   PlanOptions,
   PlannedHit,
   PlannedUse,
