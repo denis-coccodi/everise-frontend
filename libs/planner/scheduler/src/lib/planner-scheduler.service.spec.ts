@@ -228,6 +228,25 @@ describe('PlannerScheduler', () => {
       expect(heals.every((u) => u.covers.includes(0))).toBe(true);
     });
 
+    it("lets the tank's own GCDs heal them out of Walking Dead, the healers leaving it to them", () => {
+      const cat = catalog();
+      cat.actions.push(invulnerable(3638, 'Living Dead'));
+      const timeline = pull([[60, 'Big buster', 1, 2_000_000]], healed);
+      // Their GCDs every 2.5s: each heals 1,500 potency under it.
+      timeline.playerCasts = [55, 57.5, 60, 62.5, 65, 67.5].map((at) => ({
+        at: at * 1000,
+        source: 1,
+        target: 13,
+        action: 9,
+        castMs: null,
+      }));
+
+      const p = new PlannerScheduler().plan(timeline, cat, { margin: 0.1 });
+
+      expect(p.hits[0]).toMatchObject({ safe: true, invulnerable: true });
+      expect(p.uses.filter((u) => u.name === 'Lustrate' && u.at > 60_000 && u.at < 70_000)).toEqual([]);
+    });
+
     it('says the tank dies under Living Dead when nothing can heal them full', () => {
       // No heals in the pull: the planner can't tell what the scholar's do.
       const cat = catalog();

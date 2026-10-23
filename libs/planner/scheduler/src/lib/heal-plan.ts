@@ -100,7 +100,8 @@ export function planHeals(
   const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
   const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
   // Living Dead: the tank must be full again when Walking Dead ends.
-  const deads = walkingDeads(plan, (u) => mitigationOf.get(key(u)), maxHp, options.margin);
+  const deads = walkingDeads(plan, (u) => mitigationOf.get(key(u)), maxHp, options.margin, weaving);
+  for (const dead of deads) track.add(dead.selfHeals);
   const mechanics = [...plan.mechanics, ...deads.map((d) => d.check)].sort((a, b) => a.at - b.at);
 
   // The mitigations up: the plan's, and the heals picked here that also

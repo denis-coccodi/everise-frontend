@@ -132,6 +132,9 @@ export interface MitigationEffect {
   stack: string;
   // A tank's invulnerability; null for anything else.
   invulnerable: Invulnerability | null;
+  // The HP each of its user's GCDs heals them while it and Walking Dead
+  // last (Living Dead's 1,500 potency); left out for anything else.
+  selfHeal?: number;
 }
 
 // What a tank's invulnerability does to the hits while it lasts: nothing
