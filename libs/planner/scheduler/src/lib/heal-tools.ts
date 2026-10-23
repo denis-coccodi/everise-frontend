@@ -1,9 +1,14 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
-import { DelayedHeal, HealEffect, HealTool, MitigationTool } from './plan.model';
+import { DelayedHeal, HealCost, HealEffect, HealTool, MitigationTool } from './plan.model';
 import { ASSUMED, GRANTED, POOLS, playerActions } from './tools';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
+
+// GCD heals that cost no damage: Afflatus Solace and Rapture (three of
+// them give the Blood Lily that Afflatus Misery's damage refunds), and
+// Pneuma (a damage spell that heals).
+const NEUTRAL_GCDS = new Set([16531, 16534, 24318]);
 
 // Heals that land later than they're used, by action: Earthly Star heals
 // fully once the star has grown, on its own when it runs out (20s) or set
@@ -75,12 +80,18 @@ export function healTools(
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         grantedBy: GRANTED[action.id] ?? null,
+        cost: costOf(action),
         effects,
         delayed,
       });
     }
   }
   return tools;
+}
+
+function costOf(action: CatalogAction): HealCost {
+  if (action.gcd) return NEUTRAL_GCDS.has(action.id) ? 'neutral' : 'gcd';
+  return POOLS[action.id]?.name === 'Aetherflow' ? 'resource' : 'free';
 }
 
 // A delayed heal's condition is when it lands, which the plan picks.

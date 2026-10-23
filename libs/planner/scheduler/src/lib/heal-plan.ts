@@ -1,11 +1,12 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, poolFull, projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
 import { Weaving } from './weaving';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
+  HealCost,
   HealTool,
   Mechanic,
   MechanicHit,
@@ -26,9 +27,13 @@ const AFTER_MS = 1000;
 // Mechanics this close together are healed for at once: there's no time to
 // heal between them.
 const GAP_MS = 2000;
-// As for mitigations: a GCD heal costs a GCD the healer would deal damage
-// with.
-const GCD_WORTH = 0.4;
+// What a heal's healing is worth for what it costs (`HealCost`): a free
+// oGCD first, then one spending Aetherflow, a GCD that costs no damage
+// (Afflatus Solace), then any other GCD, which costs a GCD of damage. One
+// whose pool is full costs nothing, so it goes before the free ones: lilies
+// and Addersgall are spent rather than left to overcap.
+const WORTH: Record<HealCost, number> = { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4 };
+const FULL_WORTH = 1.05;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
@@ -284,7 +289,14 @@ function best(
     for (const [player, deficit] of short) {
       if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
     }
-    if (tool.gcd) value *= GCD_WORTH;
+    const full =
+      tool.pool &&
+      poolFull(
+        pooled.map((s) => s.at),
+        at,
+        tool.pool,
+      );
+    value *= full ? FULL_WORTH : WORTH[tool.cost];
     if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs };
   }
   return found;

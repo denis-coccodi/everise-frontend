@@ -142,10 +142,20 @@ export interface HealTool {
   group: string;
   pool: ToolPool | null;
   grantedBy: Grant | null;
+  // What using it costs the healer (`HealCost`).
+  cost: HealCost;
   effects: HealEffect[];
   // Null for a heal that lands as it's cast.
   delayed: DelayedHeal | null;
 }
+
+// What a heal costs, as the healers' guides rank them: nothing (an oGCD,
+// Addersgall's included: it refills, so spend it freely); a little (an
+// oGCD spending Aetherflow, which Energy Drain would otherwise turn into
+// damage); a GCD that deals or gives back its damage (Afflatus Solace and
+// Rapture, refunded by Afflatus Misery; Pneuma); a GCD of damage (any other
+// GCD heal).
+export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd';
 
 // A heal that lands later than it's used: Earthly Star's, once the star has
 // grown (10s, set off with Stellar Detonation) or on its own (20s);

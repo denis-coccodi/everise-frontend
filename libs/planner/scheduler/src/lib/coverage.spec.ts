@@ -1,4 +1,4 @@
-import { fitsGrant, fitsPool, fitsRecast, projected } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, poolFull, projected } from './coverage';
 import { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
 import type { PullFacts } from './coverage.model';
 
@@ -182,6 +182,13 @@ describe('fitsPool', () => {
     expect(fitsPool([0, 1_000], 2_000, pool)).toBe(true);
     expect(fitsPool([0, 1_000, 2_000], 3_000, pool)).toBe(false);
     expect(fitsPool([0, 1_000, 2_000], 23_000, pool)).toBe(true);
+  });
+
+  it('says when it is full, and a use then costs nothing', () => {
+    expect(poolFull([], 5_000, pool)).toBe(true);
+    expect(poolFull([0], 5_000, pool)).toBe(false);
+    expect(poolFull([0], 20_000, pool)).toBe(true);
+    expect(poolFull([0, 10_000], 25_000, pool)).toBe(false);
   });
 });
 

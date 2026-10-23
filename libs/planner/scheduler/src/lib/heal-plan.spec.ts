@@ -99,6 +99,43 @@ describe('planHeals', () => {
     expect(plan.hits[1].hpBefore).toBe(87_000);
   });
 
+  it('heals with a GCD that costs no damage (Afflatus Solace) before one that does (Cure II)', () => {
+    // The scholar as a white mage with lilies to spend: both heal the tank's
+    // 60,000, but only one is free of damage.
+    const cat = catalog();
+    cat.actions.push(
+      action(135, 'Cure II', ['SCH'], 2.5, [heal(800)], { gcd: true, castMs: 2000 }),
+      action(16531, 'Afflatus Solace', ['SCH'], 2.5, [heal(800)], { gcd: true }),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.gcd && t.name !== 'Physick');
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+    );
+
+    expect(plan.uses.map((u) => u.name)).toEqual(['Afflatus Solace']);
+    expect(heals.map((t) => [t.name, t.cost])).toEqual([
+      ['Adloquium', 'gcd'],
+      ['Cure II', 'gcd'],
+      ['Afflatus Solace', 'neutral'],
+    ]);
+  });
+
   describe('Earthly Star', () => {
     // The scholar as an astrologian, for the star alone: 720 potency, 72,000
     // HP once grown.
