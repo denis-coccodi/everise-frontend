@@ -9,6 +9,7 @@ import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan
 export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanEntry[] {
   const mechanic = new Map(plan.mechanics.map((m) => [m.id, m]));
   const playerName = new Map(timeline.players.map((p) => [p.id, p.name]));
+  const catalogAction = new Map(catalog?.actions.map((a) => [a.id, a]));
   const maxHp = timeline.players.find((p) => p.id === playerId)?.maxHp ?? null;
   const hits: PlanHitEntry[] = plan.hits
     .filter((hit) => hit.player === playerId)
@@ -40,6 +41,12 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       kind: 'use',
       at: use.at,
       action: use.name,
+      ...(catalogAction.has(use.action)
+        ? {
+            icon: catalogAction.get(use.action)?.icon ?? null,
+            description: catalogAction.get(use.action)?.description ?? null,
+          }
+        : {}),
       // Named even when it's themselves: a single-target heal or shield says
       // who it's for.
       target: use.target === null ? null : (playerName.get(use.target) ?? null),

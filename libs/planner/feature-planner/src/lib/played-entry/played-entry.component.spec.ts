@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { API_URL } from '@everise/core/http-client';
 import { HitEntry, LogEntry } from '@everise/planner/data-access';
 import { PlayedEntryComponent } from './played-entry.component';
 
@@ -19,6 +20,8 @@ const hit = (values: Partial<HitEntry> = {}): HitEntry => ({
 });
 
 describe('PlayedEntryComponent', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: API_URL, useValue: '' }] }));
+
   // The entry's lines, a space between, and its kind.
   function render(entry: LogEntry) {
     const fixture = TestBed.createComponent(PlayedEntryComponent);

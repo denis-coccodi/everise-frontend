@@ -9,7 +9,8 @@
   }
   @case ('use') {
     <p class="line">
-      <span class="label">Used</span>{{ ' ' }}<strong>{{ e.action }}</strong>
+      <span class="label">Used</span>{{ ' '
+      }}<cdt-planner-action-name [name]="e.action" [icon]="e.icon" [description]="e.description" />
       @if (e.target) {
         {{ ' ' }}on {{ e.target }}
       }

@@ -45,4 +45,18 @@ describe('TooltipComponent', () => {
     await fixture.whenStable();
     expect(tip.classList).not.toContain('open');
   });
+
+  it('moves sideways as it opens where it would leave the viewport', async () => {
+    const { fixture, host, tip } = await render();
+    // A 400px viewport, and the tip from 300px to 450px.
+    const width = 400;
+    Object.defineProperty(document.documentElement, 'clientWidth', { value: width, configurable: true });
+    tip.getBoundingClientRect = () => ({ left: width - 100, right: width + 50 }) as DOMRect;
+
+    host.dispatchEvent(new MouseEvent('mouseenter'));
+    await fixture.whenStable();
+
+    expect(tip.style.marginLeft).toBe('-58px');
+    Object.defineProperty(document.documentElement, 'clientWidth', { value: 0, configurable: true });
+  });
 });

@@ -26,6 +26,9 @@ export interface UseEntry {
   action: string;
   // Who it went on, for a single-target one.
   target: string | null;
+  // Its icon (the game's id) and tooltip, when the catalog has them.
+  icon?: number | null;
+  description?: string | null;
   effects: string;
 }
 
