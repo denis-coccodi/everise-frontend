@@ -156,6 +156,53 @@ describe('planHeals', () => {
     expect(plan([]).uses.map((u) => u.name)).toEqual(['Medica', 'Medica']);
   });
 
+  it("counts Neutral Sect's barrier on an Aspected Benefic as a shield for the next hit", () => {
+    // The scholar as an astrologian: the tank lands on 15,000. Aspected
+    // Benefic heals 25,000, 30,000 under Neutral Sect, and leaves a 75,000
+    // barrier that takes the whole second buster.
+    const cat = catalog();
+    cat.actions.push(
+      action(3595, 'Aspected Benefic', ['SCH'], 2.5, [heal(250)], { gcd: true }),
+      action(16559, 'Neutral Sect', ['SCH'], 120, [
+        {
+          ...heal(0),
+          kind: 'healingPotency',
+          target: 'self',
+          status: 'Neutral Sect',
+          potency: null,
+          percent: 20,
+          durationMs: 20_000,
+        },
+      ]),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Aspected Benefic');
+    const options = { margin: 0.1, favour: { 2: 'healing' as const } };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+      new Map(),
+      new Weaving(),
+      healPairings(timeline.players, cat, power),
+    );
+
+    expect(plan.uses.map((u) => u.name)).toEqual(['Neutral Sect', 'Aspected Benefic']);
+    expect(plan.hits[1]).toMatchObject({ planned: 0, absorbed: 60_000, safe: true, covers: ['Neutral Sect'] });
+  });
+
   it('heals with a GCD that costs no damage (Afflatus Solace) before one that does (Cure II)', () => {
     // The scholar as a white mage with lilies to spend: both heal the tank's
     // 60,000, but only one is free of damage.

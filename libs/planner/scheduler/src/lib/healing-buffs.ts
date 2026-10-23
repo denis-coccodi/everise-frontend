@@ -50,11 +50,27 @@ export class HealingBuffs {
 
   // A planned use's buffs, on whoever they go on.
   add(use: PlannedUse) {
-    for (const buff of this.byAction.get(use.action) ?? []) {
+    this.spans.push(...this.spansOf(use));
+  }
+
+  // What a spell's healing potency is multiplied by for its caster at `at`:
+  // the buffs kept, and those of `uses` (a plan's so far), without keeping
+  // them. A GCD shield grows with it.
+  potencyAt(player: number, at: number, uses: PlannedUse[]) {
+    return this.multiplier(
+      player,
+      at,
+      'potency',
+      uses.flatMap((u) => this.spansOf(u)),
+    );
+  }
+
+  private spansOf(use: PlannedUse): BuffSpan[] {
+    return (this.byAction.get(use.action) ?? []).flatMap((buff) => {
       const players =
         buff.target === 'party' ? this.party : buff.target === 'self' ? [use.player] : [use.target ?? use.player];
-      for (const player of players) this.spans.push({ player, buff, from: use.at, to: use.at + buff.durationMs });
-    }
+      return players.map((player) => ({ player, buff, from: use.at, to: use.at + buff.durationMs }));
+    });
   }
 
   // What a use's heals become: each times the caster's potency buffs when
@@ -66,9 +82,9 @@ export class HealingBuffs {
     return events.map((e) => ({ ...e, amount: e.amount * potency * this.multiplier(e.player, e.at, 'received') }));
   }
 
-  private multiplier(player: number, at: number, kind: HealingBuff['kind']) {
+  private multiplier(player: number, at: number, kind: HealingBuff['kind'], extra: BuffSpan[] = []) {
     const strongest = new Map<string, number>();
-    for (const { buff, ...span } of this.spans) {
+    for (const { buff, ...span } of [...this.spans, ...extra]) {
       if (span.player !== player || buff.kind !== kind || at < span.from || at > span.to) continue;
       strongest.set(buff.status, Math.max(strongest.get(buff.status) ?? 0, buff.share));
     }

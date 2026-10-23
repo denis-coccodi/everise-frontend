@@ -1,6 +1,7 @@
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
+import type { PullFacts } from './coverage.model';
 
 // A mitigation goes up at least this long before the hit it's for.
 const LEAD_MS = 500;
@@ -28,7 +29,8 @@ interface Candidate {
 // the tools of the players `options.replan` names are planned; the `fixed`
 // uses (the others', as played) stay as they are. Each use goes where its
 // player can act (`weaving`): an oGCD in a weave slot, a GCD in place of
-// one of theirs.
+// one of theirs. A GCD shield grows with its caster's healing potency
+// buffs (`shieldTimes`).
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
@@ -37,6 +39,7 @@ export function planMitigation(
   from?: Plan,
   fixed: PlannedUse[] = [],
   weaving = new Weaving(),
+  shieldTimes?: PullFacts['shieldTimes'],
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -45,7 +48,7 @@ export function planMitigation(
     if (hit.hpBefore !== null) hpAt.set(`${hit.mechanic}:${hit.player}`, hit.hpBefore);
   const toolOf = new Map<PlannedUse, MitigationTool>();
   const tool = (use: PlannedUse) => toolOf.get(use) as MitigationTool;
-  const facts = pullFacts(mechanics, maxHp);
+  const facts = pullFacts(mechanics, maxHp, shieldTimes);
   // A failed mechanic is taken as avoided: it takes nothing, and nothing is
   // spent on it.
   const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) =>

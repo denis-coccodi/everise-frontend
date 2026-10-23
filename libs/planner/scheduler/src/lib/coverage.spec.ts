@@ -50,6 +50,7 @@ const mechanic = (at: number): Mechanic => ({
 const facts: PullFacts = {
   maxHp: new Map([[2, 200_000]]),
   hitsBetween: (_player, from, to) => [10_000, 12_000].filter((at) => at >= from && at < to).length,
+  shieldTimes: () => 1,
 };
 const project = (at: number, tools: MitigationTool[], uses: PlannedUse[]) => {
   const byName = new Map(tools.map((t) => [t.name, t]));
@@ -139,6 +140,20 @@ describe('projected', () => {
     expect(project(12_000, tools, [use('Big shield', 9_000)])).toMatchObject({ damage: 100_000, absorbed: 0 });
     // Renewed once.
     expect(project(12_000, tools, [use('Haima', 9_000)])).toMatchObject({ absorbed: 10_000 });
+  });
+});
+
+describe('projected with a GCD shield', () => {
+  it("grows the shield with its caster's healing potency buffs, not an oGCD's", () => {
+    const boosted = { ...facts, shieldTimes: () => 1.2 };
+    const gcd = { ...tool('Galvanize', { shield: { hp: 30_000 } }), gcd: true };
+    const ogcd = tool('Divine Benison', { shield: { hp: 30_000 } });
+    const at = (t: MitigationTool) => {
+      const m = mechanic(10_000);
+      return projected(m, m.hits[0], [use(t.name, 9_000)], () => t, boosted).absorbed;
+    };
+
+    expect([at(gcd), at(ogcd)]).toEqual([36_000, 30_000]);
   });
 });
 

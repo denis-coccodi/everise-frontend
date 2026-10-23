@@ -1,5 +1,5 @@
 import { fitsRecast } from './coverage';
-import { HealPairing, HealTool, PlannedUse } from './plan.model';
+import { HealPairing, HealTool, MitigationTool, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
 import type { Paired } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
@@ -38,11 +38,58 @@ export function pairingsFor(
           amount: 'hp' in extra ? extra.hp : extra.maxHpShare * (maxHp.get(player) ?? 0),
         }))
       : [];
+    const boosted = events.map((e) => ({ ...e, amount: e.amount * pairing.times }));
     found.push({
       use: { player: use.player, action: pairing.action, name: pairing.name, at, target: null, covers: use.covers },
       pairing,
-      events: [...events.map((e) => ({ ...e, amount: e.amount * pairing.times })), ...more],
+      events: [...boosted, ...more],
+      barrier: barrierOf(
+        pairing,
+        tool,
+        use,
+        boosted.filter((e) => e.at === lands),
+      ),
     });
   }
   return found;
+}
+
+// How long a pairing's barrier lasts.
+const BARRIER_MS = 30_000;
+
+// The barrier a pairing leaves with this heal (`landed`: what it heals each
+// member as it lands), as a shield tool and its use; null when it leaves
+// none. Its use's action is the pairing's, made negative, apart from it.
+function barrierOf(pairing: HealPairing, tool: HealTool, use: PlannedUse, landed: HpEvent[]) {
+  const share = pairing.barriers[use.action];
+  if (!share || !landed.length) return null;
+  const party = tool.effects.some((e) => e.target === 'party');
+  const hp = share * Math.min(...landed.map((e) => e.amount));
+  const barrier: MitigationTool = {
+    player: use.player,
+    action: -pairing.action,
+    name: pairing.name,
+    recastMs: 0,
+    charges: 1,
+    gcd: false,
+    castMs: 0,
+    group: `barrier:${use.player}`,
+    pool: null,
+    grantedBy: null,
+    effects: [
+      {
+        target: party ? 'party' : 'target',
+        physical: 0,
+        magic: 0,
+        shield: { hp },
+        hits: 1,
+        durationMs: BARRIER_MS,
+        status: pairing.name,
+        stack: pairing.name,
+        invulnerable: null,
+      },
+    ],
+  };
+  const at = Math.min(...landed.map((e) => e.at));
+  return { use: { ...use, action: barrier.action, name: barrier.name, at, covers: [] }, tool: barrier };
 }
