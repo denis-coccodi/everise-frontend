@@ -1,5 +1,5 @@
 import { action, catalog, party } from './scheduler-fixtures';
-import { mitigationTools } from './tools';
+import { POOLS, mitigationTools } from './tools';
 
 describe('mitigationTools', () => {
   it("gives each player their jobs' mitigations and shields, not other actions", () => {
@@ -56,6 +56,9 @@ describe('mitigationTools', () => {
     const troubadour = tools.find((t) => t.name === 'Troubadour');
 
     expect(soil?.pool).toEqual({ name: 'Aetherflow', gainMs: 20_000, max: 3 });
+    // An astrologian's card comes every other draw: every 110s, each its own.
+    expect(POOLS[37027]).toEqual({ name: 'the Bole', gainMs: 110_000, max: 1 });
+    expect(POOLS[37024]).toEqual({ name: 'the Arrow', gainMs: 110_000, max: 1 });
     expect(troubadour?.effects[0]).toMatchObject({
       status: 'Troubadour',
       stack: 'ranged party mitigation',
@@ -115,7 +118,7 @@ describe('mitigationTools', () => {
       actions: [
         invulnerable(30, 'Hallowed Ground'),
         invulnerable(43, 'Holmgang'),
-        invulnerable(16152, 'Superbolide', 'HP drops to 1'),
+        invulnerable(16152, 'Superbolide'),
         invulnerable(3638, 'Living Dead', 'healed back to full HP within 10s, or KO'),
       ],
     });
@@ -123,7 +126,7 @@ describe('mitigationTools', () => {
     expect(tools.map((t) => [t.name, t.effects.map((e) => e.invulnerable)])).toEqual([
       ['Hallowed Ground', ['immune']],
       ['Holmgang', ['lastHp']],
-      ['Superbolide', ['dropsToOne']],
+      ['Superbolide', ['halvesHp']],
       ['Living Dead', ['walkingDead']],
     ]);
   });

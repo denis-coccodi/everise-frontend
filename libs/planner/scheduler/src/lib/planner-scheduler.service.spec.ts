@@ -256,17 +256,17 @@ describe('PlannerScheduler', () => {
       expect(p.hits[0]).toMatchObject({ invulnerable: true, safe: false });
     });
 
-    it('heals the tank back up from the 1 HP Superbolide leaves', () => {
+    it('heals the tank back up from the half of their HP Superbolide takes', () => {
       const p = planWith(invulnerable(16152, 'Superbolide'), [
         [60, 'Big buster', 1, 2_000_000],
         [80, 'Buster', 1, 50_000],
       ]);
 
       expect(p.hits[0]).toMatchObject({ planned: 0, safe: true });
-      const lustrate = p.uses.find((u) => u.name === 'Lustrate');
-      expect(lustrate?.at).toBeGreaterThan(60_000);
-      expect(lustrate?.at).toBeLessThan(80_000);
-      expect(p.hits[1]).toMatchObject({ hpBefore: 60_001, safe: true });
+      // 50,000 left of their 100,000 (not 1 HP, as before 7.1): enough, with
+      // the mitigations, for the next buster without a heal.
+      expect(p.uses.filter((u) => u.name === 'Lustrate' && u.at > 60_000 && u.at < 80_000)).toEqual([]);
+      expect(p.hits[1]).toMatchObject({ hpBefore: 50_000, safe: true });
     });
 
     describe('where the group has them', () => {
