@@ -117,7 +117,7 @@ function shieldHp(size: ShieldSize, player: number, facts: PullFacts) {
 // Whether one more use at `at` leaves the pool enough for every use: it
 // starts full and fills one every `gainMs`, up to `max`.
 export function fitsPool(times: number[], at: number, pool: ToolPool) {
-  let level = pool.start ?? pool.max;
+  let level = pool.max;
   let last = 0;
   for (const time of [...times, at].sort((a, b) => a - b)) {
     level = Math.min(pool.max, level + (time - last) / pool.gainMs);
@@ -136,7 +136,7 @@ export function poolFull(times: number[], at: number, pool: ToolPool) {
 
 // What the pool holds at `at`, with the uses at `times` before it.
 export function poolLevel(times: number[], at: number, pool: ToolPool) {
-  let level = pool.start ?? pool.max;
+  let level = pool.max;
   let last = 0;
   for (const time of [...times].filter((t) => t < at).sort((a, b) => a - b)) {
     level = Math.min(pool.max, level + (time - last) / pool.gainMs) - 1;
