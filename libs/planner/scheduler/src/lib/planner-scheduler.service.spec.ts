@@ -218,6 +218,25 @@ describe('PlannerScheduler', () => {
       expect(p.hits[1]).toMatchObject({ safe: true, invulnerable: false });
     });
 
+    it('heals the tank by their max HP in the 10s of Walking Dead after Living Dead', () => {
+      const p = planWith(invulnerable(3638, 'Living Dead'), [[60, 'Big buster', 1, 2_000_000]]);
+
+      expect(p.hits[0]).toMatchObject({ safe: true, invulnerable: true });
+      const heals = p.uses.filter((u) => u.name === 'Lustrate' && u.at > 60_000 && u.at < 70_000);
+      // 60,000 each: two bring them from 1 HP to their 100,000.
+      expect(heals.length).toBeGreaterThanOrEqual(2);
+      expect(heals.every((u) => u.covers.includes(0))).toBe(true);
+    });
+
+    it('says the tank dies under Living Dead when nothing can heal them full', () => {
+      // No heals in the pull: the planner can't tell what the scholar's do.
+      const cat = catalog();
+      cat.actions.push(invulnerable(3638, 'Living Dead'));
+      const p = new PlannerScheduler().plan(pull([[60, 'Big buster', 1, 2_000_000]]), cat, { margin: 0.1 });
+
+      expect(p.hits[0]).toMatchObject({ invulnerable: true, safe: false });
+    });
+
     it('heals the tank back up from the 1 HP Superbolide leaves', () => {
       const p = planWith(invulnerable(16152, 'Superbolide'), [
         [60, 'Big buster', 1, 2_000_000],

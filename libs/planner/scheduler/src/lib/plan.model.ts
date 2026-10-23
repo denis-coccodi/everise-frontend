@@ -137,8 +137,10 @@ export interface MitigationEffect {
 // What a tank's invulnerability does to the hits while it lasts: nothing
 // at all (`immune`: Hallowed Ground); they land but can't take the last HP
 // (`lastHp`: Holmgang); nothing, once it has taken the tank's HP down to 1
-// as it's used (`dropsToOne`: Superbolide).
-export type Invulnerability = 'immune' | 'lastHp' | 'dropsToOne';
+// as it's used (`dropsToOne`: Superbolide); they land but can't take the
+// last HP, and the tank must be healed by their max HP in the 10s after the
+// first, or die (`walkingDead`: Living Dead).
+export type Invulnerability = 'immune' | 'lastHp' | 'dropsToOne' | 'walkingDead';
 
 // A set amount of HP, or a share of the max HP of whoever gets it.
 export type ShieldSize = { hp: number } | { maxHpShare: number };

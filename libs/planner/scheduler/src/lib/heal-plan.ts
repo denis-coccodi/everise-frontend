@@ -5,6 +5,7 @@ import { HealingBuffs } from './healing-buffs';
 import { best, better } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { spareHeals } from './spare-heals';
+import { walkingDeads } from './walking-dead';
 import { Weaving } from './weaving';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
@@ -98,7 +99,9 @@ export function planHeals(
   );
   const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
   const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
-  const mechanics = [...plan.mechanics].sort((a, b) => a.at - b.at);
+  // Living Dead: the tank must be full again when Walking Dead ends.
+  const deads = walkingDeads(plan, (u) => mitigationOf.get(key(u)), maxHp, options.margin);
+  const mechanics = [...plan.mechanics, ...deads.map((d) => d.check)].sort((a, b) => a.at - b.at);
 
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
@@ -222,9 +225,14 @@ export function planHeals(
     if (!start) return hit;
     const max = maxHp.get(hit.player) as number;
     const hpBefore = Math.round(track.before(start, mechanicOf.get(hit.mechanic)?.at ?? 0));
-    const safe = hit.invulnerable || hit.avoidable || hpBefore - hit.planned >= options.margin * max - 1;
+    // Under Living Dead, one the tank isn't healed full after dies.
+    const dead = deads.find((d) => d.trigger.id === hit.mechanic && d.player === hit.player);
+    const healed = !dead || track.before(start, dead.check.at + 1) >= max - 1;
+    const safe = (hit.invulnerable && healed) || hit.avoidable || hpBefore - hit.planned >= options.margin * max - 1;
     return { ...hit, hpBefore, safe };
   });
+  // A heal for Walking Dead is for the hit that set it off.
+  for (const use of uses) use.covers = use.covers.map((id) => deads.find((d) => d.check.id === id)?.trigger.id ?? id);
   return {
     mechanics: plan.mechanics,
     uses: [...plan.uses, ...uses].sort((a, b) => a.at - b.at || a.player - b.player),

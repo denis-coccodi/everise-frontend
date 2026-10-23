@@ -87,12 +87,12 @@ export const GRANTED: Record<number, Grant> = {
 };
 
 // The tanks' invulnerabilities, by action: the catalog says only that
-// attacks can't kill. Living Dead isn't planned yet (it needs the tank
-// healed back to full in the 10s after it's taken them to 0).
+// attacks can't kill.
 const INVULNERABLE: Record<number, Invulnerability> = {
   30: 'immune', // Hallowed Ground
   43: 'lastHp', // Holmgang
   16152: 'dropsToOne', // Superbolide
+  3638: 'walkingDead', // Living Dead
 };
 
 // Conditions the planner can take as met: it assumes everyone stands where

@@ -92,7 +92,7 @@ describe('mitigationTools', () => {
     ]);
   });
 
-  it('knows what each invulnerability does, and leaves out Living Dead', () => {
+  it('knows what each invulnerability does', () => {
     const invulnerable = (id: number, name: string, condition: string | null = null) =>
       action(id, name, ['PLD'], 300, [
         {
@@ -124,6 +124,7 @@ describe('mitigationTools', () => {
       ['Hallowed Ground', ['immune']],
       ['Holmgang', ['lastHp']],
       ['Superbolide', ['dropsToOne']],
+      ['Living Dead', ['walkingDead']],
     ]);
   });
 });

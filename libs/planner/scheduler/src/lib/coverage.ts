@@ -1,6 +1,7 @@
 import {
   DamageType,
   Grant,
+  Invulnerability,
   Mechanic,
   MechanicHit,
   MitigationEffect,
@@ -42,7 +43,7 @@ export function projected(
   for (const use of uses) {
     for (const effect of reaches(toolOf(use), use, mechanic, hit)) {
       if (effect.invulnerable) {
-        if (!invulnerable || invulnerable.invulnerable === 'lastHp') invulnerable = effect;
+        if (!invulnerable?.invulnerable || landsUnder(invulnerable.invulnerable)) invulnerable = effect;
       } else if (effect.shield) {
         if (facts.hitsBetween(hit.player, use.at, mechanic.at) >= effect.hits) continue;
         const hp = shieldHp(effect.shield, hit.player, facts);
@@ -54,7 +55,7 @@ export function projected(
       }
     }
   }
-  if (invulnerable && invulnerable.invulnerable !== 'lastHp') {
+  if (invulnerable?.invulnerable && !landsUnder(invulnerable.invulnerable)) {
     return { damage: 0, absorbed: 0, statuses: [invulnerable.status], invulnerable: true };
   }
   let damage = hit.unmitigated;
@@ -72,6 +73,12 @@ export function projected(
     ],
     invulnerable: !!invulnerable,
   };
+}
+
+// Whether hits land under an invulnerability, only kept from taking the
+// last HP (Holmgang, Living Dead).
+export function landsUnder(invulnerability: Invulnerability) {
+  return invulnerability === 'lastHp' || invulnerability === 'walkingDead';
 }
 
 // The share a mitigation takes off a hit of this type: none of unique
