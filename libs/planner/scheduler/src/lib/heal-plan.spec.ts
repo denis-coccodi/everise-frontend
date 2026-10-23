@@ -187,13 +187,12 @@ describe('planHeals', () => {
       ['Afflatus Solace', 'neutral'],
     ]);
     // Favouring damage: the third lily spent as it comes in, two kept. They
-    // start empty and fill one every 20s; the one the buster took at 38s
-    // leaves the gauge full first at 80s.
+    // start full (since 7.4), so the first goes at the pull, and fill one
+    // every 20s.
     const dumps = plan('dps')
-      .uses.filter((u) => u.name === 'Afflatus Solace')
-      .map((u) => u.at)
-      .slice(1);
-    expect(dumps[0]).toBeGreaterThanOrEqual(80_000);
+      .uses.filter((u) => u.name === 'Afflatus Solace' && !u.covers.length)
+      .map((u) => u.at);
+    expect(dumps[0]).toBe(0);
     for (let i = 1; i < dumps.length; i++) expect(dumps[i] - dumps[i - 1]).toBeGreaterThanOrEqual(19_000);
     expect(dumps.length).toBeGreaterThan(20);
   });
