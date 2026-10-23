@@ -1,0 +1,81 @@
+<div class="controls">
+  <fieldset class="lines">
+    <legend class="visually-hidden">Lines shown</legend>
+    <cdt-checkbox [checked]="showPlayed()" (checkedChange)="showPlayed.set($event)">
+      <span class="key played" aria-hidden="true"></span>As played
+    </cdt-checkbox>
+    @if (planned()) {
+      <cdt-checkbox [checked]="showPlanned()" (checkedChange)="showPlanned.set($event)">
+        <span class="key planned" aria-hidden="true"></span>Plan
+      </cdt-checkbox>
+    }
+    @if (margin()) {
+      <span class="margin-key"><span class="key margin" aria-hidden="true"></span>{{ marginLabel() }}</span>
+    }
+  </fieldset>
+  <fieldset class="members">
+    <legend class="visually-hidden">Members shown</legend>
+    @for (curve of curves(); track curve.id) {
+      <button cdtButton="chip" type="button" [attr.aria-pressed]="isShown(curve.id)" (click)="toggle(curve.id)">
+        {{ curve.job ?? '' }} {{ curve.name }}
+      </button>
+    }
+  </fieldset>
+</div>
+
+<div
+  class="panels"
+  role="slider"
+  tabindex="0"
+  aria-label="Moment shown"
+  aria-valuemin="0"
+  [attr.aria-valuemax]="durationMs()"
+  [attr.aria-valuenow]="at() ?? 0"
+  [attr.aria-valuetext]="at() === null ? 'None: each member shows their lowest HP' : clock(at() ?? 0)"
+  (keydown)="key($event)"
+  (keydown.escape)="at.set(null)"
+>
+  @for (curve of shown(); track curve.id) {
+    <section class="panel">
+      <div class="head">
+        <h4 class="name">{{ curve.job ?? '' }} {{ curve.name }}</h4>
+        <span class="readout">{{ readout(curve) }}</span>
+      </div>
+      <div class="plot" (pointermove)="point($event)" (pointerleave)="at.set(null)">
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+          <line class="grid" x1="0" x2="1000" y1="50" y2="50" />
+          <line class="margin" x1="0" x2="1000" [attr.y1]="marginTop()" [attr.y2]="marginTop()" />
+          @if (showPlayed()) {
+            <path class="played" [attr.d]="path(curve.played)" />
+          }
+          @if (showPlanned() && curve.planned) {
+            <path class="planned" [attr.d]="path(curve.planned)" />
+          }
+        </svg>
+        @if (cursorLeft() !== null) {
+          <span class="cursor" [style.left.%]="cursorLeft()" aria-hidden="true"></span>
+        }
+        @for (mark of curve.marks; track $index) {
+          @if (mark.kind === 'death' ? showPlayed() : showPlanned()) {
+            <span
+              [class]="'mark ' + mark.kind"
+              [style.left.%]="left(mark.at)"
+              [style.top.%]="(1 - mark.share) * 100"
+              [attr.title]="markText(mark)"
+            ></span>
+          }
+        }
+      </div>
+      <ul class="visually-hidden">
+        @for (mark of curve.marks; track $index) {
+          <li>{{ markText(mark) }}</li>
+        }
+      </ul>
+    </section>
+  }
+  <div class="x-ticks" aria-hidden="true">
+    @for (tick of ticks(); track tick.left) {
+      <span [style.left.%]="tick.left">{{ tick.label }}</span>
+    }
+  </div>
+</div>

@@ -1,6 +1,10 @@
 <cdt-panel [heading]="heading()">
   @if (store.pull.hasValue() && store.catalog.hasValue()) {
     <cdt-planner-plan-form />
+    <section class="hp" aria-labelledby="planner-hp-heading">
+      <h3 id="planner-hp-heading" class="hp-heading">HP over the pull</h3>
+      <cdt-planner-hp-chart [curves]="curves()" [durationMs]="store.pull.value().durationMs" [margin]="chartMargin()" />
+    </section>
     <ul cdtTabs aria-label="Players" class="players">
       @for (p of players(); track p.id) {
         <li class="player">

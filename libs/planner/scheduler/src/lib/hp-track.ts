@@ -49,6 +49,22 @@ export class HpTrack {
     return null;
   }
 
+  // The player's HP after each moment something changes it, from full at the
+  // start; none for a player without a max HP.
+  points(player: number): { at: number; hp: number }[] {
+    const max = this.maxHp.get(player);
+    if (max === undefined) return [];
+    const points: { at: number; hp: number }[] = [{ at: 0, hp: max }];
+    let hp = max;
+    for (const event of this.events.get(player) ?? []) {
+      hp = this.step(hp, event, max);
+      const last = points.at(-1) as { at: number; hp: number };
+      if (last.at === event.at) last.hp = hp;
+      else if (last.hp !== hp) points.push({ at: event.at, hp });
+    }
+    return points;
+  }
+
   checkpoint(player: number, at: number): HpCheckpoint | null {
     const max = this.maxHp.get(player);
     if (max === undefined) return null;

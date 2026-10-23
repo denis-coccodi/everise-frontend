@@ -250,5 +250,6 @@ export function planHeals(
     uses: [...plan.uses, ...uses].sort((a, b) => a.at - b.at || a.player - b.player),
     hits,
     unplaced: plan.unplaced,
+    hp: party.map((player) => ({ player, points: track.points(player) })),
   };
 }

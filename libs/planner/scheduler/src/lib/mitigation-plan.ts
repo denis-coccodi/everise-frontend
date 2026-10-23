@@ -253,7 +253,7 @@ export function planMitigation(
   for (const use of uses) {
     use.covers = mechanics.filter((m) => m.hits.some((h) => reaches(tool(use), use, m, h).length)).map((m) => m.id);
   }
-  return { mechanics, uses: [...uses].sort((a, b) => a.at - b.at || a.player - b.player), hits, unplaced };
+  return { mechanics, uses: [...uses].sort((a, b) => a.at - b.at || a.player - b.player), hits, unplaced, hp: [] };
 }
 
 // When a use could go up for `m`: as late as it can, and earlier where its

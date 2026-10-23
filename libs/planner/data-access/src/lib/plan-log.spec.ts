@@ -42,6 +42,7 @@ const plan: Plan = {
     },
   ],
   unplaced: [],
+  hp: [],
 };
 
 describe('planLog', () => {
