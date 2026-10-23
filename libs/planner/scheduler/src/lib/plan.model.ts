@@ -93,13 +93,12 @@ export interface MitigationTool {
 }
 
 // A player's resource some actions spend one of: it fills one every
-// `gainMs`, up to `max`, from `start`.
+// `gainMs`, up to `max`, and starts full (a white mage's lilies too, since
+// 7.4).
 export interface ToolPool {
   name: string;
   gainMs: number;
   max: number;
-  // What it holds at the pull; full when not given (lilies start empty).
-  start?: number;
 }
 
 // An action another grants: usable only after a use of that one, up to
