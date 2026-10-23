@@ -97,6 +97,9 @@ export const RECITATION = 16542;
 export const RECITED = [185, 37013, 3583, 7434];
 // A shield's condition that holds when its heal is critical.
 const CRITICAL = 'critical heal';
+// Haima's and Panhaima's barrier: a new one as each breaks, one a stack, so a
+// shield of its size on each of that many hits.
+const RENEWED = 'renewed each time it breaks';
 
 // What a critical heal heals, from the healer's critical hit at level 100
 // (the multiplier's base 1.4, a thousandth more every 13.9 points over 420);
@@ -247,7 +250,8 @@ function shieldEffects(
   const effects: MitigationEffect[] = [];
   for (const e of action.effects) {
     if (e.kind !== 'shield') continue;
-    if (!usable(e) && !(critical && e.durationMs && e.condition === CRITICAL)) continue;
+    const holds = e.condition === RENEWED || (critical && e.condition === CRITICAL);
+    if (!usable(e) && !(e.durationMs && holds)) continue;
     let shield: MitigationEffect['shield'] = null;
     if (e.potency && power) shield = { hp: e.potency * power };
     else if (e.of === 'healed' && e.percent && heal?.potency && power)

@@ -39,6 +39,28 @@ describe('mitigationTools', () => {
     expect(veil?.gcd).toBe(false);
   });
 
+  it("counts Panhaima's barrier, renewed as each breaks, as a shield on each of its stacks' hits", () => {
+    const cat = catalog();
+    const barrier = {
+      ...(cat.actions.find((a) => a.name === 'Divine Veil')
+        ?.effects[0] as (typeof cat.actions)[number]['effects'][number]),
+      status: 'Panhaima',
+      of: null,
+      percent: null,
+      potency: 200,
+      durationMs: 15_000,
+      stacks: 5,
+      condition: 'renewed each time it breaks',
+    };
+    cat.actions.push(action(24311, 'Panhaima', ['SCH'], 120, [barrier]));
+
+    const panhaima = mitigationTools(party(), cat, new Map([[2, 100]])).find((t) => t.name === 'Panhaima');
+
+    expect(panhaima?.effects).toEqual([
+      expect.objectContaining({ target: 'party', shield: { hp: 20_000 }, hits: 5, status: 'Panhaima' }),
+    ]);
+  });
+
   it('keeps what a trait replaces only below the level it does', () => {
     const players = party().map((p) => ({ ...p, stats: p.job === 'PLD' ? { ...stats(), level: 90 } : null }));
 
