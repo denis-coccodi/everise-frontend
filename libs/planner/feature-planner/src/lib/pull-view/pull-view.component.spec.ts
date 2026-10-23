@@ -22,6 +22,22 @@ describe('PullViewComponent', () => {
     expect(page.querySelector('cdt-planner-pull-compare tbody')?.textContent).toContain('Adloquium');
   });
 
+  it('folds the HP chart away, and remembers it', async () => {
+    localStorage.removeItem('planner.hpChart');
+    const { page, fixture } = await renderPull();
+    const toggle = page.querySelector('#planner-hp-heading button') as HTMLButtonElement;
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(page.querySelector('#planner-hp cdt-planner-hp-chart')).not.toBeNull();
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(page.querySelector('#planner-hp cdt-planner-hp-chart')).toBeNull();
+    expect(localStorage.getItem('planner.hpChart')).toBe('closed');
+    localStorage.removeItem('planner.hpChart');
+  });
+
   it("says why a pull can't be read", async () => {
     const { page, http, settle } = await renderPlanner(`/planner?report=${CODE}&pull=3`);
     http.expectOne(`/planner/reports/${CODE}`).flush(fightReport());

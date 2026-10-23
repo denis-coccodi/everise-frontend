@@ -27,14 +27,28 @@
       <cdt-planner-plan-view [player]="p" [class.shown]="view() === 'plan'" />
       <cdt-planner-pull-compare #compare [player]="p.name" [played]="log()" [planned]="planned()" [shown]="view()" />
       <section class="hp" aria-labelledby="planner-hp-heading">
-        <h3 id="planner-hp-heading" class="hp-heading">HP over the pull</h3>
-        <cdt-planner-hp-chart
-          [curves]="curves()"
-          [durationMs]="store.pull.value().durationMs"
-          [margin]="chartMargin()"
-          [focused]="p.id"
-          (picked)="compare.reveal($event)"
-        />
+        <h3 id="planner-hp-heading" class="hp-heading">
+          <button
+            type="button"
+            class="disclosure"
+            aria-controls="planner-hp"
+            [attr.aria-expanded]="hpOpen()"
+            (click)="toggleHp()"
+          >
+            HP over the pull
+          </button>
+        </h3>
+        <div id="planner-hp">
+          @if (hpOpen()) {
+            <cdt-planner-hp-chart
+              [curves]="curves()"
+              [durationMs]="store.pull.value().durationMs"
+              [margin]="chartMargin()"
+              [focused]="p.id"
+              (picked)="compare.reveal($event)"
+            />
+          }
+        </div>
       </section>
     }
   } @else if (loading()) {

@@ -59,6 +59,8 @@ export class PullViewComponent {
   }
   // On narrower screens: the pull as played, or the plan.
   protected readonly view = signal<'played' | 'plan'>('played');
+  // Whether the HP chart is open: it folds away, and stays as it was left.
+  protected readonly hpOpen = signal(readHpOpen());
 
   // "Vamp Fatale, 7:46".
   protected readonly heading = computed(() => {
@@ -102,5 +104,26 @@ export class PullViewComponent {
 
   protected choose(playerId: number) {
     this.chosen.set(playerId);
+  }
+
+  protected toggleHp() {
+    const open = !this.hpOpen();
+    this.hpOpen.set(open);
+    try {
+      localStorage.setItem(HP_CHART_KEY, open ? 'open' : 'closed');
+    } catch {
+      // Not kept (a private window): it's open again next time.
+    }
+  }
+}
+
+// Where the browser keeps whether the HP chart was left open.
+const HP_CHART_KEY = 'planner.hpChart';
+
+function readHpOpen() {
+  try {
+    return localStorage.getItem(HP_CHART_KEY) !== 'closed';
+  } catch {
+    return true;
   }
 }
