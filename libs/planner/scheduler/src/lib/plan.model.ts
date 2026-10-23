@@ -67,6 +67,8 @@ export interface MitigationTool {
   // A weaponskill or spell: it costs a GCD the player would deal damage
   // with, so the plan uses it only where nothing else will do.
   gcd: boolean;
+  // Its cast bar (0 for an instant one): it takes that much of the GCD.
+  castMs: number;
   // Actions of one player in the same group share their recast.
   group: string;
   // What it spends besides its recast, when that's what really limits it

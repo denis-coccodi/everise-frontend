@@ -23,6 +23,7 @@ const tool = (name: string, values: EffectValues): MitigationTool => ({
   recastMs: 60_000,
   charges: 1,
   gcd: false,
+  castMs: 0,
   group: name,
   pool: null,
   grantedBy: null,

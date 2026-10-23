@@ -8,6 +8,7 @@ import { playedInvulnerabilities } from './invulnerabilities';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
+import { Weaving } from './weaving';
 import { InvulnerabilityOptions, Plan, PlanOptions } from './plan.model';
 import { mitigationTools } from './tools';
 
@@ -47,15 +48,20 @@ export class PlannerScheduler {
         replanned,
       ),
     };
+    // Where each player can act: their GCDs as played, and the oGCDs they
+    // used that the plan doesn't schedule.
+    const scheduled = new Set([...mitigation.filter(replanned), ...heals].map((t) => `${t.player}:${t.action}`));
+    const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const once = (from?: Plan) =>
       planHeals(
-        planMitigation(mechanics, mitigation, maxHp, options, from, fixed),
+        planMitigation(mechanics, mitigation, maxHp, options, from, fixed, weaving),
         timeline,
         mitigation,
         heals,
         maxHp,
         options,
         buffs,
+        weaving,
       );
 
     let best = once();

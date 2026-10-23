@@ -124,6 +124,7 @@ export function mitigationTools(
         recastMs: action.recastMs,
         charges: action.charges,
         gcd: action.gcd,
+        castMs: action.castMs,
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         grantedBy: GRANTED[action.id] ?? null,

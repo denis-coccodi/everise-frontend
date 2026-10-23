@@ -2,6 +2,7 @@ import { PullTimeline } from '@everise/core/api-types';
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
+import { Weaving } from './weaving';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
@@ -25,16 +26,14 @@ const AFTER_MS = 1000;
 // Mechanics this close together are healed for at once: there's no time to
 // heal between them.
 const GAP_MS = 2000;
-// A healer casts one weaponskill or spell at a time.
-const GCD_MS = 2500;
 // As for mitigations: a GCD heal costs a GCD the healer would deal damage
 // with.
 const GCD_WORTH = 0.4;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
-// What an action already planned uses up: its recast, its pool, a GCD (and
-// the grant it uses, or gives).
+// What an action already planned uses up: its recast, its pool, a GCD or a
+// weave slot (and the grant it uses, or gives).
 interface Spent {
   player: number;
   action: number;
@@ -42,6 +41,7 @@ interface Spent {
   group: string;
   pool: ToolPool | null;
   gcd: boolean;
+  castMs: number;
 }
 
 interface Candidate {
@@ -57,7 +57,9 @@ interface Candidate {
 // shields: in time order, before each mechanic, enough heals that every hit
 // leaves the margin of the HP its player has then (as far as the healers'
 // cooldowns allow), oGCDs first, each heal times the healing `buffs` (by
-// action) up for it. Then each hit is judged by the HP it leaves.
+// action) up for it, and where its healer can act (`weaving`): an oGCD in a
+// weave slot, a GCD in place of one of theirs. Then each hit is judged by
+// the HP it leaves.
 export function planHeals(
   plan: Plan,
   timeline: PullTimeline,
@@ -66,6 +68,7 @@ export function planHeals(
   maxHp: Map<number, number>,
   options: PlanOptions,
   buffs = new Map<number, HealingBuff[]>(),
+  weaving = new Weaving(),
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -95,6 +98,7 @@ export function planHeals(
         group: tool.group,
         pool: tool.pool,
         gcd: tool.gcd,
+        castMs: tool.castMs,
       });
       // Superbolide takes its user down to 1 HP.
       if (tool.effects.some((e) => e.invulnerable === 'dropsToOne')) {
@@ -157,7 +161,7 @@ export function planHeals(
       let pick: Candidate | null = null;
       for (const tool of planned) {
         const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
-        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits);
+        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
       }
       if (!pick) break;
@@ -171,9 +175,12 @@ export function planHeals(
       if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
         const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
         uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
+        // Its weave slot.
+        const release = { action: delayed.release.action, group: `release:${pick.use.player}`, pool: null };
+        spent.push({ player: pick.use.player, ...release, at: lands, gcd: false, castMs: 0 });
       }
-      const { group, pool, gcd } = pick.tool;
-      spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd });
+      const { group, pool, gcd, castMs } = pick.tool;
+      spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
     }
   }
 
@@ -217,13 +224,14 @@ function best(
   spent: Spent[],
   eventsOf: (use: PlannedUse, delayMs: number) => HpEvent[],
   deficits: (extra: HpEvent[]) => Map<number, number>,
+  weaving: Weaving,
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
   const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
   if (latest <= anchor) return null;
   const times = spent.filter((s) => s.group === tool.group).map((s) => s.at);
   const pooled = tool.pool ? spent.filter((s) => s.player === tool.player && s.pool?.name === tool.pool?.name) : [];
-  const gcds = spent.filter((s) => s.player === tool.player && s.gcd).map((s) => s.at);
+  const occupied = spent.filter((s) => s.player === tool.player);
   const timesOf = (action: number) =>
     spent.filter((s) => s.player === tool.player && s.action === action).map((s) => s.at);
   // A heal on one member goes to whoever is shortest.
@@ -232,16 +240,32 @@ function best(
     : null;
   let found: Candidate | null = null;
   const end = tool.delayed?.delaysMs[0] ?? 0;
+  // Each moment as early or as late as it can be, then where the healer can
+  // act: the first chance from it on, or the last up to it.
   const moments =
     tool.delayed?.belowShare != null
       ? // A triggered heal goes up before the hit that sets it off: the last
         // mechanic's, or one after it.
-        [...new Set([anchor - LEAD_MS, earliest])].map((up) => ({ at: up - tool.castMs, delayMs: end }))
+        [...new Set([anchor - LEAD_MS, earliest])].map((up) => ({ at: up - tool.castMs, delayMs: end, late: true }))
       : [...new Set([earliest, latest])].flatMap((lands) =>
-          (tool.delayed?.delaysMs ?? [0]).map((delayMs) => ({ at: lands - tool.castMs - delayMs, delayMs })),
+          (tool.delayed?.delaysMs ?? [0]).map((delayMs) => ({
+            at: lands - tool.castMs - delayMs,
+            delayMs,
+            late: lands === latest,
+          })),
         );
-  for (const { at, delayMs } of moments) {
-    if (at < 0 || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
+  for (const moment of moments) {
+    const { delayMs } = moment;
+    const lo = Math.max(0, earliest - tool.castMs - delayMs);
+    const hi = latest - tool.castMs - delayMs;
+    const at = tool.gcd
+      ? moment.late
+        ? weaving.gcdBefore(tool.player, moment.at, lo, tool.castMs, occupied)
+        : weaving.gcdAfter(tool.player, moment.at, hi, tool.castMs, occupied)
+      : moment.late
+        ? weaving.ogcdBefore(tool.player, moment.at, lo, occupied)
+        : weaving.ogcdAfter(tool.player, moment.at, hi, occupied);
+    if (at === null || at < 0 || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
     if (
       tool.pool &&
       !fitsPool(
@@ -251,7 +275,6 @@ function best(
       )
     )
       continue;
-    if (tool.gcd && !fitsRecast(gcds, at, GCD_MS, 1)) continue;
     const { grantedBy } = tool;
     if (grantedBy && !fitsGrant(timesOf(tool.action), timesOf(grantedBy.action), at, grantedBy)) continue;
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };

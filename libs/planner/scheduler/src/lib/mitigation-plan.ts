@@ -1,5 +1,6 @@
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
+import { Weaving } from './weaving';
 
 // A mitigation goes up at least this long before the hit it's for.
 const LEAD_MS = 500;
@@ -23,7 +24,9 @@ interface Candidate {
 // Each hit is planned as if it landed at full HP; or, replanning `from` an
 // earlier plan, on top of its mitigations, at the HP its heals left. Only
 // the tools of the players `options.replan` names are planned; the `fixed`
-// uses (the others', as played) stay as they are.
+// uses (the others', as played) stay as they are. Each use goes where its
+// player can act (`weaving`): an oGCD in a weave slot, a GCD in place of
+// one of theirs.
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
@@ -31,6 +34,7 @@ export function planMitigation(
   options: PlanOptions,
   from?: Plan,
   fixed: PlannedUse[] = [],
+  weaving = new Weaving(),
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -61,6 +65,17 @@ export function planMitigation(
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: t, value: 0 });
   }
+  // When the player can use `t` for `m`, at `at` or before it while it
+  // still covers `m`; null when they can't.
+  const fit = (m: Mechanic, t: MitigationTool, at: number) => {
+    const from = m.at - Math.min(...t.effects.map((e) => e.durationMs));
+    const occupied = uses
+      .filter((u) => u.player === t.player)
+      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
+    return t.gcd
+      ? weaving.gcdBefore(t.player, at - t.castMs, from, t.castMs, occupied)
+      : weaving.ogcdBefore(t.player, at, from, occupied);
+  };
   // The invulnerabilities asked for go first, just before their mechanic,
   // as their recast allows (an earlier plan has them already).
   const unplaced = [...(from?.unplaced ?? [])];
@@ -68,9 +83,14 @@ export function planMitigation(
     const m = mechanics.find((o) => o.id === choice.mechanic);
     if (!m) continue;
     const t = plannable.find((o) => o.player === choice.player && o.action === choice.action);
-    const at = m.at - LEAD_MS;
+    const at = t ? fit(m, t, m.at - LEAD_MS) : null;
     const times = uses.filter((u) => t && tool(u).group === t.group).map((u) => u.at);
-    if (!t?.effects.some((e) => e.invulnerable) || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) {
+    if (
+      !t?.effects.some((e) => e.invulnerable) ||
+      at === null ||
+      at < 0 ||
+      !fitsRecast(times, at, t.recastMs, t.charges)
+    ) {
       unplaced.push(choice);
       continue;
     }
@@ -95,8 +115,9 @@ export function planMitigation(
     const target = t.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
     const lasts = Math.max(...t.effects.map((e) => e.durationMs));
     let found: Candidate | null = null;
-    for (const at of momentsFor(m, t, mechanics)) {
-      if (!fitsRecast(times, at, t.recastMs, t.charges)) continue;
+    for (const moment of momentsFor(m, t, mechanics)) {
+      const at = fit(m, t, moment);
+      if (at === null || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
       if (
         t.grantedBy &&
@@ -130,7 +151,12 @@ export function planMitigation(
   // when it doesn't.
   const invulnerabilityFor = (m: Mechanic, t: MitigationTool): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
-    const at = momentsFor(m, t, mechanics).find((moment) => fitsRecast(times, moment, t.recastMs, t.charges));
+    const at = momentsFor(m, t, mechanics)
+      .map((moment) => fit(m, t, moment))
+      .find(
+        (moment): moment is number =>
+          moment !== null && moment >= 0 && fitsRecast(times, moment, t.recastMs, t.charges),
+      );
     if (at === undefined) return null;
     return {
       use: { player: t.player, action: t.action, name: t.name, at, target: null, covers: [] },
@@ -161,15 +187,21 @@ export function planMitigation(
   for (const m of order) {
     const tried = uses.length;
     fill(m);
-    const saves = m.hits.filter(short(m)).flatMap((h) => {
+    const left = m.hits.filter(short(m));
+    if (!left.length) continue;
+    // Placed without the uses tried, which give their weave slots back.
+    const removed = uses.splice(tried);
+    const saves = left.flatMap((h) => {
       const own = invulnerabilities.filter((t) => t.player === h.player);
       return own
         .map((t) => invulnerabilityFor(m, t))
         .filter((c): c is Candidate => c !== null)
         .slice(0, 1);
     });
-    if (!saves.length) continue;
-    uses.splice(tried);
+    if (!saves.length) {
+      uses.push(...removed);
+      continue;
+    }
     for (const save of saves) add(save);
     fill(m);
   }
