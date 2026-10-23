@@ -80,7 +80,10 @@ export class PullViewComponent {
     const player = this.player();
     const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
     const { pull } = this.store;
-    return player && plan && pull.hasValue() ? planLog(plan, pull.value(), player.id) : null;
+    const { catalog } = this.store;
+    return player && plan && pull.hasValue()
+      ? planLog(plan, pull.value(), player.id, catalog.hasValue() ? catalog.value() : undefined)
+      : null;
   });
   protected readonly loading = computed(() => this.store.pull.isLoading() || this.store.catalog.isLoading());
   protected readonly error = computed(() =>

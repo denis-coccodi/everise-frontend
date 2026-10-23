@@ -49,6 +49,10 @@ describe('PlanEntryComponent', () => {
     );
   });
 
+  it('shows a damage GCD a planned oGCD is woven after', () => {
+    expect(render({ kind: 'gcd', at: 62_000 }).text).toBe('GCD Damage');
+  });
+
   it('says a damage action is there for the Blood Lily', () => {
     const misery = { kind: 'use' as const, at: 0, action: 'Afflatus Misery', target: null, covers: [], damage: true };
 
