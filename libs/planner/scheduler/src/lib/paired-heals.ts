@@ -20,13 +20,16 @@ export function pairingsFor(
   weaving: Weaving,
   maxHp: Map<number, number>,
 ): Paired[] {
-  if (!tool.gcd || !events.length) return [];
+  if (!events.length) return [];
+  // The heal itself takes its slot: an oGCD's weave, a GCD's own.
+  const around = [...occupied, { at: use.at, gcd: tool.gcd, castMs: tool.castMs }];
+  const healed = use.target ?? use.player;
   const lands = Math.min(...events.map((e) => e.at));
   const reached = [...new Set(events.filter((e) => e.at === lands).map((e) => e.player))];
   const found: Paired[] = [];
   for (const pairing of pairings) {
     if (pairing.player !== use.player || !pairing.heals.includes(use.action)) continue;
-    const at = weaving.ogcdBefore(use.player, use.at - 1, use.at - pairing.withinMs + tool.castMs, occupied);
+    const at = weaving.ogcdBefore(use.player, use.at - 1, use.at - pairing.withinMs + tool.castMs, around);
     if (at === null || at < 0 || !fitsRecast(groupTimes(pairing.group), at, pairing.recastMs, pairing.charges)) {
       continue;
     }
@@ -38,9 +41,13 @@ export function pairingsFor(
           amount: 'hp' in extra ? extra.hp : extra.maxHpShare * (maxHp.get(player) ?? 0),
         }))
       : [];
-    const boosted = events.map((e) => ({ ...e, amount: e.amount * pairing.times }));
+    // On one member (Krasis), only the heal on them.
+    const boosted = events.map((e) =>
+      pairing.onTarget && e.player !== healed ? e : { ...e, amount: e.amount * pairing.times },
+    );
+    const target = pairing.onTarget ? healed : null;
     found.push({
-      use: { player: use.player, action: pairing.action, name: pairing.name, at, target: null, covers: use.covers },
+      use: { player: use.player, action: pairing.action, name: pairing.name, at, target, covers: use.covers },
       pairing,
       events: [...boosted, ...more],
       barrier: barrierOf(
