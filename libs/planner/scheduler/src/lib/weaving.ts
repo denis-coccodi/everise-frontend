@@ -161,7 +161,12 @@ export class Weaving {
     }
     const gcds = occupied.filter((o) => o.gcd).map((o) => o.at);
     const apart = (t: number) => gcds.every((g) => Math.abs(g - t) >= GCD_MS);
-    const candidates = [at, ...gcds.flatMap((g) => [g - GCD_MS, g + GCD_MS]), ...ogcds.map((b) => b.to)];
+    // Where asked, a GCD from the others, or just after or before an oGCD.
+    const candidates = [
+      at,
+      ...gcds.flatMap((g) => [g - GCD_MS, g + GCD_MS]),
+      ...ogcds.flatMap((b) => [b.to, b.from - Math.max(castMs, INSTANT_LOCK_MS)]),
+    ];
     return candidates.filter((t) => within(t) && apart(t) && clear(t)).sort(order)[0] ?? null;
   }
 

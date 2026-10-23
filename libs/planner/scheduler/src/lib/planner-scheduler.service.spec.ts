@@ -76,6 +76,26 @@ describe('PlannerScheduler', () => {
     }
   });
 
+  it("spreads an Adloquium's Galvanize to the party with Deployment Tactics where the raidwide needs it", () => {
+    // 160,000 on everyone: about 100,000 after the party mitigations and
+    // Divine Veil, more than the 90,000 the margin allows. Adloquium's
+    // 54,000 Galvanize on one isn't enough; spread to all, it is.
+    const cat = catalog();
+    cat.actions.push(
+      action(3585, 'Deployment Tactics', ['SCH'], 120, [
+        { ...heal(0), kind: 'shield', target: 'party', status: 'Galvanize', potency: null, durationMs: null },
+      ]),
+    );
+    const hits = [1, 2, 3].map((player): [number, string, number, number] => [30, 'Raidwide', player, 160_000]);
+    const p = new PlannerScheduler().plan(pull(hits, healed), cat, { margin: 0.1 });
+    const adlo = p.uses.find((u) => u.name === 'Adloquium');
+    const deployment = p.uses.find((u) => u.name === 'Deployment Tactics');
+
+    expect(p.hits.every((h) => h.safe)).toBe(true);
+    expect(p.hits.every((h) => h.covers.includes('Galvanize'))).toBe(true);
+    expect(adlo && deployment && deployment.at >= adlo.at && deployment.at < 30_000).toBe(true);
+  });
+
   it('covers a raidwide with party mitigations, and says when nothing can make a hit safe', () => {
     const p = plan([
       [30, 'Raidwide', 1, 80_000],
