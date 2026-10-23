@@ -1,7 +1,7 @@
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { WEAVE_MS, Weaving } from './weaving';
-import { LEAD_MS, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
+import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
 import type { PullFacts } from './coverage.model';
 import type { Candidate, Granted } from './mitigation-plan.model';
 
@@ -52,8 +52,23 @@ export function planMitigation(
   const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) =>
     h.avoidable ? AVOIDED : projected(m, h, list, of, facts);
   const max = (h: MechanicHit) => maxHp.get(h.player) ?? Infinity;
-  // The HP a hit lands on, and the most it may take and leave the margin.
-  const hpOf = (m: Mechanic, h: MechanicHit) => Math.min(max(h), hpAt.get(`${m.id}:${h.player}`) ?? Infinity);
+  // The earlier mechanics of each one's burst, and whether two are in one.
+  const burst = burstsOf(mechanics);
+  const sameBurst = (a: Mechanic, b: Mechanic) => burst.get(a.id) === burst.get(b.id);
+  const earlier = (m: Mechanic) => mechanics.filter((o) => o.at < m.at && sameBurst(o, m));
+  // The HP a hit lands on (an earlier plan's, with its heals), and the most
+  // it may take and leave the margin. In a burst, with no earlier plan, it
+  // lands on what the burst's hits before it left: there's no time to heal.
+  const hpOf = (m: Mechanic, h: MechanicHit) => {
+    const known = hpAt.get(`${m.id}:${h.player}`);
+    if (known !== undefined) return Math.min(max(h), known);
+    let hp = max(h);
+    for (const o of earlier(m)) {
+      const hit = o.hits.find((x) => x.player === h.player);
+      if (hit) hp -= project(o, hit, uses).damage;
+    }
+    return Math.max(1, hp);
+  };
   const limit = (m: Mechanic, h: MechanicHit) => hpOf(m, h) - options.margin * max(h);
   const danger = (m: Mechanic) =>
     Math.max(0, ...m.hits.filter((h) => !h.avoidable).map((h) => h.unmitigated / hpOf(m, h)));
@@ -116,8 +131,10 @@ export function planMitigation(
   const occupiedBy = (player: number) =>
     uses.filter((u) => u.player === player).map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
 
-  // The damage `added` uses take off the hits `wanted` of `m`, and a little
-  // for every other mechanic in their window, from `at` for `lasts`.
+  // The damage `added` uses take off the hits `wanted` of `m` (and, in a
+  // burst, the earlier hits on those players, which leave them the HP they
+  // take it on), and a little for every other mechanic in their window, from
+  // `at` for `lasts`.
   const valueOf = (
     m: Mechanic,
     added: { use: PlannedUse; tool: MitigationTool }[],
@@ -135,7 +152,11 @@ export function planMitigation(
         if (!added.some((a) => reaches(a.tool, a.use, other, hit).length)) continue;
         const before = project(other, hit, near).damage;
         const after = project(other, hit, [...near, ...added.map((a) => a.use)], withIt).damage;
-        value += (before - after) * (other === m && wanted(hit) ? 1 : 0.25);
+        const counts =
+          other === m
+            ? wanted(hit)
+            : other.at < m.at && sameBurst(other, m) && m.hits.some((x) => x.player === hit.player && wanted(x));
+        value += (before - after) * (counts ? 1 : 0.25);
       }
     }
     return value;

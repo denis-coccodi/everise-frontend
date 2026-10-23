@@ -3,6 +3,20 @@ import type { Candidate } from './mitigation-plan.model';
 
 // A mitigation goes up at least this long before the hit it's for.
 export const LEAD_MS = 500;
+// Mechanics less than this apart, one after another, are a burst (Brutal
+// Rain's five hits a second apart): too close to heal much between them.
+export const BURST_MS = 2000;
+
+// Each mechanic's burst, by id: the number of its first mechanic.
+export function burstsOf(mechanics: Mechanic[]) {
+  const burst = new Map<number, number>();
+  let last: Mechanic | null = null;
+  for (const m of [...mechanics].sort((a, b) => a.at - b.at)) {
+    burst.set(m.id, last && m.at - last.at < BURST_MS ? (burst.get(last.id) as number) : m.id);
+    last = m;
+  }
+  return burst;
+}
 
 // When a use could go up for `m`: as late as it can, and earlier where its
 // window would also catch an earlier mechanic.
