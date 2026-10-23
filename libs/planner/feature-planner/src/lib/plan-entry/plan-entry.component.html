@@ -14,7 +14,9 @@
           ? 'For ' + e.covers.join(', ')
           : e.damage
             ? 'Damage: the Blood Lily is in full bloom'
-            : 'On cooldown, or before it would go to waste'
+            : e.overcap
+              ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
+              : 'On cooldown, or before it would go to waste'
       }}
     </p>
   }

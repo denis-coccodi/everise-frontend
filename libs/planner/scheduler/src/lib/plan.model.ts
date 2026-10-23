@@ -265,6 +265,9 @@ export interface PlannedUse {
   // A damage action the plan places for no hit (Afflatus Misery, when the
   // Blood Lily is in full bloom).
   damage?: boolean;
+  // A lily spent because the lilies are full (favouring damage), so none
+  // goes to waste and the Blood Lily charges the next Misery.
+  overcap?: boolean;
 }
 
 // A hit as the plan leaves it.

@@ -88,7 +88,15 @@ describe('planLog', () => {
 
   it('gives what the plan has a player use, and who for, before the hits it covers', () => {
     expect(planLog(plan, pullTimeline(), 1)).toEqual([
-      { kind: 'use', at: 64_500, action: 'Reprisal', target: null, covers: ['Killer Voice'], damage: false },
+      {
+        kind: 'use',
+        at: 64_500,
+        action: 'Reprisal',
+        target: null,
+        covers: ['Killer Voice'],
+        damage: false,
+        overcap: false,
+      },
       {
         kind: 'use',
         at: 199_500,
@@ -96,6 +104,7 @@ describe('planLog', () => {
         target: 'Heal Main',
         covers: ['Killer Voice'],
         damage: false,
+        overcap: false,
       },
     ]);
   });

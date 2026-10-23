@@ -30,6 +30,8 @@ export interface PlanUseEntry {
   covers: string[];
   // A damage action for no hit (Afflatus Misery).
   damage: boolean;
+  // A lily spent because the lilies are full.
+  overcap: boolean;
 }
 
 // One of the player's GCDs as played, which a planned oGCD is woven after:
