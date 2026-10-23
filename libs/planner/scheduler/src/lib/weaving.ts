@@ -47,6 +47,11 @@ export class Weaving {
     return new Weaving(timeline.playerCasts, new Map(catalog.actions.map((a) => [a.id, a.gcd])), planned);
   }
 
+  // When the player's GCDs as played start, from `from` to `to`.
+  gcdsBetween(player: number, from: number, to: number) {
+    return (this.gcds.get(player) ?? []).filter((g) => g.at >= from && g.at <= to).map((g) => g.at);
+  }
+
   // The latest moment from `from` to `at` the player can use an oGCD;
   // null when there's none.
   ogcdBefore(player: number, at: number, from: number, occupied: Occupied[]) {

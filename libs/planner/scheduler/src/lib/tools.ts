@@ -87,12 +87,12 @@ export const GRANTED: Record<number, Grant> = {
 };
 
 // The tanks' invulnerabilities, by action: the catalog says only that
-// attacks can't kill. Living Dead isn't planned yet (it needs the tank
-// healed back to full in the 10s after it's taken them to 0).
+// attacks can't kill.
 const INVULNERABLE: Record<number, Invulnerability> = {
   30: 'immune', // Hallowed Ground
   43: 'lastHp', // Holmgang
   16152: 'dropsToOne', // Superbolide
+  3638: 'walkingDead', // Living Dead
 };
 
 // Conditions the planner can take as met: it assumes everyone stands where
@@ -114,7 +114,7 @@ export function mitigationTools(
       const effects = [
         ...mitigationEffects(action),
         ...shieldEffects(action, player, power.get(player.id) ?? null),
-        ...invulnerableEffects(action),
+        ...invulnerableEffects(action, power.get(player.id) ?? null),
       ];
       if (!effects.length) continue;
       tools.push({
@@ -171,9 +171,13 @@ function mitigationEffects(action: CatalogAction): MitigationEffect[] {
     .filter((e) => e.physical > 0 || e.magic > 0);
 }
 
+// Living Dead heals its user 1,500 potency with each GCD while it and
+// Walking Dead last.
+const LIVING_DEAD_POTENCY = 1500;
+
 // An invulnerability's effect, for those the planner knows (above); its
 // condition is what it does, which the table says.
-function invulnerableEffects(action: CatalogAction): MitigationEffect[] {
+function invulnerableEffects(action: CatalogAction, power: number | null): MitigationEffect[] {
   const invulnerable = INVULNERABLE[action.id];
   const e = action.effects.find((o) => o.kind === 'invulnerable' && o.durationMs);
   if (!invulnerable || !e) return [];
@@ -189,6 +193,7 @@ function invulnerableEffects(action: CatalogAction): MitigationEffect[] {
       status,
       stack: status,
       invulnerable,
+      ...(invulnerable === 'walkingDead' && power ? { selfHeal: LIVING_DEAD_POTENCY * power } : {}),
     },
   ];
 }
