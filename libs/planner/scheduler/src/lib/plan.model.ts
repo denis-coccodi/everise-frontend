@@ -90,6 +90,12 @@ export interface MitigationTool {
   // For an action another grants, which and how; null for any other.
   grantedBy: Grant | null;
   effects: MitigationEffect[];
+  // Recitation: what the next of its user's heals it makes critical is
+  // multiplied by.
+  critical?: number;
+  // Its effects as a critical heal (Adloquium after Recitation: a bigger
+  // Galvanize, and Catalyze), and Deployment Tactics spreading that.
+  whenCritical?: MitigationEffect[];
 }
 
 // A player's resource some actions spend one of: it fills one every
@@ -265,6 +271,8 @@ export interface PlannedUse {
   // A damage action the plan places for no hit (Afflatus Misery, when the
   // Blood Lily is in full bloom).
   damage?: boolean;
+  // A heal Recitation makes critical, or Deployment Tactics spreading one.
+  critical?: boolean;
   // A lily spent because the lilies are full (favouring damage), so none
   // goes to waste and the Blood Lily charges the next Misery.
   overcap?: boolean;

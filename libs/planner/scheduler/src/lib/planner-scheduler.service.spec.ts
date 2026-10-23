@@ -96,6 +96,26 @@ describe('PlannerScheduler', () => {
     expect(adlo && deployment && deployment.at >= adlo.at && deployment.at < 30_000).toBe(true);
   });
 
+  it('makes the spread Adloquium critical with Recitation where a bigger Galvanize is needed', () => {
+    // 230,000 on everyone: about 94,000 left with a 54,000 Galvanize, over
+    // the 90,000 allowed; critical (×1.5 without stats), 81,000 of it.
+    const cat = catalog();
+    cat.actions.push(
+      action(3585, 'Deployment Tactics', ['SCH'], 120, [
+        { ...heal(0), kind: 'shield', target: 'party', status: 'Galvanize', potency: null, durationMs: null },
+      ]),
+      action(16542, 'Recitation', ['SCH'], 90, []),
+    );
+    const hits = [1, 2, 3].map((player): [number, string, number, number] => [30, 'Raidwide', player, 230_000]);
+    const p = new PlannerScheduler().plan(pull(hits, healed), cat, { margin: 0.1 });
+    const at = (name: string) => p.uses.find((u) => u.name === name);
+
+    expect(p.hits.every((h) => h.safe)).toBe(true);
+    expect(at('Adloquium')).toMatchObject({ critical: true });
+    expect(at('Deployment Tactics')).toMatchObject({ critical: true });
+    expect((at('Recitation')?.at ?? Infinity) < (at('Adloquium')?.at ?? 0)).toBe(true);
+  });
+
   it('covers a raidwide with party mitigations, and says when nothing can make a hit safe', () => {
     const p = plan([
       [30, 'Raidwide', 1, 80_000],
