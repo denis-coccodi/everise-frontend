@@ -39,13 +39,31 @@ describe('PlanEntryComponent', () => {
         target: 'Heal Main',
         covers: ['Killer Voice'],
         damage: false,
+        overcap: false,
       }),
     ).toEqual({ text: 'Use Intervention on Heal Main For Killer Voice', unsafe: false });
   });
 
   it('says why a use for no hit is there', () => {
-    expect(render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [], damage: false }).text).toBe(
-      'Use Assize On cooldown, or before it would go to waste',
+    expect(
+      render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [], damage: false, overcap: false })
+        .text,
+    ).toBe('Use Assize On cooldown, or before it would go to waste');
+  });
+
+  it('says a lily is spent because the lilies are full', () => {
+    const rapture = {
+      kind: 'use' as const,
+      at: 4_500,
+      action: 'Afflatus Rapture',
+      target: null,
+      covers: [],
+      damage: false,
+      overcap: true,
+    };
+
+    expect(render(rapture).text).toBe(
+      'Use Afflatus Rapture The lilies are full: spent so none goes to waste, and for the next Misery',
     );
   });
 
@@ -54,7 +72,15 @@ describe('PlanEntryComponent', () => {
   });
 
   it('says a damage action is there for the Blood Lily', () => {
-    const misery = { kind: 'use' as const, at: 0, action: 'Afflatus Misery', target: null, covers: [], damage: true };
+    const misery = {
+      kind: 'use' as const,
+      at: 0,
+      action: 'Afflatus Misery',
+      target: null,
+      covers: [],
+      damage: true,
+      overcap: false,
+    };
 
     expect(render(misery).text).toBe('Use Afflatus Misery Damage: the Blood Lily is in full bloom');
   });

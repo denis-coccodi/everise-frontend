@@ -58,6 +58,18 @@ describe('Weaving', () => {
     expect(weaving.gcdBefore(1, 13_000, 12_000, 2000, [ogcd(13_600)])).toBeNull();
   });
 
+  it('never puts a GCD where one cast in the countdown only landed, nor weaves in its cast bar', () => {
+    // A Glare cast begun before the pull lands at 0.8s, 1.5s before the
+    // next GCD (their GCD: 2.3s).
+    const precast = new Weaving(
+      [0.8, 2.3, 4.6, 6.9, 9.2].map((s) => cast(s * 1000, 9)),
+      gcdOf,
+    );
+
+    expect(precast.gcdAfter(1, 0, 5_000, 0, [])).toBe(2_300);
+    expect(precast.ogcdAfter(1, 0, 2_300, [])).toBe(1_400);
+  });
+
   it('lets a player the pull has no GCDs of act freely, an oGCD a weave and a GCD 2.5s apart', () => {
     const free = new Weaving();
 

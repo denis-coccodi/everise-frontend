@@ -247,6 +247,7 @@ describe('planHeals', () => {
     expect(dumps[0]).toBeGreaterThan(first);
     for (let i = 1; i < dumps.length; i++) expect(dumps[i] - dumps[i - 1]).toBeGreaterThanOrEqual(19_000);
     expect(dumps.length).toBeGreaterThan(20);
+    expect(uses.filter((u) => u.overcap).map((u) => u.at)).toEqual(dumps);
     const lilies = at('Afflatus Solace');
     for (const misery of miseries) {
       const since = Math.max(...[first, ...miseries].filter((m) => m < misery));

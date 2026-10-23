@@ -8,6 +8,7 @@ export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, player
   const actionName = names(timeline.actions);
   const statusName = names(timeline.statuses);
   const enemyName = names(timeline.enemies);
+  const playerName = new Map(timeline.players.map((player) => [player.id, player.name]));
   const actions = new Map<number, CatalogAction>(catalog.actions.map((action) => [action.id, action]));
   // Which statuses mitigate or shield, and which are debuffs on enemies.
   const covering = new Set<number>();
@@ -44,7 +45,10 @@ export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, player
     .filter((cast) => cast.source === playerId && (actions.get(cast.action)?.effects.length ?? 0) > 0)
     .map((cast) => {
       const action = actions.get(cast.action) as CatalogAction;
-      return { kind: 'use', at: cast.at, action: action.name, effects: effectsText(action.effects) };
+      // Who a single-target heal, shield or mitigation went on.
+      const targeted = action.effects.some((effect) => effect.target === 'target');
+      const target = targeted && cast.target !== null ? (playerName.get(cast.target) ?? null) : null;
+      return { kind: 'use', at: cast.at, action: action.name, target, effects: effectsText(action.effects) };
     });
 
   const deaths: DeathEntry[] = timeline.deaths

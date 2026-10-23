@@ -24,6 +24,8 @@ export interface UseEntry {
   kind: 'use';
   at: number;
   action: string;
+  // Who it went on, for a single-target one.
+  target: string | null;
   effects: string;
 }
 

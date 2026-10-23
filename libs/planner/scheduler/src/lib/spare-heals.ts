@@ -34,8 +34,9 @@ export function spareHeals(
 ): { uses: PlannedUse[]; events: HpEvent[] } {
   const uses: PlannedUse[] = [];
   const events: HpEvent[] = [];
-  const add = (tool: HealTool, at: number, target: number | null) => {
+  const add = (tool: HealTool, at: number, target: number | null, overcap = false) => {
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [] };
+    if (overcap) use.overcap = true;
     uses.push(use);
     events.push(...eventsFor(tool, use));
     const { player, action, group, pool, gcd, castMs } = tool;
@@ -92,7 +93,7 @@ export function spareHeals(
       const at = weaving.gcdAfter(player, t, t + pool.gainMs, tool.castMs, occupied(player));
       if (at === null || !fitsPool(used(), at, pool)) continue;
       const party = tool.effects.some((e) => e.target === 'party');
-      add(tool, at, party ? null : player);
+      add(tool, at, party ? null : player, true);
       t = at;
     }
   }
