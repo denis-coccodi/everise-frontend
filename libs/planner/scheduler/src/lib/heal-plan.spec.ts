@@ -257,7 +257,7 @@ describe('planHeals', () => {
           { ...heal(540), target: 'party', condition: '720 once the star has grown (10s)' },
         ]),
       );
-      const timeline = pull(hits, [[1, 2, 189, 60_000]]);
+      const timeline = pull(hits, [[0.5, 2, 189, 60_000]]);
       const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
       const power = healPower(timeline, cat);
       const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Earthly Star');
@@ -278,15 +278,28 @@ describe('planHeals', () => {
       expect(plan.hits[1]).toMatchObject({ hpBefore: 87_000, safe: true });
     });
 
-    it('sets it off with Stellar Detonation once grown, where there are no 20s to wait', () => {
+    it('puts it down before the pull, in the countdown, for an early hit', () => {
       const plan = planWithStar([
         [15, 'Buster', 1, 85_000],
         [19, 'Buster', 1, 60_000],
       ]);
 
+      // Down at -4s, it goes off on its own at 16s.
+      expect(usesOf(plan)).toEqual([['Earthly Star', -4000]]);
+      expect(plan.hits[1]).toMatchObject({ hpBefore: 87_000, safe: true });
+    });
+
+    it('sets it off with Stellar Detonation once grown, where there are no 20s to wait', () => {
+      // The heal must land by 4s: a star down 15s before the pull at most
+      // would only go off on its own at 5s.
+      const plan = planWithStar([
+        [1.5, 'Buster', 1, 85_000],
+        [4.5, 'Buster', 1, 60_000],
+      ]);
+
       expect(usesOf(plan)).toEqual([
-        ['Earthly Star', 6000],
-        ['Stellar Detonation', 16_000],
+        ['Earthly Star', -7500],
+        ['Stellar Detonation', 2500],
       ]);
       expect(plan.hits[1]).toMatchObject({ hpBefore: 87_000, safe: true });
     });

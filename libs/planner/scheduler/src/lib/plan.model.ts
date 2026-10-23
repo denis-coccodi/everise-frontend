@@ -177,11 +177,12 @@ export interface HealTool {
 // GCD heal).
 export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd';
 
-// An oGCD that only pays with one of its user's GCD heals after it:
-// Plenary Indulgence before a Medica, Cure III or Afflatus Rapture (its
-// Confession heals each member the heal reaches), Zoe before a Sage's GCD
-// heal (50% more), Neutral Sect before an Aspected Benefic or Helios
-// Conjunction (20% more). The plan uses it only with one.
+// An oGCD that only pays with one of its user's heals after it: Plenary
+// Indulgence before a Medica, Cure III or Afflatus Rapture (its Confession
+// heals each member the heal reaches), Zoe before a Sage's GCD heal (50%
+// more), Neutral Sect before an Aspected Benefic or Helios Conjunction (20%
+// more), Krasis on the member a Sage's heal is for (20% more). The plan
+// uses it only with one.
 export interface HealPairing {
   player: number;
   action: number;
@@ -192,9 +193,11 @@ export interface HealPairing {
   // The heals it goes with, and how long before one it can go up.
   heals: number[];
   withinMs: number;
-  // What the heal's healing is multiplied by, and the HP each member it
-  // reaches gets on top.
+  // What the heal's healing is multiplied by (on the member it's put on
+  // only, with `onTarget`: Krasis), and the HP each member it reaches gets
+  // on top.
   times: number;
+  onTarget: boolean;
   extra: ShieldSize | null;
   // The barrier it leaves on whoever each heal reaches, as a share of what
   // the heal heals them, by heal (Neutral Sect's: 250% for an Aspected

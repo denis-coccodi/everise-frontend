@@ -34,20 +34,29 @@ const DAMAGE_SHARE = /^plus (\d+)% of damage taken meanwhile; when it ends/;
 const STACKS_LEFT = 'each stack left when it ends';
 const ON_HIT = /^each time the .+ takes damage$/;
 
-// The oGCDs that only pay with a GCD heal after them, by action, and how:
+// The oGCDs that only pay with a heal after them, by action, and how:
 // Plenary Indulgence's Confession heals 200 potency on each member a Medica,
 // Cure III or Afflatus Rapture reaches in its 10s; Zoe makes the next GCD
 // heal 50% bigger (Pneuma, the Eukrasian ones) in 30s; Neutral Sect, an
 // Aspected Benefic's or Helios Conjunction's 20% in 20s (their barriers
 // meanwhile: 250% of the heal for an Aspected Benefic, 125% for a Helios
-// Conjunction, for 30s).
+// Conjunction, for 30s); Krasis, the next 10s of a Sage's heal on one member
+// (Druochole, Taurochole, Diagnosis, Eukrasian Diagnosis), 20% on them.
 const PAIRED: Record<
   number,
-  { heals: number[]; withinMs: number; times: number; potency: number; barriers?: Record<number, number> }
+  {
+    heals: number[];
+    withinMs: number;
+    times: number;
+    potency: number;
+    barriers?: Record<number, number>;
+    onTarget?: boolean;
+  }
 > = {
   7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
   24300: { heals: [24318, 24292, 37034, 24291], withinMs: 30_000, times: 1.5, potency: 0 },
   16559: { heals: [3595, 37030], withinMs: 20_000, times: 1.2, potency: 0, barriers: { 3595: 2.5, 37030: 1.25 } },
+  24317: { heals: [24296, 24303, 24284, 24291], withinMs: 10_000, times: 1.2, potency: 0, onTarget: true },
 };
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
@@ -75,6 +84,7 @@ export function healPairings(
         times: paired.times,
         extra: paired.potency && own ? { hp: paired.potency * own } : null,
         barriers: paired.barriers ?? {},
+        onTarget: paired.onTarget ?? false,
       });
     }
   }

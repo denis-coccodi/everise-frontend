@@ -7,6 +7,7 @@ describe('pullClock', () => {
     [65_000, '1:05'],
     [750_999, '12:30'],
     [-200, '0:00'],
+    [-10_000, '-0:10'],
   ])('gives %i ms as %s', (ms, text) => {
     expect(pullClock(ms)).toBe(text);
   });

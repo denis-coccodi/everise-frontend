@@ -17,6 +17,7 @@ describe('pairingsFor', () => {
     times: 1.5,
     extra: null,
     barriers: {},
+    onTarget: false,
   };
   const pneuma = { player: 2, action: 24318, gcd: true, castMs: 1500, effects: [] } as unknown as HealTool;
   const use: PlannedUse = { player: 2, action: 24318, name: 'Pneuma', at: 60_000, target: null, covers: [3] };
@@ -30,7 +31,8 @@ describe('pairingsFor', () => {
   it('puts it up in the weave slot before the cast, and makes the heal bigger', () => {
     const [paired] = pair(zoe);
 
-    expect(paired.use).toMatchObject({ player: 2, action: 24300, name: 'Zoe', at: 59_999, covers: [3] });
+    // A weave before the cast, which takes its own slot.
+    expect(paired.use).toMatchObject({ player: 2, action: 24300, name: 'Zoe', at: 59_300, covers: [3] });
     expect(paired.events.map((e) => e.amount)).toEqual([90_000, 90_000]);
   });
 
@@ -49,6 +51,29 @@ describe('pairingsFor', () => {
       expect.objectContaining({ target: 'target', shield: { hp: 180_000 }, durationMs: 30_000, hits: 1 }),
     ]);
     expect(pair(zoe)[0].barrier).toBeNull();
+  });
+
+  it('puts Krasis on the member an oGCD heal is for, and makes only their heal bigger', () => {
+    const druochole = { player: 2, action: 24296, gcd: false, castMs: 0, effects: [] } as unknown as HealTool;
+    const krasis = {
+      ...zoe,
+      action: 24317,
+      name: 'Krasis',
+      heals: [24296],
+      withinMs: 10_000,
+      times: 1.2,
+      onTarget: true,
+    };
+    const heal = { ...use, action: 24296, name: 'Druochole', target: 1 };
+    const healEvents = [
+      { at: 60_000, player: 1, amount: 60_000 },
+      { at: 60_000, player: 3, amount: 60_000 },
+    ];
+
+    const [paired] = pairingsFor([krasis], druochole, heal, healEvents, [], () => [], new Weaving(), new Map());
+
+    expect(paired.use).toMatchObject({ name: 'Krasis', target: 1, at: 59_300 });
+    expect(paired.events.map((e) => e.amount)).toEqual([72_000, 60_000]);
   });
 
   it('needs its recast, and a heal it goes with', () => {

@@ -8,6 +8,8 @@ import type { HpEvent } from './hp-track.model';
 // this long after the hits before it.
 const LEAD_MS = 500;
 const AFTER_MS = 1000;
+// How long before the pull an Earthly Star can go down (in the countdown).
+const PREPULL_MS = 15_000;
 // What a heal's healing is worth for what it costs (`HealCost`): a free
 // oGCD first, then one spending Aetherflow, a GCD that costs no damage
 // (Afflatus Solace), then any other GCD, which costs a GCD of damage. One
@@ -64,18 +66,21 @@ export function best(
             late: lands === latest,
           })),
         );
+  // Earthly Star can go down before the pull, in the countdown.
+  const first = tool.delayed?.release ? -PREPULL_MS : 0;
   for (const moment of moments) {
     const { delayMs } = moment;
-    const lo = Math.max(0, earliest - tool.castMs - delayMs);
+    const lo = Math.max(first, earliest - tool.castMs - delayMs);
     const hi = latest - tool.castMs - delayMs;
+    const from = Math.max(first, moment.at);
     const at = tool.gcd
       ? moment.late
         ? weaving.gcdBefore(tool.player, moment.at, lo, tool.castMs, occupied)
-        : weaving.gcdAfter(tool.player, moment.at, hi, tool.castMs, occupied)
+        : weaving.gcdAfter(tool.player, from, hi, tool.castMs, occupied)
       : moment.late
         ? weaving.ogcdBefore(tool.player, moment.at, lo, occupied)
-        : weaving.ogcdAfter(tool.player, moment.at, hi, occupied);
-    if (at === null || at < 0 || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
+        : weaving.ogcdAfter(tool.player, from, hi, occupied);
+    if (at === null || at < first || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
     if (
       tool.pool &&
       !fitsPool(
