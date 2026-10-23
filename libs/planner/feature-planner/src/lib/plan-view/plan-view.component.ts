@@ -13,9 +13,9 @@ interface InvulnerabilityRow {
   setting: InvulnerabilitySetting;
 }
 
-// The player's own part of planning, in their tab: a replanned tank's
-// invulnerabilities, and how the plan went for them (their part of it is in
-// the pull view's timeline). The margin and the button are the plan form's,
+// The player's own part of planning, in their tab: what a replanned healer
+// favours, damage or healing; a replanned tank's invulnerabilities; and how
+// the plan went for them (their part of it is in the pull view's timeline). The margin and the button are the plan form's,
 // above the tabs.
 @Component({
   selector: 'cdt-planner-plan-view',
@@ -31,6 +31,8 @@ export class PlanViewComponent {
   protected readonly clock = pullClock;
 
   protected readonly replanned = computed(() => this.plans.replan().includes(this.player().id));
+  // What a replanned healer favours: damage unless set to healing.
+  protected readonly favour = computed(() => this.plans.favour()[this.player().id] ?? 'dps');
   // The tank's invulnerabilities: each choice the plan has, and one row for
   // each with none.
   protected readonly invulnerabilities = computed<InvulnerabilityRow[]>(() => {
@@ -83,6 +85,10 @@ export class PlanViewComponent {
       });
     return names.length ? `The plan couldn't use ${names.join(', ')}: the recast doesn't allow it.` : '';
   });
+
+  protected setFavour(value: string) {
+    this.plans.setFavour(this.player().id, value === 'healing' ? 'healing' : 'dps');
+  }
 
   protected setInvulnerability(row: InvulnerabilityRow, value: string) {
     const setting: InvulnerabilitySetting = value === 'never' || value === 'planner' ? value : Number(value);

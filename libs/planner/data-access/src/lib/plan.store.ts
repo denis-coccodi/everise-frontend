@@ -1,7 +1,7 @@
 import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { InvulnerabilityChoice, InvulnerabilityOptions, Plan } from '@everise/planner/scheduler';
+import type { Favour, InvulnerabilityChoice, InvulnerabilityOptions, Plan } from '@everise/planner/scheduler';
 import type { InvulnerabilitySetting, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
@@ -28,6 +28,8 @@ interface PlanState {
   players: PlanPlayer[];
   replan: number[];
   invulnerabilities: InvulnerabilityChoice[];
+  // What each player favours, damage (left out) or healing, by id.
+  favour: Record<number, Favour>;
   invulnerabilityOptions: InvulnerabilityOptions | null;
   // The last plan, and the pull it's for.
   plan: Plan | null;
@@ -47,6 +49,7 @@ export const PlanStore = signalStore(
     players: [],
     replan: [],
     invulnerabilities: [],
+    favour: {},
     invulnerabilityOptions: null,
     plan: null,
     pullId: null,
@@ -86,6 +89,7 @@ export const PlanStore = signalStore(
           players,
           replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
           invulnerabilities: [],
+          favour: {},
           invulnerabilityOptions: null,
         });
         try {
@@ -103,6 +107,9 @@ export const PlanStore = signalStore(
       replanOnly,
       // One of a tank's invulnerability choices (`index` in the list), or a
       // new one for an invulnerability that has none.
+      setFavour(player: number, favour: Favour) {
+        patchState(store, { favour: { ...store.favour(), [player]: favour } });
+      },
       setInvulnerability(player: number, action: number, index: number | null, setting: InvulnerabilitySetting) {
         const list = [...store.invulnerabilities()];
         if (setting === 'planner') {
@@ -123,6 +130,7 @@ export const PlanStore = signalStore(
             margin: store.margin() / 100,
             replan: store.replan(),
             invulnerabilities: store.invulnerabilities(),
+            favour: store.favour(),
           });
           patchState(store, { plan, pullId, planning: false });
         } catch {

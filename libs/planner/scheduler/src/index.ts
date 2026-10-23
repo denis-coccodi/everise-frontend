@@ -1,4 +1,5 @@
 export type {
+  Favour,
   InvulnerabilityChoice,
   InvulnerabilityOptions,
   Mechanic,

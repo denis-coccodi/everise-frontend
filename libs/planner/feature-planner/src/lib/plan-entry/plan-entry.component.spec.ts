@@ -35,6 +35,12 @@ describe('PlanEntryComponent', () => {
     ).toEqual({ text: 'Use Intervention on Heal Main For Killer Voice', unsafe: false });
   });
 
+  it('says why a use for no hit is there', () => {
+    expect(render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [] }).text).toBe(
+      'Use Assize On cooldown, or before it would go to waste',
+    );
+  });
+
   it('says how a hit lands with the plan, against how it went', () => {
     expect(render(hit())).toEqual({
       text: 'Hit Killer Voice Takes 90,000 of 100,000 (45% of max HP), 20,000 shielded; at 90% HP, leaves 45%; took 40,000 as played. Covered by Reprisal',

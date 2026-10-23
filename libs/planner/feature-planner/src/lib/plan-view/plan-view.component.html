@@ -1,3 +1,15 @@
+@if (replanned() && player().role === 'healer') {
+  <cdt-field
+    label="Favour"
+    for="planner-favour"
+    hint="Damage: a white mage spends the third lily as it comes in, for Afflatus Misery, and GCD heals go only where nothing else will do. Healing: no lily spent for damage, and GCD heals count for more."
+  >
+    <select #favouring id="planner-favour" cdtInput class="favour" (change)="setFavour(favouring.value)">
+      <option value="dps" [selected]="favour() === 'dps'">Damage</option>
+      <option value="healing" [selected]="favour() === 'healing'">Healing</option>
+    </select>
+  </cdt-field>
+}
 @if (replanned() && invulnerabilities().length) {
   <fieldset class="invulnerabilities">
     <legend>Invulnerabilities</legend>

@@ -3,10 +3,12 @@ import { fitsGrant, fitsPool, fitsRecast, poolFull, projected, pullFacts, reache
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
 import { pairingsFor } from './paired-heals';
+import { spareHeals } from './spare-heals';
 import { Weaving } from './weaving';
 import { pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
+  Favour,
   HealCost,
   HealPairing,
   HealTool,
@@ -34,8 +36,12 @@ const GAP_MS = 2000;
 // oGCD first, then one spending Aetherflow, a GCD that costs no damage
 // (Afflatus Solace), then any other GCD, which costs a GCD of damage. One
 // whose pool is full costs nothing, so it goes before the free ones: lilies
-// and Addersgall are spent rather than left to overcap.
-const WORTH: Record<HealCost, number> = { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4 };
+// and Addersgall are spent rather than left to overcap. A healer favouring
+// healing over damage (`Favour`) minds a GCD's damage less.
+const WORTH: Record<Favour, Record<HealCost, number>> = {
+  dps: { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4 },
+  healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8 },
+};
 const FULL_WORTH = 1.05;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
@@ -66,6 +72,7 @@ export function planHeals(
   const party = timeline.players.map((p) => p.id);
   const healers = new Set(timeline.players.filter((p) => p.role === 'healer').map((p) => p.id));
   const planned = heals.filter((t) => healers.has(t.player));
+  const favourOf = (player: number): Favour => options.favour?.[player] ?? 'dps';
 
   const track = new HpTrack(maxHp, pullEvents(timeline, plan.mechanics, plan.hits, heals));
   const hitAt = new Map<number, number[]>();
@@ -163,7 +170,7 @@ export function planHeals(
             weaving,
             maxHp,
           );
-        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith);
+        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
       }
       if (!pick) break;
@@ -201,6 +208,14 @@ export function planHeals(
       spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
     }
   }
+
+  // What the healers use anyway: the heals on cooldown, and the lily that
+  // would overcap.
+  const spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, (tool, use) =>
+    eventsFor(tool, use, 0),
+  );
+  track.add(spare.events);
+  uses.push(...spare.uses);
 
   const mechanicOf = new Map(plan.mechanics.map((m) => [m.id, m]));
   // A hit a heal's mitigation lowered, projected again with every
@@ -244,6 +259,7 @@ function best(
   deficits: (extra: HpEvent[]) => Map<number, number>,
   weaving: Weaving,
   pairWith: (use: PlannedUse, events: HpEvent[]) => Paired[],
+  favourOf: (player: number) => Favour,
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
   const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
@@ -304,7 +320,7 @@ function best(
         at,
         tool.pool,
       );
-    const worth = full ? FULL_WORTH : WORTH[tool.cost];
+    const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][tool.cost];
     // On its own, or with each oGCD that can go with it.
     const alone = eventsOf(use, delayMs);
     const options = [
