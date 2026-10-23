@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { API_URL } from '@everise/core/http-client';
 import { LogEntry, PlanEntry } from '@everise/planner/data-access';
 import { PullCompareComponent } from './pull-compare.component';
 
@@ -14,6 +15,8 @@ const plannedUse = (at: number, action: string): PlanEntry => ({
 });
 
 describe('PullCompareComponent', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: API_URL, useValue: '' }] }));
+
   function render(played: LogEntry[], planned: PlanEntry[] | null, shown: 'played' | 'plan' = 'played') {
     const fixture = TestBed.createComponent(PullCompareComponent);
     fixture.componentRef.setInput('player', 'Tank Main');
