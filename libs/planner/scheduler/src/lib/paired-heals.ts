@@ -9,7 +9,8 @@ import type { Occupied } from './weaving.model';
 // (Plenary Indulgence before a Medica): each up in a weave slot before the
 // heal's cast, within its window and as its recast allows (`groupTimes`
 // says when its group was used), and the heal's `events` with it, bigger
-// or with Confession's heal on each member the heal reaches as it lands.
+// or with Confession's heal on each member the heal reaches as it lands,
+// and its own healing (`ownEvents`: Physis II's regen).
 export function pairingsFor(
   pairings: HealPairing[],
   tool: HealTool,
@@ -19,6 +20,7 @@ export function pairingsFor(
   groupTimes: (group: string) => number[],
   weaving: Weaving,
   maxHp: Map<number, number>,
+  ownEvents: (pairing: HealPairing, use: PlannedUse) => HpEvent[] = () => [],
 ): Paired[] {
   if (!events.length) return [];
   // The heal itself takes its slot: an oGCD's weave, a GCD's own.
@@ -46,10 +48,11 @@ export function pairingsFor(
       pairing.onTarget && e.player !== healed ? e : { ...e, amount: e.amount * pairing.times },
     );
     const target = pairing.onTarget ? healed : null;
+    const paired = { player: use.player, action: pairing.action, name: pairing.name, at, target, covers: use.covers };
     found.push({
-      use: { player: use.player, action: pairing.action, name: pairing.name, at, target, covers: use.covers },
+      use: paired,
       pairing,
-      events: [...boosted, ...more],
+      events: [...boosted, ...more, ...(pairing.own ? ownEvents(pairing, paired) : [])],
       barrier: barrierOf(
         pairing,
         tool,

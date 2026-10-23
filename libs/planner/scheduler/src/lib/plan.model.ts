@@ -198,6 +198,8 @@ export interface HealPairing {
   // on top.
   times: number;
   onTarget: boolean;
+  // Its own healing comes with it (Physis II's regen).
+  own: boolean;
   extra: ShieldSize | null;
   // The barrier it leaves on whoever each heal reaches, as a share of what
   // the heal heals them, by heal (Neutral Sect's: 250% for an Aspected

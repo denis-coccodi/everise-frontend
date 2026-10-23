@@ -18,6 +18,7 @@ describe('pairingsFor', () => {
     extra: null,
     barriers: {},
     onTarget: false,
+    own: false,
   };
   const pneuma = { player: 2, action: 24318, gcd: true, castMs: 1500, effects: [] } as unknown as HealTool;
   const use: PlannedUse = { player: 2, action: 24318, name: 'Pneuma', at: 60_000, target: null, covers: [3] };
@@ -74,6 +75,37 @@ describe('pairingsFor', () => {
 
     expect(paired.use).toMatchObject({ name: 'Krasis', target: 1, at: 59_300 });
     expect(paired.events.map((e) => e.amount)).toEqual([72_000, 60_000]);
+  });
+
+  it('brings its own healing with it (Physis II), and makes the heal after it bigger', () => {
+    const physis = {
+      ...zoe,
+      action: 24302,
+      name: 'Physis II',
+      heals: [24318],
+      withinMs: 15_000,
+      times: 1.1,
+      own: true,
+    };
+    const regen = (paired: PlannedUse) => [{ at: paired.at + 3000, player: 1, amount: 13_000 }];
+
+    const [paired] = pairingsFor(
+      [physis],
+      pneuma,
+      use,
+      events,
+      [],
+      () => [],
+      new Weaving(),
+      new Map(),
+      (_, u) => regen(u),
+    );
+
+    expect(paired.events.map((e) => [e.at, e.amount])).toEqual([
+      [61_500, 66_000],
+      [61_500, 66_000],
+      [62_300, 13_000],
+    ]);
   });
 
   it('needs its recast, and a heal it goes with', () => {
