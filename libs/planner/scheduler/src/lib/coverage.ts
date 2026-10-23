@@ -113,6 +113,18 @@ export function fitsPool(times: number[], at: number, pool: ToolPool) {
   return true;
 }
 
+// Whether the pool is full at `at`, with the uses at `times`: a use then
+// costs nothing, as what it would gain next is lost otherwise.
+export function poolFull(times: number[], at: number, pool: ToolPool) {
+  let level = pool.max;
+  let last = 0;
+  for (const time of [...times].filter((t) => t < at).sort((a, b) => a - b)) {
+    level = Math.min(pool.max, level + (time - last) / pool.gainMs) - 1;
+    last = time;
+  }
+  return Math.min(pool.max, level + (at - last) / pool.gainMs) >= pool.max;
+}
+
 // Whether one more use at `at` of an action another grants still has a
 // grant for every use: up to `uses` in the `withinMs` after each of `grants`
 // (the times the granting action is used).
