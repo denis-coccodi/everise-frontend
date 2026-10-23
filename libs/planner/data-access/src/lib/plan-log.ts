@@ -40,6 +40,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number): P
       action: use.name,
       target: use.target !== null && use.target !== playerId ? (playerName.get(use.target) ?? null) : null,
       covers: [...new Set(use.covers.map((id) => mechanic.get(id)?.name ?? 'Unknown'))],
+      damage: use.damage ?? false,
     }));
   // A use comes before the hits it's for.
   return [...uses, ...hits].sort((a, b) => a.at - b.at);

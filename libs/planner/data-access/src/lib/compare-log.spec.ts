@@ -9,6 +9,7 @@ const plannedUse = (at: number, action: string): PlanEntry => ({
   action,
   target: null,
   covers: [],
+  damage: false,
 });
 
 describe('compareLog', () => {

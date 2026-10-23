@@ -260,6 +260,9 @@ export interface PlannedUse {
   // The party member a `target` effect goes on.
   target: number | null;
   covers: number[];
+  // A damage action the plan places for no hit (Afflatus Misery, when the
+  // Blood Lily is in full bloom).
+  damage?: boolean;
 }
 
 // A hit as the plan leaves it.

@@ -28,6 +28,8 @@ export interface PlanUseEntry {
   target: string | null;
   // The mechanics it covers.
   covers: string[];
+  // A damage action for no hit (Afflatus Misery).
+  damage: boolean;
 }
 
 export type PlanEntry = PlanHitEntry | PlanUseEntry;

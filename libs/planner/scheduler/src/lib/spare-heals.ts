@@ -10,13 +10,20 @@ import type { HpEvent } from './hp-track.model';
 const ON_COOLDOWN = new Set([3571, 16553]);
 // How finely the pass looks for the next moment a use fits.
 const STEP_MS = 500;
+// Afflatus Misery, an instant GCD of damage the white mage casts when the
+// Blood Lily is in full bloom: after three lilies spent.
+const MISERY = { action: 16535, name: 'Afflatus Misery' };
+const MISERY_CAST_MS = 0;
+const BLOOM = 3;
 
 // What the healers use after the heals the hits need, as their guides have
 // them: each heal that goes on cooldown, as often as its recast allows, in
-// the weave slots left; and, for a healer favouring damage, the lily that
-// would overcap (Afflatus Rapture, or Solace on themselves), whenever the
-// third one comes in, so the Blood Lily charges Afflatus Misery. Two stay
-// for the heals. `spent` takes the uses.
+// the weave slots left; a white mage's Afflatus Misery whenever the Blood
+// Lily is in full bloom (at the pull, then three lilies later), before any
+// lily that would go to waste on it; and, for one favouring damage, the lily
+// that would overcap (Afflatus Rapture, or Solace on themselves), whenever
+// the third one comes in, so the Blood Lily charges the next Misery. Two
+// stay for the heals. `spent` takes the uses.
 export function spareHeals(
   tools: HealTool[],
   spent: Spent[],
@@ -52,24 +59,40 @@ export function spareHeals(
     }
   }
 
-  // The lily heal for each healer favouring damage: the party one if they
-  // have it.
+  // Each white mage's lily heal: the party one if they have it.
   const lilies = new Map<number, HealTool>();
   for (const tool of tools) {
-    if (tool.pool?.name !== 'Lily' || favourOf(tool.player) !== 'dps') continue;
+    if (tool.pool?.name !== 'Lily') continue;
     const had = lilies.get(tool.player);
     if (!had || tool.effects.some((e) => e.target === 'party')) lilies.set(tool.player, tool);
   }
   for (const tool of lilies.values()) {
     const pool = tool.pool;
     if (!pool) continue;
-    const used = () => spent.filter((s) => s.player === tool.player && s.pool?.name === pool.name).map((s) => s.at);
+    const { player } = tool;
+    const used = () => spent.filter((s) => s.player === player && s.pool?.name === pool.name).map((s) => s.at);
+    const miseries: number[] = [];
+    // The Blood Lily is in full bloom at the pull (since 7.4), and again
+    // three lilies after each Misery; one spent while it is goes to waste.
+    const bloomed = (t: number) => {
+      const last = miseries.filter((m) => m <= t).at(-1);
+      return last === undefined || used().filter((u) => u > last && u <= t).length >= BLOOM;
+    };
     for (let t = 0; t < durationMs; t += STEP_MS) {
-      if (poolLevel(used(), t, pool) < pool.max) continue;
-      const at = weaving.gcdAfter(tool.player, t, t + pool.gainMs, tool.castMs, occupied(tool.player));
+      if (bloomed(t)) {
+        const at = weaving.gcdAfter(player, t, t + pool.gainMs, MISERY_CAST_MS, occupied(player));
+        if (at === null) continue;
+        miseries.push(at);
+        uses.push({ player, action: MISERY.action, name: MISERY.name, at, target: null, covers: [], damage: true });
+        spent.push({ player, action: MISERY.action, at, group: `${player}:misery`, pool: null, gcd: true, castMs: 0 });
+        t = at;
+        continue;
+      }
+      if (favourOf(player) !== 'dps' || poolLevel(used(), t, pool) < pool.max) continue;
+      const at = weaving.gcdAfter(player, t, t + pool.gainMs, tool.castMs, occupied(player));
       if (at === null || !fitsPool(used(), at, pool)) continue;
       const party = tool.effects.some((e) => e.target === 'party');
-      add(tool, at, party ? null : tool.player);
+      add(tool, at, party ? null : player);
       t = at;
     }
   }

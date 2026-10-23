@@ -9,6 +9,7 @@ const plannedUse = (at: number, action: string): PlanEntry => ({
   action,
   target: null,
   covers: ['Killer Voice'],
+  damage: false,
 });
 
 describe('PullCompareComponent', () => {
