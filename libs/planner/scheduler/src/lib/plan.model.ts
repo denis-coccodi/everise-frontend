@@ -12,7 +12,16 @@ export interface PlanOptions {
   // out, those of the pull, where they were used (`playedInvulnerabilities`).
   // Any other the plan uses only where nothing else saves a hit.
   invulnerabilities?: InvulnerabilityChoice[];
+  // What each replanned player favours, by id: damage (the default) or
+  // healing (`Favour`).
+  favour?: Record<number, Favour>;
 }
+
+// Favouring damage, a healer spends what would overcap on damage (a white
+// mage's third lily, for Afflatus Misery) and keeps GCD heals for where
+// nothing else will do; favouring healing, they don't, and GCD heals cost
+// less.
+export type Favour = 'dps' | 'healing';
 
 // An invulnerability on a mechanic, as a group's strategy has it (one tank
 // taking a mechanic the two would trade, or standing where it makes the
@@ -80,11 +89,13 @@ export interface MitigationTool {
 }
 
 // A player's resource some actions spend one of: it fills one every
-// `gainMs`, up to `max`, and starts full.
+// `gainMs`, up to `max`, from `start`.
 export interface ToolPool {
   name: string;
   gainMs: number;
   max: number;
+  // What it holds at the pull; full when not given (lilies start empty).
+  start?: number;
 }
 
 // An action another grants: usable only after a use of that one, up to

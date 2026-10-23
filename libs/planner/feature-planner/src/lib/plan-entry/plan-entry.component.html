@@ -7,7 +7,10 @@
         {{ ' ' }}on {{ e.target }}
       }
     </p>
-    <p class="detail">For {{ e.covers.join(', ') }}</p>
+    <!-- A use for no hit: a heal on cooldown, a lily that would overcap. -->
+    <p class="detail">
+      {{ e.covers.length ? 'For ' + e.covers.join(', ') : 'On cooldown, or before it would go to waste' }}
+    </p>
   }
   @case ('hit') {
     <p class="line">

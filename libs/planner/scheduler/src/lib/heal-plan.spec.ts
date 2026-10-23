@@ -174,23 +174,28 @@ describe('planHeals', () => {
     const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
     const power = healPower(timeline, cat);
     const heals = healTools(timeline.players, cat, [], power).filter((t) => t.gcd && t.name !== 'Physick');
-    const options = { margin: 0.1 };
+    const plan = (favour: 'dps' | 'healing') => {
+      const options = { margin: 0.1, favour: { 2: favour } };
+      return planHeals(planMitigation(mechanicsOf(timeline), [], maxHp, options), timeline, [], heals, maxHp, options);
+    };
 
-    const plan = planHeals(
-      planMitigation(mechanicsOf(timeline), [], maxHp, options),
-      timeline,
-      [],
-      heals,
-      maxHp,
-      options,
-    );
-
-    expect(plan.uses.map((u) => u.name)).toEqual(['Afflatus Solace']);
+    // Favouring healing: only the heal the buster needs.
+    expect(plan('healing').uses.map((u) => u.name)).toEqual(['Afflatus Solace']);
     expect(heals.map((t) => [t.name, t.cost])).toEqual([
       ['Adloquium', 'gcd'],
       ['Cure II', 'gcd'],
       ['Afflatus Solace', 'neutral'],
     ]);
+    // Favouring damage: the third lily spent as it comes in, two kept. They
+    // start empty and fill one every 20s; the one the buster took at 38s
+    // leaves the gauge full first at 80s.
+    const dumps = plan('dps')
+      .uses.filter((u) => u.name === 'Afflatus Solace')
+      .map((u) => u.at)
+      .slice(1);
+    expect(dumps[0]).toBeGreaterThanOrEqual(80_000);
+    for (let i = 1; i < dumps.length; i++) expect(dumps[i] - dumps[i - 1]).toBeGreaterThanOrEqual(19_000);
+    expect(dumps.length).toBeGreaterThan(20);
   });
 
   describe('Earthly Star', () => {

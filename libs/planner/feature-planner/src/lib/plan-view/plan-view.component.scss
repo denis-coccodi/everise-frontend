@@ -5,6 +5,14 @@
   display: block;
 }
 
+.favour {
+  max-width: 16rem;
+}
+
+cdt-field:has(.favour) {
+  margin-bottom: 0.75rem;
+}
+
 .invulnerabilities {
   display: grid;
   gap: 0.5rem;

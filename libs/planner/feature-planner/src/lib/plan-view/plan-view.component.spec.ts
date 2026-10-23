@@ -60,6 +60,26 @@ describe('PlanViewComponent', () => {
     ]);
   });
 
+  it('lets a replanned healer favour damage or healing', async () => {
+    const rendered = await openPlan();
+    const favour = () => rendered.page.querySelector<HTMLSelectElement>('#planner-favour');
+
+    // The tank's tab: no such choice.
+    click(rendered, replanTick(rendered.page, 'Tank Main'));
+    expect(favour()).toBeNull();
+
+    click(rendered, rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1]);
+    expect(favour()).toBeNull();
+    click(rendered, replanTick(rendered.page, 'Heal Main'));
+    expect(favour()?.selectedOptions[0].textContent).toBe('Damage');
+
+    const field = favour() as HTMLSelectElement;
+    field.value = 'healing';
+    field.dispatchEvent(new Event('change'));
+    rendered.fixture.detectChanges();
+    expect(favour()?.selectedOptions[0].textContent).toBe('Healing');
+  });
+
   it('keeps the plan when another player is picked, showing their part', async () => {
     const timeline = pullTimeline();
     timeline.damage[3].unmitigated = 300_000;
