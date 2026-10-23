@@ -46,7 +46,9 @@ export function projected(
         if (!invulnerable?.invulnerable || landsUnder(invulnerable.invulnerable)) invulnerable = effect;
       } else if (effect.shield) {
         if (facts.hitsBetween(hit.player, use.at, mechanic.at) >= effect.hits) continue;
-        const hp = shieldHp(effect.shield, hit.player, facts);
+        // A GCD's shield grows with its caster's healing potency buffs.
+        const times = toolOf(use).gcd ? facts.shieldTimes(use, uses) : 1;
+        const hp = shieldHp(effect.shield, hit.player, facts) * times;
         if (hp > (shields.get(effect.stack)?.hp ?? 0)) shields.set(effect.stack, { hp, status: effect.status });
       } else {
         const share = shareAgainst(effect, mechanic.damageType);
@@ -89,9 +91,14 @@ export function shareAgainst(effect: MitigationEffect, type: DamageType | null) 
   return effect[type];
 }
 
-// Each player's max HP, and how many hits landed on them between two
-// moments (from, inclusive, to the second, exclusive).
-export function pullFacts(mechanics: Mechanic[], maxHp: Map<number, number>): PullFacts {
+// Each player's max HP, how many hits landed on them between two moments
+// (from, inclusive, to the second, exclusive), and what a GCD shield's size
+// is multiplied by (nothing, unless `shieldTimes` says).
+export function pullFacts(
+  mechanics: Mechanic[],
+  maxHp: Map<number, number>,
+  shieldTimes: PullFacts['shieldTimes'] = () => 1,
+): PullFacts {
   const times = new Map<number, number[]>();
   for (const m of mechanics) {
     for (const hit of m.hits) times.set(hit.player, [...(times.get(hit.player) ?? []), m.at]);
@@ -99,6 +106,7 @@ export function pullFacts(mechanics: Mechanic[], maxHp: Map<number, number>): Pu
   return {
     maxHp,
     hitsBetween: (player, from, to) => (times.get(player) ?? []).filter((at) => at >= from && at < to).length,
+    shieldTimes,
   };
 }
 

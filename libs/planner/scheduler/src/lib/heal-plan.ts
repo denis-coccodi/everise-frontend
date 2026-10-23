@@ -106,7 +106,8 @@ export function planHeals(
 
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
-  const facts = pullFacts(plan.mechanics, maxHp);
+  // A GCD shield grows with its caster's healing potency buffs.
+  const facts = pullFacts(plan.mechanics, maxHp, (use) => boosts.potencyAt(use.player, use.at, []));
   const mitigating = plan.uses.filter((u) => mitigationOf.has(key(u)));
   const toolOfUse = (u: PlannedUse) => mitigationOf.get(key(u)) as MitigationTool;
   // Such a heal lowers the hits it reaches, and the HP track gets back what
@@ -176,6 +177,12 @@ export function planHeals(
         boosts.add(use);
         const confession = mitigationOf.get(key(use));
         if (confession) mitigate(use, confession);
+        // Neutral Sect's barrier, a shield for the hits after.
+        const { barrier } = pick.paired;
+        if (barrier) {
+          mitigationOf.set(key(barrier.use), barrier.tool);
+          mitigate(barrier.use, barrier.tool);
+        }
         spent.push({
           player: use.player,
           action: use.action,

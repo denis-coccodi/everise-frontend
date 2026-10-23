@@ -16,8 +16,9 @@ describe('pairingsFor', () => {
     withinMs: 30_000,
     times: 1.5,
     extra: null,
+    barriers: {},
   };
-  const pneuma = { player: 2, action: 24318, gcd: true, castMs: 1500 } as HealTool;
+  const pneuma = { player: 2, action: 24318, gcd: true, castMs: 1500, effects: [] } as unknown as HealTool;
   const use: PlannedUse = { player: 2, action: 24318, name: 'Pneuma', at: 60_000, target: null, covers: [3] };
   const events = [
     { at: 61_500, player: 1, amount: 60_000 },
@@ -38,6 +39,16 @@ describe('pairingsFor', () => {
 
     expect(paired.events).toContainEqual({ at: 61_500, player: 3, amount: 20_000 });
     expect(paired.events).toHaveLength(4);
+  });
+
+  it('leaves a barrier of its share of what the heal heals, as a shield for 30s', () => {
+    const [paired] = pair({ ...zoe, name: 'Neutral Sect', action: 16559, times: 1.2, barriers: { 24318: 2.5 } });
+
+    expect(paired.barrier?.use).toMatchObject({ player: 2, action: -16559, at: 61_500 });
+    expect(paired.barrier?.tool.effects).toEqual([
+      expect.objectContaining({ target: 'target', shield: { hp: 180_000 }, durationMs: 30_000, hits: 1 }),
+    ]);
+    expect(pair(zoe)[0].barrier).toBeNull();
   });
 
   it('needs its recast, and a heal it goes with', () => {

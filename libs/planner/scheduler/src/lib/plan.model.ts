@@ -195,6 +195,10 @@ export interface HealPairing {
   // reaches gets on top.
   times: number;
   extra: ShieldSize | null;
+  // The barrier it leaves on whoever each heal reaches, as a share of what
+  // the heal heals them, by heal (Neutral Sect's: 250% for an Aspected
+  // Benefic), for 30s.
+  barriers: Record<number, number>;
 }
 
 // A heal that lands later than it's used: Earthly Star's, once the star has

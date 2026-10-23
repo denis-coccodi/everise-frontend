@@ -3,13 +3,13 @@ import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
 import { healPairings, healTools } from './heal-tools';
-import { healingBuffsOf } from './healing-buffs';
+import { HealingBuffs, healingBuffsOf } from './healing-buffs';
 import { playedInvulnerabilities } from './invulnerabilities';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
 import { Weaving } from './weaving';
-import { InvulnerabilityOptions, Plan, PlanOptions } from './plan.model';
+import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { mitigationTools } from './tools';
 
 // Plans of the pull, at most: the first, and replans around the HP its
@@ -58,9 +58,14 @@ export class PlannerScheduler {
     // used that the plan doesn't schedule.
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
+    // A GCD shield grows with its caster's healing potency buffs: those the
+    // plan has up when it's cast, and the rest as played.
+    const party = timeline.players.map((p) => p.id);
+    const potency = new HealingBuffs(buffs, party, timeline, new Set([...mitigation, ...heals, ...pairings].map(key)));
+    const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
     const once = (from?: Plan) =>
       planHeals(
-        planMitigation(mechanics, alone, maxHp, options, from, fixed, weaving),
+        planMitigation(mechanics, alone, maxHp, options, from, fixed, weaving, shieldTimes),
         timeline,
         mitigation,
         heals,
