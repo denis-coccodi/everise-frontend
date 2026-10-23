@@ -90,6 +90,22 @@ export const GRANTED: Record<number, Grant> = {
 // Deployment Tactics, an Adloquium's Galvanize (for what's left of it; the
 // plan has it go up as the Adloquium lands).
 const SPREADS: Record<number, number> = { 3585: 185 };
+// Recitation makes the next of these heals critical (Adloquium, Concitation,
+// Indomitability, Excogitation): a shield the size of the heal grows with it,
+// and Adloquium adds Catalyze.
+export const RECITATION = 16542;
+export const RECITED = [185, 37013, 3583, 7434];
+// A shield's condition that holds when its heal is critical.
+const CRITICAL = 'critical heal';
+
+// What a critical heal heals, from the healer's critical hit at level 100
+// (the multiplier's base 1.4, a thousandth more every 13.9 points over 420);
+// 1.5 when the log doesn't say.
+export function criticalTimes(player: TimelinePlayer) {
+  const critical = player.stats?.criticalHit;
+  if (!critical) return 1.5;
+  return 1.4 + Math.floor((200 * (critical - 420)) / 2780) / 1000;
+}
 
 // The tanks' invulnerabilities, by action: the catalog says only that
 // attacks can't kill.
@@ -120,16 +136,18 @@ export function mitigationTools(
       const own = power.get(player.id) ?? null;
       const from = byId.get(SPREADS[action.id]);
       const spread = action.effects.find((e) => e.kind === 'shield')?.status;
-      const effects = [
-        ...mitigationEffects(action),
-        ...(from
-          ? shieldEffects(from, player, own)
+      // Its shields, as a critical heal's too (`times`).
+      const shields = (times = 0) =>
+        from
+          ? shieldEffects(from, player, own, times)
               .filter((e) => e.status === spread)
               .map((e) => ({ ...e, target: 'party' as const }))
-          : shieldEffects(action, player, own)),
-        ...invulnerableEffects(action, own),
-      ];
-      if (!effects.length) continue;
+          : shieldEffects(action, player, own, times);
+      const others = [...mitigationEffects(action), ...invulnerableEffects(action, own)];
+      const effects = [...others, ...shields()];
+      const recitation = action.id === RECITATION;
+      if (!effects.length && !recitation) continue;
+      const recited = RECITED.includes(from?.id ?? action.id);
       tools.push({
         player: player.id,
         action: action.id,
@@ -142,6 +160,8 @@ export function mitigationTools(
         pool: POOLS[action.id] ?? null,
         grantedBy: GRANTED[action.id] ?? null,
         effects,
+        ...(recitation ? { critical: criticalTimes(player) } : {}),
+        ...(recited ? { whenCritical: [...others, ...shields(criticalTimes(player))] } : {}),
       });
     }
   }
@@ -214,15 +234,24 @@ function invulnerableEffects(action: CatalogAction, power: number | null): Mitig
 // A shield's size: a potency (at its caster's power), a share of the heal
 // the same action gives, or a share of max HP (the target's, or the
 // caster's own). None when it can't be told (no heal power for the caster).
-function shieldEffects(action: CatalogAction, player: TimelinePlayer, power: number | null): MitigationEffect[] {
+// As a critical heal's (`critical`: what the heal is multiplied by), one
+// the size of the heal is that much bigger, and those that need the heal to
+// be critical (Catalyze) count.
+function shieldEffects(
+  action: CatalogAction,
+  player: TimelinePlayer,
+  power: number | null,
+  critical = 0,
+): MitigationEffect[] {
   const heal = action.effects.find((e) => e.kind === 'heal' && e.potency && !e.condition);
   const effects: MitigationEffect[] = [];
   for (const e of action.effects) {
-    if (e.kind !== 'shield' || !usable(e)) continue;
+    if (e.kind !== 'shield') continue;
+    if (!usable(e) && !(critical && e.durationMs && e.condition === CRITICAL)) continue;
     let shield: MitigationEffect['shield'] = null;
     if (e.potency && power) shield = { hp: e.potency * power };
     else if (e.of === 'healed' && e.percent && heal?.potency && power)
-      shield = { hp: (heal.potency * power * e.percent) / 100 };
+      shield = { hp: (heal.potency * power * e.percent * (critical || 1)) / 100 };
     else if (e.of === 'maxHp' && e.percent) shield = { maxHpShare: e.percent / 100 };
     else if (e.of === 'casterMaxHp' && e.percent && player.maxHp) shield = { hp: (player.maxHp * e.percent) / 100 };
     if (!shield) continue;

@@ -1,6 +1,6 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
 import { DelayedHeal, HealCost, HealEffect, HealPairing, HealTool, MitigationTool } from './plan.model';
-import { ASSUMED, GRANTED, POOLS, playerActions } from './tools';
+import { ASSUMED, GRANTED, POOLS, criticalTimes, playerActions } from './tools';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
@@ -72,15 +72,6 @@ const PAIRED: Record<
   },
   16542: { heals: [185, 37013, 3583, 7434], withinMs: 15_000, times: 1, potency: 0, critical: true },
 };
-
-// What a critical heal heals, from the healer's critical hit at level 100
-// (the multiplier's base 1.4, a thousandth more every 13.9 points over 420);
-// 1.5 when the log doesn't say.
-function criticalTimes(player: TimelinePlayer) {
-  const critical = player.stats?.criticalHit;
-  if (!critical) return 1.5;
-  return 1.4 + Math.floor((200 * (critical - 420)) / 2780) / 1000;
-}
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
 // HP they add from the caster's `power`.

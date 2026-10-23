@@ -1,10 +1,10 @@
 import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { WEAVE_MS, Weaving } from './weaving';
+import { LEAD_MS, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
 import type { PullFacts } from './coverage.model';
+import type { Candidate, Granted } from './mitigation-plan.model';
 
-// A mitigation goes up at least this long before the hit it's for.
-const LEAD_MS = 500;
 // What an avoided hit does.
 const AVOIDED = { damage: 0, absorbed: 0, statuses: [], invulnerable: false };
 // The spare pass adds at most this many uses to one mechanic.
@@ -12,15 +12,8 @@ const SPARE_PER_MECHANIC = 4;
 // What a weaponskill or spell is worth next to an oGCD doing as much: it
 // costs a GCD the player would deal damage with.
 const GCD_WORTH = 0.4;
-
-interface Candidate {
-  use: PlannedUse;
-  tool: MitigationTool;
-  value: number;
-  // The use that grants it, planned with it (an Adloquium before Deployment
-  // Tactics).
-  granted?: { use: PlannedUse; tool: MitigationTool };
-}
+// How long before a heal Recitation can go up for it.
+const RECITATION_MS = 15_000;
 
 // The party's mitigations and shields planned over the pull: the most
 // dangerous mechanics first, each given them until every hit leaves the
@@ -51,6 +44,8 @@ export function planMitigation(
     if (hit.hpBefore !== null) hpAt.set(`${hit.mechanic}:${hit.player}`, hit.hpBefore);
   const toolOf = new Map<PlannedUse, MitigationTool>();
   const tool = (use: PlannedUse) => toolOf.get(use) as MitigationTool;
+  // A use that Recitation made critical: its shields as a critical heal's.
+  const critical = (t: MitigationTool) => ({ ...t, effects: t.whenCritical ?? t.effects });
   const facts = pullFacts(mechanics, maxHp, shieldTimes);
   // A failed mechanic is taken as avoided: it takes nothing, and nothing is
   // spent on it.
@@ -66,7 +61,7 @@ export function planMitigation(
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
   const add = (candidate: Candidate) => {
-    if (candidate.granted) add({ ...candidate.granted, value: 0 });
+    for (const granted of candidate.granted ?? []) add({ ...granted, value: 0 });
     uses.push(candidate.use);
     toolOf.set(candidate.use, candidate.tool);
   };
@@ -76,7 +71,7 @@ export function planMitigation(
   // the fixed ones already.)
   for (const use of from?.uses ?? fixed) {
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
-    if (t) add({ use: { ...use, covers: [] }, tool: t, value: 0 });
+    if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }
   // When the player can use `t` for `m`, at `at` or before it while it
   // still covers `m`; null when they can't.
@@ -118,6 +113,9 @@ export function planMitigation(
   const timesOf = (player: number, action: number) =>
     uses.filter((u) => u.player === player && u.action === action).map((u) => u.at);
 
+  const occupiedBy = (player: number) =>
+    uses.filter((u) => u.player === player).map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
+
   // The damage `added` uses take off the hits `wanted` of `m`, and a little
   // for every other mechanic in their window, from `at` for `lasts`.
   const valueOf = (
@@ -143,25 +141,42 @@ export function planMitigation(
     return value;
   };
 
-  // The use of the action granting `t` that would let it go up at `at`,
-  // landing before it; null when there's none (or no tool for it).
-  const granting = (m: Mechanic, t: MitigationTool, at: number) => {
+  // The uses of the action granting `t` that would let it go up at `at`,
+  // landing before it, each with `t` as it would then be: on its own, and
+  // made critical by Recitation where its user has it up (a bigger
+  // Galvanize to spread); none when there's no tool for it.
+  const granting = (m: Mechanic, t: MitigationTool, at: number): { granted: Granted[]; tool: MitigationTool }[] => {
     const grant = t.grantedBy;
     const g = grant && plannable.find((o) => o.player === t.player && o.action === grant.action);
-    if (!g || !grant) return null;
-    const occupied = uses
-      .filter((u) => u.player === t.player)
-      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
+    if (!g || !grant) return [];
+    const occupied = occupiedBy(t.player);
     const lands = at - g.castMs;
     const from = Math.max(0, at - grant.withinMs);
     const gAt = g.gcd
       ? weaving.gcdBefore(t.player, lands, from, g.castMs, occupied)
       : weaving.ogcdBefore(t.player, lands - WEAVE_MS, from, occupied);
     const times = uses.filter((u) => tool(u).group === g.group).map((u) => u.at);
-    if (gAt === null || gAt < 0 || !fitsRecast(times, gAt, g.recastMs, g.charges)) return null;
-    if (!fitsGrant(timesOf(t.player, t.action), [...timesOf(t.player, g.action), gAt], at, grant)) return null;
+    if (gAt === null || gAt < 0 || !fitsRecast(times, gAt, g.recastMs, g.charges)) return [];
+    if (!fitsGrant(timesOf(t.player, t.action), [...timesOf(t.player, g.action), gAt], at, grant)) return [];
     const target = g.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
-    return { use: { player: g.player, action: g.action, name: g.name, at: gAt, target, covers: [] }, tool: g };
+    const use = { player: g.player, action: g.action, name: g.name, at: gAt, target, covers: [] };
+    const options = [{ granted: [{ use, tool: g }], tool: t }];
+    const r = g.whenCritical && t.whenCritical && plannable.find((o) => o.player === t.player && o.critical);
+    if (!r) return options;
+    const rAt = weaving.ogcdBefore(t.player, gAt - 1, gAt - RECITATION_MS, [
+      ...occupied,
+      { at: gAt, gcd: g.gcd, castMs: g.castMs },
+    ]);
+    const recited = uses.filter((u) => tool(u).group === r.group).map((u) => u.at);
+    if (rAt === null || rAt < 0 || !fitsRecast(recited, rAt, r.recastMs, r.charges)) return options;
+    const recitation = {
+      use: { player: r.player, action: r.action, name: r.name, at: rAt, target: null, covers: [] },
+      tool: r,
+    };
+    return [
+      ...options,
+      { granted: [recitation, { use: { ...use, critical: true }, tool: critical(g) }], tool: critical(t) },
+    ];
   };
 
   // What one more use of `t` for `m` would add, at its best moment; null
@@ -180,21 +195,23 @@ export function planMitigation(
       const at = fit(m, t, moment);
       if (at === null || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
-      let granted: Candidate['granted'];
-      if (
-        t.grantedBy &&
-        !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy)
-      ) {
-        granted = granting(m, t, at) ?? undefined;
-        if (!granted) continue;
+      const needs =
+        t.grantedBy && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy);
+      for (const option of needs ? granting(m, t, at) : [{ granted: [], tool: t }]) {
+        const { granted } = option;
+        const crit = option.tool !== t;
+        const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
+        if (crit) use.critical = true;
+        const added = [{ use, tool: option.tool }, ...granted];
+        const start = Math.min(at, ...granted.map((g) => g.use.at));
+        let value = valueOf(m, added, start, lasts + (at - start), wanted);
+        if (t.gcd) value *= GCD_WORTH;
+        // A GCD that comes with it costs one, as it would on its own.
+        for (const g of granted.filter((o) => o.tool.gcd)) {
+          value -= (1 - GCD_WORTH) * valueOf(m, [g], start, lasts, wanted);
+        }
+        if (value > 0 && (!found || value > found.value)) found = { use, tool: option.tool, value, granted };
       }
-      const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
-      const added = [{ use, tool: t }, ...(granted ? [granted] : [])];
-      const start = granted?.use.at ?? at;
-      let value = valueOf(m, added, start, lasts + (at - start), wanted);
-      if (t.gcd) value *= GCD_WORTH;
-      if (granted?.tool.gcd) value -= (1 - GCD_WORTH) * valueOf(m, [granted], start, lasts, wanted);
-      if (value > 0 && (!found || value > found.value)) found = { use, tool: t, value, granted };
     }
     return found;
   };
@@ -224,7 +241,8 @@ export function planMitigation(
     const { damage, invulnerable } = project(m, h, uses);
     return !invulnerable && damage > limit(m, h);
   };
-  const others = plannable.filter((t) => !t.effects.some((e) => e.invulnerable));
+  // Recitation does nothing alone: it comes with an Adloquium (`granting`).
+  const others = plannable.filter((t) => t.effects.length && !t.effects.some((e) => e.invulnerable));
   const invulnerabilities = plannable.filter(
     (t) => t.effects.some((e) => e.invulnerable) && !never.has(`${t.player}:${t.action}`),
   );
@@ -297,45 +315,4 @@ export function planMitigation(
     use.covers = mechanics.filter((m) => m.hits.some((h) => reaches(tool(use), use, m, h).length)).map((m) => m.id);
   }
   return { mechanics, uses: [...uses].sort((a, b) => a.at - b.at || a.player - b.player), hits, unplaced, hp: [] };
-}
-
-// When a use could go up for `m`: as late as it can, and earlier where its
-// window would also catch an earlier mechanic.
-function momentsFor(m: Mechanic, t: MitigationTool, mechanics: Mechanic[]) {
-  const duration = Math.min(...t.effects.map((e) => e.durationMs));
-  const latest = m.at - LEAD_MS;
-  const earliest = Math.max(0, m.at - duration);
-  const moments = new Set([latest]);
-  for (const other of mechanics) {
-    const at = other.at - LEAD_MS;
-    if (at >= earliest && at < latest) moments.add(at);
-  }
-  return [...moments].filter((at) => at >= 0);
-}
-
-// The hit of `m` the plan so far leaves taking the most of the HP it lands
-// on.
-function mostEndangered(
-  m: Mechanic,
-  uses: PlannedUse[],
-  project: (m: Mechanic, h: MechanicHit, list: PlannedUse[]) => { damage: number },
-  hpOf: (m: Mechanic, h: MechanicHit) => number,
-) {
-  let worst: { player: number; share: number } | null = null;
-  for (const hit of m.hits) {
-    const share = project(m, hit, uses).damage / hpOf(m, hit);
-    if (!worst || share > worst.share) worst = { player: hit.player, share };
-  }
-  return worst?.player ?? null;
-}
-
-function pickBest(candidates: (Candidate | null)[]) {
-  let pick: Candidate | null = null;
-  for (const c of candidates) {
-    if (!c) continue;
-    // The most damage taken off; on a tie, the cooldown that comes back
-    // soonest, keeping the long ones for later.
-    if (!pick || c.value > pick.value || (c.value === pick.value && c.tool.recastMs < pick.tool.recastMs)) pick = c;
-  }
-  return pick;
 }
