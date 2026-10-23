@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
 import { PlanStore, PlannerStore, hpCurves, planLog, playerLog, pullClock } from '@everise/planner/data-access';
 import {
@@ -59,6 +70,11 @@ export class PullViewComponent {
   }
   // On narrower screens: the pull as played, or the plan.
   protected readonly view = signal<'played' | 'plan'>('played');
+  // Which of the timeline and the HP chart are open: each folds away, and
+  // stays as it was left.
+  protected readonly open = signal({ timeline: readOpen('timeline'), hp: readOpen('hp') });
+  private readonly compare = viewChild(PullCompareComponent);
+  private readonly injector = inject(Injector);
 
   // "Vamp Fatale, 7:46".
   protected readonly heading = computed(() => {
@@ -102,5 +118,40 @@ export class PullViewComponent {
 
   protected choose(playerId: number) {
     this.chosen.set(playerId);
+  }
+
+  protected toggle(part: Fold) {
+    this.setOpen(part, !this.open()[part]);
+  }
+
+  // A moment picked on the HP chart: the timeline there, opened if folded.
+  protected reveal(at: number) {
+    if (this.open().timeline) {
+      this.compare()?.reveal(at);
+      return;
+    }
+    this.setOpen('timeline', true);
+    afterNextRender(() => this.compare()?.reveal(at), { injector: this.injector });
+  }
+
+  private setOpen(part: Fold, open: boolean) {
+    this.open.update((o) => ({ ...o, [part]: open }));
+    try {
+      localStorage.setItem(FOLD_KEYS[part], open ? 'open' : 'closed');
+    } catch {
+      // Not kept (a private window): it's open again next time.
+    }
+  }
+}
+
+type Fold = 'timeline' | 'hp';
+// Where the browser keeps whether each was left open.
+const FOLD_KEYS: Record<Fold, string> = { timeline: 'planner.timeline', hp: 'planner.hpChart' };
+
+function readOpen(part: Fold) {
+  try {
+    return localStorage.getItem(FOLD_KEYS[part]) !== 'closed';
+  } catch {
+    return true;
   }
 }

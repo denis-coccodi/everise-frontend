@@ -18,8 +18,47 @@ describe('PullViewComponent', () => {
     page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1].click();
     fixture.detectChanges();
 
-    expect(page.querySelector('cdt-planner-pull-view h3.visually-hidden')?.textContent).toBe("Heal Main's pull");
+    expect(page.querySelector('#planner-timeline-heading')?.textContent?.trim()).toBe("Heal Main's pull");
     expect(page.querySelector('cdt-planner-pull-compare tbody')?.textContent).toContain('Adloquium');
+  });
+
+  it('folds the HP chart away, and remembers it', async () => {
+    localStorage.removeItem('planner.hpChart');
+    const { page, fixture } = await renderPull();
+    const toggle = page.querySelector('#planner-hp-heading button') as HTMLButtonElement;
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(page.querySelector('#planner-hp cdt-planner-hp-chart')).not.toBeNull();
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(page.querySelector('#planner-hp cdt-planner-hp-chart')).toBeNull();
+    expect(localStorage.getItem('planner.hpChart')).toBe('closed');
+    localStorage.removeItem('planner.hpChart');
+  });
+
+  it('folds the timeline away, and opens it again at a moment picked on the chart', async () => {
+    localStorage.removeItem('planner.timeline');
+    const { page, fixture } = await renderPull();
+    const toggle = page.querySelector('#planner-timeline-heading button') as HTMLButtonElement;
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(page.querySelector('cdt-planner-pull-compare')).toBeNull();
+    expect(localStorage.getItem('planner.timeline')).toBe('closed');
+
+    Element.prototype.scrollIntoView = () => undefined;
+    const slider = page.querySelector('cdt-planner-hp-chart [role=slider]') as HTMLElement;
+    slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home' }));
+    slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(page.querySelector('cdt-planner-pull-compare tr.revealed')).not.toBeNull();
+    localStorage.removeItem('planner.timeline');
   });
 
   it("says why a pull can't be read", async () => {

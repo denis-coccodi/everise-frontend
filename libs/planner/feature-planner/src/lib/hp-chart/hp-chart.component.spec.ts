@@ -102,4 +102,38 @@ describe('HpChartComponent', () => {
     press('Escape');
     expect(readouts()[0]).toMatch(/^Lowest/);
   });
+
+  it('picks the moment at the cursor, with Enter or a click', () => {
+    const { fixture, host } = render();
+    const picked: number[] = [];
+    fixture.componentInstance.picked.subscribe((at) => picked.push(at));
+    const slider = host.querySelector('[role=slider]') as HTMLElement;
+
+    slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+    (host.querySelector('.plot') as HTMLElement).click();
+
+    // Nothing without a cursor; then the end, twice.
+    expect(picked).toEqual([180_000, 180_000]);
+  });
+
+  it("marks the open tab's member, and shows everyone's on asking", () => {
+    const { fixture, host } = render();
+    fixture.componentRef.setInput('focused', 2);
+    fixture.detectChanges();
+    const toggle = host.querySelector('.everyone-toggle') as HTMLButtonElement;
+
+    expect([...host.querySelectorAll('.panel.focused .name')].map((n) => n.textContent?.trim())).toEqual([
+      'SCH Heal Main',
+    ]);
+    expect(host.classList).not.toContain('everyone');
+    expect(toggle.textContent?.trim()).toBe("Show everyone's HP");
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(host.classList).toContain('everyone');
+    expect(toggle.textContent?.trim()).toBe('Show only Heal Main');
+  });
 });

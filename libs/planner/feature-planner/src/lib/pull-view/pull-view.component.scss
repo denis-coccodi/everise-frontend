@@ -44,12 +44,52 @@ cdt-planner-plan-view.shown {
   }
 }
 
-// Everyone's HP, between planning and the player tabs.
+// Everyone's HP, after the timeline: its overview.
 .hp {
-  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-.hp-heading {
+.fold-heading {
   margin: 0 0 0.5rem;
   font-size: 1rem;
+}
+
+// A heading that opens and folds what's under it (the timeline, the chart):
+// a chevron before it, pointing down when open.
+.disclosure {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+  }
+
+  &[aria-expanded='true']::before {
+    transform: rotate(45deg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure::before {
+    transition: none;
+  }
 }

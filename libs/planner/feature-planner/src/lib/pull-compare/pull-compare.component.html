@@ -1,37 +1,44 @@
 @let plan = planned();
-<table class="compare">
-  <caption class="visually-hidden">
-    {{
-      player()
-    }}'s pull{{
-      plan === null ? '' : ' and plan'
-    }}, in time order
-  </caption>
-  <thead>
-    <tr>
-      <th scope="col" class="time">Time</th>
-      <th scope="col" class="played">As played</th>
-      <th scope="col" class="plan">Plan</th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (row of rows(); track row.at) {
-      <tr [class.only-played]="!row.planned.length" [class.only-plan]="!row.played.length">
-        <th scope="row" class="time">{{ clock(row.at) }}</th>
-        <td class="played">
-          @for (entry of row.played; track $index) {
-            <cdt-planner-played-entry [entry]="entry" />
-          }
-        </td>
-        <td class="plan">
-          @for (entry of row.planned; track $index) {
-            <cdt-planner-plan-entry [entry]="entry" />
-          }
-        </td>
+<div class="scroller" tabindex="0" role="region" [attr.aria-label]="player() + '\'s timeline'">
+  <table class="compare">
+    <caption class="visually-hidden">
+      {{
+        player()
+      }}'s pull{{
+        plan === null ? '' : ' and plan'
+      }}, in time order
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col" class="time">Time</th>
+        <th scope="col" class="played">As played</th>
+        <th scope="col" class="plan">Plan</th>
       </tr>
-    }
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.at) {
+        <tr
+          [attr.data-at]="row.at"
+          [class.only-played]="!row.planned.length"
+          [class.only-plan]="!row.played.length"
+          [class.revealed]="revealed() === row.at"
+        >
+          <th scope="row" class="time">{{ clock(row.at) }}</th>
+          <td class="played">
+            @for (entry of row.played; track $index) {
+              <cdt-planner-played-entry [entry]="entry" />
+            }
+          </td>
+          <td class="plan">
+            @for (entry of row.planned; track $index) {
+              <cdt-planner-plan-entry [entry]="entry" />
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
 @if (!played().length) {
   <p class="empty played">Nothing happened to this player in the pull.</p>
 }

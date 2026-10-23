@@ -5,10 +5,39 @@
   display: block;
 }
 
+.scroller {
+  border-radius: var(--radius-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
 .compare {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+}
+
+// The headings stay in view as the timeline scrolls, and a row opened from
+// the chart lands below them.
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: none;
+  background: var(--color-surface);
+  box-shadow: inset 0 calc(-1 * var(--border-width)) var(--color-divider);
+}
+
+tbody tr {
+  scroll-margin-top: 2.5rem;
+}
+
+// The moment opened from the chart.
+tr.revealed > * {
+  background: var(--color-surface-strong);
 }
 
 th,
@@ -83,8 +112,14 @@ tr.only-plan {
   display: none;
 }
 
-// Laptops: both sides, every moment, what happened beside what the plan has.
+// Laptops: both sides, every moment, what happened beside what the plan has,
+// scrolling on their own within the screen's height.
 @include bp.up(lg) {
+  .scroller {
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
+  }
+
   :host {
     th.played,
     td.played,
