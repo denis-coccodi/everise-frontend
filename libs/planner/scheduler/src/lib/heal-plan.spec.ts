@@ -1,12 +1,13 @@
 import { ActionEffect } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
-import { healTools } from './heal-tools';
+import { healPairings, healTools } from './heal-tools';
 import { healingBuffsOf } from './healing-buffs';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { action, catalog, heal, pull } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
+import { Weaving } from './weaving';
 
 describe('planHeals', () => {
   it('counts the mitigation of the heals it plans (Kerachole, Holos)', () => {
@@ -97,6 +98,62 @@ describe('planHeals', () => {
 
     expect(plan.uses.map((u) => u.name)).toEqual(['Lustrate']);
     expect(plan.hits[1].hpBefore).toBe(87_000);
+  });
+
+  it('puts up Plenary Indulgence just before a Medica, where its Confession makes up the rest', () => {
+    // The scholar as a white mage: the tank lands on 15,000, and needs
+    // 55,000 for the second buster. Medica heals 40,000; Confession 20,000
+    // more as it lands.
+    const cat = catalog();
+    cat.actions.push(
+      action(124, 'Medica', ['SCH'], 2.5, [{ ...heal(400), target: 'party' }], { gcd: true, castMs: 2000 }),
+      action(7433, 'Plenary Indulgence', ['SCH'], 60, [
+        {
+          ...heal(0),
+          kind: 'mitigation',
+          target: 'party',
+          status: 'Confession',
+          potency: null,
+          percent: 10,
+          durationMs: 10_000,
+        },
+        { ...heal(200), target: 'party', condition: 'with Medica, Medica III, Cure III or Afflatus Rapture' },
+      ]),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const mitigation = mitigationTools(timeline.players, cat, power).filter((t) => t.name === 'Plenary Indulgence');
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Medica');
+    const pairings = healPairings(timeline.players, cat, power);
+    const options = { margin: 0.1 };
+    const plan = (paired = pairings) =>
+      planHeals(
+        planMitigation(mechanicsOf(timeline), [], maxHp, options),
+        timeline,
+        mitigation,
+        heals,
+        maxHp,
+        options,
+        new Map(),
+        new Weaving(),
+        paired,
+      );
+
+    const withIt = plan();
+    expect(withIt.uses.map((u) => u.name)).toEqual(['Plenary Indulgence', 'Medica']);
+    const [plenary, medica] = withIt.uses;
+    expect(medica.at - plenary.at).toBeGreaterThan(0);
+    expect(medica.at + 2000 - plenary.at).toBeLessThanOrEqual(10_000);
+    expect(withIt.hits[1]).toMatchObject({ safe: true });
+    // Without it, it takes a second Medica: a GCD more.
+    expect(plan([]).uses.map((u) => u.name)).toEqual(['Medica', 'Medica']);
   });
 
   it('heals with a GCD that costs no damage (Afflatus Solace) before one that does (Cure II)', () => {
