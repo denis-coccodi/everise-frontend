@@ -41,7 +41,11 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // Aspected Benefic's or Helios Conjunction's 20% in 20s (their barriers
 // meanwhile: 250% of the heal for an Aspected Benefic, 125% for a Helios
 // Conjunction, for 30s); Krasis, the next 10s of a Sage's heal on one member
-// (Druochole, Taurochole, Diagnosis, Eukrasian Diagnosis), 20% on them.
+// (Druochole, Taurochole, Diagnosis, Eukrasian Diagnosis), 20% on them;
+// Physis II before any of a Sage's heals in its 15s (its own regen, and 10%
+// more), as the guides have it go first; Recitation before an Adloquium,
+// Concitation, Indomitability or Excogitation, a critical heal (its making
+// them free of Aetherflow isn't counted).
 const PAIRED: Record<
   number,
   {
@@ -51,13 +55,32 @@ const PAIRED: Record<
     potency: number;
     barriers?: Record<number, number>;
     onTarget?: boolean;
+    own?: boolean;
+    critical?: boolean;
   }
 > = {
   7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
   24300: { heals: [24318, 24292, 37034, 24291], withinMs: 30_000, times: 1.5, potency: 0 },
   16559: { heals: [3595, 37030], withinMs: 20_000, times: 1.2, potency: 0, barriers: { 3595: 2.5, 37030: 1.25 } },
   24317: { heals: [24296, 24303, 24284, 24291], withinMs: 10_000, times: 1.2, potency: 0, onTarget: true },
+  24302: {
+    heals: [24296, 24298, 24299, 24303, 24310, 24318, 24292, 37034, 24291, 24284, 24286],
+    withinMs: 15_000,
+    times: 1.1,
+    potency: 0,
+    own: true,
+  },
+  16542: { heals: [185, 37013, 3583, 7434], withinMs: 15_000, times: 1, potency: 0, critical: true },
 };
+
+// What a critical heal heals, from the healer's critical hit at level 100
+// (the multiplier's base 1.4, a thousandth more every 13.9 points over 420);
+// 1.5 when the log doesn't say.
+function criticalTimes(player: TimelinePlayer) {
+  const critical = player.stats?.criticalHit;
+  if (!critical) return 1.5;
+  return 1.4 + Math.floor((200 * (critical - 420)) / 2780) / 1000;
+}
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
 // HP they add from the caster's `power`.
@@ -81,10 +104,11 @@ export function healPairings(
         group: `${player.id}:${action.cooldownGroup}`,
         heals: paired.heals,
         withinMs: paired.withinMs,
-        times: paired.times,
+        times: paired.critical ? criticalTimes(player) : paired.times,
         extra: paired.potency && own ? { hp: paired.potency * own } : null,
         barriers: paired.barriers ?? {},
         onTarget: paired.onTarget ?? false,
+        own: paired.own ?? false,
       });
     }
   }

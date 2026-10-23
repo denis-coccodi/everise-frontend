@@ -1,5 +1,5 @@
 import { ActionCatalog } from '@everise/core/api-types';
-import { healTools } from './heal-tools';
+import { healPairings, healTools } from './heal-tools';
 import { action, catalog, heal, party } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
 
@@ -161,3 +161,41 @@ describe('healTools', () => {
     });
   });
 });
+
+describe('healPairings', () => {
+  it("makes Recitation's heal critical, from the healer's critical hit", () => {
+    const cat = catalog();
+    cat.actions.push(action(16542, 'Recitation', ['SCH'], 90, []));
+    const players = party();
+    const recitation = (critical: number | null) =>
+      healPairings(
+        players.map((p) => (p.id === 2 && critical ? { ...p, stats: { ...stats(), criticalHit: critical } } : p)),
+        cat,
+        new Map([[2, 100]]),
+      ).find((p) => p.name === 'Recitation');
+
+    // 1.4 and a thousandth every 13.9 points over 420.
+    expect(recitation(3413)?.times).toBeCloseTo(1.615);
+    // The log doesn't say: 1.5.
+    expect(recitation(null)?.times).toBe(1.5);
+    expect(recitation(null)?.heals).toEqual([185, 37013, 3583, 7434]);
+  });
+});
+
+function stats() {
+  return {
+    level: 100,
+    strength: 0,
+    dexterity: 0,
+    vitality: 0,
+    intelligence: 0,
+    mind: 0,
+    piety: 0,
+    determination: 0,
+    criticalHit: 0,
+    directHit: 0,
+    skillSpeed: 0,
+    spellSpeed: 0,
+    tenacity: 0,
+  };
+}

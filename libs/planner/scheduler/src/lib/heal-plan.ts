@@ -161,6 +161,10 @@ export function planHeals(
             (group) => spent.filter((s) => s.group === group).map((s) => s.at),
             weaving,
             maxHp,
+            (pairing, paired) => {
+              const own = healOf.get(key(pairing));
+              return own ? eventsFor(own, paired, 0) : [];
+            },
           );
         const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
