@@ -73,6 +73,7 @@ export function action(
     range: 0,
     radius: 0,
     effects,
+    traits: [],
     ...extra,
   };
 }
