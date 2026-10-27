@@ -19,9 +19,11 @@
               ? 'As played: ' + e.kept
               : e.opener
                 ? 'Part of the opener'
-                : e.overcap
-                  ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
-                  : 'On cooldown, or before it would go to waste'
+                : e.burst
+                  ? 'On cooldown, for the burst windows'
+                  : e.overcap
+                    ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
+                    : 'On cooldown, or before it would go to waste'
       }}
     </p>
   }

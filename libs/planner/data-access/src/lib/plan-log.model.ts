@@ -39,6 +39,8 @@ export interface PlanUseEntry {
   overcap: boolean;
   // A step of the player's opener.
   opener?: boolean;
+  // A raid buff or burst on cooldown, or an astrologian's draw and card.
+  burst?: boolean;
   // Kept as the player used it (a buff, an enabler), and what it does.
   kept?: string;
 }

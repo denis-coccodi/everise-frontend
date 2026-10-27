@@ -88,6 +88,12 @@ export class Weaving {
     );
   }
 
+  // oGCDs the plan has players use before it plans the rest (an opener's,
+  // the burst's): they keep their place, as the played ones do.
+  keep(uses: { player: number; at: number }[]) {
+    for (const u of uses) push(this.kept, u.player, u.at);
+  }
+
   // How long a GCD of this cast takes at one of the player's GCDs: none
   // where theirs was instant by a buff.
   castAt(player: number, at: number, castMs: number) {

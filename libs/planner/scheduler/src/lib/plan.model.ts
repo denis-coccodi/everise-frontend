@@ -290,6 +290,9 @@ export interface PlannedUse {
   // A step of the player's opener (an Energy Drain, Chain Stratagem...),
   // shown with the plan.
   opener?: boolean;
+  // A raid buff or burst the guides use on cooldown (Chain Stratagem,
+  // Divination...), or an astrologian's draw and card.
+  burst?: boolean;
 }
 
 // A hit as the plan leaves it.

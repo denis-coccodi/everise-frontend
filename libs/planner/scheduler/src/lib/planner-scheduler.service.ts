@@ -16,6 +16,7 @@ import { withAetherflow } from './aetherflow';
 import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
+import { burstActions, burstUses } from './burst';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -46,12 +47,8 @@ export class PlannerScheduler {
     // and their fairy goes away for Dissipation, an astrologian's when their
     // cards come; its heals are planned where it has them.
     const scholars = timeline.players.filter((p) => p.job === 'SCH' && replanned({ player: p.id }));
-    const opening = openingOf(
-      timeline,
-      catalog,
-      timeline.players.filter((p) => replanned({ player: p.id })),
-      asked.openers,
-    );
+    const replannedPlayers = timeline.players.filter((p) => replanned({ player: p.id }));
+    const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
     const { dissipations, refills } = opening;
     const opened = <T extends MitigationTool | HealTool>(tools: T[]) =>
       withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening);
@@ -83,9 +80,18 @@ export class PlannerScheduler {
     // Adloquium (it goes with a GCD heal too), Neutral Sect with Sun Sign.
     const alone = mitigation.filter((t) => !paired.has(key(t)) || !t.effects.length);
     // Where each player can act: their GCDs as played, and the oGCDs they
-    // used that the plan doesn't schedule.
-    const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings].map(key));
+    // used that the plan doesn't schedule. A replanned player's raid buffs
+    // and burst go on cooldown after their opener, before the rest is
+    // planned (the guides don't hold them for a heal), and keep their place
+    // with the opener's.
+    const bursts = replannedPlayers.flatMap((p) =>
+      burstActions(p.job ?? '').map((action) => ({ player: p.id, action })),
+    );
+    const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
+    const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving);
+    const burstKeys = new Set(bursts.map(key));
+    weaving.keep([...opening.uses.filter((u) => burstKeys.has(key(u))), ...burst]);
     // A GCD shield grows with its caster's healing potency buffs: those the
     // plan has up when it's cast, and the rest as played.
     const party = timeline.players.map((p) => p.id);
@@ -169,8 +175,8 @@ export class PlannerScheduler {
     );
     return {
       ...best,
-      replanned: timeline.players.filter((p) => replanned({ player: p.id })).map((p) => p.id),
-      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...shown].sort(
+      replanned: replannedPlayers.map((p) => p.id),
+      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...shown, ...burst].sort(
         (a, b) => a.at - b.at || a.player - b.player,
       ),
     };
