@@ -11,7 +11,7 @@ import { AETHERPACT, SERAPHIC_VEIL, SERAPH_MS, SUMMON_SERAPH } from './tools';
 // Enhanced Healing Magic). The game has her pick the
 // closest member missing HP, which the planner can't know (no positions):
 // it picks the one missing the largest share of their HP. Seraphic Veil's
-// barrier isn't counted.
+// barrier comes as a use of hers (`casts`), for the mitigations to count.
 export const EMBRACE = 802;
 const DISSIPATION = 3587;
 const DISSIPATION_MS = 30_000;
@@ -56,7 +56,8 @@ export function fairyPower(
 
 // The fairy's heals over the pull with the plan's Summon Seraph (`uses`)
 // and the HP the plan leaves (`hp`, of the round before), from her first
-// heal in the pull; none when she never healed in it.
+// heal in the pull, and Seraph's Seraphic Veils among them as uses (for
+// their barriers); none when she never healed in it.
 export function fairyHeals(
   timeline: PullTimeline,
   scholar: number,
@@ -65,22 +66,26 @@ export function fairyHeals(
   hp: PlannedHp[],
   maxHp: Map<number, number>,
   potency: number,
-): HpEvent[] {
+): { events: HpEvent[]; casts: PlannedUse[] } {
   const first = timeline.heals.find((h) => h.source === scholar && h.pet)?.at;
-  if (first === undefined || !power) return [];
+  if (first === undefined || !power) return { events: [], casts: [] };
   const away = dissipations(timeline, scholar);
   const seraph = uses
     .filter((u) => u.player === scholar && u.action === SUMMON_SERAPH)
     .map((u) => ({ from: u.at, to: u.at + SERAPH_MS }));
   const within = (spans: { from: number; to: number }[], at: number) => spans.some((s) => at >= s.from && at < s.to);
   const events: HpEvent[] = [];
+  const casts: PlannedUse[] = [];
   for (let at = first; at <= timeline.durationMs; at += CAST_EVERY_MS) {
     // Dissipation sends the fairy away; Seraph casts in her place.
-    if (within(away, at) && !within(seraph, at)) continue;
+    const veil = within(seraph, at);
+    if (within(away, at) && !veil) continue;
     const target = mostMissing(hp, maxHp, at);
-    if (target !== null) events.push({ at, player: target, amount: Math.round(potency * power) });
+    if (target === null) continue;
+    events.push({ at, player: target, amount: Math.round(potency * power) });
+    if (veil) casts.push({ player: scholar, action: SERAPHIC_VEIL, name: 'Seraphic Veil', at, target, covers: [] });
   }
-  return events;
+  return { events, casts };
 }
 
 // The living party member missing the largest share of their HP just

@@ -10,7 +10,7 @@ import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
 import { Weaving } from './weaving';
 import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
-import { mitigationTools } from './tools';
+import { AUTOMATIC, mitigationTools } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
@@ -80,28 +80,39 @@ export class PlannerScheduler {
     const fairyPowers = new Map(
       scholars.map((s) => [s.id, fairyPower(timeline, s.id, power.get(s.id) ?? null, fairyHeal)]),
     );
-    const fairy = (from?: Plan): FairyHealing =>
-      from?.hp.length
-        ? {
-            events: scholars.flatMap((s) =>
-              fairyHeals(timeline, s.id, fairyPowers.get(s.id) ?? null, from.uses, from.hp, maxHp, fairyHeal),
-            ),
-            recalculated: scholars.flatMap((s) => fairyKeys(s.id)),
-          }
-        : { events: [], recalculated: [] };
-    const once = (from?: Plan) =>
-      planHeals(
-        planMitigation(mechanics, alone, maxHp, options, from, fixed, weaving, shieldTimes),
+    // Seraph's Seraphic Veils, as uses of a tool the plan never orders, for
+    // their barriers.
+    const veils = mitigationTools(
+      scholars,
+      catalog,
+      new Map([...fairyPowers].filter((e): e is [number, number] => e[1] !== null)),
+      true,
+    );
+    const fairy = (from?: Plan): { healing: FairyHealing; casts: PlannedUse[] } => {
+      if (!from?.hp.length) return { healing: { events: [], recalculated: [] }, casts: [] };
+      const each = scholars.map((s) =>
+        fairyHeals(timeline, s.id, fairyPowers.get(s.id) ?? null, from.uses, from.hp, maxHp, fairyHeal),
+      );
+      return {
+        healing: { events: each.flatMap((f) => f.events), recalculated: scholars.flatMap((s) => fairyKeys(s.id)) },
+        casts: each.flatMap((f) => f.casts),
+      };
+    };
+    const once = (from?: Plan) => {
+      const { healing, casts } = fairy(from);
+      return planHeals(
+        planMitigation(mechanics, [...alone, ...veils], maxHp, options, from, fixed, weaving, shieldTimes, casts),
         timeline,
-        mitigation,
+        [...mitigation, ...veils],
         heals,
         maxHp,
         options,
         buffs,
         weaving,
         pairings,
-        fairy(from),
+        healing,
       );
+    };
 
     let best = once();
     // The fairy's heals from the plan's own HP replace hers as played,
@@ -112,7 +123,8 @@ export class PlannerScheduler {
       if (!better(next, best, maxHp, options)) break;
       best = next;
     }
-    return best;
+    // Seraph casts her Veils herself: they're no use to list.
+    return { ...best, uses: best.uses.filter((u) => !AUTOMATIC.has(u.action)) };
   }
 
   // What the plan's options offer for the tanks' invulnerabilities.

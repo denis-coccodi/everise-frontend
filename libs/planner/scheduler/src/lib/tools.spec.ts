@@ -32,6 +32,9 @@ describe('Seraph', () => {
     expect(tools.map((t) => t.name)).toEqual(['Summon Seraph', 'Consolation']);
     expect(tools[1].grantedBy).toEqual({ action: 16545, withinMs: 22_000, uses: 2 });
     expect(tools[1].pool).toBeNull();
+    // Her own casts, apart, for the barriers of the Veils the plan works out.
+    const own = mitigationTools(party(), cat, new Map([[2, 100]]), true);
+    expect(own.map((t) => [t.name, t.effects.map((e) => e.shield)])).toEqual([['Seraphic Veil', [{ hp: 18_000 }]]]);
   });
 });
 

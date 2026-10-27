@@ -21,6 +21,7 @@ import {
   PlannedHit,
   PlannedUse,
 } from './plan.model';
+import { AUTOMATIC } from './tools';
 import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
@@ -80,7 +81,8 @@ export function planHeals(
   const spent: Spent[] = [];
   for (const use of plan.uses) {
     const tool = mitigationOf.get(key(use));
-    if (tool) {
+    // A pet's own cast (Seraphic Veil) takes none of its owner's time.
+    if (tool && !AUTOMATIC.has(use.action)) {
       spent.push({
         player: use.player,
         action: use.action,
