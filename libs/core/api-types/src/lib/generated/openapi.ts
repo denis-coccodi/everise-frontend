@@ -4369,6 +4369,37 @@ export interface components {
           stacks: number | null;
           condition: string | null;
         }[];
+        traits: {
+          trait: string;
+          level: number;
+          recastMs: number;
+          charges: number;
+          effects: {
+            /** @enum {string} */
+            kind:
+              | 'mitigation'
+              | 'shield'
+              | 'heal'
+              | 'regen'
+              | 'delayedHeal'
+              | 'maxHp'
+              | 'healingReceived'
+              | 'healingPotency'
+              | 'invulnerable';
+            /** @enum {string} */
+            target: 'self' | 'target' | 'party' | 'enemies';
+            status: string | null;
+            statusId: number | null;
+            percent: number | null;
+            physical: number | null;
+            magic: number | null;
+            potency: number | null;
+            of: ('maxHp' | 'casterMaxHp' | 'healed') | null;
+            durationMs: number | null;
+            stacks: number | null;
+            condition: string | null;
+          }[];
+        }[];
       }[];
       changed: {
         id: number;
