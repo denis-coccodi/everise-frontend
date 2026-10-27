@@ -29,6 +29,8 @@ export interface PlanUseEntry {
   description?: string | null;
   // The party member it goes on, when it goes on one.
   target: string | null;
+  // What to press first (Eukrasia), when it needs it.
+  first?: string | null;
   // The mechanics it covers.
   covers: string[];
   // A damage action for no hit (Afflatus Misery).

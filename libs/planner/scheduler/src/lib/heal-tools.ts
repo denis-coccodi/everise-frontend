@@ -1,6 +1,6 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
 import { DelayedHeal, HealCost, HealEffect, HealPairing, HealTool, MitigationTool } from './plan.model';
-import { ASSUMED, GRANTED, POOLS, criticalTimes, playerActions } from './tools';
+import { ASSUMED, GRANTED, POOLS, castMsOf, criticalTimes, playerActions } from './tools';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
@@ -148,7 +148,7 @@ export function healTools(
         recastMs: action.recastMs,
         charges: action.charges,
         gcd: action.gcd,
-        castMs: action.castMs,
+        castMs: castMsOf(action),
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         grantedBy: GRANTED[action.id] ?? null,

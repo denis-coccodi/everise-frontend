@@ -48,6 +48,25 @@ describe('Weaving', () => {
     expect(weaving.ogcdAfter(1, 17_500, 20_000, [])).toBeNull();
   });
 
+  it('takes a Eukrasia and the GCD it augments as one slot, at the Eukrasia', () => {
+    // Eukrasia (24290) at 10s, Eukrasian Dosis at 11s, Dosis at 12.5s.
+    const sage = new Weaving(
+      [cast(10_000, 24290), cast(11_000, 24314), cast(12_500, 24312), cast(15_000, 24312)],
+      new Map([
+        [24290, true],
+        [24314, true],
+        [24312, true],
+      ]),
+    );
+
+    expect(sage.gcdsBetween(1, 0, 20_000)).toEqual([10_000, 12_500, 15_000]);
+    // A Eukrasian heal there (Eukrasia, then the heal and its lock: 1.6s)
+    // leaves room for one oGCD before 12.5s.
+    const heal = { at: 10_000, gcd: true, castMs: 1600 };
+    expect(sage.ogcdAfter(1, 10_000, 12_500, [heal])).toBe(11_600);
+    expect(sage.ogcdAfter(1, 10_000, 12_500, [heal, ogcd(11_600)])).toBeNull();
+  });
+
   it("puts a GCD in place of one of the player's, its cast bar taking the room after it", () => {
     expect(weaving.gcdBefore(1, 13_000, 10_000, 0, [])).toBe(12_500);
     // That one taken: the one before.

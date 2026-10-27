@@ -1,4 +1,5 @@
 import { ActionCatalog, PullTimeline, TimelineAura } from '@everise/core/api-types';
+import { EUKRASIA, EUKRASIA_MS } from './tools';
 import type { GcdCast, Occupied } from './weaving.model';
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
@@ -15,6 +16,9 @@ const LANDED_SHARE = 0.75;
 const CAST_BAR_MS = 1500;
 // Lightspeed: every spell cast in it is instant (2.5s off each cast).
 const LIGHTSPEED = 841;
+// How much later than Eukrasia's recast its GCD may come and still be the
+// one it augments (latency, a late press).
+const EUKRASIA_SLACK_MS = 500;
 
 // A stretch of a player's time an action takes.
 interface Busy {
@@ -47,9 +51,16 @@ export class Weaving {
     auras: TimelineAura[] = [],
   ) {
     const lightspeed = auras.filter((a) => a.status === LIGHTSPEED && a.target === a.source);
-    for (const cast of casts) {
+    // A Eukrasia and the GCD it augments are one GCD slot, at the Eukrasia.
+    const eukrasia = new Map<number, number>();
+    for (const cast of [...casts].sort((a, b) => a.at - b.at)) {
       const gcd = gcdOf.get(cast.action);
       if (gcd === undefined) continue;
+      if (gcd && cast.action === EUKRASIA) eukrasia.set(cast.source, cast.at);
+      else if (gcd && cast.at - (eukrasia.get(cast.source) ?? -Infinity) <= EUKRASIA_MS + EUKRASIA_SLACK_MS) {
+        eukrasia.delete(cast.source);
+        continue;
+      }
       if (gcd) {
         const castMs = cast.castMs ?? 0;
         const inLightspeed = lightspeed.some((a) => a.target === cast.source && a.from <= cast.at && cast.at <= a.to);
