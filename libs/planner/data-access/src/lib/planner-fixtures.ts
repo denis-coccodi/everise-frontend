@@ -30,6 +30,8 @@ export function fightReport(): FightReport {
       pull(3, 101, 'Vamp Fatale', 'savage', true),
     ],
     otherPulls: 1,
+    expansion: 'Dawntrail',
+    outdated: false,
   };
 }
 
@@ -63,6 +65,7 @@ export function actionCatalog(): ActionCatalog {
     range: 0,
     radius: 0,
     effects,
+    traits: [],
   });
   return {
     dataVersion: 'test',

@@ -1,10 +1,13 @@
 import { ActionCatalog, CatalogAction, PullTimeline, TimelineAura } from '@everise/core/api-types';
+import { catalogAtLevel, pullLevel } from '@everise/planner/scheduler';
 import { effectsText } from './effect-text';
 import type { HitEntry, UseEntry, DeathEntry, LogEntry } from './player-log.model';
 
 // One player's pull, in time order: the hits they took (not damage over
 // time ticks), the heals and mitigations they used, and their deaths.
-export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, playerId: number): LogEntry[] {
+export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId: number): LogEntry[] {
+  // The actions as the pull's level has them, for what they did.
+  const catalog = catalogAtLevel(full, pullLevel(timeline));
   const actionName = names(timeline.actions);
   const statusName = names(timeline.statuses);
   const enemyName = names(timeline.enemies);

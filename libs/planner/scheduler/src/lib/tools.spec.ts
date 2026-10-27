@@ -34,6 +34,8 @@ describe('mitigationTools', () => {
       }),
     ]);
     expect(adloquium?.gcd).toBe(true);
+    // Galvanize and the sage's Eukrasian barriers don't stack: one counts.
+    expect(adloquium?.effects[0].stack).toBe('Galvanize or a Eukrasian barrier');
     // 10% of the paladin's 100,000 HP.
     expect(veil?.effects).toEqual([expect.objectContaining({ target: 'party', shield: { hp: 10_000 } })]);
     expect(veil?.gcd).toBe(false);
