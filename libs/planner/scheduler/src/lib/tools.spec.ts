@@ -1,4 +1,4 @@
-import { action, catalog, party } from './scheduler-fixtures';
+import { action, catalog, heal, party } from './scheduler-fixtures';
 import { POOLS, castMsOf, mitigationTools, pressedFirst } from './tools';
 
 describe('Eukrasia', () => {
@@ -9,6 +9,29 @@ describe('Eukrasia', () => {
     expect(pressedFirst(37034)).toBe('Eukrasia');
     expect(castMsOf(action(24284, 'Diagnosis', ['SGE'], 2.5, [], { castMs: 1500 }))).toBe(1500);
     expect(pressedFirst(24284)).toBeNull();
+  });
+});
+
+describe('Seraph', () => {
+  it('has Consolation only while Summon Seraph has her out, and casts Seraphic Veil by herself', () => {
+    const barrier = { ...heal(0), kind: 'shield' as const, status: 'Consolation', percent: 100, of: 'healed' as const };
+    const cat = {
+      ...catalog(),
+      actions: [
+        action(16545, 'Summon Seraph', ['SCH'], 120, []),
+        action(16546, 'Consolation', ['SCH'], 30, [heal(250), { ...barrier, durationMs: 30_000 }], { charges: 2 }),
+        action(16548, 'Seraphic Veil', ['SCH'], 3, [
+          heal(180),
+          { ...barrier, status: 'Seraphic Veil', durationMs: 30_000 },
+        ]),
+      ],
+    };
+
+    const tools = mitigationTools(party(), cat, new Map([[2, 100]]));
+
+    expect(tools.map((t) => t.name)).toEqual(['Summon Seraph', 'Consolation']);
+    expect(tools[1].grantedBy).toEqual({ action: 16545, withinMs: 22_000, uses: 2 });
+    expect(tools[1].pool).toBeNull();
   });
 });
 

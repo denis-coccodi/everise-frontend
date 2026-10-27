@@ -1,6 +1,6 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
 import { DelayedHeal, HealCost, HealEffect, HealPairing, HealTool, MitigationTool } from './plan.model';
-import { ASSUMED, GRANTED, POOLS, castMsOf, criticalTimes, playerActions } from './tools';
+import { ASSUMED, AUTOMATIC, GRANTED, POOLS, castMsOf, criticalTimes, playerActions } from './tools';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
@@ -123,6 +123,7 @@ export function healTools(
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
       if (player.role !== 'healer' && !planned.has(`${player.id}:${action.id}`)) continue;
+      if (AUTOMATIC.has(action.id)) continue;
       const own = power.get(player.id) ?? null;
       const star = DELAYED[action.id];
       const release = star && catalog.actions.find((a) => a.id === star.release);

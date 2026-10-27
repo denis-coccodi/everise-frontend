@@ -33,3 +33,10 @@ export interface Paired {
   events: HpEvent[];
   barrier: { use: PlannedUse; tool: MitigationTool } | null;
 }
+
+// The fairy's own heals, worked out for the plan (`events`), and the
+// heals of the pull they replace (`recalculated`, player:action).
+export interface FairyHealing {
+  events: HpEvent[];
+  recalculated: string[];
+}
