@@ -240,7 +240,7 @@ describe('planHeals', () => {
     expect(plan.hits.filter((h) => h.mechanic === plan.hits[3].mechanic).every((h) => h.safe)).toBe(true);
   });
 
-  it('moves Kardia to whoever needs it, the tank losing its Kardion heals meanwhile', () => {
+  it('moves Kardia to whoever needs it and back, the tank losing its Kardion heals meanwhile', () => {
     // The scholar as a sage, Kardia on the tank (1) as played, healing them
     // 10,000 a damage spell. The bard lands on 15,000 and needs 50,000 for
     // the second raidwide: Kardia on them heals 17,000 a spell.
@@ -278,7 +278,15 @@ describe('planHeals', () => {
       maxHp,
       options,
     );
-    expect(plan.uses.map((u) => [u.name, u.target])).toEqual([['Kardia', 3]]);
+
+    // On the bard for its four heals, then pressed again back on the tank:
+    // Kardia stays where it's put.
+    expect(plan.uses.map((u) => [u.name, u.target, u.back ?? false])).toEqual([
+      ['Kardia', 3, false],
+      ['Kardia', 1, true],
+    ]);
+    const [moved, back] = plan.uses;
+    expect(back.at - moved.at).toBeGreaterThanOrEqual(12_000);
     expect(plan.hits[1]).toMatchObject({ safe: true });
   });
 

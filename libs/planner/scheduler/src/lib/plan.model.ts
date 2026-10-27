@@ -293,11 +293,11 @@ export interface PlannedUse {
   // A lily spent because the lilies are full (favouring damage), so none
   // goes to waste and the Blood Lily charges the next Misery.
   overcap?: boolean;
-  // A step of the player's opener (an Energy Drain, Chain Stratagem...),
-  // shown with the plan.
+  // A step of the player's opener (an Energy Drain, Chain Stratagem...).
   opener?: boolean;
-  // A raid buff or burst the guides use on cooldown (Chain Stratagem,
-  // Divination...), or an astrologian's draw and card.
+  // Kardia put back where it was, after a move: it stays until moved.
+  back?: boolean;
+  // A raid buff or burst on cooldown, or an astrologian's draw and card.
   burst?: boolean;
   // A resource for the heals after (Rhizomata's Addersgall).
   refill?: boolean;
