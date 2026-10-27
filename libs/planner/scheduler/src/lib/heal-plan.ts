@@ -4,7 +4,7 @@ import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
 import { best, better } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
-import { spareHeals } from './spare-heals';
+import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { walkingDeads } from './walking-dead';
 import { Weaving } from './weaving';
 import { naturalRegen, pullEvents } from './hp-events';
@@ -80,7 +80,11 @@ export function planHeals(
     boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
   const spent: Spent[] = [];
   for (const use of plan.uses) {
-    const tool = mitigationOf.get(key(use));
+    const mitigationTool = mitigationOf.get(key(use));
+    // A heal an opener has (Assize) counts too.
+    const tool = mitigationTool ?? healOf.get(key(use));
+    // An opener's Afflatus Misery takes its GCD and the Blood Lily.
+    if (use.action === MISERY.action) spent.push(miserySpent(use.player, use.at));
     // A pet's own cast (Seraphic Veil) takes none of its owner's time.
     if (tool && !AUTOMATIC.has(use.action)) {
       spent.push({
@@ -93,7 +97,7 @@ export function planHeals(
         castMs: tool.castMs,
       });
       // Superbolide takes half its user's max HP off (to 1 HP at least).
-      if (tool.effects.some((e) => e.invulnerable === 'halvesHp')) {
+      if (mitigationTool?.effects.some((e) => e.invulnerable === 'halvesHp')) {
         track.add([{ at: use.at, player: use.player, amount: -(maxHp.get(use.player) ?? 0) / 2, floor: 1 }]);
       }
     }

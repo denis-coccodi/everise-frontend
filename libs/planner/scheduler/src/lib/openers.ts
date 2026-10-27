@@ -1,96 +1,89 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { AETHERFLOW, DISSIPATION } from './aetherflow';
-import type { OpenerId, OpenerPreset } from './openers.model';
+import { ENERGY_DRAIN, OPENERS, UMBRAL_DRAW } from './opener-presets';
+import type { OpenerId } from './openers.model';
 import type { PlannedUse } from './plan.model';
 
-// The openers a replanned player can start the pull with, as the job's
-// guides give them, by job: each a step after one of their GCDs (counted
-// from 0, the spell begun in the countdown), woven after it. "none" has no
-// opener: the plan places what it needs.
-
-const CHAIN_STRATAGEM = 7436;
-const ENERGY_DRAIN = 167;
-const BANEFUL_IMPACTION = 37012;
-const SCHOLAR_SOURCE = 'Icy Veins (7.55), The Balance (7.4)';
-
-// Precast Broil IV, Biolysis, then the first stacks, Chain Stratagem on
-// the second GCD, three Energy Drains, the other stacks, Baneful Impaction
-// and three more Energy Drains.
-const scholarOpener = (first: number, second: number) => [
-  { action: first, afterGcd: 1 },
-  { action: CHAIN_STRATAGEM, afterGcd: 2 },
-  { action: ENERGY_DRAIN, afterGcd: 3 },
-  { action: ENERGY_DRAIN, afterGcd: 4 },
-  { action: ENERGY_DRAIN, afterGcd: 5 },
-  { action: second, afterGcd: 6 },
-  { action: BANEFUL_IMPACTION, afterGcd: 7 },
-  { action: ENERGY_DRAIN, afterGcd: 8 },
-  { action: ENERGY_DRAIN, afterGcd: 9 },
-  { action: ENERGY_DRAIN, afterGcd: 10 },
-];
-
-export const OPENERS: Record<string, OpenerPreset[]> = {
-  SCH: [
-    {
-      id: 'standard',
-      name: 'Standard: Aetherflow first',
-      source: SCHOLAR_SOURCE,
-      steps: scholarOpener(AETHERFLOW, DISSIPATION),
-    },
-    {
-      id: 'dissipation-first',
-      name: 'Dissipation first',
-      source: SCHOLAR_SOURCE,
-      steps: scholarOpener(DISSIPATION, AETHERFLOW),
-    },
-    { id: 'none', name: 'None: planned without an opener', source: '', steps: [] },
-  ],
-};
+export { OPENERS } from './opener-presets';
 
 // How long after a GCD begins an oGCD can follow it: its cast, or an
-// instant one's lock.
+// instant one's lock; a second one after the same GCD a weave later.
 const WEAVE_AFTER_MS = 700;
 const AETHERFLOW_MS = 60_000;
 // After the opener, Dissipation stays where the player used it: the guides
 // hold it for when the healing needs it.
 const OPENER_MS = 45_000;
+// Astral and Umbral Draw take turns, one every 55 seconds.
+const DRAW_MS = 55_000;
 
-// A scholar's stacks with an opener: when each Aetherflow and Dissipation
-// lands (Aetherflow on cooldown after the opener's), and the opener's own
-// uses, for the plan to show. With "none", Aetherflow on cooldown from the
-// first GCD; Dissipation as played.
-export function scholarTimes(
+// A player's opener as uses, at their GCDs as played (counted from the one
+// begun in the countdown; a GCD every 2.5s without any), each marked as
+// the opener's.
+export function openerUses(
   timeline: PullTimeline,
   catalog: ActionCatalog,
-  scholar: number,
+  player: number,
+  job: string,
   opener: OpenerId,
-): { aetherflow: number[]; dissipation: number[]; uses: PlannedUse[] } {
-  const gcd = new Map(catalog.actions.map((a) => [a.id, a]));
-  const casts = timeline.playerCasts.filter((c) => c.source === scholar).sort((a, b) => a.at - b.at);
-  const gcds = casts.filter((c) => gcd.get(c.action)?.gcd);
+): PlannedUse[] {
+  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  const gcds = timeline.playerCasts
+    .filter((c) => c.source === player && byId.get(c.action)?.gcd)
+    .sort((a, b) => a.at - b.at);
+  const startOf = (n: number) => gcds[n]?.at ?? n * 2500;
   const after = (n: number) => {
     const g = gcds[n];
-    return g ? g.at + Math.max(g.castMs ?? 0, WEAVE_AFTER_MS) : n * 2500;
+    return g ? g.at + Math.max(g.castMs ?? 0, WEAVE_AFTER_MS) : n * 2500 + WEAVE_AFTER_MS;
   };
-  const played = (action: number) => casts.filter((c) => c.action === action).map((c) => c.at);
-  const steps = OPENERS['SCH'].find((p) => p.id === opener)?.steps ?? [];
-  const uses: PlannedUse[] = steps.map((s) => ({
-    player: scholar,
-    action: s.action,
-    name: gcd.get(s.action)?.name ?? '',
-    at: after(s.afterGcd),
-    target: null,
-    covers: [],
-    opener: true,
-  }));
+  const steps = OPENERS[job]?.find((p) => p.id === opener)?.steps ?? [];
+  const woven = new Map<number, number>();
+  return steps.map((s) => {
+    let at = s.at ?? 0;
+    if (s.gcd !== undefined) at = startOf(s.gcd);
+    if (s.afterGcd !== undefined) {
+      const before = woven.get(s.afterGcd) ?? 0;
+      woven.set(s.afterGcd, before + 1);
+      at = after(s.afterGcd) + before * WEAVE_AFTER_MS;
+    }
+    return {
+      player,
+      action: s.action,
+      name: s.name ?? byId.get(s.action)?.name ?? '',
+      at,
+      target: null,
+      covers: [],
+      opener: true,
+    };
+  });
+}
+
+// A scholar's stacks with their opener's uses: when each Aetherflow and
+// Dissipation lands (Aetherflow on cooldown after the opener's; from the
+// first GCD with none), Dissipation after the opener as played.
+export function scholarTimes(
+  timeline: PullTimeline,
+  scholar: number,
+  uses: PlannedUse[],
+  firstGcd: number,
+): { aetherflow: number[]; dissipation: number[] } {
+  const played = timeline.playerCasts.filter((c) => c.source === scholar && c.action === DISSIPATION).map((c) => c.at);
   const firstOf = (action: number) => uses.find((u) => u.action === action)?.at;
-  const start = firstOf(AETHERFLOW) ?? after(1);
   const aetherflow: number[] = [];
-  for (let at = start; at <= timeline.durationMs; at += AETHERFLOW_MS) aetherflow.push(at);
+  for (let at = firstOf(AETHERFLOW) ?? firstGcd; at <= timeline.durationMs; at += AETHERFLOW_MS) aetherflow.push(at);
   const opened = firstOf(DISSIPATION);
-  const dissipation =
-    opened === undefined ? played(DISSIPATION) : [opened, ...played(DISSIPATION).filter((at) => at > OPENER_MS)];
-  return { aetherflow, dissipation, uses };
+  const dissipation = opened === undefined ? played : [opened, ...played.filter((at) => at > OPENER_MS)];
+  return { aetherflow, dissipation };
+}
+
+// An astrologian's draws with their opener: Astral Draw in the countdown
+// (its cards at the pull), Umbral Draw where the opener has it, then each
+// in turn 55 seconds apart.
+export function astrologianDraws(uses: PlannedUse[], durationMs: number): { astral: number[]; umbral: number[] } {
+  const umbralAt = uses.find((u) => u.action === UMBRAL_DRAW)?.at ?? WEAVE_AFTER_MS;
+  const astral = [0];
+  const umbral: number[] = [];
+  for (let at = umbralAt, i = 0; at <= durationMs; at += DRAW_MS, i++) (i % 2 ? astral : umbral).push(at);
+  return { astral, umbral };
 }
 
 // An opener's steps with only the Energy Drains its heals leave stacks for:
