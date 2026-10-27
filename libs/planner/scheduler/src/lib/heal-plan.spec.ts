@@ -195,6 +195,50 @@ describe('planHeals', () => {
     expect(plan([]).uses.map((u) => u.name)).toEqual(['Adloquium', 'Adloquium']);
   });
 
+  it('puts Horoscope up before a Helios, for Horoscope Helios', () => {
+    // The scholar as an astrologian. Everyone lands on 15,000 and needs
+    // 85,000 for the second raidwide: Helios heals 40,000, Horoscope Helios
+    // 40,000 more as it lands (Horoscope alone, 20,000).
+    const cat = catalog();
+    cat.actions.push(
+      action(3600, 'Helios', ['SCH'], 2.5, [{ ...heal(400), target: 'party' }], { gcd: true, castMs: 1500 }),
+      action(16557, 'Horoscope', ['SCH'], 60, [
+        {
+          ...heal(200),
+          kind: 'delayedHeal',
+          target: 'party',
+          status: 'Horoscope',
+          durationMs: 10_000,
+          condition: '400 (and 30s) after a Helios; when read again or it ends',
+        },
+      ]),
+    );
+    const raidwide = (at: number, damage: number) =>
+      [1, 2, 3].map((player): [number, string, number, number] => [at, 'Raidwide', player, damage]);
+    const timeline = pull([...raidwide(30, 85_000), ...raidwide(45, 75_000)], [[1, 2, 189, 60_000]]);
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Helios');
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+      new Map(),
+      new Weaving(),
+      healPairings(timeline.players, cat, power),
+    );
+
+    expect(plan.uses.map((u) => u.name)).toEqual(['Horoscope', 'Helios']);
+    const [horoscope, helios] = plan.uses;
+    expect(helios.at + 1500 - horoscope.at).toBeLessThanOrEqual(10_000);
+    expect(plan.hits.filter((h) => h.mechanic === plan.hits[3].mechanic).every((h) => h.safe)).toBe(true);
+  });
+
   it("counts Neutral Sect's barrier on an Aspected Benefic as a shield for the next hit", () => {
     // The scholar as an astrologian: the tank lands on 15,000. Aspected
     // Benefic heals 25,000, 30,000 under Neutral Sect, and leaves a 75,000
