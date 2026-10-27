@@ -7,6 +7,9 @@ export type ProfileState = Omit<Profile, 'character'> & { character: string | nu
 export const profileInitialState: ProfileState = {
   id: '',
   username: '',
+  characterName: null,
+  server: null,
+  displayName: '',
   bio: null,
   image: '',
   following: false,

@@ -158,7 +158,14 @@ export function pull(
       hp: null,
     })),
     absorbs: [],
-    playerCasts: [],
+    // The scholar's Aetherflow, on cooldown from the pull: 3 stacks a minute.
+    playerCasts: Array.from({ length: 10 }, (_, i) => ({
+      at: i * 60_000,
+      source: 2,
+      target: null,
+      action: 166,
+      castMs: null,
+    })),
     enemyCasts: [],
     auras: [],
     deaths: [],

@@ -34,7 +34,9 @@ const SAME_STACK: Record<string, string> = {
 
 // What really limits some actions, rather than their recast: the Oath
 // gauge (50 of it about every 25 seconds of auto-attacks, up to 100),
-// Aetherflow and Addersgall (about one every 20 seconds, up to 3), the
+// Aetherflow (3 stacks from each Aetherflow and Dissipation: the plan
+// refills it where they are, aetherflow.ts), Addersgall (about one every 20
+// seconds, up to 3), the
 // Astrologian's cards (Astral and Umbral Draw take turns every 55 seconds,
 // each giving one of its own, so a card comes every 110), Tempera Coat (which Tempera Grassa uses up; back in 60
 // to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), Lady of

@@ -12,6 +12,7 @@ import { Weaving } from './weaving';
 import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { AUTOMATIC, mitigationTools } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
+import { withAetherflow } from './aetherflow';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
 
@@ -40,9 +41,15 @@ export class PlannerScheduler {
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player);
     const power = healPower(timeline, catalog);
     // A scholar's fairy orders wait for her while Dissipation has her away.
-    const mitigation = withFairyAway(timeline, mitigationTools(timeline.players, catalog, power));
+    const mitigation = withAetherflow(
+      timeline,
+      withFairyAway(timeline, mitigationTools(timeline.players, catalog, power)),
+    );
     // The others' heals stay in the pull's healing, as played.
-    const heals = withFairyAway(timeline, healTools(timeline.players, catalog, mitigation, power).filter(replanned));
+    const heals = withAetherflow(
+      timeline,
+      withFairyAway(timeline, healTools(timeline.players, catalog, mitigation, power).filter(replanned)),
+    );
     const fixed = playedUses(
       timeline,
       mitigation.filter((t) => !replanned(t)),

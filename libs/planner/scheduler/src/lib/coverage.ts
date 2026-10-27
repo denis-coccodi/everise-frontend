@@ -115,8 +115,10 @@ function shieldHp(size: ShieldSize, player: number, facts: PullFacts) {
 }
 
 // Whether one more use at `at` leaves the pool enough for every use: it
-// starts full and fills one every `gainMs`, up to `max`.
+// starts full and fills one every `gainMs`, up to `max`; or, with
+// `refills`, starts empty and fills to `max` at each.
 export function fitsPool(times: number[], at: number, pool: ToolPool) {
+  if (pool.refills) return fitsRefills([...times, at], pool);
   let level = pool.max;
   let last = 0;
   for (const time of [...times, at].sort((a, b) => a - b)) {
@@ -136,6 +138,7 @@ export function poolFull(times: number[], at: number, pool: ToolPool) {
 
 // What the pool holds at `at`, with the uses at `times` before it.
 export function poolLevel(times: number[], at: number, pool: ToolPool) {
+  if (pool.refills) return refilledLevel(times, at, pool);
   let level = pool.max;
   let last = 0;
   for (const time of [...times].filter((t) => t < at).sort((a, b) => a - b)) {
@@ -143,6 +146,32 @@ export function poolLevel(times: number[], at: number, pool: ToolPool) {
     last = time;
   }
   return Math.min(pool.max, level + (at - last) / pool.gainMs);
+}
+
+// A refilled pool's uses in time order, each taking one of what it holds.
+function fitsRefills(uses: number[], pool: ToolPool) {
+  const refills = [...(pool.refills ?? [])].sort((a, b) => a - b);
+  let level = 0;
+  let next = 0;
+  for (const use of [...uses].sort((a, b) => a - b)) {
+    while (next < refills.length && refills[next] <= use) {
+      level = pool.max;
+      next++;
+    }
+    if (level < 1) return false;
+    level--;
+  }
+  return true;
+}
+
+function refilledLevel(uses: number[], at: number, pool: ToolPool) {
+  const events = [
+    ...(pool.refills ?? []).filter((t) => t <= at).map((t) => ({ t, refill: true })),
+    ...uses.filter((t) => t < at).map((t) => ({ t, refill: false })),
+  ].sort((a, b) => a.t - b.t || Number(b.refill) - Number(a.refill));
+  let level = 0;
+  for (const e of events) level = e.refill ? pool.max : Math.max(0, level - 1);
+  return level;
 }
 
 // Whether one more use at `at` of an action another grants still has a
