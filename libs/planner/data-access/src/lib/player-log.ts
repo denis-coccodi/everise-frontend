@@ -1,5 +1,6 @@
 import { ActionCatalog, CatalogAction, PullTimeline, TimelineAura } from '@everise/core/api-types';
 import { effectsText } from './effect-text';
+import { countdownStart } from './pull-time';
 import type { HitEntry, UseEntry, DeathEntry, LogEntry } from './player-log.model';
 
 // One player's pull, in time order: the hits they took (not damage over
@@ -56,6 +57,7 @@ export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, player
         description: action.description ?? null,
         target,
         effects: effectsText(action.effects),
+        castAt: countdownStart(cast.at, cast.castMs, action.castMs),
       };
     });
 

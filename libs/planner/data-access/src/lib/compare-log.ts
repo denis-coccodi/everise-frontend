@@ -18,11 +18,15 @@ export function compareLog(played: LogEntry[], planned: PlanEntry[]): CompareRow
   for (const entry of entries) {
     let row = rows.at(-1);
     if (!row || entry.at - row.at > SAME_ROW_MS) {
-      row = { at: entry.at, played: [], planned: [] };
+      row = { at: entry.at, shownAt: entry.at, played: [], planned: [] };
       rows.push(row);
     }
+    const castAt = 'played' in entry ? castStart(entry.played) : castStart(entry.planned);
+    if (castAt !== null && castAt !== undefined) row.shownAt = Math.min(row.shownAt, castAt);
     if ('played' in entry) row.played.push(entry.played);
     else row.planned.push(entry.planned);
   }
   return rows;
 }
+
+const castStart = (entry: LogEntry | PlanEntry) => ('castAt' in entry ? entry.castAt : null);

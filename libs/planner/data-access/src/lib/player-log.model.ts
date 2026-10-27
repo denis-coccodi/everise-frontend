@@ -30,6 +30,8 @@ export interface UseEntry {
   icon?: number | null;
   description?: string | null;
   effects: string;
+  // When its cast began, for one begun in the countdown.
+  castAt?: number | null;
 }
 
 export interface DeathEntry {

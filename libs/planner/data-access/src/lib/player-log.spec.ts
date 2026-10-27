@@ -18,7 +18,20 @@ describe('playerLog', () => {
       description: null,
       target: null,
       effects: 'Self: −20% damage taken (20s), +15% healing received (20s)',
+      castAt: null,
     });
+  });
+
+  it('says when a heal that landed early in the pull began, in the countdown', () => {
+    const timeline = pullTimeline();
+    // Adloquium (a 2s cast) landing at 0.5s, without a cast bar.
+    Object.assign(timeline.playerCasts[3], { at: 500, castMs: null });
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.name === 'Adloquium') a.castMs = 2_000;
+
+    expect(playerLog(timeline, catalog, 2)[0]).toEqual(
+      expect.objectContaining({ action: 'Adloquium', at: 500, castAt: -1_500 }),
+    );
   });
 
   it('says who a single-target heal or shield went on', () => {

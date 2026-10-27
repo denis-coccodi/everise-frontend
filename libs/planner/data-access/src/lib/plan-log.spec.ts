@@ -73,7 +73,7 @@ describe('planLog', () => {
     for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
 
     expect(planLog(plan, pullTimeline(), 1, catalog).slice(0, 2)).toEqual([
-      { kind: 'gcd', at: 62_000, prepull: false },
+      { kind: 'gcd', at: 62_000, prepull: false, castAt: null },
       expect.objectContaining({ kind: 'use', action: 'Reprisal' }),
     ]);
   });
@@ -91,7 +91,10 @@ describe('planLog', () => {
       castMs: null,
     }));
 
-    expect(planLog(plan, timeline, 1, catalog)[0]).toEqual({ kind: 'gcd', at: 800, prepull: true });
+    for (const a of catalog.actions) if (a.id === 9) a.castMs = 1_500;
+
+    // Its 1.5s cast began 0.7s before the pull.
+    expect(planLog(plan, timeline, 1, catalog)[0]).toEqual({ kind: 'gcd', at: 800, prepull: true, castAt: -700 });
   });
 
   it('names the target of a single-target use, themselves included', () => {
