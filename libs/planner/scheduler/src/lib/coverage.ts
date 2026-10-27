@@ -115,19 +115,35 @@ function shieldHp(size: ShieldSize, player: number, facts: PullFacts) {
 }
 
 // Whether one more use at `at` leaves the pool enough for every use: it
-// starts full and fills one every `gainMs`, up to `max`; or, with
-// `refills`, starts empty and fills to `max` at each.
+// starts full and fills one every `gainMs`, and one more at each `bonus`
+// (Rhizomata), up to `max`; or, with `refills`, starts empty and fills
+// to `max` at each.
 export function fitsPool(times: number[], at: number, pool: ToolPool) {
   if (pool.refills) return fitsRefills([...times, at], pool);
+  return gained(pool, [...times, at], Infinity).fits;
+}
+
+// A gaining pool through `uses`: whether each found one, and what it holds
+// at `end`.
+function gained(pool: ToolPool, uses: number[], end: number) {
+  const events = [
+    ...(pool.bonus ?? []).filter((t) => t < end).map((t) => ({ t, gain: true })),
+    ...uses.map((t) => ({ t, gain: false })),
+  ].sort((a, b) => a.t - b.t || Number(b.gain) - Number(a.gain));
   let level = pool.max;
   let last = 0;
-  for (const time of [...times, at].sort((a, b) => a - b)) {
-    level = Math.min(pool.max, level + (time - last) / pool.gainMs);
-    last = time;
-    if (level < 1) return false;
+  let fits = true;
+  for (const e of events) {
+    level = Math.min(pool.max, level + (e.t - last) / pool.gainMs);
+    last = e.t;
+    if (e.gain) {
+      level = Math.min(pool.max, level + 1);
+      continue;
+    }
+    if (level < 1) fits = false;
     level -= 1;
   }
-  return true;
+  return { fits, level: Math.min(pool.max, level + (end - last) / pool.gainMs) };
 }
 
 // Whether the pool is full at `at`, with the uses at `times`: a use then
@@ -139,13 +155,11 @@ export function poolFull(times: number[], at: number, pool: ToolPool) {
 // What the pool holds at `at`, with the uses at `times` before it.
 export function poolLevel(times: number[], at: number, pool: ToolPool) {
   if (pool.refills) return refilledLevel(times, at, pool);
-  let level = pool.max;
-  let last = 0;
-  for (const time of [...times].filter((t) => t < at).sort((a, b) => a - b)) {
-    level = Math.min(pool.max, level + (time - last) / pool.gainMs) - 1;
-    last = time;
-  }
-  return Math.min(pool.max, level + (at - last) / pool.gainMs);
+  return gained(
+    pool,
+    times.filter((t) => t < at),
+    at,
+  ).level;
 }
 
 // A refilled pool's uses in time order, each taking one of what it holds.

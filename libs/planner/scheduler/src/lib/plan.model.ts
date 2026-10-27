@@ -114,6 +114,9 @@ export interface ToolPool {
   // A pool that fills only at these moments, to `max` (Aetherflow and
   // Dissipation's stacks), from empty: `gainMs` is then how often it comes.
   refills?: number[];
+  // One more at each of these moments, up to `max` (Rhizomata's
+  // Addersgall).
+  bonus?: number[];
 }
 
 // An action another grants: usable only after a use of that one, up to
@@ -217,6 +220,8 @@ export interface HealPairing {
   onTarget: boolean;
   // Its own healing comes with it (Physis II's regen).
   own: boolean;
+  // The heal's shield heals instead (Emergency Tactics): none goes up.
+  converts: boolean;
   extra: ShieldSize | null;
   // The barrier it leaves on whoever each heal reaches, as a share of what
   // the heal heals them, by heal (Neutral Sect's: 250% for an Aspected
@@ -293,6 +298,8 @@ export interface PlannedUse {
   // A raid buff or burst the guides use on cooldown (Chain Stratagem,
   // Divination...), or an astrologian's draw and card.
   burst?: boolean;
+  // A resource for the heals after (Rhizomata's Addersgall).
+  refill?: boolean;
 }
 
 // A hit as the plan leaves it.

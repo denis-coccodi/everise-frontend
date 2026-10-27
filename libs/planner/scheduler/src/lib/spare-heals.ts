@@ -5,10 +5,10 @@ import { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
 
-// The heals a healer uses on cooldown whether or not anyone needs them:
-// Assize (its damage), Celestial Opposition (a strong heal on a short
-// cooldown).
-const ON_COOLDOWN = new Set([3571, 16553]);
+// The heals used on cooldown whether or not anyone needs them: Assize (its
+// damage), Celestial Opposition (a strong heal on a short cooldown), Lux
+// Solaris (free, in each Refulgent Lux).
+const ON_COOLDOWN = new Set([3571, 16553, 36997]);
 // How finely the pass looks for the next moment a use fits.
 const STEP_MS = 500;
 // Afflatus Misery, an instant GCD of damage the white mage casts when the

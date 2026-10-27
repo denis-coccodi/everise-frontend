@@ -74,5 +74,16 @@ function byEncounter(pulls: ReportPull[]): EncounterPulls[] {
     else
       groups.set(pull.encounterId, { encounterId: pull.encounterId, name: pull.name, kind: pull.kind, pulls: [pull] });
   }
+  // FFLogs names some fights of one duty alike (M12S's two are both
+  // "Lindwurm"): the later ones are numbered, as its encounters are
+  // ("Lindwurm II").
+  const seen = new Map<string, number>();
+  for (const group of groups.values()) {
+    const n = (seen.get(group.name) ?? 0) + 1;
+    seen.set(group.name, n);
+    if (n > 1) group.name += ' ' + ROMAN[n - 1];
+  }
   return [...groups.values()];
 }
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];

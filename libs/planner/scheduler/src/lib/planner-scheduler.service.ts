@@ -17,6 +17,8 @@ import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
 import { burstActions, burstUses } from './burst';
+import { withEnablerWindows } from './enabled-windows';
+import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
 
 // Plans of the pull, at most: the first, and replans around the HP its
@@ -52,8 +54,12 @@ export class PlannerScheduler {
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
     const { dissipations, refills } = opening;
     const opened = <T extends MitigationTool | HealTool>(tools: T[]) =>
-      withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening);
-    // A scholar's fairy orders wait for her while Dissipation has her away.
+      withEnablerWindows(
+        timeline,
+        withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening),
+      );
+    // A scholar's fairy orders wait for her while Dissipation has her away;
+    // Lux Solaris and Star Prism wait for the burst that grants them.
     const mitigation = opened(mitigationTools(timeline.players, catalog, power));
     // The others' heals stay in the pull's healing, as played.
     const heals = opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned));
@@ -85,9 +91,11 @@ export class PlannerScheduler {
     // the Energy Drains, which a heal can take the stacks of). A replanned
     // player's raid buffs and burst go on cooldown after the opener, in the
     // slots the heals and mitigations leave.
-    const bursts = replannedPlayers.flatMap((p) =>
-      burstActions(p.job ?? '').map((action) => ({ player: p.id, action })),
-    );
+    const sages = replannedPlayers.filter((p) => p.job === 'SGE');
+    const bursts = [
+      ...replannedPlayers.flatMap((p) => burstActions(p.job ?? '').map((action) => ({ player: p.id, action }))),
+      ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),
+    ];
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
@@ -139,11 +147,14 @@ export class PlannerScheduler {
         casts: each.flatMap((f) => f.casts),
       };
     };
+    // A sage's Addersgall with their Rhizomata's stacks, once the plan has
+    // them (below).
+    const bonus = new Map<number, number[]>();
     const once = (from?: Plan) => {
       const { healing, casts } = fairy(from);
       const mitigated = planMitigation(
         mechanics,
-        [...alone, ...veils],
+        [...withRhizomata(alone, bonus), ...veils],
         maxHp,
         options,
         from,
@@ -155,8 +166,8 @@ export class PlannerScheduler {
       return planHeals(
         { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener), ...placed] },
         timeline,
-        [...mitigation, ...veils],
-        heals,
+        [...withRhizomata(mitigation, bonus), ...veils],
+        withRhizomata(heals, bonus),
         maxHp,
         options,
         buffs,
@@ -175,6 +186,18 @@ export class PlannerScheduler {
       if (!better(next, best, maxHp, options)) break;
       best = next;
     }
+    // A replanned sage uses Rhizomata where the plan's heals leave their
+    // Addersgall low; the heals are planned again with its stacks, unless
+    // that comes out worse.
+    const sageTools = [...mitigation, ...heals];
+    for (const s of sages) bonus.set(s.id, rhizomataOf(s.id, best.uses, sageTools, weaving, byId, timeline.durationMs));
+    let rhizomata = [...bonus].flatMap(([player, times]) => times.map((at) => rhizomataUse(player, at)));
+    if (rhizomata.length) {
+      weaving.keep(rhizomata.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
+      const next = once(best);
+      if (better(best, next, maxHp, options)) rhizomata = [];
+      else best = next;
+    }
     // Seraph casts her Veils herself: they're no use to list. The openers'
     // other steps (Energy Drains, Chain Stratagem...) show with it, but for
     // the Energy Drains whose stacks the heals took.
@@ -187,11 +210,12 @@ export class PlannerScheduler {
       (u) =>
         u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
     );
-    const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving, [...best.uses, ...drains]);
+    const taken = [...best.uses, ...drains, ...rhizomata];
+    const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken);
     return {
       ...best,
       replanned: replannedPlayers.map((p) => p.id),
-      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...drains, ...burst].sort(
+      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...drains, ...burst, ...rhizomata].sort(
         (a, b) => a.at - b.at || a.player - b.player,
       ),
     };

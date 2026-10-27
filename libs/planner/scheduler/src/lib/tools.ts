@@ -16,6 +16,8 @@ const REPLACED_BY: Record<number, number> = {
   24288: 24302, // Physis → Physis II
   3601: 37030, // Aspected Helios → Helios Conjunction
   133: 37010, // Medica II → Medica III
+  186: 37013, // Succor → Concitation
+  24292: 37034, // Eukrasian Prognosis → Eukrasian Prognosis II
 };
 
 // Statuses that don't stack with each other, though they differ: the ranged
