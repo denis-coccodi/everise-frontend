@@ -18,11 +18,18 @@ const THE_SPEAR = 37026;
 // The raid buffs and burst each job's guides use on cooldown after the
 // opener, by job (Icy Veins 7.55, The Balance 7.4): Chain Stratagem,
 // Divination with a Lightspeed (its other charge is for movement),
-// Presence of Mind. Each delays only to the player's next weave slot.
+// Presence of Mind; Fight or Flight; Inner Release, and Infuriate twice a
+// minute (always recharging: each Fell Cleave and Inner Chaos takes 5s off);
+// Delirium; No Mercy and Bloodfest (60s since 7.4). Each delays only to the
+// player's next weave slot.
 export const BURST: Record<string, BurstAction[]> = {
   SCH: [{ action: 7436 }], // Chain Stratagem
   AST: [{ action: 16552 }, { action: 3606, everyMs: TWO_MINUTES }], // Divination, Lightspeed
   WHM: [{ action: 136 }], // Presence of Mind
+  PLD: [{ action: 20 }], // Fight or Flight
+  WAR: [{ action: 7389 }, { action: 52, everyMs: 30_000 }], // Inner Release, Infuriate
+  DRK: [{ action: 7390 }], // Delirium
+  GNB: [{ action: 16138 }, { action: 16164 }], // No Mercy, Bloodfest
 };
 
 // The actions the plan places for each job after the opener: the burst's,
@@ -69,7 +76,7 @@ export function burstUses(
       const action = byId.get(b.action);
       if (!action) continue;
       const every = b.everyMs ?? action.recastMs;
-      const last = opened.find((u) => u.action === b.action)?.at;
+      const last = opened.filter((u) => u.action === b.action).at(-1)?.at;
       for (let due = last === undefined ? firstGcd : last + every; due < end;) {
         const at = place(b.action, action.name, due);
         if (at === null) break;

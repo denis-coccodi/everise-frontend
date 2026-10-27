@@ -22,6 +22,11 @@ const cat = () => {
     action(16552, 'Divination', ['AST'], 120, []),
     action(3606, 'Lightspeed', ['AST'], 60, [], { charges: 2 }),
     action(136, 'Presence of Mind', ['WHM'], 120, []),
+    action(20, 'Fight or Flight', ['PLD'], 60, []),
+    action(7389, 'Inner Release', ['WAR'], 60, []),
+    action(52, 'Infuriate', ['WAR'], 60, [], { charges: 2 }),
+    action(16138, 'No Mercy', ['GNB'], 60, []),
+    action(16164, 'Bloodfest', ['GNB'], 60, []),
   );
   return c;
 };
@@ -73,6 +78,38 @@ describe('burstUses', () => {
       ['the Balance', 178_600],
       ['Umbral Draw', 231_900],
       ['the Spear', 233_600],
+    ]);
+  });
+
+  it("has a warrior's Inner Release each minute and Infuriate twice, from the opener's last", () => {
+    expect(burst('WAR')).toEqual([
+      // After the opener's at 8.7s; one due in the downtime waits for it.
+      ['Inner Release', 68_700],
+      ['Inner Release', 136_100],
+      ['Inner Release', 196_100],
+      // Every 30s from the opener's third, at 36.2s.
+      ['Infuriate', 66_200],
+      ['Infuriate', 96_200],
+      ['Infuriate', 136_800],
+      ['Infuriate', 166_800],
+      ['Infuriate', 196_800],
+      ['Infuriate', 226_800],
+    ]);
+  });
+
+  it("has a paladin's Fight or Flight and a gunbreaker's No Mercy and Bloodfest each minute", () => {
+    expect(burst('PLD')).toEqual([
+      ['Fight or Flight', 68_700],
+      ['Fight or Flight', 136_100],
+      ['Fight or Flight', 196_100],
+    ]);
+    expect(burst('GNB')).toEqual([
+      ['No Mercy', 66_200],
+      ['No Mercy', 136_100],
+      ['No Mercy', 196_100],
+      ['Bloodfest', 61_200],
+      ['Bloodfest', 136_800],
+      ['Bloodfest', 196_800],
     ]);
   });
 });
