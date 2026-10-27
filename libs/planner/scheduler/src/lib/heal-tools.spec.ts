@@ -63,13 +63,20 @@ describe('healTools', () => {
     expect(byName.get('Lustrate')?.pool?.name).toBe('Aetherflow');
   });
 
-  it("leaves out everyone else's heals but the mitigations', and heals that depend on what happens", () => {
+  it("leaves out everyone else's heals but the mitigations'", () => {
     const names = tools().map((t) => t.name);
 
     expect(names).not.toContain('Clemency');
-    expect(names).not.toContain('Kardia');
     // Adloquium is a shield the plan uses, and heals too.
     expect(names).toContain('Adloquium');
+  });
+
+  it("has Kardia moved heal another member for the sage's next four damage spells", () => {
+    const kardia = tools().find((t) => t.name === 'Kardia');
+
+    expect(kardia?.effects).toEqual([
+      { target: 'target', size: { hp: 17_000 }, ticks: 4, status: 'Kardion', statusId: null },
+    ]);
   });
 
   it("counts a DPS's heals that cost no damage (Second Wind), not a tank's", () => {
@@ -233,6 +240,28 @@ describe('healPairings', () => {
     // Seraphism (1s), its Manifestation's and Accession's.
     expect(tactics).toMatchObject({ recastMs: 15_000, times: 2.8, converts: true, heals: [185, 37013] });
     expect(underSeraphism).toMatchObject({ recastMs: 1000, times: 2.8, converts: true, heals: [37015, 37016] });
+  });
+
+  it("has Synastry's bond add 40% to an astrologian's heal on one member", () => {
+    const cat = catalog();
+    cat.actions.push(action(3612, 'Synastry', ['SCH'], 120, []));
+
+    const synastry = healPairings(party(), cat, new Map([[2, 100]])).find((p) => p.name === 'Synastry');
+
+    expect(synastry).toMatchObject({ times: 1.4, onTarget: true, withinMs: 20_000, heals: [3594, 3610, 3595] });
+  });
+});
+
+describe('Soteria', () => {
+  it("heals 119 potency more on each of the sage's next four Kardion heals", () => {
+    const cat = catalog();
+    cat.actions.push(action(24294, 'Soteria', ['SCH'], 60, []));
+
+    const soteria = healTools(party(), cat, [], new Map([[2, 100]])).find((t) => t.name === 'Soteria');
+
+    expect(soteria?.effects).toEqual([
+      { target: 'target', size: { hp: 11_900 }, ticks: 4, status: 'Soteria', statusId: null },
+    ]);
   });
 });
 

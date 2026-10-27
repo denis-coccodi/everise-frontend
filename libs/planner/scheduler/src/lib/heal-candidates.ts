@@ -1,4 +1,5 @@
 import { fitsGrant, fitsPool, fitsRecast, isAway, poolFull } from './coverage';
+import { KARDIA, SOTERIA } from './heal-tools';
 import { Favour, HealCost, HealTool, Mechanic, PlannedUse } from './plan.model';
 import { cutsUnion } from './fairy-heals';
 import { Weaving } from './weaving';
@@ -48,10 +49,18 @@ export function best(
   const occupied = spent.filter((s) => s.player === tool.player);
   const timesOf = (action: number) =>
     spent.filter((s) => s.player === tool.player && s.action === action).map((s) => s.at);
-  // A heal on one member goes to whoever is shortest.
-  const target = tool.effects.some((e) => e.target === 'target')
-    ? [...short].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-    : null;
+  // A heal on one member goes to whoever is shortest; Soteria's on the
+  // Kardion holder, Kardia moved to anyone else.
+  const holder = tool.kardion?.find((s) => s.from <= m.at && m.at < s.to)?.player;
+  if (tool.kardion && holder === undefined) return null;
+  const others = [...short].filter(([p]) => tool.action !== KARDIA || p !== holder);
+  if (!others.length) return null;
+  const target =
+    tool.action === SOTERIA
+      ? (holder ?? null)
+      : tool.effects.some((e) => e.target === 'target')
+        ? others.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+        : null;
   let found: Candidate | null = null;
   const end = tool.delayed?.delaysMs[0] ?? 0;
   // Each moment as early or as late as it can be, then where the healer can

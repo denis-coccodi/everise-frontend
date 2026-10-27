@@ -166,8 +166,7 @@ export type Invulnerability = 'immune' | 'lastHp' | 'halvesHp' | 'walkingDead';
 // A set amount of HP, or a share of the max HP of whoever gets it.
 export type ShieldSize = { hp: number } | { maxHpShare: number };
 
-// An action that restores HP: a healer's heal, or the heal a mitigation
-// also gives (Kerachole's regen, Shake It Off's heal).
+// An action that restores HP: a healer's heal, a mitigation's (Kerachole).
 export interface HealTool {
   // When it can't be used: a fairy's order while Dissipation has her away.
   away?: { from: number; to: number }[];
@@ -187,6 +186,8 @@ export interface HealTool {
   effects: HealEffect[];
   // Null for a heal that lands as it's cast.
   delayed: DelayedHeal | null;
+  // Who has the sage's Kardion as played, by span (Soteria's, Kardia's).
+  kardion?: { from: number; to: number; player: number }[];
 }
 
 // What a heal costs, as the healers' guides rank them: nothing (an oGCD,
