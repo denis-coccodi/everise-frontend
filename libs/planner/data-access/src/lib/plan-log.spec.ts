@@ -97,6 +97,34 @@ describe('planLog', () => {
     expect(planLog(plan, timeline, 1, catalog)[0]).toEqual({ kind: 'gcd', at: 800, prepull: true, castAt: -700 });
   });
 
+  it("keeps a replanned player's buffs and potions as played, not their attacks nor heals", () => {
+    const catalog = actionCatalog();
+    catalog.actions.push({
+      ...catalog.actions[0],
+      id: 7562,
+      name: 'Lucid Dreaming',
+      effects: [],
+      description: 'Gradually restores MP.' + String.fromCharCode(10) + 'Duration: 21s',
+    });
+    const timeline = pullTimeline();
+    timeline.actions.push({ id: 34603667, name: 'Grade 4 Gemdraught of Mind' });
+    timeline.playerCasts.push(
+      { at: 20_000, source: 1, target: null, action: 7562, castMs: null },
+      { at: 21_000, source: 1, target: null, action: 34603667, castMs: null },
+    );
+
+    const kept = (replanned?: number[]) =>
+      planLog({ ...plan, replanned }, timeline, 1, catalog).filter((e) => e.kind === 'use' && e.kept);
+
+    // Fast Blade (an attack) and Rampart (the plan's own) aren't kept.
+    expect(kept([1]).map((e) => [e.at, e.kind === 'use' && e.action, e.kind === 'use' && e.kept])).toEqual([
+      [20_000, 'Lucid Dreaming', 'Gradually restores MP.'],
+      [21_000, 'Grade 4 Gemdraught of Mind', 'An item (a potion, an ether)'],
+    ]);
+    // Not replanned: their own column has none.
+    expect(kept([2])).toEqual([]);
+  });
+
   it('names the target of a single-target use, themselves included', () => {
     const self = { ...plan, uses: [{ ...plan.uses[1], player: 2, target: 2 }] };
 

@@ -169,6 +169,7 @@ export class PlannerScheduler {
     );
     return {
       ...best,
+      replanned: timeline.players.filter((p) => replanned({ player: p.id })).map((p) => p.id),
       uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...shown].sort(
         (a, b) => a.at - b.at || a.player - b.player,
       ),

@@ -1,5 +1,6 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { landedGcds, pressedFirst, type Plan } from '@everise/planner/scheduler';
+import { onlyDamage, whatItDoes } from './action-kinds';
 import { countdownStart } from './pull-time';
 import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 
@@ -58,7 +59,45 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       ...(use.opener ? { opener: true } : {}),
     }));
   // A use comes before the hits it's for.
-  return [...damageGcds(plan, timeline, playerId, catalog), ...uses, ...hits].sort((a, b) => a.at - b.at);
+  return [
+    ...damageGcds(plan, timeline, playerId, catalog),
+    ...uses,
+    ...kept(plan, timeline, playerId, catalog),
+    ...hits,
+  ].sort((a, b) => a.at - b.at);
+}
+
+// A replanned player's buffs and enablers the plan leaves as they played
+// them (Lucid Dreaming, a raid buff, a potion): not their attacks, nor a
+// heal or mitigation (the plan's are its own), nor one the plan uses itself
+// close by (an opener's Chain Stratagem).
+const SAME_USE_MS = 10_000;
+function kept(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanUseEntry[] {
+  if (!catalog || !plan.replanned?.includes(playerId)) return [];
+  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  const names = new Map(timeline.actions.map((a) => [a.id, a.name]));
+  const mine = plan.uses.filter((u) => u.player === playerId);
+  return timeline.playerCasts
+    .filter((c) => {
+      const action = byId.get(c.action);
+      if (c.source !== playerId || onlyDamage(c.action, action) || action?.effects.length) return false;
+      return !mine.some((u) => u.action === c.action && Math.abs(u.at - c.at) < SAME_USE_MS);
+    })
+    .map((c) => {
+      const action = byId.get(c.action);
+      return {
+        kind: 'use',
+        at: c.at,
+        action: action?.name ?? names.get(c.action) ?? '',
+        icon: action?.icon ?? null,
+        description: action?.description ?? null,
+        target: null,
+        covers: [],
+        damage: false,
+        overcap: false,
+        kept: whatItDoes(c.action, action),
+      };
+    });
 }
 
 // The player's GCDs as played that the plan's oGCDs are woven after, where

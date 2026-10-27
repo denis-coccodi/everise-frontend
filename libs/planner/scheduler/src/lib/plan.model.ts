@@ -327,6 +327,8 @@ export interface Plan {
   // Each player's HP over the pull with the plan; none before the heals
   // are planned.
   hp: PlannedHp[];
+  // The players it replans (ids); left out, everyone.
+  replanned?: number[];
 }
 
 // A player's HP with the plan: what it is after each moment something

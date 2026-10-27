@@ -39,6 +39,8 @@ export interface PlanUseEntry {
   overcap: boolean;
   // A step of the player's opener.
   opener?: boolean;
+  // Kept as the player used it (a buff, an enabler), and what it does.
+  kept?: string;
 }
 
 // One of the player's GCDs as played, which a planned oGCD is woven after:

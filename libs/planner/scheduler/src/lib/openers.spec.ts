@@ -25,12 +25,13 @@ const steps = (job: string, opener?: 'standard' | 'dissipation-first' | 'double-
 describe('openingOf', () => {
   it("weaves a scholar's standard opener after their GCDs: Aetherflow, then Dissipation", () => {
     const o = steps('SCH');
+    const opener = o.uses.filter((u) => u.opener);
 
     // Aetherflow after the 1st GCD (3s + 0.7s), then on cooldown; Dissipation
     // after the 6th, and the one played after the opener.
     expect(o.refills.get(2)).toEqual([3_700, 16_200, 63_700, 123_700, 183_700, 200_000, 243_700]);
     expect(o.dissipations.get(2)).toEqual([16_200, 200_000]);
-    expect(o.uses.map((u) => [u.action, u.at])).toEqual([
+    expect(opener.map((u) => [u.action, u.at])).toEqual([
       [166, 3_700],
       [7436, 6_200],
       [167, 8_700],
@@ -42,13 +43,20 @@ describe('openingOf', () => {
       [167, 23_700],
       [167, 26_200],
     ]);
-    expect(o.uses.every((u) => u.opener)).toBe(true);
+    // The later Aetherflows and the Dissipation kept as played show too.
+    expect(o.uses.filter((u) => !u.opener).map((u) => [u.action, u.at])).toEqual([
+      [166, 63_700],
+      [166, 123_700],
+      [166, 183_700],
+      [166, 243_700],
+      [3587, 200_000],
+    ]);
   });
 
   it('swaps them for Dissipation first, and has no steps with none', () => {
     expect(steps('SCH', 'dissipation-first').dissipations.get(2)?.[0]).toBe(3_700);
     const none = steps('SCH', 'none');
-    expect(none.uses).toEqual([]);
+    expect(none.uses.filter((u) => u.opener)).toEqual([]);
     expect(none.refills.get(2)?.[0]).toBe(3_700);
     expect(none.dissipations.get(2)).toEqual([200_000]);
   });
