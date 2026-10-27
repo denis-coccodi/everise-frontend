@@ -40,7 +40,7 @@ const DELAYED: Record<number, { delaysMs: number[]; release: number; loggedAs: s
 //   or when it ends"), Catharsis of Corundum and Vigilant ("below 50% HP or
 //   when it ends"), Exaltation ("when it ends");
 const TRIGGER = /^(?:(?:at|below) (\d+)% HP(?: or below)?,? or )?when it ends$/;
-// - for their end: Horoscope (its upgrade after a Helios isn't counted);
+// - for their end: Horoscope on its own (after a Helios, see PAIRED);
 const AT_END = /(?:^|; )when read again or it ends$/;
 // - for their end, with a share of the damage taken meanwhile: Macrocosmos;
 const DAMAGE_SHARE = /^plus (\d+)% of damage taken meanwhile; when it ends/;
@@ -70,7 +70,9 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // them free of Aetherflow isn't counted); Emergency Tactics before an
 // Adloquium or Concitation, its Galvanize (180% of the heal) healing
 // instead (`converts`: no shield then), and under Seraphism (its recast 1s)
-// before a Manifestation or Accession.
+// before a Manifestation or Accession; Horoscope before a Helios, Aspected
+// Helios or Helios Conjunction in its 10s, Horoscope Helios then healing 400
+// potency on each member it reaches (read as the Helios lands).
 const PAIRED: Record<
   number,
   {
@@ -99,6 +101,7 @@ const PAIRED: Record<
   16542: { heals: [185, 37013, 3583, 7434], withinMs: 15_000, times: 1, potency: 0, critical: true },
   3586: { heals: [185, 37013], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
   37037: { heals: [37015, 37016], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
+  16557: { heals: [3600, 3601, 37030], withinMs: 10_000, times: 1, potency: 400 },
 };
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
