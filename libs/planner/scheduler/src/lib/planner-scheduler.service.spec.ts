@@ -96,6 +96,47 @@ describe('PlannerScheduler', () => {
     expect(adlo && deployment && deployment.at >= adlo.at && deployment.at < 30_000).toBe(true);
   });
 
+  it('uses Sun Sign only with the Neutral Sect that grants it', () => {
+    // The scholar as an astrologian. 130,000 on everyone: party mitigations
+    // and Divine Veil leave just over the 90,000 allowed; Sun Sign's 10%
+    // brings it under.
+    const sunSign = action(37031, 'Sun Sign', ['SCH'], 1, [
+      {
+        ...heal(0),
+        kind: 'mitigation',
+        target: 'party',
+        status: 'Sun Sign',
+        potency: null,
+        percent: 10,
+        durationMs: 15_000,
+      },
+    ]);
+    const neutralSect = action(16559, 'Neutral Sect', ['SCH'], 120, [
+      {
+        ...heal(0),
+        kind: 'healingPotency',
+        target: 'self',
+        status: 'Neutral Sect',
+        potency: null,
+        percent: 20,
+        durationMs: 20_000,
+      },
+    ]);
+    const hits = [1, 2, 3].map((player): [number, string, number, number] => [30, 'Raidwide', player, 130_000]);
+    const planWith = (...extra: ReturnType<typeof action>[]) => {
+      const cat = catalog();
+      cat.actions.push(...extra);
+      return new PlannerScheduler().plan(pull(hits, healed), cat, { margin: 0.1 });
+    };
+
+    const p = planWith(sunSign, neutralSect);
+    const at = (name: string) => p.uses.find((u) => u.name === name)?.at;
+    expect(at('Sun Sign')).toBeDefined();
+    expect((at('Neutral Sect') ?? Infinity) <= (at('Sun Sign') ?? 0)).toBe(true);
+    // No Neutral Sect, no Suntouched: no Sun Sign.
+    expect(planWith(sunSign).uses.map((u) => u.name)).not.toContain('Sun Sign');
+  });
+
   it('makes the spread Adloquium critical with Recitation where a bigger Galvanize is needed', () => {
     // 230,000 on everyone: about 94,000 left with a 54,000 Galvanize, over
     // the 90,000 allowed; critical (×1.5 without stats), 81,000 of it.
