@@ -1,4 +1,4 @@
-import { fitsGrant, fitsPool, fitsRecast, projected, pullFacts, reaches } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, isAway, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
@@ -177,7 +177,7 @@ export function planMitigation(
       ? weaving.gcdBefore(t.player, lands, from, g.castMs, occupied)
       : weaving.ogcdBefore(t.player, lands - WEAVE_MS, from, occupied);
     const times = uses.filter((u) => tool(u).group === g.group).map((u) => u.at);
-    if (gAt === null || gAt < 0 || !fitsRecast(times, gAt, g.recastMs, g.charges)) return [];
+    if (gAt === null || gAt < 0 || isAway(g, gAt) || !fitsRecast(times, gAt, g.recastMs, g.charges)) return [];
     if (!fitsGrant(timesOf(t.player, t.action), [...timesOf(t.player, g.action), gAt], at, grant)) return [];
     const target = g.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
     const use = { player: g.player, action: g.action, name: g.name, at: gAt, target, covers: [] };
@@ -214,7 +214,7 @@ export function planMitigation(
     let found: Candidate | null = null;
     for (const moment of momentsFor(m, t, mechanics)) {
       const at = fit(m, t, moment);
-      if (at === null || at < 0 || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
+      if (at === null || at < 0 || isAway(t, at) || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
       const needs =
         t.grantedBy && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy);

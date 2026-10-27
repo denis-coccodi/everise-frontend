@@ -1,6 +1,16 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
 import { DelayedHeal, HealCost, HealEffect, HealPairing, HealTool, MitigationTool } from './plan.model';
-import { ASSUMED, AUTOMATIC, GRANTED, POOLS, castMsOf, criticalTimes, playerActions } from './tools';
+import {
+  AETHERPACT,
+  ASSUMED,
+  AUTOMATIC,
+  FEY_UNION_TICKS,
+  GRANTED,
+  POOLS,
+  castMsOf,
+  criticalTimes,
+  playerActions,
+} from './tools';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
@@ -164,7 +174,9 @@ export function healTools(
 
 function costOf(action: CatalogAction): HealCost {
   if (action.gcd) return NEUTRAL_GCDS.has(action.id) ? 'neutral' : 'gcd';
-  return POOLS[action.id]?.name === 'Aetherflow' ? 'resource' : 'free';
+  // The Faerie Gauge comes from Aetherflow actions.
+  const pool = POOLS[action.id]?.name;
+  return pool === 'Aetherflow' || pool === 'Faerie Gauge' ? 'resource' : 'free';
 }
 
 // A delayed heal's condition is when it lands, which the plan picks.
@@ -175,8 +187,8 @@ function healEffects(action: CatalogAction, power: number | null, delayed: boole
     const size = sizeOf(e, power);
     if (!size) continue;
     if (e.kind === 'heal') effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null });
-    else if (e.kind === 'regen' && e.durationMs) {
-      const ticks = Math.floor(e.durationMs / TICK_MS);
+    else if (e.kind === 'regen' && (e.durationMs || action.id === AETHERPACT)) {
+      const ticks = e.durationMs ? Math.floor(e.durationMs / TICK_MS) : FEY_UNION_TICKS;
       effects.push({ target: e.target, size, ticks, status: e.status ?? action.name, statusId: e.statusId });
     }
   }

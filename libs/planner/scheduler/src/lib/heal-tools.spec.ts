@@ -34,6 +34,21 @@ describe('healTools', () => {
     return healTools(party(), c, mitigationTools(party(), c, power), power);
   };
 
+  it('holds a Fey Union for 4 ticks, from the Faerie Gauge', () => {
+    const union = {
+      ...heal(300),
+      kind: 'regen' as const,
+      status: 'Fey Union',
+      condition: 'while held, using the Faerie Gauge',
+    };
+    const cat = { ...catalog(), actions: [action(7437, 'Aetherpact', ['SCH'], 3, [union])] };
+
+    const [aetherpact] = healTools(party(), cat, [], power);
+
+    expect(aetherpact.effects).toEqual([expect.objectContaining({ ticks: 4, size: { hp: 30_000 } })]);
+    expect(aetherpact.pool).toEqual({ name: 'Faerie Gauge', gainMs: 75_000, max: 2 });
+  });
+
   it("sizes the healers' heals from their power, and healing over time a tick every 3 seconds", () => {
     const byName = new Map(tools().map((t) => [t.name, t]));
 

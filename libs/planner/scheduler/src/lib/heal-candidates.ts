@@ -1,4 +1,4 @@
-import { fitsGrant, fitsPool, fitsRecast, poolFull } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, isAway, poolFull } from './coverage';
 import { Favour, HealCost, HealTool, Mechanic, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
 import type { Candidate, Paired, Spent } from './heal-plan.model';
@@ -80,7 +80,7 @@ export function best(
       : moment.late
         ? weaving.ogcdBefore(tool.player, moment.at, lo, occupied)
         : weaving.ogcdAfter(tool.player, from, hi, occupied);
-    if (at === null || at < first || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
+    if (at === null || at < first || isAway(tool, at) || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
     if (
       tool.pool &&
       !fitsPool(
@@ -120,7 +120,9 @@ export function best(
   return found;
 }
 
-// The most made up; on a tie, the cooldown that comes back soonest.
+// The most made up; on a tie, the cooldown that comes back soonest (its
+// recast, or its pool's refill when that's longer: Aetherpact's gauge).
 export function better(a: Candidate, b: Candidate) {
-  return a.value > b.value || (a.value === b.value && a.tool.recastMs < b.tool.recastMs);
+  const back = (c: Candidate) => Math.max(c.tool.recastMs, c.tool.pool?.gainMs ?? 0);
+  return a.value > b.value || (a.value === b.value && back(a) < back(b));
 }

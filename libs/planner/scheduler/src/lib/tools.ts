@@ -48,8 +48,12 @@ const card = (name: string): ToolPool => ({ name, gainMs: 110_000, max: 1 });
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
 const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 120_000, max: 1 };
+// The Faerie Gauge: 10 for each Aetherflow action (about 4 a minute), up to
+// 100; a Fey Union as the plan has it (FEY_UNION_TICKS) takes 50.
+const FAERIE_GAUGE: ToolPool = { name: 'Faerie Gauge', gainMs: 75_000, max: 2 };
 export const POOLS: Record<number, ToolPool> = {
   25789: IMPROVISATION, // Improvised Finish
+  7437: FAERIE_GAUGE, // Aetherpact
   34685: TEMPERA, // Tempera Coat
   34686: TEMPERA, // Tempera Grassa
   3542: OATH, // Sheltron
@@ -149,7 +153,13 @@ const INVULNERABLE: Record<number, Invulnerability> = {
 // Conditions the planner can take as met: it assumes everyone stands where
 // the effect lands, and counts an effect's least (Improvised Finish at no
 // stacks).
-export const ASSUMED = (condition: string) => condition === 'behind the paladin' || condition.startsWith('up to ');
+export const ASSUMED = (condition: string) =>
+  condition === 'behind the paladin' || condition.startsWith('up to ') || condition === FEY_UNION_HELD;
+// Aetherpact holds a Fey Union while the Faerie Gauge lasts (10 to start,
+// 10 a tick): the plan has each last 4 ticks (12s).
+export const AETHERPACT = 7437;
+export const FEY_UNION_TICKS = 4;
+const FEY_UNION_HELD = 'while held, using the Faerie Gauge';
 
 // The mitigations and shields each player of the pull has, at their level.
 // A shield's HP comes from its caster's `power` (HP a potency heals) for

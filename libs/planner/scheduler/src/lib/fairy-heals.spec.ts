@@ -1,4 +1,4 @@
-import { fairyHeals, fairyPower } from './fairy-heals';
+import { fairyHeals, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import { party, pull } from './scheduler-fixtures';
 
 describe('fairyHeals', () => {
@@ -47,7 +47,7 @@ describe('fairyHeals', () => {
   ];
 
   it('heals every 3.2s whoever is missing the most of their HP, and no one at full HP', () => {
-    const events = fairyHeals(timeline(), 2, 50, [], hp, maxHp);
+    const events = fairyHeals(timeline(), 2, 50, [], hp, maxHp, 180);
 
     expect(events.map((e) => [e.at, e.player, e.amount])).toEqual([
       [4_200, 1, 9_000],
@@ -63,14 +63,35 @@ describe('fairyHeals', () => {
     t.playerCasts = [{ at: 4_000, source: 2, target: null, action: 3587, castMs: null }];
     const seraph = [{ player: 2, action: 16545, name: 'Summon Seraph', at: 12_000, target: null, covers: [] }];
 
-    const events = fairyHeals(t, 2, 50, seraph, hp, maxHp);
+    const events = fairyHeals(t, 2, 50, seraph, hp, maxHp, 180);
 
     // Away from 4s to 34s, but Seraph from 12s to 34s.
     expect(events.map((e) => e.at)).toEqual([13_800, 17_000]);
   });
 
   it("measures the fairy's healing from her own heals, or the scholar's", () => {
-    expect(fairyPower(timeline(), 2, 30)).toBe(50);
-    expect(fairyPower(pull([]), 2, 30)).toBe(30);
+    expect(fairyPower(timeline(), 2, 30, 180)).toBe(50);
+    expect(fairyPower(pull([]), 2, 30, 180)).toBe(30);
+    // 150 potency below level 85.
+    expect(fairyPotency(84)).toBe(150);
+    expect(fairyPotency(100)).toBe(180);
+  });
+
+  it("keeps the fairy's orders, Aetherpact and Seraphism out of Dissipation", () => {
+    const t = timeline();
+    t.playerCasts = [{ at: 60_000, source: 2, target: null, action: 3587, castMs: null }];
+    const tools = withFairyAway(t, [
+      { player: 2, action: 16537 }, // Whispering Dawn
+      { player: 2, action: 7437 }, // Aetherpact
+      { player: 2, action: 37014 }, // Seraphism
+      { player: 2, action: 185 }, // Adloquium
+    ]);
+
+    expect(tools.map((x) => ('away' in x ? x.away : null))).toEqual([
+      [{ from: 60_000, to: 90_000 }],
+      [{ from: 60_000, to: 90_000 }],
+      [{ from: 60_000, to: 90_000 }],
+      null,
+    ]);
   });
 });
