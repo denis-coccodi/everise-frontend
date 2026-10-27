@@ -23,6 +23,19 @@ describe('PullListComponent', () => {
     expect(page.querySelector('.others')?.textContent?.trim()).toBe('1 pull of other fights left out.');
   });
 
+  it('says why a report from an earlier expansion has no pulls', async () => {
+    const rendered = await renderPlanner(`/planner?report=${CODE}`);
+    rendered.http
+      .expectOne(`/planner/reports/${CODE}`)
+      .flush({ ...fightReport(), pulls: [], players: [], otherPulls: 4, expansion: 'Endwalker', outdated: true });
+    await rendered.settle();
+
+    expect(rendered.page.querySelector('.none')?.textContent?.trim().replace(/\s+/g, ' ')).toBe(
+      'This report is from Endwalker. The planner plans with the jobs as they play now, so it only takes reports from the current expansion.',
+    );
+    expect(rendered.page.querySelector('.others')).toBeNull();
+  });
+
   it('picks a pull, and marks it', async () => {
     const { page, query, http, settle, navigated } = await renderReport();
 
