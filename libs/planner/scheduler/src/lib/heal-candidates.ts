@@ -1,5 +1,6 @@
 import { fitsGrant, fitsPool, fitsRecast, isAway, poolFull } from './coverage';
 import { Favour, HealCost, HealTool, Mechanic, PlannedUse } from './plan.model';
+import { cutsUnion } from './fairy-heals';
 import { Weaving } from './weaving';
 import type { Candidate, Paired, Spent } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
@@ -81,6 +82,7 @@ export function best(
         ? weaving.ogcdBefore(tool.player, moment.at, lo, occupied)
         : weaving.ogcdAfter(tool.player, from, hi, occupied);
     if (at === null || at < first || isAway(tool, at) || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
+    if (cutsUnion(tool.action, at, timesOf)) continue;
     if (
       tool.pool &&
       !fitsPool(
