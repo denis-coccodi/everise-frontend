@@ -355,6 +355,59 @@ describe('planHeals', () => {
     });
   });
 
+  it('sets Macrocosmos off with Microcosmos once the hit it gathers is in, where its 15s are too long', () => {
+    // The tank lands on 15,000 after a buster at 5s and needs 70,000 by
+    // the next, at 9s: Macrocosmos up before the first heals 20,000 and
+    // half of its 85,000, but on its own only 15s after the pull at the
+    // soonest.
+    const cat = catalog();
+    cat.actions.push(
+      action(
+        25874,
+        'Macrocosmos',
+        ['SCH'],
+        180,
+        [
+          {
+            ...heal(200),
+            kind: 'delayedHeal',
+            target: 'party',
+            status: 'Macrocosmos',
+            durationMs: 15_000,
+            condition: 'plus 50% of damage taken meanwhile; when it ends or on Microcosmos',
+          },
+        ],
+        { gcd: true },
+      ),
+    );
+    const timeline = pull(
+      [
+        [5, 'Buster', 1, 85_000],
+        [9, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Macrocosmos');
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+    );
+    const at = (name: string) => plan.uses.find((u) => u.name === name)?.at ?? NaN;
+    expect(at('Macrocosmos')).toBeGreaterThanOrEqual(0);
+    expect(at('Macrocosmos')).toBeLessThan(5_000);
+    expect(at('Microcosmos')).toBeGreaterThan(5_000);
+    expect(at('Microcosmos')).toBeLessThan(9_000);
+    expect(plan.hits[1]).toMatchObject({ safe: true });
+  });
+
   it('puts Excogitation up before a hit that takes its target to half HP, healing them for the next', () => {
     const cat = catalog();
     cat.actions.push(

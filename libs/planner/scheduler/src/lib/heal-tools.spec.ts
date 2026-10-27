@@ -146,7 +146,12 @@ describe('healTools', () => {
     });
     expect(byName.get('Exaltation')?.delayed).toMatchObject({ delaysMs: [8000], belowShare: null });
     expect(byName.get('Horoscope')?.delayed).toMatchObject({ delaysMs: [10_000], belowShare: null, damageShare: null });
-    expect(byName.get('Macrocosmos')?.delayed).toMatchObject({ delaysMs: [15_000], damageShare: 0.5 });
+    // Set off sooner with Microcosmos, once the hits it gathers are in.
+    expect(byName.get('Macrocosmos')?.delayed).toMatchObject({
+      delaysMs: [15_000, 10_000, 5_000, 2_500],
+      release: { action: 25875, name: 'Microcosmos' },
+      damageShare: 0.5,
+    });
     expect(byName.has('Riddle')).toBe(false);
   });
 
@@ -215,12 +220,19 @@ describe('healPairings', () => {
 
   it("has Emergency Tactics turn a scholar's Galvanize into healing", () => {
     const cat = catalog();
-    cat.actions.push(action(3586, 'Emergency Tactics', ['SCH'], 15, []));
+    cat.actions.push(
+      action(3586, 'Emergency Tactics', ['SCH'], 15, []),
+      action(37037, 'Emergency Tactics', ['SCH'], 1, []),
+    );
 
-    const tactics = healPairings(party(), cat, new Map([[2, 100]])).find((p) => p.name === 'Emergency Tactics');
+    const [tactics, underSeraphism] = healPairings(party(), cat, new Map([[2, 100]])).filter(
+      (p) => p.name === 'Emergency Tactics',
+    );
 
-    // The heal and its 180% barrier, all healing, and no barrier.
-    expect(tactics).toMatchObject({ times: 2.8, converts: true, heals: [185, 37013, 37015, 37016] });
+    // The heal and its 180% barrier, all healing, and no barrier; under
+    // Seraphism (1s), its Manifestation's and Accession's.
+    expect(tactics).toMatchObject({ recastMs: 15_000, times: 2.8, converts: true, heals: [185, 37013] });
+    expect(underSeraphism).toMatchObject({ recastMs: 1000, times: 2.8, converts: true, heals: [37015, 37016] });
   });
 });
 

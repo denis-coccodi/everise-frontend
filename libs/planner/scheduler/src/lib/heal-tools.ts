@@ -44,6 +44,12 @@ const TRIGGER = /^(?:(?:at|below) (\d+)% HP(?: or below)?,? or )?when it ends$/;
 const AT_END = /(?:^|; )when read again or it ends$/;
 // - for their end, with a share of the damage taken meanwhile: Macrocosmos;
 const DAMAGE_SHARE = /^plus (\d+)% of damage taken meanwhile; when it ends/;
+// Those another action sets off sooner, by action, and the delays the plan
+// tries: Macrocosmos with Microcosmos, as the guides have it once the hits
+// it gathers are in.
+const SET_OFF: Record<number, { release: number; name: string; delaysMs: number[] }> = {
+  25874: { release: 25875, name: 'Microcosmos', delaysMs: [10_000, 5_000, 2_500] },
+};
 // - for each stack left when another of their effects ends: Haima's and
 //   Panhaima's barriers, Liturgy of the Bell's heals on the white mage's
 //   hits.
@@ -62,8 +68,9 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // more), as the guides have it go first; Recitation before an Adloquium,
 // Concitation, Indomitability or Excogitation, a critical heal (its making
 // them free of Aetherflow isn't counted); Emergency Tactics before an
-// Adloquium, Concitation, Manifestation or Accession, its Galvanize (180%
-// of the heal) healing instead (`converts`: no shield then).
+// Adloquium or Concitation, its Galvanize (180% of the heal) healing
+// instead (`converts`: no shield then), and under Seraphism (its recast 1s)
+// before a Manifestation or Accession.
 const PAIRED: Record<
   number,
   {
@@ -90,7 +97,8 @@ const PAIRED: Record<
     own: true,
   },
   16542: { heals: [185, 37013, 3583, 7434], withinMs: 15_000, times: 1, potency: 0, critical: true },
-  3586: { heals: [185, 37013, 37015, 37016], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
+  3586: { heals: [185, 37013], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
+  37037: { heals: [37015, 37016], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
 };
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
@@ -232,7 +240,15 @@ function waitOf(action: CatalogAction, e: ActionEffect, power: number | null): D
     return { ...base, delaysMs: [e.durationMs], belowShare: trigger[1] ? Number(trigger[1]) / 100 : null };
   }
   if (e.durationMs && AT_END.test(condition)) return { ...base, delaysMs: [e.durationMs] };
-  if (e.durationMs && share) return { ...base, delaysMs: [e.durationMs], damageShare: Number(share[1]) / 100 };
+  if (e.durationMs && share) {
+    const early = SET_OFF[action.id];
+    return {
+      ...base,
+      delaysMs: [e.durationMs, ...(early?.delaysMs ?? [])],
+      release: early ? { action: early.release, name: early.name } : null,
+      damageShare: Number(share[1]) / 100,
+    };
+  }
   // The stacks, and how long they last, are another effect's.
   const stacked = condition === STACKS_LEFT && action.effects.find((o) => o !== e && o.stacks && o.durationMs);
   if (!stacked || stacked.target === 'enemies') return null;
