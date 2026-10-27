@@ -1,12 +1,14 @@
 import { ActionCatalog, CatalogAction, PullTimeline, TimelineAura } from '@everise/core/api-types';
 import { catalogAtLevel, pullLevel } from '@everise/planner/scheduler';
+import { onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import { countdownStart } from './pull-time';
 import type { HitEntry, UseEntry, DeathEntry, LogEntry } from './player-log.model';
 
 // One player's pull, in time order: the hits they took (not damage over
-// time ticks), the heals and mitigations they used, what they began casting
-// in the countdown, and their deaths.
+// time ticks), the heals and mitigations they used and what made them
+// possible (Recitation, Aetherflow, Lightspeed: ENABLERS), what they began
+// casting in the countdown, and their deaths.
 export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId: number): LogEntry[] {
   // The actions as the pull's level has them, for what they did.
   const catalog = catalogAtLevel(full, pullLevel(timeline));
@@ -46,17 +48,28 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
       ],
     }));
 
-  // Their heals and mitigations, and whatever they began casting in the
-  // countdown (a damage spell too), so every tab starts where its player did.
+  // Everything they used but their attacks (heals, mitigations, enablers,
+  // buffs, potions), and whatever they began casting in the countdown (a
+  // damage spell too), so every tab starts where its player did.
   const begun = (cast: PullTimeline['playerCasts'][number], action: CatalogAction | undefined) =>
     !!action && countdownStart(cast.at, cast.castMs, action.castMs) !== null;
   const uses: UseEntry[] = timeline.playerCasts
     .filter((cast) => {
       const action = actions.get(cast.action);
-      return cast.source === playerId && ((action?.effects.length ?? 0) > 0 || begun(cast, action));
+      return cast.source === playerId && (!onlyDamage(cast.action, action) || begun(cast, action));
     })
-    .map((cast) => {
-      const action = actions.get(cast.action) as CatalogAction;
+    .map((cast): UseEntry => {
+      const action = actions.get(cast.action);
+      // One the catalog doesn't have (Umbral Draw, a potion): the log's name.
+      if (!action) {
+        return {
+          kind: 'use',
+          at: cast.at,
+          action: actionName(cast.action),
+          target: null,
+          effects: whatItDoes(cast.action, action),
+        };
+      }
       // Who a single-target heal, shield or mitigation went on.
       const targeted = action.effects.some((effect) => effect.target === 'target');
       const target = targeted && cast.target !== null ? (playerName.get(cast.target) ?? null) : null;
@@ -67,7 +80,11 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
         icon: action.icon,
         description: action.description ?? null,
         target,
-        effects: action.effects.length ? effectsText(action.effects) : 'Begun in the countdown',
+        effects: action.effects.length
+          ? effectsText(action.effects)
+          : onlyDamage(action.id, action)
+            ? 'Begun in the countdown'
+            : whatItDoes(action.id, action),
         castAt: countdownStart(cast.at, cast.castMs, action.castMs),
       };
     });
