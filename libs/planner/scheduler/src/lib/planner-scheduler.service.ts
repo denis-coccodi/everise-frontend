@@ -56,9 +56,10 @@ export class PlannerScheduler {
     const pairings = healPairings(timeline.players, catalog, power).filter(replanned);
     const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
     const paired = new Set(pairings.map(key));
-    // Recitation goes with a GCD heal too, but also with an Adloquium for a
-    // spreadlo, which the mitigations plan.
-    const alone = mitigation.filter((t) => !paired.has(key(t)) || t.critical !== undefined);
+    // A tool without effects of its own goes with what it makes better or
+    // grants, which the mitigations plan: Recitation with a spreadlo's
+    // Adloquium (it goes with a GCD heal too), Neutral Sect with Sun Sign.
+    const alone = mitigation.filter((t) => !paired.has(key(t)) || !t.effects.length);
     // Where each player can act: their GCDs as played, and the oGCDs they
     // used that the plan doesn't schedule.
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings].map(key));
