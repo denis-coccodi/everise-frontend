@@ -82,7 +82,7 @@ describe('fairyHeals', () => {
     expect(fairyPotency(100)).toBe(180);
   });
 
-  it("keeps the fairy's orders, Aetherpact and Seraphism out of Dissipation", () => {
+  it("keeps the fairy's orders, Aetherpact and Seraphism out of Dissipation, and Seraphism's 20s before it", () => {
     const t = timeline();
     t.playerCasts = [{ at: 60_000, source: 2, target: null, action: 3587, castMs: null }];
     const tools = withFairyAway(t, [
@@ -95,7 +95,10 @@ describe('fairyHeals', () => {
     expect(tools.map((x) => ('away' in x ? x.away : null))).toEqual([
       [{ from: 60_000, to: 90_000 }],
       [{ from: 60_000, to: 90_000 }],
-      [{ from: 60_000, to: 90_000 }],
+      [
+        { from: 40_000, to: 60_000 },
+        { from: 60_000, to: 90_000 },
+      ],
       null,
     ]);
   });

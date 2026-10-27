@@ -18,7 +18,9 @@ const DISSIPATION_MS = 30_000;
 const CAST_EVERY_MS = 3200;
 // The fairy's orders, and Seraphism (which needs her out too): Whispering
 // Dawn, Fey Illumination, Fey Blessing, Aetherpact.
-const NEEDS_FAIRY = new Set([16537, 16538, 16543, AETHERPACT, 37014]);
+const SERAPHISM = 37014;
+const SERAPHISM_MS = 20_000;
+const NEEDS_FAIRY = new Set([16537, 16538, 16543, AETHERPACT, SERAPHISM]);
 
 // A Fey Union ends when the scholar orders the fairy anything else, or
 // sends her off for Seraph: the plan puts none of these in a union it has,
@@ -44,15 +46,19 @@ const dissipations = (timeline: PullTimeline, scholar: number, given?: number[])
   );
 
 // The tools with the spans their player's fairy is away in, for those that
-// need her: none of them while Dissipation has her away.
+// need her: none of them while Dissipation has her away. Nor Seraphism in
+// the 20s before one: Dissipation can't be used while it's up.
 export function withFairyAway<T extends { player: number; action: number }>(
   timeline: PullTimeline,
   tools: T[],
   given = new Map<number, number[]>(),
 ): T[] {
-  return tools.map((t) =>
-    NEEDS_FAIRY.has(t.action) ? { ...t, away: dissipations(timeline, t.player, given.get(t.player)) } : t,
-  );
+  return tools.map((t) => {
+    if (!NEEDS_FAIRY.has(t.action)) return t;
+    const away = dissipations(timeline, t.player, given.get(t.player));
+    const before = t.action === SERAPHISM ? away.map((s) => ({ from: s.from - SERAPHISM_MS, to: s.from })) : [];
+    return { ...t, away: [...before, ...away] };
+  });
 }
 
 // The keys (scholar:action) of the heals `fairyHeals` works out, for the
