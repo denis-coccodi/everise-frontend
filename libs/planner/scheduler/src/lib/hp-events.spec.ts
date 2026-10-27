@@ -1,5 +1,5 @@
 import { TimelineHeal } from '@everise/core/api-types';
-import { healEvents, pullEvents } from './hp-events';
+import { healEvents, naturalRegen, pullEvents } from './hp-events';
 import { HealTool, Mechanic, PlannedHit } from './plan.model';
 import { pull } from './scheduler-fixtures';
 
@@ -56,6 +56,8 @@ describe('pullEvents', () => {
       healed({ status: 315, tick: true }),
       healed({ action: 7, pet: 'Eos' }),
       healed({ source: null, action: 4 }),
+      // Natural regeneration as played: recalculated, not kept.
+      healed({ source: 1, action: 1302, amount: 600, overheal: 0 }),
     ];
     const mechanic: Mechanic = {
       id: 0,
@@ -74,6 +76,30 @@ describe('pullEvents', () => {
       { at: 40_000, player: 1, amount: -5000 },
       { at: 50_000, player: 1, amount: 1500 },
     ]);
+  });
+
+  it("recalculates natural regeneration: 1% of max HP every 3s on each player's tick in the log", () => {
+    const timeline = pull([[30, 'Raidwide', 1, 80_000]]);
+    timeline.durationMs = 10_000;
+    timeline.heals = [
+      {
+        ...timeline.heals[0],
+        at: 4_200,
+        source: 1,
+        pet: null,
+        target: 1,
+        action: 1302,
+        status: null,
+        amount: 600,
+        overheal: 0,
+        tick: false,
+        estimated: false,
+        hp: null,
+      },
+    ];
+
+    // The tank (100,000 HP) on their 1.2s tick; nobody else regenerated in the log.
+    expect(naturalRegen(timeline)).toEqual([1_200, 4_200, 7_200].map((at) => ({ at, player: 1, amount: 1000 })));
   });
 
   it('heals as a heal lands, and over time every 3 seconds after', () => {
