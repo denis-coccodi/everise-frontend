@@ -125,6 +125,34 @@ describe('planLog', () => {
     expect(kept([2])).toEqual([]);
   });
 
+  it('shows a buff the plan has on cooldown as such, and none of its played uses', () => {
+    const catalog = actionCatalog();
+    catalog.actions.push({
+      ...catalog.actions[0],
+      id: 7436,
+      name: 'Chain Stratagem',
+      effects: [],
+      description: 'Increases rate at which target takes critical hits by 10%.',
+    });
+    const timeline = pullTimeline();
+    timeline.playerCasts.push({ at: 100_000, source: 1, target: null, action: 7436, castMs: null });
+    const chain = {
+      player: 1,
+      action: 7436,
+      name: 'Chain Stratagem',
+      at: 130_000,
+      target: null,
+      covers: [],
+      burst: true,
+    };
+
+    const log = planLog({ ...plan, uses: [chain], replanned: [1] }, timeline, 1, catalog);
+
+    expect(log.filter((e) => e.kind === 'use').map((e) => [e.at, e.kind === 'use' && (e.burst ?? e.kept)])).toEqual([
+      [130_000, true],
+    ]);
+  });
+
   it('names the target of a single-target use, themselves included', () => {
     const self = { ...plan, uses: [{ ...plan.uses[1], player: 2, target: 2 }] };
 

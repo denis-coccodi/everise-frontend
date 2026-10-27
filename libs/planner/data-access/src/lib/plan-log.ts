@@ -57,6 +57,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       damage: use.damage ?? false,
       overcap: use.overcap ?? false,
       ...(use.opener ? { opener: true } : {}),
+      ...(use.burst ? { burst: true } : {}),
     }));
   // A use comes before the hits it's for.
   return [
@@ -70,7 +71,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
 // A replanned player's buffs and enablers the plan leaves as they played
 // them (Lucid Dreaming, a raid buff, a potion): not their attacks, nor a
 // heal or mitigation (the plan's are its own), nor one the plan uses itself
-// close by (an opener's Chain Stratagem).
+// close by (an opener's Chain Stratagem) or on cooldown (its burst).
 const SAME_USE_MS = 10_000;
 function kept(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanUseEntry[] {
   if (!catalog || !plan.replanned?.includes(playerId)) return [];
@@ -81,7 +82,7 @@ function kept(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: Ac
     .filter((c) => {
       const action = byId.get(c.action);
       if (c.source !== playerId || onlyDamage(c.action, action) || action?.effects.length) return false;
-      return !mine.some((u) => u.action === c.action && Math.abs(u.at - c.at) < SAME_USE_MS);
+      return !mine.some((u) => u.action === c.action && (u.burst || Math.abs(u.at - c.at) < SAME_USE_MS));
     })
     .map((c) => {
       const action = byId.get(c.action);

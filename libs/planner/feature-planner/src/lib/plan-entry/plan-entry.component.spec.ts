@@ -77,6 +77,21 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Lucid Dreaming As played: Gradually restores MP.');
   });
 
+  it('says a raid buff is on cooldown, for the burst', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 130_000,
+        action: 'Chain Stratagem',
+        target: null,
+        covers: [],
+        damage: false,
+        overcap: false,
+        burst: true,
+      }).text,
+    ).toBe('Use Chain Stratagem On cooldown, for the burst windows');
+  });
+
   it('says a use is part of the opener', () => {
     expect(
       render({
