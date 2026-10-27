@@ -39,6 +39,7 @@ interface Busy {
 export class Weaving {
   private readonly gcds = new Map<number, GcdCast[]>();
   private readonly kept = new Map<number, number[]>();
+  private readonly fixed = new Map<number, Occupied[]>();
 
   // Players' casts, the GCDs among their actions, and which the plan
   // schedules; with none, everyone acts freely. `castOf` gives each
@@ -88,10 +89,11 @@ export class Weaving {
     );
   }
 
-  // oGCDs the plan has players use before it plans the rest (an opener's,
-  // the burst's): they keep their place, as the played ones do.
-  keep(uses: { player: number; at: number }[]) {
-    for (const u of uses) push(this.kept, u.player, u.at);
+  // What the plan has players use before it plans the rest (an opener's
+  // steps, its Afflatus Misery): they keep their place, as the played
+  // oGCDs do, a GCD the GCD of theirs it's at.
+  keep(uses: ({ player: number } & Occupied)[]) {
+    for (const { player, ...use } of uses) push(this.fixed, player, use);
   }
 
   // How long a GCD of this cast takes at one of the player's GCDs: none
@@ -108,7 +110,7 @@ export class Weaving {
   // The latest moment from `from` to `at` the player can use an oGCD;
   // null when there's none.
   ogcdBefore(player: number, at: number, from: number, occupied: Occupied[]) {
-    const busy = this.all(player, occupied);
+    const busy = this.all(player, this.with(player, occupied));
     const candidates = [at, ...busy.map((b) => b.from - WEAVE_MS), ...busy.map((b) => b.to)];
     return pick(
       candidates.filter((t) => t >= from && t <= at).sort((a, b) => b - a),
@@ -120,7 +122,7 @@ export class Weaving {
   // The earliest moment from `at` to `to` the player can use an oGCD; null
   // when there's none.
   ogcdAfter(player: number, at: number, to: number, occupied: Occupied[]) {
-    const busy = this.all(player, occupied);
+    const busy = this.all(player, this.with(player, occupied));
     const candidates = [at, ...busy.map((b) => b.to)];
     return pick(
       candidates.filter((t) => t >= at && t <= to).sort((a, b) => a - b),
@@ -136,7 +138,7 @@ export class Weaving {
     return this.gcdMoment(
       player,
       castMs,
-      occupied,
+      this.with(player, occupied),
       (t) => t >= from && t <= at,
       (a, b) => b - a,
       at,
@@ -147,7 +149,7 @@ export class Weaving {
     return this.gcdMoment(
       player,
       castMs,
-      occupied,
+      this.with(player, occupied),
       (t) => t >= at && t <= to,
       (a, b) => a - b,
       at,
@@ -210,6 +212,10 @@ export class Weaving {
       })),
       ogcds: ogcds.map((at) => ({ from: at, to: at + WEAVE_MS })),
     };
+  }
+
+  private with(player: number, occupied: Occupied[]) {
+    return [...(this.fixed.get(player) ?? []), ...occupied];
   }
 
   private all(player: number, occupied: Occupied[]) {

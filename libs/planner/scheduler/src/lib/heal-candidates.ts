@@ -83,6 +83,10 @@ export function best(
         : weaving.ogcdAfter(tool.player, from, hi, occupied);
     if (at === null || at < first || isAway(tool, at) || !fitsRecast(times, at, tool.recastMs, tool.charges)) continue;
     if (cutsUnion(tool.action, at, timesOf)) continue;
+    // A star set off sooner needs a weave slot for its Stellar Detonation.
+    const release = tool.delayed?.release && delayMs < end ? at + tool.castMs + delayMs : null;
+    const withIt = [...occupied, { at, gcd: tool.gcd, castMs: tool.castMs }];
+    if (release !== null && weaving.ogcdAfter(tool.player, release, release, withIt) !== release) continue;
     if (
       tool.pool &&
       !fitsPool(

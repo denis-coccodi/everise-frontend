@@ -52,4 +52,26 @@ describe('compareLog', () => {
       [20_000, 20_000],
     ]);
   });
+
+  it("keeps the plan's oGCDs in their GCD's row, the GCD first", () => {
+    const gcd = (at: number): PlanEntry => ({ kind: 'gcd', at, prepull: false, castAt: null });
+    const rows = compareLog(
+      [],
+      [
+        plannedUse(8_000, 'Assize'),
+        { ...plannedUse(8_500, 'Afflatus Misery'), gcd: true },
+        plannedUse(9_200, 'Aquaveil'),
+        plannedUse(9_900, 'Divine Benison'),
+        gcd(11_000),
+        plannedUse(11_700, 'Temperance'),
+      ],
+    );
+
+    expect(rows.map((row) => row.planned.map((e) => (e.kind === 'gcd' ? 'GCD' : e.action)))).toEqual([
+      // Woven up to 2s after the Misery, though more than 1s after the row
+      // began.
+      ['Afflatus Misery', 'Assize', 'Aquaveil', 'Divine Benison'],
+      ['GCD', 'Temperance'],
+    ]);
+  });
 });
