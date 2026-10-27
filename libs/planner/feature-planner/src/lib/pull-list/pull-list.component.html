@@ -22,9 +22,16 @@
       </ul>
     </section>
   } @empty {
-    <p class="none">This report has no Extreme, Savage or Ultimate pulls.</p>
+    @if (report.outdated) {
+      <p class="none">
+        This report is from {{ report.expansion }}. The planner plans with the jobs as they play now, so it only takes
+        reports from the current expansion.
+      </p>
+    } @else {
+      <p class="none">This report has no Extreme, Savage or Ultimate pulls.</p>
+    }
   }
-  @if (report.otherPulls) {
+  @if (report.otherPulls && !report.outdated) {
     <p class="others">
       {{ report.otherPulls }} {{ report.otherPulls === 1 ? 'pull' : 'pulls' }} of other fights left out.
     </p>

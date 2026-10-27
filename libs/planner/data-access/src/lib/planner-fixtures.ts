@@ -30,6 +30,8 @@ export function fightReport(): FightReport {
       pull(3, 101, 'Vamp Fatale', 'savage', true),
     ],
     otherPulls: 1,
+    expansion: 'Dawntrail',
+    outdated: false,
   };
 }
 

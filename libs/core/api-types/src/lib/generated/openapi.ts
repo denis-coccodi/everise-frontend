@@ -4650,6 +4650,8 @@ export interface components {
         playerIds: number[];
       }[];
       otherPulls: number;
+      expansion: string | null;
+      outdated: boolean;
     };
     FrontlineDay: {
       map: string;
