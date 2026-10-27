@@ -5,6 +5,9 @@ import type { LogEntry } from './player-log.model';
 // plan has then.
 export interface CompareRow {
   at: number;
+  // The time the row shows: before the pull (negative) when its first
+  // entry's cast began in the countdown.
+  shownAt: number;
   played: LogEntry[];
   planned: PlanEntry[];
 }

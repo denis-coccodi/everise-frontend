@@ -40,4 +40,16 @@ describe('compareLog', () => {
     expect(rows.map((row) => row.played.map((e) => e.action))).toEqual([['A', 'B'], ['C']]);
     expect(compareLog([], [])).toEqual([]);
   });
+
+  it('shows a row from when its first cast began in the countdown, keeping its place', () => {
+    const rows = compareLog(
+      [{ ...used(500, 'Adloquium'), castAt: -1_500 }],
+      [{ kind: 'gcd', at: 300, prepull: true, castAt: -2_200 }, plannedUse(20_000, 'Feint')],
+    );
+
+    expect(rows.map((row) => [row.at, row.shownAt])).toEqual([
+      [300, -2_200],
+      [20_000, 20_000],
+    ]);
+  });
 });

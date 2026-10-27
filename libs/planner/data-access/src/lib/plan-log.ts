@@ -1,5 +1,6 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { landedGcds, type Plan } from '@everise/planner/scheduler';
+import { countdownStart } from './pull-time';
 import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 
 // One player's part of the plan, in time order: what to use when, and how
@@ -69,6 +70,7 @@ function damageGcds(plan: Plan, timeline: PullTimeline, playerId: number, catalo
     .sort((a, b) => a.at - b.at);
   const played = casts.map((c) => c.at);
   const prepull = landedGcds(casts).includes(0) ? played[0] : null;
+  const castMs = catalog.actions.find((a) => a.id === casts[0]?.action)?.castMs ?? 0;
   const mine = plan.uses.filter((u) => u.player === playerId);
   const planned = new Set(mine.filter((u) => gcd.get(u.action)).map((u) => u.at));
   const after = new Set<number>();
@@ -78,7 +80,14 @@ function damageGcds(plan: Plan, timeline: PullTimeline, playerId: number, catalo
     if (before !== undefined && !planned.has(before)) after.add(before);
   }
   if (prepull !== null && !planned.has(prepull)) after.add(prepull);
-  return [...after].sort((a, b) => a - b).map((at) => ({ kind: 'gcd', at, prepull: at === prepull }));
+  return [...after]
+    .sort((a, b) => a - b)
+    .map((at) => ({
+      kind: 'gcd',
+      at,
+      prepull: at === prepull,
+      castAt: at === prepull ? countdownStart(at, casts[0].castMs, castMs) : null,
+    }));
 }
 
 // How many hits the plan leaves short of the margin.
