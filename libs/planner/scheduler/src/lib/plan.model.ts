@@ -107,6 +107,9 @@ export interface ToolPool {
   name: string;
   gainMs: number;
   max: number;
+  // A pool that fills only at these moments, to `max` (Aetherflow and
+  // Dissipation's stacks), from empty: `gainMs` is then how often it comes.
+  refills?: number[];
 }
 
 // An action another grants: usable only after a use of that one, up to

@@ -4288,6 +4288,8 @@ export interface components {
         email: string;
         username: string;
         password: string;
+        characterName?: string | null;
+        server?: string | null;
       };
       turnstileToken?: string;
     };
@@ -4318,6 +4320,8 @@ export interface components {
         /** Format: email */
         email?: string;
         username?: string;
+        characterName?: string | null;
+        server?: string | null;
         password?: string;
         currentPassword?: string;
         bio?: string | null;
@@ -4880,6 +4884,7 @@ export interface components {
         actors: {
           id: string;
           username: string;
+          displayName: string;
           image: string;
         }[];
         actorCount: number;
@@ -5120,6 +5125,9 @@ export interface components {
     Profile: {
       id: string;
       username: string;
+      characterName: string | null;
+      server: string | null;
+      displayName: string;
       following: boolean;
       bio: string | null;
       image: string;
@@ -5415,6 +5423,9 @@ export interface components {
       id: string;
       email: string;
       username: string;
+      characterName: string | null;
+      server: string | null;
+      displayName: string;
       token: string;
       bio: string | null;
       image: string;

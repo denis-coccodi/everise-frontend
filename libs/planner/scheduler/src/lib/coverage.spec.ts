@@ -1,4 +1,4 @@
-import { fitsGrant, fitsPool, fitsRecast, poolFull, projected } from './coverage';
+import { fitsGrant, fitsPool, fitsRecast, poolFull, poolLevel, projected } from './coverage';
 import { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
 import type { PullFacts } from './coverage.model';
 
@@ -204,6 +204,21 @@ describe('fitsPool', () => {
     expect(poolFull([0], 5_000, pool)).toBe(false);
     expect(poolFull([0], 20_000, pool)).toBe(true);
     expect(poolFull([0, 10_000], 25_000, pool)).toBe(false);
+  });
+});
+
+describe('a pool refilled at set moments', () => {
+  // Aetherflow at 2s and Dissipation at 15s: 3 stacks each, never more than 3.
+  const pool = { name: 'Aetherflow', gainMs: 60_000, max: 3, refills: [2_000, 15_000] };
+
+  it('starts empty and fills to 3 at each refill', () => {
+    expect(fitsPool([], 1_000, pool)).toBe(false);
+    expect(fitsPool([3_000, 4_000], 5_000, pool)).toBe(true);
+    expect(fitsPool([3_000, 4_000, 5_000], 6_000, pool)).toBe(false);
+    // A stack left over at the refill is lost: still 3, not 4.
+    expect(fitsPool([3_000, 16_000, 17_000, 18_000], 19_000, pool)).toBe(false);
+    expect(poolLevel([3_000], 10_000, pool)).toBe(2);
+    expect(poolLevel([3_000], 15_000, pool)).toBe(3);
   });
 });
 
