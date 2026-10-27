@@ -53,10 +53,11 @@ export function withDraws<T extends { player: number; pool: ToolPool | null }>(t
   });
 }
 
-// The openers' steps the plan counts as it plans: their heals (Assize, the
-// Raptures, Pneuma, an Earthly Star in the countdown) and Afflatus Misery.
-export function placedSteps(opening: Opening, isHeal: (use: PlannedUse) => boolean): PlannedUse[] {
-  return opening.uses.filter((u) => isHeal(u) || u.action === AFFLATUS_MISERY);
+// The openers' steps the plan counts as it plans: their heals and
+// mitigations (Assize, the Raptures, Pneuma, an Earthly Star or The Blackest
+// Night in the countdown) and Afflatus Misery.
+export function placedSteps(opening: Opening, isTool: (use: PlannedUse) => boolean): PlannedUse[] {
+  return opening.uses.filter((u) => isTool(u) || u.action === AFFLATUS_MISERY);
 }
 
 // The openers' other steps, for the plan to show: a scholar's Energy

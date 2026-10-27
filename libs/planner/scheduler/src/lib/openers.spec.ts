@@ -85,6 +85,29 @@ describe('openingOf', () => {
     expect(double.filter((u) => u.action === 16535).map((u) => u.at)).toEqual([13_000, 28_000]);
   });
 
+  it("has the tanks' buffs and enablers at their GCDs, a dark knight's The Blackest Night in the countdown", () => {
+    const at = (job: string) => steps(job).uses.map((u) => [u.action, u.at]);
+
+    expect(at('PLD')).toEqual([[20, 8_700]]); // Fight or Flight after Royal Authority
+    // Infuriate after the precast Tomahawk, Inner Release after Storm's
+    // Eye, Infuriate after the third Fell Cleave and after the last of
+    // these GCDs (13th; the 14th's time, as if every 2.5s).
+    expect(at('WAR')).toEqual([
+      [52, 1_200],
+      [7389, 8_700],
+      [52, 23_700],
+      [52, 35_700],
+    ]);
+    expect(at('DRK')).toEqual([
+      [7393, -3_000],
+      [7390, 8_700],
+    ]);
+    expect(at('GNB')).toEqual([
+      [16164, 1_200],
+      [16138, 6_200],
+    ]);
+  });
+
   it("has a sage's Pneuma precast in the Pneuma opener only", () => {
     expect(steps('SGE').uses.map((u) => u.action)).toEqual([37033]);
     expect(steps('SGE', 'pneuma').uses.map((u) => [u.action, u.at])).toEqual([

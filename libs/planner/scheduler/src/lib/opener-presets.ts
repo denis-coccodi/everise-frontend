@@ -112,4 +112,58 @@ export const OPENERS: Record<string, OpenerPreset[]> = {
     },
     NONE,
   ],
+  // The tanks' openers, their buffs and enablers only (the rest is damage).
+  // Paladin: precast Holy Spirit, Fast Blade, Riot Blade, Royal Authority
+  // and Fight or Flight with Imperator, then Confiteor and the Blades.
+  PLD: [
+    { id: 'standard', name: 'Standard', source: 'Icy Veins (7.55)', steps: [{ action: 20, afterGcd: 3 }] }, // Fight or Flight
+    NONE,
+  ],
+  // Warrior: precast Tomahawk and Infuriate, Heavy Swing, Maim, Storm's Eye
+  // and Inner Release, Inner Chaos, Primal Rend, Primal Ruination, three
+  // Fell Cleaves and another Infuriate, a combo, and the third Infuriate.
+  WAR: [
+    {
+      id: 'standard',
+      name: 'Standard',
+      source: 'Icy Veins (7.55)',
+      steps: [
+        { action: 52, afterGcd: 0 }, // Infuriate
+        { action: 7389, afterGcd: 3 }, // Inner Release
+        { action: 52, afterGcd: 9 },
+        { action: 52, afterGcd: 14 },
+      ],
+    },
+    NONE,
+  ],
+  // Dark Knight: The Blackest Night at -3s (for the boss's first autos),
+  // precast Unmend, Hard Slash with Living Shadow, Syphon Strike, Souleater
+  // and Delirium, then its GCDs.
+  DRK: [
+    {
+      id: 'standard',
+      name: 'Standard',
+      source: 'Icy Veins (7.4)',
+      steps: [
+        { action: 7393, at: -3_000 }, // The Blackest Night
+        { action: 7390, afterGcd: 3 }, // Delirium
+      ],
+    },
+    NONE,
+  ],
+  // Gunbreaker: precast Lightning Shot and Bloodfest, Keen Edge, Brutal
+  // Shell and No Mercy (after the potion), then Gnashing Fang and Double
+  // Down.
+  GNB: [
+    {
+      id: 'standard',
+      name: 'Standard',
+      source: 'Icy Veins (7.55)',
+      steps: [
+        { action: 16164, afterGcd: 0 }, // Bloodfest
+        { action: 16138, afterGcd: 2 }, // No Mercy
+      ],
+    },
+    NONE,
+  ],
 };

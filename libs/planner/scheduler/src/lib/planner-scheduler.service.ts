@@ -59,16 +59,19 @@ export class PlannerScheduler {
         withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening),
       );
     // A scholar's fairy orders wait for her while Dissipation has her away;
-    // Lux Solaris and Star Prism wait for the burst that grants them.
+    // Lux Solaris waits for the burst that grants it.
     const mitigation = opened(mitigationTools(timeline.players, catalog, power));
     // The others' heals stay in the pull's healing, as played.
     const heals = opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned));
-    const healKeys = new Set(heals.map((t) => t.player + ':' + t.action));
-    const placed = placedSteps(opening, (u) => healKeys.has(u.player + ':' + u.action));
-    const fixed = playedUses(
+    // An opener's heals and mitigations (The Blackest Night) stay as it has them.
+    const tools = new Set([...heals, ...mitigation.filter(replanned)].map((t) => t.player + ':' + t.action));
+    const placed = placedSteps(opening, (u) => tools.has(u.player + ':' + u.action));
+    const mitigates = new Set(mitigation.map((t) => t.player + ':' + t.action));
+    const played = playedUses(
       timeline,
       mitigation.filter((t) => !replanned(t)),
     );
+    const fixed = [...played, ...placed.filter((u) => mitigates.has(u.player + ':' + u.action))];
     const mechanics = mechanicsOf(timeline);
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
