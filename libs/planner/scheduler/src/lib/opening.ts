@@ -1,23 +1,13 @@
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
 import { AFFLATUS_MISERY, OPENERS } from './opener-presets';
 import { astrologianDraws, openerUses, scholarTimes, withStacksLeft } from './openers';
-import type { OpenerId } from './openers.model';
+import type { OpenerId, Opening } from './openers.model';
 import type { PlannedUse, ToolPool } from './plan.model';
 
 // The cards each draw gives that the plan counts: Astral Draw's the Arrow
 // and the Spire, Umbral Draw's the Bole, the Ewer and Lady of Crowns.
 const ASTRAL_CARDS = ['the Arrow', 'the Spire'];
 const UMBRAL_CARDS = ['the Bole', 'the Ewer', 'Lady of Crowns'];
-
-// What the replanned players' openers (the standard one unless `chosen`
-// says otherwise) change in the plan: each scholar's Aetherflow refills
-// and Dissipations, each astrologian's draws, and the openers' steps.
-export interface Opening {
-  refills: Map<number, number[]>;
-  dissipations: Map<number, number[]>;
-  draws: Map<number, { astral: number[]; umbral: number[] }>;
-  uses: PlannedUse[];
-}
 
 export function openingOf(
   timeline: PullTimeline,

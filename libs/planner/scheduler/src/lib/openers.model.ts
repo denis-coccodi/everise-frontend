@@ -1,3 +1,5 @@
+import type { PlannedUse } from './plan.model';
+
 // An opener a replanned player can start the pull with (see OPENERS):
 // "none" has no opener, the plan placing what it needs.
 export type OpenerId = 'standard' | 'dissipation-first' | 'double-misery' | 'pneuma' | 'none';
@@ -20,4 +22,14 @@ export interface OpenerPreset {
   // Where it comes from, for the page to say.
   source: string;
   steps: OpenerStep[];
+}
+
+// What the replanned players' openers (the standard one unless `chosen`
+// says otherwise) change in the plan: each scholar's Aetherflow refills
+// and Dissipations, each astrologian's draws, and the openers' steps.
+export interface Opening {
+  refills: Map<number, number[]>;
+  dissipations: Map<number, number[]>;
+  draws: Map<number, { astral: number[]; umbral: number[] }>;
+  uses: PlannedUse[];
 }
