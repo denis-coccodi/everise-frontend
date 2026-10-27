@@ -18,13 +18,18 @@ const REPLACED_BY: Record<number, number> = {
   133: 37010, // Medica II → Medica III
 };
 
-// Statuses that don't stack with each other, though they differ.
+// Statuses that don't stack with each other, though they differ: the ranged
+// party mitigations, Kerachole and Taurochole, and the scholar's Galvanize
+// and the sage's Eukrasian barriers (the tooltips' "cannot be stacked").
 const SAME_STACK: Record<string, string> = {
   Troubadour: 'ranged party mitigation',
   Tactician: 'ranged party mitigation',
   'Shield Samba': 'ranged party mitigation',
   Kerachole: 'Kerachole or Taurochole',
   Taurochole: 'Kerachole or Taurochole',
+  Galvanize: 'Galvanize or a Eukrasian barrier',
+  'Eukrasian Diagnosis': 'Galvanize or a Eukrasian barrier',
+  'Eukrasian Prognosis': 'Galvanize or a Eukrasian barrier',
 };
 
 // What really limits some actions, rather than their recast: the Oath
@@ -268,7 +273,7 @@ function shieldEffects(
       hits: e.stacks ?? 1,
       durationMs: e.durationMs as number,
       status,
-      stack: status,
+      stack: SAME_STACK[status] ?? status,
       invulnerable: null,
     });
   }
