@@ -45,9 +45,9 @@ describe('PullCompareComponent', () => {
     );
 
     expect(rows).toEqual([
-      ['1:00', ['Rampart'], []],
-      ['1:05', ['Vengeance'], ['Reprisal']],
-      ['1:30', [], ['Feint']],
+      ['1:00.0', ['Rampart'], []],
+      ['1:05.0', ['Vengeance'], ['Reprisal']],
+      ['1:30.0', [], ['Feint']],
     ]);
     expect([...host.querySelectorAll('thead th')].map((th) => th.textContent?.trim())).toEqual([
       'Time',
@@ -87,7 +87,7 @@ describe('PullCompareComponent', () => {
 
     expect(scrolled).toEqual(['90000']);
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('tr.revealed th')?.textContent?.trim()).toBe('1:30');
+    expect(host.querySelector('tr.revealed th')?.textContent?.trim()).toBe('1:30.0');
     expect(host.querySelector('.scroller')?.getAttribute('aria-label')).toBe("Tank Main's timeline");
   });
 });

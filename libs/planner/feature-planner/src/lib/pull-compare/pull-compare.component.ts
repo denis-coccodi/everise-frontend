@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
-import { LogEntry, PlanEntry, compareLog, pullClock } from '@everise/planner/data-access';
+import { LogEntry, PlanEntry, compareLog, pullClockTenths } from '@everise/planner/data-access';
 import { PlanEntryComponent } from '../plan-entry/plan-entry.component';
 import { PlayedEntryComponent } from '../played-entry/played-entry.component';
 
@@ -24,7 +24,7 @@ export class PullCompareComponent {
   readonly planned = input.required<PlanEntry[] | null>();
   readonly shown = input<'played' | 'plan'>('played');
 
-  protected readonly clock = pullClock;
+  protected readonly clock = pullClockTenths;
   protected readonly rows = computed(() => compareLog(this.played(), this.planned() ?? []));
   // The moment last opened from elsewhere (the HP chart), marked.
   protected readonly revealed = signal<number | null>(null);

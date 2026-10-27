@@ -12,3 +12,12 @@ export function pullClock(ms: number): string {
 export function countdownStart(at: number, loggedCastMs: number | null, castMs: number): number | null {
   return loggedCastMs === null && castMs > at ? at - castMs : null;
 }
+
+// A time in a pull to the tenth of a second: "0:05.3", "12:30.0", or
+// "-0:01.3" in the countdown, for the pull's table.
+export function pullClockTenths(ms: number): string {
+  const tenths = Math.floor(Math.abs(ms) / 100);
+  const seconds = Math.floor(tenths / 10);
+  const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}.${tenths % 10}`;
+  return ms < 0 && tenths > 0 ? `-${text}` : text;
+}

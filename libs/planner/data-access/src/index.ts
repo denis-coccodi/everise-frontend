@@ -4,7 +4,7 @@ export { playerLog } from './lib/player-log';
 export { PlannerStore } from './lib/planner.store';
 export { PlannerService } from './lib/planner.service';
 export { readReportLink } from './lib/report-link';
-export { pullClock } from './lib/pull-time';
+export { pullClock, pullClockTenths } from './lib/pull-time';
 export { planLog, unsafeHits } from './lib/plan-log';
 export { hpCurves, lowest, lowestPerBucket, shareAt } from './lib/hp-curves';
 export type { HpCurve, HpMark, HpPoint } from './lib/hp-curves.model';
