@@ -11,6 +11,7 @@ import { playedUses } from './played-uses';
 import { Weaving } from './weaving';
 import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { mitigationTools } from './tools';
+import { catalogAtLevel, pullLevel } from './trait-levels';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -28,7 +29,9 @@ export class PlannerScheduler {
   // better. Only the players `asked` to replan are planned, the others as
   // they played; the tanks' invulnerabilities go where `asked` says, or
   // where the pull had them.
-  plan(timeline: PullTimeline, catalog: ActionCatalog, asked: PlanOptions): Plan {
+  plan(timeline: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+    // The actions as the pull's level has them (its traits).
+    const catalog = catalogAtLevel(full, pullLevel(timeline));
     const maxHp = new Map<number, number>();
     for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player);
