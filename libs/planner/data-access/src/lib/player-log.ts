@@ -4,7 +4,8 @@ import { countdownStart } from './pull-time';
 import type { HitEntry, UseEntry, DeathEntry, LogEntry } from './player-log.model';
 
 // One player's pull, in time order: the hits they took (not damage over
-// time ticks), the heals and mitigations they used, and their deaths.
+// time ticks), the heals and mitigations they used, what they began casting
+// in the countdown, and their deaths.
 export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, playerId: number): LogEntry[] {
   const actionName = names(timeline.actions);
   const statusName = names(timeline.statuses);
@@ -42,8 +43,15 @@ export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, player
       ],
     }));
 
+  // Their heals and mitigations, and whatever they began casting in the
+  // countdown (a damage spell too), so every tab starts where its player did.
+  const begun = (cast: PullTimeline['playerCasts'][number], action: CatalogAction | undefined) =>
+    !!action && countdownStart(cast.at, cast.castMs, action.castMs) !== null;
   const uses: UseEntry[] = timeline.playerCasts
-    .filter((cast) => cast.source === playerId && (actions.get(cast.action)?.effects.length ?? 0) > 0)
+    .filter((cast) => {
+      const action = actions.get(cast.action);
+      return cast.source === playerId && ((action?.effects.length ?? 0) > 0 || begun(cast, action));
+    })
     .map((cast) => {
       const action = actions.get(cast.action) as CatalogAction;
       // Who a single-target heal, shield or mitigation went on.
@@ -56,7 +64,7 @@ export function playerLog(timeline: PullTimeline, catalog: ActionCatalog, player
         icon: action.icon,
         description: action.description ?? null,
         target,
-        effects: effectsText(action.effects),
+        effects: action.effects.length ? effectsText(action.effects) : 'Begun in the countdown',
         castAt: countdownStart(cast.at, cast.castMs, action.castMs),
       };
     });
