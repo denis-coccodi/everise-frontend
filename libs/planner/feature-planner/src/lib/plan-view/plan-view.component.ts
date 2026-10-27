@@ -39,8 +39,8 @@ export class PlanViewComponent {
   protected readonly openerHint = computed(() => {
     const chosen = this.openers().find((o) => o.id === this.opener());
     return chosen?.source
-      ? `${chosen.name}, from ${chosen.source}: the pull starts with it, Aetherflow on cooldown after it.`
-      : 'No opener: the plan places Aetherflow on cooldown from the first GCD, and Dissipation where it was used.';
+      ? `${chosen.name}, from ${chosen.source}: the pull starts with it, and the plan follows on from it.`
+      : 'No opener: the plan places everything itself from the pull.';
   });
   // What a replanned healer favours: damage unless set to healing.
   protected readonly favour = computed(() => this.plans.favour()[this.player().id] ?? 'dps');

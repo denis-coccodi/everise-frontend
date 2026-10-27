@@ -430,4 +430,18 @@ describe('PlannerScheduler', () => {
       expect(usesBy(p, 1)).not.toContainEqual(['Rampart', 58_000]);
     });
   });
+
+  it("keeps a white mage's opener Assize, and Assize's recast after it", () => {
+    const timeline = pull([[30, 'Raidwide', 1, 30_000]]);
+    timeline.players = timeline.players.map((p) => (p.id === 2 ? { ...p, job: 'WHM' } : p));
+    const cat = catalog();
+    cat.actions.push(action(3571, 'Assize', ['WHM'], 40, [{ ...heal(400), target: 'party' }]));
+
+    const p = new PlannerScheduler().plan(timeline, cat, { margin: 0.1 });
+    const assizes = p.uses.filter((u) => u.name === 'Assize').map((u) => [u.at, !!u.opener]);
+
+    // Woven after the 4th GCD (none played: 2.5s apart), then on cooldown.
+    expect(assizes[0]).toEqual([10_700, true]);
+    for (const [at] of assizes.slice(1)) expect(at).toBeGreaterThanOrEqual(50_700);
+  });
 });
