@@ -1,5 +1,5 @@
 import { action, catalog, heal, party } from './scheduler-fixtures';
-import { POOLS, castMsOf, mitigationTools, pressedFirst } from './tools';
+import { POOLS, castMsOf, mitigationTools, pressedFirst, withGrantedCovers } from './tools';
 
 describe('Eukrasia', () => {
   it('comes before each Eukrasian heal, which lands 1.6s into its slot', () => {
@@ -210,3 +210,24 @@ function stats() {
     tenacity: 0,
   };
 }
+
+describe('withGrantedCovers', () => {
+  it('has Seraphism cover what the Accessions it grants cover', () => {
+    const use = (action: number, name: string, at: number, covers: number[]) => ({
+      player: 2,
+      action,
+      name,
+      at,
+      target: null,
+      covers,
+    });
+    const uses = [
+      use(37014, 'Seraphism', 10_000, []),
+      use(37016, 'Accession', 12_000, [1]),
+      use(37016, 'Accession', 40_000, [2]),
+    ];
+
+    // The second Accession is past Seraphism's 20s.
+    expect(withGrantedCovers(uses)[0].covers).toEqual([1]);
+  });
+});

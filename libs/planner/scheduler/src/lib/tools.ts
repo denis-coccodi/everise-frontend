@@ -1,5 +1,5 @@
 import { ActionCatalog, ActionEffect, CatalogAction, TimelinePlayer } from '@everise/core/api-types';
-import { Grant, Invulnerability, MitigationEffect, MitigationTool, ToolPool } from './plan.model';
+import { Grant, Invulnerability, MitigationEffect, MitigationTool, PlannedUse, ToolPool } from './plan.model';
 
 // Actions a trait replaces, and what with: from that action's level, the
 // old one is gone from the hotbar. (The catalog lists both, for lower-level
@@ -101,9 +101,21 @@ export const GRANTED: Record<number, Grant> = {
 };
 // Actions that grant another but mitigate nothing themselves (Neutral
 // Sect's buff and barriers are for the heals; Summon Seraph only brings
-// her): tools all the same, so the plan can use one with what it grants
-// (Sun Sign, Consolation).
-const GRANTING = new Set([16559, SUMMON_SERAPH]);
+// her; Seraphism's is a regen): tools all the same, so the plan can use one
+// with what it grants (Sun Sign, Consolation, Accession and Manifestation).
+const GRANTING = new Set([16559, SUMMON_SERAPH, SERAPHISM.action]);
+// A plan's uses, each granting one with no mechanic of its own (Seraphism,
+// Neutral Sect) for those of what it grants after it.
+export function withGrantedCovers(uses: PlannedUse[]): PlannedUse[] {
+  return uses.map((g) => {
+    if (g.covers.length || !GRANTING.has(g.action)) return g;
+    const granted = uses.filter((u) => {
+      const grant = GRANTED[u.action];
+      return u.player === g.player && grant?.action === g.action && u.at >= g.at && u.at <= g.at + grant.withinMs;
+    });
+    return { ...g, covers: [...new Set(granted.flatMap((u) => u.covers))] };
+  });
+}
 // What a pet casts on its own, never ordered (Seraphic Veil): the plan
 // works it out with the fairy's other healing (fairy-heals.ts).
 export const AUTOMATIC = new Set([SERAPHIC_VEIL]);

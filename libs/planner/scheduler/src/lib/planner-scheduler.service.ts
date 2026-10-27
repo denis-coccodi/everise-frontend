@@ -10,7 +10,7 @@ import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
 import { Weaving, WEAVE_MS } from './weaving';
 import { HealTool, InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
-import { AUTOMATIC, mitigationTools } from './tools';
+import { AUTOMATIC, mitigationTools, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { withAetherflow } from './aetherflow';
 import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
@@ -212,12 +212,11 @@ export class PlannerScheduler {
     );
     const taken = [...best.uses, ...drains, ...rhizomata];
     const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken);
+    const own = withGrantedCovers(best.uses).filter((u) => !AUTOMATIC.has(u.action));
     return {
       ...best,
       replanned: replannedPlayers.map((p) => p.id),
-      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...drains, ...burst, ...rhizomata].sort(
-        (a, b) => a.at - b.at || a.player - b.player,
-      ),
+      uses: [...own, ...drains, ...burst, ...rhizomata].sort((a, b) => a.at - b.at || a.player - b.player),
     };
   }
 

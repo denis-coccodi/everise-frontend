@@ -141,6 +141,48 @@ describe('PlannerScheduler', () => {
     expect(planWith(sunSign).uses.map((u) => u.name)).not.toContain('Sun Sign');
   });
 
+  it('uses Seraphism for the Accession it grants, though its own regen does little', () => {
+    // 140,000 on everyone at 60s, after the opener's Dissipation (no
+    // Seraphism with it): the others' mitigations leave 96,330, over the
+    // 90,000 allowed; Accession's 10% (a stand-in for its Galvanize) brings
+    // it under.
+    const accession = action(
+      37016,
+      'Accession',
+      ['SCH'],
+      2.5,
+      [
+        {
+          ...heal(0),
+          kind: 'mitigation',
+          target: 'party',
+          status: 'Accession',
+          potency: null,
+          percent: 10,
+          durationMs: 30_000,
+        },
+      ],
+      { gcd: true },
+    );
+    const seraphism = action(37014, 'Seraphism', ['SCH'], 180, [
+      { ...heal(100), kind: 'regen', target: 'party', status: 'Seraphism', durationMs: 20_000 },
+    ]);
+    const hits = [1, 2, 3].map((player): [number, string, number, number] => [60, 'Raidwide', player, 140_000]);
+    const planWith = (...extra: ReturnType<typeof action>[]) => {
+      // The scholar with only these.
+      const cat = catalog();
+      cat.actions = [...cat.actions.filter((a) => !a.jobs.includes('SCH')), ...extra];
+      return new PlannerScheduler().plan(pull(hits, healed), cat, { margin: 0.1 });
+    };
+
+    const p = planWith(accession, seraphism);
+    const at = (name: string) => p.uses.find((u) => u.name === name)?.at;
+    expect(at('Accession')).toBeDefined();
+    expect((at('Accession') ?? 0) - (at('Seraphism') ?? -Infinity)).toBeLessThanOrEqual(20_000);
+    // No Seraphism, no Accession.
+    expect(planWith(accession).uses.map((u) => u.name)).not.toContain('Accession');
+  });
+
   it('makes the spread Adloquium critical with Recitation where a bigger Galvanize is needed', () => {
     // 230,000 on everyone: about 94,000 left with a 54,000 Galvanize, over
     // the 90,000 allowed; critical (×1.5 without stats), 81,000 of it.
