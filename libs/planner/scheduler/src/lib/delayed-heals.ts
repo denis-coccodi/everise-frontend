@@ -9,8 +9,8 @@ import type { HpEvent } from './hp-track.model';
 // - a heal by stacks (Haima, Panhaima, Liturgy of the Bell): each hit on
 //   whoever holds them uses one up (Liturgy healing the party then), and the
 //   rest heal when it ends;
-// - Macrocosmos when it ends, with its share of the damage each took
-//   meanwhile on top;
+// - Macrocosmos when it ends or is set off (`delayMs`), with its share of
+//   the damage each took meanwhile on top;
 // any other `delayMs` after it lands (Earthly Star, Exaltation; 0 for a
 // heal that lands as it's cast). `hitTimes` says when the mechanics hit a
 // player after one moment, up to another (inclusive).
@@ -52,8 +52,13 @@ export function delayedEvents(
     return events;
   }
   if (delayed.damageShare !== null) {
+    // At its end, or sooner when set off (Microcosmos), with what it has
+    // gathered by then.
     const share = delayed.damageShare;
-    return atEnd().map((e) => ({ ...e, amount: e.amount + share * track.damageBetween(e.player, from, to) }));
+    return healEvents(tool, use, party, maxHp, delayMs).map((e) => ({
+      ...e,
+      amount: e.amount + share * track.damageBetween(e.player, from, from + delayMs),
+    }));
   }
   return plain();
 }

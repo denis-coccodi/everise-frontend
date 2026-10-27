@@ -11,6 +11,7 @@ const LEAD_MS = 500;
 const AFTER_MS = 1000;
 // How long before the pull an Earthly Star can go down (in the countdown).
 const PREPULL_MS = 15_000;
+const EARTHLY_STAR = 7439;
 // What a heal's healing is worth for what it costs (`HealCost`): a free
 // oGCD first, then one spending Aetherflow, a GCD that costs no damage
 // (Afflatus Solace), then any other GCD, which costs a GCD of damage. One
@@ -67,8 +68,9 @@ export function best(
             late: lands === latest,
           })),
         );
-  // Earthly Star can go down before the pull, in the countdown.
-  const first = tool.delayed?.release ? -PREPULL_MS : 0;
+  // Earthly Star can go down before the pull, in the countdown (not
+  // Macrocosmos, a damage spell).
+  const first = tool.action === EARTHLY_STAR ? -PREPULL_MS : 0;
   for (const moment of moments) {
     const { delayMs } = moment;
     const lo = Math.max(first, earliest - tool.castMs - delayMs);
