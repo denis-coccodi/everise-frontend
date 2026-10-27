@@ -1,3 +1,14 @@
+@if (replanned() && openers().length) {
+  <cdt-field label="Opener" for="planner-opener" [hint]="openerHint()">
+    <select #opening id="planner-opener" cdtInput class="opener" (change)="setOpener(opening.value)">
+      @for (o of openers(); track o.id) {
+        <option [value]="o.id" [selected]="opener() === o.id">
+          {{ o.id === 'standard' ? 'Use standard opener' : o.name }}
+        </option>
+      }
+    </select>
+  </cdt-field>
+}
 @if (replanned() && player().role === 'healer') {
   <cdt-field
     label="Favour"

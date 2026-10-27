@@ -5,8 +5,12 @@ import { action, catalog, heal, pull } from './scheduler-fixtures';
 describe('PlannerScheduler', () => {
   // The scholar healed 60,000 with a 600 potency Lustrate: 100 HP a potency.
   const healed: [number, number, number, number][] = [[1, 2, 189, 60_000]];
-  const plan = (hits: [number, string, number, number][], margin = 0.1) =>
-    new PlannerScheduler().plan(pull(hits, healed), catalog(), { margin });
+  // The scholar's opener steps (Energy Drains...) aside: these are about
+  // the heals and mitigations.
+  const plan = (hits: [number, string, number, number][], margin = 0.1) => {
+    const p = new PlannerScheduler().plan(pull(hits, healed), catalog(), { margin });
+    return { ...p, uses: p.uses.filter((u) => !u.opener) };
+  };
   const usesOf = (p: ReturnType<typeof plan>) => p.uses.map((u) => [u.name, u.at / 1000]);
 
   it("shields what mitigation can't bring within the margin, a GCD shield last", () => {

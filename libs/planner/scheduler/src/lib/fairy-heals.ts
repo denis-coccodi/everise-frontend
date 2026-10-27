@@ -37,15 +37,22 @@ export function cutsUnion(action: number, at: number, timesOf: (action: number) 
 export const fairyPotency = (level: number) => (level >= 85 ? 180 : 150);
 
 // When a scholar's fairy is away, as played: 30s from each Dissipation.
-const dissipations = (timeline: PullTimeline, scholar: number) =>
-  timeline.playerCasts
-    .filter((c) => c.source === scholar && c.action === DISSIPATION)
-    .map((c) => ({ from: c.at, to: c.at + DISSIPATION_MS }));
+// (or at the times `given`, an opener's).
+const dissipations = (timeline: PullTimeline, scholar: number, given?: number[]) =>
+  (given ?? timeline.playerCasts.filter((c) => c.source === scholar && c.action === DISSIPATION).map((c) => c.at)).map(
+    (at) => ({ from: at, to: at + DISSIPATION_MS }),
+  );
 
 // The tools with the spans their player's fairy is away in, for those that
 // need her: none of them while Dissipation has her away.
-export function withFairyAway<T extends { player: number; action: number }>(timeline: PullTimeline, tools: T[]): T[] {
-  return tools.map((t) => (NEEDS_FAIRY.has(t.action) ? { ...t, away: dissipations(timeline, t.player) } : t));
+export function withFairyAway<T extends { player: number; action: number }>(
+  timeline: PullTimeline,
+  tools: T[],
+  given = new Map<number, number[]>(),
+): T[] {
+  return tools.map((t) =>
+    NEEDS_FAIRY.has(t.action) ? { ...t, away: dissipations(timeline, t.player, given.get(t.player)) } : t,
+  );
 }
 
 // The keys (scholar:action) of the heals `fairyHeals` works out, for the
@@ -79,10 +86,11 @@ export function fairyHeals(
   hp: PlannedHp[],
   maxHp: Map<number, number>,
   potency: number,
+  given?: number[],
 ): { events: HpEvent[]; casts: PlannedUse[] } {
   const first = timeline.heals.find((h) => h.source === scholar && h.pet)?.at;
   if (first === undefined || !power) return { events: [], casts: [] };
-  const away = dissipations(timeline, scholar);
+  const away = dissipations(timeline, scholar, given);
   const seraph = uses
     .filter((u) => u.player === scholar && u.action === SUMMON_SERAPH)
     .map((u) => ({ from: u.at, to: u.at + SERAPH_MS }));

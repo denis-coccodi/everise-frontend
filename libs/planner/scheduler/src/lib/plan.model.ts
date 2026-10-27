@@ -1,3 +1,4 @@
+import type { OpenerId } from './openers';
 // What the scheduler plans from and what it answers. Times are ms from the
 // pull's start.
 
@@ -15,6 +16,9 @@ export interface PlanOptions {
   // What each replanned player favours, by id: damage (the default) or
   // healing (`Favour`).
   favour?: Record<number, Favour>;
+  // The opener each replanned player starts with, by id, for the jobs that
+  // have them (`OPENERS`); left out, the standard one.
+  openers?: Record<number, OpenerId>;
 }
 
 // Favouring damage, a healer spends what would overcap on damage (a white
@@ -283,6 +287,9 @@ export interface PlannedUse {
   // A lily spent because the lilies are full (favouring damage), so none
   // goes to waste and the Blood Lily charges the next Misery.
   overcap?: boolean;
+  // A step of the player's opener (an Energy Drain, Chain Stratagem...),
+  // shown with the plan.
+  opener?: boolean;
 }
 
 // A hit as the plan leaves it.

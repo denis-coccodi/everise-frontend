@@ -1,7 +1,7 @@
 import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { Favour, InvulnerabilityChoice, InvulnerabilityOptions, Plan } from '@everise/planner/scheduler';
+import type { Favour, InvulnerabilityChoice, InvulnerabilityOptions, OpenerId, Plan } from '@everise/planner/scheduler';
 import type { InvulnerabilitySetting, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
@@ -30,6 +30,9 @@ interface PlanState {
   invulnerabilities: InvulnerabilityChoice[];
   // What each player favours, damage (left out) or healing, by id.
   favour: Record<number, Favour>;
+  // The opener each player starts with, the standard one (left out) or
+  // another (`OPENERS`), by id.
+  openers: Record<number, OpenerId>;
   invulnerabilityOptions: InvulnerabilityOptions | null;
   // The last plan, and the pull it's for.
   plan: Plan | null;
@@ -50,6 +53,7 @@ export const PlanStore = signalStore(
     replan: [],
     invulnerabilities: [],
     favour: {},
+    openers: {},
     invulnerabilityOptions: null,
     plan: null,
     pullId: null,
@@ -90,6 +94,7 @@ export const PlanStore = signalStore(
           replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
           invulnerabilities: [],
           favour: {},
+          openers: {},
           invulnerabilityOptions: null,
         });
         try {
@@ -109,6 +114,9 @@ export const PlanStore = signalStore(
       // new one for an invulnerability that has none.
       setFavour(player: number, favour: Favour) {
         patchState(store, { favour: { ...store.favour(), [player]: favour } });
+      },
+      setOpener(player: number, opener: OpenerId) {
+        patchState(store, { openers: { ...store.openers(), [player]: opener } });
       },
       setInvulnerability(player: number, action: number, index: number | null, setting: InvulnerabilitySetting) {
         const list = [...store.invulnerabilities()];
@@ -131,6 +139,7 @@ export const PlanStore = signalStore(
             replan: store.replan(),
             invulnerabilities: store.invulnerabilities(),
             favour: store.favour(),
+            openers: store.openers(),
           });
           patchState(store, { plan, pullId, planning: false });
         } catch {

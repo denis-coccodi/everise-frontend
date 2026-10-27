@@ -55,6 +55,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       covers: [...new Set(use.covers.map((id) => mechanic.get(id)?.name ?? 'Unknown'))],
       damage: use.damage ?? false,
       overcap: use.overcap ?? false,
+      ...(use.opener ? { opener: true } : {}),
     }));
   // A use comes before the hits it's for.
   return [...damageGcds(plan, timeline, playerId, catalog), ...uses, ...hits].sort((a, b) => a.at - b.at);
