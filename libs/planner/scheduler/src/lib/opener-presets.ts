@@ -41,7 +41,7 @@ export const OPENERS: Record<string, OpenerPreset[]> = {
   SCH: [
     {
       id: 'standard',
-      name: 'Standard: Aetherflow first',
+      name: 'Aetherflow first',
       source: SCHOLAR_SOURCE,
       steps: scholarOpener(AETHERFLOW, DISSIPATION),
     },

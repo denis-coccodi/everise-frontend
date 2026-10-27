@@ -88,11 +88,11 @@ describe('PlanViewComponent', () => {
     expect(opener()).toBeNull();
     click(rendered, replanTick(rendered.page, 'Heal Main'));
     expect([...(opener()?.options ?? [])].map((o) => o.textContent?.trim())).toEqual([
-      'Use standard opener',
+      'Aetherflow first',
       'Dissipation first',
       'None: planned without an opener',
     ]);
-    expect(opener()?.selectedOptions[0].textContent?.trim()).toBe('Use standard opener');
+    expect(opener()?.selectedOptions[0].textContent?.trim()).toBe('Aetherflow first');
 
     const field = opener() as HTMLSelectElement;
     field.value = 'dissipation-first';
