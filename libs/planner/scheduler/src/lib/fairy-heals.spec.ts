@@ -1,4 +1,4 @@
-import { fairyHeals, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
+import { cutsUnion, fairyHeals, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import { party, pull } from './scheduler-fixtures';
 
 describe('fairyHeals', () => {
@@ -98,5 +98,19 @@ describe('fairyHeals', () => {
       [{ from: 60_000, to: 90_000 }],
       null,
     ]);
+  });
+});
+
+describe('cutsUnion', () => {
+  // An Aetherpact at 10s (its union to 22s), a Whispering Dawn at 40s.
+  const timesOf = (action: number) => ({ 7437: [10_000], 16537: [40_000] })[action as 7437 | 16537] ?? [];
+
+  it('keeps fairy orders and Summon Seraph out of a union, and a union off an order coming', () => {
+    expect(cutsUnion(16543, 15_000, timesOf)).toBe(true); // Fey Blessing in it
+    expect(cutsUnion(16545, 21_000, timesOf)).toBe(true); // Summon Seraph
+    expect(cutsUnion(16543, 22_000, timesOf)).toBe(false); // after its last tick
+    expect(cutsUnion(7437, 30_000, timesOf)).toBe(true); // Whispering Dawn at 40s
+    expect(cutsUnion(7437, 41_000, timesOf)).toBe(false);
+    expect(cutsUnion(185, 15_000, timesOf)).toBe(false); // Adloquium
   });
 });

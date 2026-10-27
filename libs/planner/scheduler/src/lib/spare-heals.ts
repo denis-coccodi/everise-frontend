@@ -1,4 +1,5 @@
 import { fitsPool, fitsRecast, isAway, poolLevel } from './coverage';
+import { cutsUnion } from './fairy-heals';
 import { Favour, HealTool, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
@@ -49,7 +50,13 @@ export function spareHeals(
     for (let t = 0; t < durationMs;) {
       const at = weaving.ogcdAfter(tool.player, t, durationMs, occupied(tool.player));
       if (at === null) break;
-      if (!isAway(tool, at) && fitsRecast(groupTimes(tool.group), at, tool.recastMs, tool.charges)) {
+      const timesOf = (action: number) =>
+        spent.filter((x) => x.player === tool.player && x.action === action).map((x) => x.at);
+      if (
+        !isAway(tool, at) &&
+        !cutsUnion(tool.action, at, timesOf) &&
+        fitsRecast(groupTimes(tool.group), at, tool.recastMs, tool.charges)
+      ) {
         add(tool, at, null);
         t = at + tool.recastMs;
       } else {

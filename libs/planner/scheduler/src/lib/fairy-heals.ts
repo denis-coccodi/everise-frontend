@@ -1,7 +1,7 @@
 import { PullTimeline } from '@everise/core/api-types';
 import type { HpEvent } from './hp-track.model';
 import type { PlannedHp, PlannedUse } from './plan.model';
-import { AETHERPACT, SERAPHIC_VEIL, SERAPH_MS, SUMMON_SERAPH } from './tools';
+import { AETHERPACT, FEY_UNION_TICKS, SERAPHIC_VEIL, SERAPH_MS, SUMMON_SERAPH } from './tools';
 
 // What the scholar's fairy heals on her own, for a scholar the plan
 // replans: Eos or Selene casts Embrace on a party member missing HP, and
@@ -19,6 +19,19 @@ const CAST_EVERY_MS = 3200;
 // The fairy's orders, and Seraphism (which needs her out too): Whispering
 // Dawn, Fey Illumination, Fey Blessing, Aetherpact.
 const NEEDS_FAIRY = new Set([16537, 16538, 16543, AETHERPACT, 37014]);
+
+// A Fey Union ends when the scholar orders the fairy anything else, or
+// sends her off for Seraph: the plan puts none of these in a union it has,
+// nor a union where one is coming before its last tick.
+const ENDS_UNION = new Set([16537, 16538, 16543, SUMMON_SERAPH]);
+const UNION_MS = FEY_UNION_TICKS * 3000;
+
+// Whether using `action` at `at` would cut a Fey Union short, with the
+// times its player uses each action (`timesOf`).
+export function cutsUnion(action: number, at: number, timesOf: (action: number) => number[]): boolean {
+  if (action === AETHERPACT) return [...ENDS_UNION].some((o) => timesOf(o).some((t) => t >= at && t < at + UNION_MS));
+  return ENDS_UNION.has(action) && timesOf(AETHERPACT).some((t) => at >= t && at < t + UNION_MS);
+}
 
 // Embrace's and Seraphic Veil's potency at a level.
 export const fairyPotency = (level: number) => (level >= 85 ? 180 : 150);
