@@ -1,9 +1,9 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { DPS_HEALS } from './heal-tools';
+import { DPS_HEALS, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from './heal-tools';
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
-import { best, better } from './heal-candidates';
+import { best, better, kardiaBack } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { walkingDeads } from './walking-dead';
@@ -79,8 +79,19 @@ export function planHeals(
   const boosts = new HealingBuffs(buffs, party, timeline, scheduled);
   for (const use of plan.uses) boosts.add(use);
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
-  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) =>
-    boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
+  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => [
+    ...boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd),
+    ...movedAway(tool, use),
+  ];
+  // Kardia moved: the Kardion heals its holder had as played meanwhile.
+  const movedAway = (tool: HealTool, use: PlannedUse): HpEvent[] => {
+    if (tool.action !== KARDIA) return [];
+    const to = use.at + KARDIA_HEALS * TICK_MS;
+    return timeline.heals
+      .filter((h) => h.source === use.player && h.status === KARDIA_HEAL && h.target !== use.target)
+      .filter((h) => h.at > use.at && h.at <= to)
+      .map((h) => ({ at: h.at, player: h.target, amount: -h.amount }));
+  };
   const spent: Spent[] = [];
   for (const use of plan.uses) {
     const mitigationTool = mitigationOf.get(key(use));
@@ -225,6 +236,21 @@ export function planHeals(
       }
       const { group, pool, gcd, castMs } = pick.tool;
       spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
+      // A moved Kardia goes back on its holder afterwards: another press.
+      if (pick.tool.action === KARDIA) {
+        const { player, at } = pick.use;
+        const holder = pick.tool.kardion?.find((s) => s.from <= at && at < s.to)?.player ?? null;
+        const back = kardiaBack(
+          player,
+          at,
+          weaving,
+          spent.filter((s) => s.player === player),
+        );
+        if (back !== null) {
+          uses.push({ ...pick.use, at: back, target: holder, covers: [], back: true });
+          spent.push({ player, action: KARDIA, at: back, group: `back:${player}`, pool: null, gcd: false, castMs: 0 });
+        }
+      }
     }
   }
 

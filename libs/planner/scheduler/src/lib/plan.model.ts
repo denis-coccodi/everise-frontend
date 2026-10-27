@@ -166,8 +166,7 @@ export type Invulnerability = 'immune' | 'lastHp' | 'halvesHp' | 'walkingDead';
 // A set amount of HP, or a share of the max HP of whoever gets it.
 export type ShieldSize = { hp: number } | { maxHpShare: number };
 
-// An action that restores HP: a healer's heal, or the heal a mitigation
-// also gives (Kerachole's regen, Shake It Off's heal).
+// An action that restores HP: a healer's heal, a mitigation's (Kerachole).
 export interface HealTool {
   // When it can't be used: a fairy's order while Dissipation has her away.
   away?: { from: number; to: number }[];
@@ -187,6 +186,8 @@ export interface HealTool {
   effects: HealEffect[];
   // Null for a heal that lands as it's cast.
   delayed: DelayedHeal | null;
+  // Who has the sage's Kardion as played, by span (Soteria's, Kardia's).
+  kardion?: { from: number; to: number; player: number }[];
 }
 
 // What a heal costs, as the healers' guides rank them: nothing (an oGCD,
@@ -292,11 +293,11 @@ export interface PlannedUse {
   // A lily spent because the lilies are full (favouring damage), so none
   // goes to waste and the Blood Lily charges the next Misery.
   overcap?: boolean;
-  // A step of the player's opener (an Energy Drain, Chain Stratagem...),
-  // shown with the plan.
+  // A step of the player's opener (an Energy Drain, Chain Stratagem...).
   opener?: boolean;
-  // A raid buff or burst the guides use on cooldown (Chain Stratagem,
-  // Divination...), or an astrologian's draw and card.
+  // Kardia put back where it was, after a move: it stays until moved.
+  back?: boolean;
+  // A raid buff or burst on cooldown, or an astrologian's draw and card.
   burst?: boolean;
   // A resource for the heals after (Rhizomata's Addersgall).
   refill?: boolean;

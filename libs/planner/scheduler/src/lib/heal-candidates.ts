@@ -1,9 +1,22 @@
 import { fitsGrant, fitsPool, fitsRecast, isAway, poolFull } from './coverage';
+import { KARDIA, KARDIA_HEALS, SOTERIA, TICK_MS } from './heal-tools';
 import { Favour, HealCost, HealTool, Mechanic, PlannedUse } from './plan.model';
 import { cutsUnion } from './fairy-heals';
 import { Weaving } from './weaving';
 import type { Candidate, Paired, Spent } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
+import type { Occupied } from './weaving.model';
+
+// How soon after the four spells a moved Kardia goes back at the latest.
+const KARDIA_BACK_MS = 5_000;
+
+// When a sage puts Kardia back on its holder after moving it at `at`: it
+// stays where it's put, so it's pressed again, in the first weave slot
+// after the four spells it was moved for; null when none comes soon.
+export function kardiaBack(player: number, at: number, weaving: Weaving, occupied: Occupied[]) {
+  const due = at + KARDIA_HEALS * TICK_MS;
+  return weaving.ogcdAfter(player, due, due + KARDIA_BACK_MS, occupied);
+}
 
 // A heal lands at least this long before the hit it's for, and at least
 // this long after the hits before it.
@@ -48,10 +61,18 @@ export function best(
   const occupied = spent.filter((s) => s.player === tool.player);
   const timesOf = (action: number) =>
     spent.filter((s) => s.player === tool.player && s.action === action).map((s) => s.at);
-  // A heal on one member goes to whoever is shortest.
-  const target = tool.effects.some((e) => e.target === 'target')
-    ? [...short].reduce((a, b) => (b[1] > a[1] ? b : a))[0]
-    : null;
+  // A heal on one member goes to whoever is shortest; Soteria's on the
+  // Kardion holder, Kardia moved to anyone else.
+  const holder = tool.kardion?.find((s) => s.from <= m.at && m.at < s.to)?.player;
+  if (tool.kardion && holder === undefined) return null;
+  const others = [...short].filter(([p]) => tool.action !== KARDIA || p !== holder);
+  if (!others.length) return null;
+  const target =
+    tool.action === SOTERIA
+      ? (holder ?? null)
+      : tool.effects.some((e) => e.target === 'target')
+        ? others.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+        : null;
   let found: Candidate | null = null;
   const end = tool.delayed?.delaysMs[0] ?? 0;
   // Each moment as early or as late as it can be, then where the healer can
@@ -89,6 +110,8 @@ export function best(
     const release = tool.delayed?.release && delayMs < end ? at + tool.castMs + delayMs : null;
     const withIt = [...occupied, { at, gcd: tool.gcd, castMs: tool.castMs }];
     if (release !== null && weaving.ogcdAfter(tool.player, release, release, withIt) !== release) continue;
+    // A moved Kardia needs a slot to go back in.
+    if (tool.action === KARDIA && kardiaBack(tool.player, at, weaving, withIt) === null) continue;
     if (
       tool.pool &&
       !fitsPool(

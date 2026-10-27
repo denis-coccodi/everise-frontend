@@ -38,4 +38,15 @@ describe('withEnablerWindows', () => {
       ])[0].away,
     ).toEqual([{ from: -Infinity, to: Infinity }]);
   });
+
+  it("puts Soteria's heals on whoever has the sage's Kardion", () => {
+    const t = pull([]);
+    t.auras.push({ status: 2605, source: 2, target: 1, from: 0, to: 300_000, stacks: null, shield: null });
+
+    const [soteria] = withEnablerWindows(t, [
+      { player: 2, action: 24294 } as { player: number; action: number; kardion?: unknown },
+    ]);
+
+    expect(soteria.kardion).toEqual([{ from: 0, to: 300_000, player: 1 }]);
+  });
 });

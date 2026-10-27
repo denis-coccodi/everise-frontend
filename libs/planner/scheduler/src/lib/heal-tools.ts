@@ -26,6 +26,19 @@ const NEUTRAL_GCDS = new Set([16531, 16534, 24318]);
 // dance; Star Prism is a damage spell of their burst, kept as played.)
 export const DPS_HEALS = new Set([7541, 16015, 36997, 36944]);
 
+// Soteria: the next four Kardion heals 70% bigger, 119 potency more each on
+// whoever has Kardion (`withKardion`), one about each GCD of the sage's.
+// Kardia moved to another member: its 170 potency on them for the next four
+// (`KARDIA_HEALS`), taken from its holder as played (heal-plan.ts).
+export const SOTERIA = 24294;
+const SOTERIA_POTENCY = 119;
+const SOTERIA_HEALS = 4;
+export const KARDIA = 24285;
+const KARDIA_POTENCY = 170;
+export const KARDIA_HEALS = 4;
+// The status Kardion's heals come by in the log.
+export const KARDIA_HEAL = 2604;
+
 // Heals that land later than they're used, by action: Earthly Star heals
 // fully once the star has grown, on its own when it runs out (20s) or set
 // off with Stellar Detonation from 10s; its log calls the heal Stellar
@@ -72,7 +85,9 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // instead (`converts`: no shield then), and under Seraphism (its recast 1s)
 // before a Manifestation or Accession; Horoscope before a Helios, Aspected
 // Helios or Helios Conjunction in its 10s, Horoscope Helios then healing 400
-// potency on each member it reaches (read as the Helios lands).
+// potency on each member it reaches (read as the Helios lands); Synastry
+// before a Benefic, Benefic II or Aspected Benefic in its 20s, its bond's
+// 40% of the heal (on the same member, as the plan has it).
 const PAIRED: Record<
   number,
   {
@@ -102,6 +117,7 @@ const PAIRED: Record<
   3586: { heals: [185, 37013], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
   37037: { heals: [37015, 37016], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
   16557: { heals: [3600, 3601, 37030], withinMs: 10_000, times: 1, potency: 400 },
+  3612: { heals: [3594, 3610, 3595], withinMs: 20_000, times: 1.4, potency: 0, onTarget: true },
 };
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
@@ -174,12 +190,35 @@ export function healTools(
           : null;
       const waiting = effects.length ? null : waitingHeal(action, own);
       if (waiting) ({ effects, delayed } = waiting);
+      if (action.id === SOTERIA && own) {
+        effects = [
+          {
+            target: 'target',
+            size: { hp: SOTERIA_POTENCY * own },
+            ticks: SOTERIA_HEALS,
+            status: 'Soteria',
+            statusId: null,
+          },
+        ];
+      }
+      if (action.id === KARDIA && own) {
+        effects = [
+          {
+            target: 'target',
+            size: { hp: KARDIA_POTENCY * own },
+            ticks: KARDIA_HEALS,
+            status: 'Kardion',
+            statusId: null,
+          },
+        ];
+      }
       if (!effects.length) continue;
       tools.push({
         player: player.id,
         action: action.id,
         name: action.name,
-        recastMs: action.recastMs,
+        // One Kardion at a time: no other move while one lasts.
+        recastMs: action.id === KARDIA ? Math.max(action.recastMs, KARDIA_HEALS * TICK_MS) : action.recastMs,
         charges: action.charges,
         gcd: action.gcd,
         castMs: castMsOf(action),

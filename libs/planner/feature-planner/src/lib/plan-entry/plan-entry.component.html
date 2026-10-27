@@ -21,11 +21,13 @@
                 ? 'Part of the opener'
                 : e.burst
                   ? 'On cooldown, for the burst windows'
-                  : e.refill
-                    ? 'Addersgall is running low: one more for the heals after'
-                    : e.overcap
-                      ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
-                      : 'On cooldown, or before it would go to waste'
+                  : e.back
+                    ? 'Back where it was: Kardia stays until moved'
+                    : e.refill
+                      ? 'Addersgall is running low: one more for the heals after'
+                      : e.overcap
+                        ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
+                        : 'On cooldown, or before it would go to waste'
       }}
     </p>
   }

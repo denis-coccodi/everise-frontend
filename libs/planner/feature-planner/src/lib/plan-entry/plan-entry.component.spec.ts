@@ -92,6 +92,21 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Chain Stratagem On cooldown, for the burst windows');
   });
 
+  it('says Kardia is put back where it was', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 45_000,
+        action: 'Kardia',
+        target: 'Tank Main',
+        covers: [],
+        damage: false,
+        overcap: false,
+        back: true,
+      }).text,
+    ).toBe('Use Kardia on Tank Main Back where it was: Kardia stays until moved');
+  });
+
   it('says Rhizomata is for the heals after', () => {
     expect(
       render({

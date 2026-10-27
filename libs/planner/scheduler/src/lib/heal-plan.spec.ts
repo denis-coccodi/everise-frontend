@@ -8,6 +8,7 @@ import { planMitigation } from './mitigation-plan';
 import { action, catalog, heal, pull } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
 import { Weaving } from './weaving';
+import { withEnablerWindows } from './enabled-windows';
 
 describe('planHeals', () => {
   it('counts the mitigation of the heals it plans (Kerachole, Holos)', () => {
@@ -237,6 +238,56 @@ describe('planHeals', () => {
     const [horoscope, helios] = plan.uses;
     expect(helios.at + 1500 - horoscope.at).toBeLessThanOrEqual(10_000);
     expect(plan.hits.filter((h) => h.mechanic === plan.hits[3].mechanic).every((h) => h.safe)).toBe(true);
+  });
+
+  it('moves Kardia to whoever needs it and back, the tank losing its Kardion heals meanwhile', () => {
+    // The scholar as a sage, Kardia on the tank (1) as played, healing them
+    // 10,000 a damage spell. The bard lands on 15,000 and needs 50,000 for
+    // the second raidwide: Kardia on them heals 17,000 a spell.
+    const cat = catalog();
+    cat.actions.push(action(24285, 'Kardia', ['SCH'], 5, []));
+    const timeline = pull(
+      [
+        [30, 'Raidwide', 3, 85_000],
+        [45, 'Raidwide', 3, 40_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    timeline.auras.push({ status: 2605, source: 2, target: 1, from: 0, to: 60_000, stacks: null, shield: null });
+    const kardion = (at: number) => ({
+      ...timeline.heals[0],
+      at,
+      target: 1,
+      action: null,
+      status: 2604,
+      amount: 10_000,
+    });
+    timeline.heals.push(...[33, 36, 39].map((s) => kardion(s * 1000)));
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = withEnablerWindows(timeline, healTools(timeline.players, cat, [], power)).filter(
+      (t) => t.name === 'Kardia',
+    );
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+    );
+
+    // On the bard for its four heals, then pressed again back on the tank:
+    // Kardia stays where it's put.
+    expect(plan.uses.map((u) => [u.name, u.target, u.back ?? false])).toEqual([
+      ['Kardia', 3, false],
+      ['Kardia', 1, true],
+    ]);
+    const [moved, back] = plan.uses;
+    expect(back.at - moved.at).toBeGreaterThanOrEqual(12_000);
+    expect(plan.hits[1]).toMatchObject({ safe: true });
   });
 
   it("counts Neutral Sect's barrier on an Aspected Benefic as a shield for the next hit", () => {

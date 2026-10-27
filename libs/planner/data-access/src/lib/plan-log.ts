@@ -59,6 +59,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       ...(use.opener ? { opener: true } : {}),
       ...(use.burst ? { burst: true } : {}),
       ...(use.refill ? { refill: true } : {}),
+      ...(use.back ? { back: true } : {}),
       ...(catalogAction.get(use.action)?.gcd ? { gcd: true } : {}),
     }));
   const asPlayed = kept(plan, timeline, playerId, catalog);

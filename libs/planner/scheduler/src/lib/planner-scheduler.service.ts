@@ -59,7 +59,7 @@ export class PlannerScheduler {
         withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening),
       );
     // A scholar's fairy orders wait for her while Dissipation has her away;
-    // Lux Solaris waits for the burst that grants it.
+    // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
     const mitigation = opened(mitigationTools(timeline.players, catalog, power));
     // The others' heals stay in the pull's healing, as played.
     const heals = opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned));
