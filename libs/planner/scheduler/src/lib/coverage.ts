@@ -160,6 +160,10 @@ export function fitsGrant(granted: number[], grants: number[], at: number, grant
 
 // Whether one more use at `at` keeps to the recast: with `charges`, no
 // stretch as long as the recast holds more uses than charges.
+// Whether a tool can't be used at a moment (its `away` spans).
+export const isAway = (tool: { away?: { from: number; to: number }[] }, at: number) =>
+  !!tool.away?.some((s) => at >= s.from && at < s.to);
+
 export function fitsRecast(times: number[], at: number, recastMs: number, charges: number) {
   const all = [...times, at].sort((a, b) => a - b);
   for (let i = 0; i < all.length; i++) {

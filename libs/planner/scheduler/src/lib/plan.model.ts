@@ -72,6 +72,8 @@ export interface Mechanic {
 // A mitigation or shield a player can use: an action and what it lowers or
 // absorbs, for whom.
 export interface MitigationTool {
+  // When it can't be used: a fairy's order while Dissipation has her away.
+  away?: { from: number; to: number }[];
   player: number;
   action: number;
   name: string;
@@ -157,6 +159,8 @@ export type ShieldSize = { hp: number } | { maxHpShare: number };
 // An action that restores HP: a healer's heal, or the heal a mitigation
 // also gives (Kerachole's regen, Shake It Off's heal).
 export interface HealTool {
+  // When it can't be used: a fairy's order while Dissipation has her away.
+  away?: { from: number; to: number }[];
   player: number;
   action: number;
   name: string;
