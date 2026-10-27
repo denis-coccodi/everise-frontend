@@ -1,20 +1,12 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { AETHERFLOW, DISSIPATION } from './aetherflow';
+import type { OpenerId, OpenerPreset } from './openers.model';
 import type { PlannedUse } from './plan.model';
 
 // The openers a replanned player can start the pull with, as the job's
 // guides give them, by job: each a step after one of their GCDs (counted
 // from 0, the spell begun in the countdown), woven after it. "none" has no
 // opener: the plan places what it needs.
-export type OpenerId = 'standard' | 'dissipation-first' | 'none';
-
-export interface OpenerPreset {
-  id: OpenerId;
-  name: string;
-  // Where it comes from, for the page to say.
-  source: string;
-  steps: { action: number; afterGcd: number }[];
-}
 
 const CHAIN_STRATAGEM = 7436;
 const ENERGY_DRAIN = 167;

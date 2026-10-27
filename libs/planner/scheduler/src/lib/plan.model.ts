@@ -1,4 +1,4 @@
-import type { OpenerId } from './openers';
+import type { OpenerId } from './openers.model';
 // What the scheduler plans from and what it answers. Times are ms from the
 // pull's start.
 
