@@ -22,6 +22,28 @@ describe('playerLog', () => {
     });
   });
 
+  it('gives what makes the heals possible, saying what it does, named by the log without the catalog', () => {
+    const timeline = pullTimeline();
+    timeline.actions.push({ id: 16542, name: 'Recitation' }, { id: 37018, name: 'Umbral Draw' });
+    timeline.playerCasts.push(
+      { at: 35_000, source: 2, target: null, action: 16542, castMs: null },
+      { at: 36_000, source: 2, target: null, action: 37018, castMs: null },
+    );
+
+    const log = playerLog(timeline, actionCatalog(), 2).filter((e) => e.kind === 'use' && e.at < 40_000);
+
+    expect(log).toEqual([
+      expect.objectContaining({
+        action: 'Recitation',
+        effects: 'Makes the next Adloquium, Succor, Indomitability or Excogitation critical, with no Aetherflow',
+      }),
+      expect.objectContaining({
+        action: 'Umbral Draw',
+        effects: 'Draws the Bole, the Ewer and Lady of Crowns (with the Spear)',
+      }),
+    ]);
+  });
+
   it('gives a damage spell begun in the countdown, which other casts leave out', () => {
     const timeline = pullTimeline();
     // Fast Blade (no effects) as a 1.5s cast landing at 0.3s.

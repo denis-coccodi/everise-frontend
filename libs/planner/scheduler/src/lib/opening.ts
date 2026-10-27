@@ -25,6 +25,13 @@ export function openingOf(
       // Without an opener, Aetherflow from the first GCD (the standard one's).
       const firstGcd = openerUses(timeline, catalog, p.id, job, 'standard')[0]?.at ?? 0;
       const { aetherflow, dissipation } = scholarTimes(timeline, p.id, uses, firstGcd);
+      // The plan's Aetherflows after the opener's, and the Dissipations it
+      // keeps as played, show with it.
+      const shown = (action: number, name: string, times: number[]) =>
+        times
+          .filter((at) => !uses.some((u) => u.action === action && u.at === at))
+          .map((at): PlannedUse => ({ player: p.id, action, name, at, target: null, covers: [] }));
+      opening.uses.push(...shown(166, 'Aetherflow', aetherflow), ...shown(3587, 'Dissipation', dissipation));
       opening.refills.set(
         p.id,
         [...aetherflow, ...dissipation].sort((a, b) => a - b),

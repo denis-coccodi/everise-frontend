@@ -62,6 +62,21 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Eukrasia, then Eukrasian Prognosis II For Killer Voice');
   });
 
+  it('says a buff is kept as played, and what it does', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 20_000,
+        action: 'Lucid Dreaming',
+        target: null,
+        covers: [],
+        damage: false,
+        overcap: false,
+        kept: 'Gradually restores MP.',
+      }).text,
+    ).toBe('Use Lucid Dreaming As played: Gradually restores MP.');
+  });
+
   it('says a use is part of the opener', () => {
     expect(
       render({
