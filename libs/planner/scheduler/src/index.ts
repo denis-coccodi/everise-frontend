@@ -15,3 +15,4 @@ export type {
 export { PlannerScheduler } from './lib/planner-scheduler.service';
 export { landedGcds } from './lib/weaving';
 export { pressedFirst } from './lib/tools';
+export { catalogAtLevel, pullLevel } from './lib/trait-levels';

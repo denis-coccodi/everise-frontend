@@ -23,7 +23,7 @@
           [class.only-plan]="!row.played.length"
           [class.revealed]="revealed() === row.at"
         >
-          <th scope="row" class="time">{{ clock(row.at) }}</th>
+          <th scope="row" class="time">{{ clock(row.shownAt) }}</th>
           <td class="played">
             @for (entry of row.played; track $index) {
               <cdt-planner-played-entry [entry]="entry" />

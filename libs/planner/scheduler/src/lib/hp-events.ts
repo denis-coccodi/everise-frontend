@@ -4,11 +4,19 @@ import { isMechanicHit } from './mechanics';
 import { HealTool, Mechanic, PlannedHit, PlannedUse } from './plan.model';
 import type { HpEvent } from './hp-track.model';
 
+// The game's natural regeneration, which logs show as an action of its own:
+// 1% of max HP every 3s, on each player's own tick, whenever they're missing
+// HP.
+const NATURAL_REGEN = 1302;
+const NATURAL_SHARE = 0.01;
+
 // What happens to the party's HP besides the plan's heals: the mechanics'
 // hits as the plan leaves them, every other hit (auto-attacks, damage over
 // time, the floor) as it was played, and the healing the plan doesn't
 // schedule as it was played (a tank's own sustain, Kardia, the faerie's
 // Embrace), all of it with its overheal, as the HP it lands on may differ.
+// Natural regeneration isn't among them: the log has it only where the HP
+// as played was missing some (`naturalRegen` recalculates it).
 export function pullEvents(
   timeline: PullTimeline,
   mechanics: Mechanic[],
@@ -42,7 +50,7 @@ export function pullEvents(
   }
   for (const heal of timeline.heals) {
     // No source: the Limit Break (a raise), or ticks no healer was credited.
-    if (heal.source === null) continue;
+    if (heal.source === null || heal.action === NATURAL_REGEN) continue;
     // A tick names its status (a merged one, "Combined HoTs", as well).
     const keys = [
       ...(heal.action !== null
@@ -54,6 +62,22 @@ export function pullEvents(
     ];
     if (keys.some((k) => own.has(k))) continue;
     events.push({ at: heal.at, player: heal.target, amount: heal.amount + heal.overheal });
+  }
+  return events;
+}
+
+// Everyone's natural regeneration over the pull, as the plan has their HP:
+// 1% of max HP every 3s on each player's tick, for those the log shows it
+// on (anyone who lost HP), the HP track keeping it to what's missing.
+export function naturalRegen(timeline: PullTimeline): HpEvent[] {
+  const events: HpEvent[] = [];
+  for (const player of timeline.players) {
+    const first = timeline.heals.find((h) => h.action === NATURAL_REGEN && h.target === player.id)?.at;
+    if (!player.maxHp || first === undefined) continue;
+    const amount = Math.floor(player.maxHp * NATURAL_SHARE);
+    for (let at = first % TICK_MS; at <= timeline.durationMs; at += TICK_MS) {
+      events.push({ at, player: player.id, amount });
+    }
   }
   return events;
 }

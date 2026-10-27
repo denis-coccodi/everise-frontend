@@ -18,7 +18,34 @@ describe('playerLog', () => {
       description: null,
       target: null,
       effects: 'Self: −20% damage taken (20s), +15% healing received (20s)',
+      castAt: null,
     });
+  });
+
+  it('gives a damage spell begun in the countdown, which other casts leave out', () => {
+    const timeline = pullTimeline();
+    // Fast Blade (no effects) as a 1.5s cast landing at 0.3s.
+    timeline.playerCasts.push({ at: 300, source: 1, target: null, action: 9, castMs: null });
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.castMs = 1_500;
+
+    const log = playerLog(timeline, catalog, 1);
+
+    expect(log[0]).toEqual(expect.objectContaining({ at: 300, castAt: -1_200, effects: 'Begun in the countdown' }));
+    // Its cast at 62s, after the pull began, isn't listed.
+    expect(log.filter((e) => e.kind === 'use' && e.at === 62_000)).toEqual([]);
+  });
+
+  it('says when a heal that landed early in the pull began, in the countdown', () => {
+    const timeline = pullTimeline();
+    // Adloquium (a 2s cast) landing at 0.5s, without a cast bar.
+    Object.assign(timeline.playerCasts[3], { at: 500, castMs: null });
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.name === 'Adloquium') a.castMs = 2_000;
+
+    expect(playerLog(timeline, catalog, 2)[0]).toEqual(
+      expect.objectContaining({ action: 'Adloquium', at: 500, castAt: -1_500 }),
+    );
   });
 
   it('says who a single-target heal or shield went on', () => {

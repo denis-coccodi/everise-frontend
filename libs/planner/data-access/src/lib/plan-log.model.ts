@@ -46,8 +46,10 @@ export interface PlanUseEntry {
 export interface PlanGcdEntry {
   kind: 'gcd';
   at: number;
-  // Cast in the countdown: `at` is when it lands.
+  // Cast in the countdown: `at` is when it lands, `castAt` when its cast
+  // began (null when that isn't known).
   prepull: boolean;
+  castAt: number | null;
 }
 
 export type PlanEntry = PlanHitEntry | PlanUseEntry | PlanGcdEntry;

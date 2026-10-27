@@ -18,21 +18,25 @@ const REPLACED_BY: Record<number, number> = {
   133: 37010, // Medica II → Medica III
 };
 
-// Statuses that don't stack with each other, though they differ.
+// Statuses that don't stack with each other, though they differ: the ranged
+// party mitigations, Kerachole and Taurochole, and the scholar's Galvanize
+// and the sage's Eukrasian barriers (the tooltips' "cannot be stacked").
 const SAME_STACK: Record<string, string> = {
   Troubadour: 'ranged party mitigation',
   Tactician: 'ranged party mitigation',
   'Shield Samba': 'ranged party mitigation',
   Kerachole: 'Kerachole or Taurochole',
   Taurochole: 'Kerachole or Taurochole',
+  Galvanize: 'Galvanize or a Eukrasian barrier',
+  'Eukrasian Diagnosis': 'Galvanize or a Eukrasian barrier',
+  'Eukrasian Prognosis': 'Galvanize or a Eukrasian barrier',
 };
 
 // What really limits some actions, rather than their recast: the Oath
 // gauge (50 of it about every 25 seconds of auto-attacks, up to 100),
 // Aetherflow and Addersgall (about one every 20 seconds, up to 3), the
 // Astrologian's cards (Astral and Umbral Draw take turns every 55 seconds,
-// each giving one of its own, so a card comes every 110), Suntouched (from Neutral
-// Sect, every 120 seconds), Seraph (out every 120 seconds, with two
+// each giving one of its own, so a card comes every 110), Seraph (out every 120 seconds, with two
 // Consolations), Tempera Coat (which Tempera Grassa uses up; back in 60
 // to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), Lady of
 // Crowns (Umbral Draw's Minor Arcana, every 110 seconds) and Improvisation's finish (every 120
@@ -42,7 +46,6 @@ const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
 const card = (name: string): ToolPool => ({ name, gainMs: 110_000, max: 1 });
-const SUNTOUCHED: ToolPool = { name: 'Suntouched', gainMs: 120_000, max: 1 };
 const SERAPH: ToolPool = { name: 'Seraph', gainMs: 60_000, max: 2 };
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
@@ -70,7 +73,6 @@ export const POOLS: Record<number, ToolPool> = {
   37027: card('the Bole'),
   37025: card('the Spire'),
   37028: card('the Ewer'),
-  37031: SUNTOUCHED, // Sun Sign
   37024: card('the Arrow'),
 };
 
@@ -84,7 +86,12 @@ export const GRANTED: Record<number, Grant> = {
   37016: SERAPHISM, // Accession
   36944: { action: 7394, withinMs: 30_000, uses: 1 }, // Earth's Reply, after Riddle of Earth
   3585: { action: 185, withinMs: 30_000, uses: 1 }, // Deployment Tactics, on an Adloquium's Galvanize
+  37031: { action: 16559, withinMs: 30_000, uses: 1 }, // Sun Sign, while Suntouched from Neutral Sect
 };
+// Actions that grant another but mitigate nothing themselves (Neutral
+// Sect's buff and barriers are for the heals): tools all the same, so the
+// plan can use one with what it grants (Sun Sign).
+const GRANTING = new Set([16559]);
 
 // Shields an action copies from another's to the whole party, by action:
 // Deployment Tactics, an Adloquium's Galvanize (for what's left of it; the
@@ -162,7 +169,7 @@ export function mitigationTools(
       const others = [...mitigationEffects(action), ...invulnerableEffects(action, own)];
       const effects = [...others, ...shields()];
       const recitation = action.id === RECITATION;
-      if (!effects.length && !recitation) continue;
+      if (!effects.length && !recitation && !GRANTING.has(action.id)) continue;
       const recited = RECITED.includes(from?.id ?? action.id);
       tools.push({
         player: player.id,
@@ -281,7 +288,7 @@ function shieldEffects(
       hits: e.stacks ?? 1,
       durationMs: e.durationMs as number,
       status,
-      stack: status,
+      stack: SAME_STACK[status] ?? status,
       invulnerable: null,
     });
   }

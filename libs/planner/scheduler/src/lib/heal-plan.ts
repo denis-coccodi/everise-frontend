@@ -7,7 +7,7 @@ import { pairingsFor } from './paired-heals';
 import { spareHeals } from './spare-heals';
 import { walkingDeads } from './walking-dead';
 import { Weaving } from './weaving';
-import { pullEvents } from './hp-events';
+import { naturalRegen, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
   Favour,
@@ -60,7 +60,10 @@ export function planHeals(
   const planned = heals.filter((t) => healers.has(t.player));
   const favourOf = (player: number): Favour => options.favour?.[player] ?? 'dps';
 
-  const track = new HpTrack(maxHp, pullEvents(timeline, plan.mechanics, plan.hits, heals));
+  const track = new HpTrack(maxHp, [
+    ...pullEvents(timeline, plan.mechanics, plan.hits, heals),
+    ...naturalRegen(timeline),
+  ]);
   const hitAt = new Map<number, number[]>();
   for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);
   const hitTimes = (player: number, from: number, to: number) =>
