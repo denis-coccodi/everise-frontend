@@ -102,6 +102,19 @@ const SPREADS: Record<number, number> = { 3585: 185 };
 // and Adloquium adds Catalyze.
 export const RECITATION = 16542;
 export const RECITED = [185, 37013, 3583, 7434];
+// Eukrasia, pressed before each Eukrasian heal (Diagnosis, Prognosis and
+// Prognosis II): 1s on its own recast, then the heal, an instant GCD with
+// its 0.6s lock. Together one GCD slot, its weave room what's left after
+// the lock; the heal counts as landing with the lock (0.6s later than it
+// does, never sooner).
+export const EUKRASIA = 24290;
+export const EUKRASIA_MS = 1000;
+const EUKRASIAN = [24291, 24292, 37034];
+const EUKRASIAN_LEAD_MS = EUKRASIA_MS + 600;
+// What a player presses before an action, for the plan to say.
+export const pressedFirst = (action: number) => (EUKRASIAN.includes(action) ? 'Eukrasia' : null);
+// How long after its start an action lands, as the plan counts it.
+export const castMsOf = (action: CatalogAction) => (EUKRASIAN.includes(action.id) ? EUKRASIAN_LEAD_MS : action.castMs);
 // A shield's condition that holds when its heal is critical.
 const CRITICAL = 'critical heal';
 // Haima's and Panhaima's barrier: a new one as each breaks, one a stack, so a
@@ -165,7 +178,7 @@ export function mitigationTools(
         recastMs: action.recastMs,
         charges: action.charges,
         gcd: action.gcd,
-        castMs: action.castMs,
+        castMs: castMsOf(action),
         group: `${player.id}:${action.cooldownGroup}`,
         pool: POOLS[action.id] ?? null,
         grantedBy: GRANTED[action.id] ?? null,

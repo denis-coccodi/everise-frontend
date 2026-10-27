@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import { landedGcds, type Plan } from '@everise/planner/scheduler';
+import { landedGcds, pressedFirst, type Plan } from '@everise/planner/scheduler';
 import { countdownStart } from './pull-time';
 import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 
@@ -51,6 +51,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       // Named even when it's themselves: a single-target heal or shield says
       // who it's for.
       target: use.target === null ? null : (playerName.get(use.target) ?? null),
+      first: pressedFirst(use.action),
       covers: [...new Set(use.covers.map((id) => mechanic.get(id)?.name ?? 'Unknown'))],
       damage: use.damage ?? false,
       overcap: use.overcap ?? false,

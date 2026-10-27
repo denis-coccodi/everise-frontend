@@ -1,5 +1,16 @@
 import { action, catalog, party } from './scheduler-fixtures';
-import { POOLS, mitigationTools } from './tools';
+import { POOLS, castMsOf, mitigationTools, pressedFirst } from './tools';
+
+describe('Eukrasia', () => {
+  it('comes before each Eukrasian heal, which lands 1.6s into its slot', () => {
+    const prognosis = action(37034, 'Eukrasian Prognosis II', ['SGE'], 2.5, [], { gcd: true });
+
+    expect(castMsOf(prognosis)).toBe(1600);
+    expect(pressedFirst(37034)).toBe('Eukrasia');
+    expect(castMsOf(action(24284, 'Diagnosis', ['SGE'], 2.5, [], { castMs: 1500 }))).toBe(1500);
+    expect(pressedFirst(24284)).toBeNull();
+  });
+});
 
 describe('mitigationTools', () => {
   it("gives each player their jobs' mitigations and shields, not other actions", () => {

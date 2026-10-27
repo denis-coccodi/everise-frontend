@@ -47,6 +47,21 @@ describe('PlanEntryComponent', () => {
     ).toEqual({ text: 'Use Intervention on Heal Main For Killer Voice', unsafe: false });
   });
 
+  it('says what to press first', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 30_000,
+        action: 'Eukrasian Prognosis II',
+        target: null,
+        first: 'Eukrasia',
+        covers: ['Killer Voice'],
+        damage: false,
+        overcap: false,
+      }).text,
+    ).toBe('Use Eukrasia, then Eukrasian Prognosis II For Killer Voice');
+  });
+
   it('says why a use for no hit is there', () => {
     expect(
       render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [], damage: false, overcap: false })
