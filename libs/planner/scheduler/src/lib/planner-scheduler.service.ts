@@ -8,7 +8,7 @@ import { playedInvulnerabilities } from './invulnerabilities';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
-import { Weaving } from './weaving';
+import { Weaving, WEAVE_MS } from './weaving';
 import { HealTool, InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { AUTOMATIC, mitigationTools } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
@@ -17,6 +17,7 @@ import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
 import { burstActions, burstUses } from './burst';
+import { ENERGY_DRAIN } from './opener-presets';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -80,18 +81,26 @@ export class PlannerScheduler {
     // Adloquium (it goes with a GCD heal too), Neutral Sect with Sun Sign.
     const alone = mitigation.filter((t) => !paired.has(key(t)) || !t.effects.length);
     // Where each player can act: their GCDs as played, and the oGCDs they
-    // used that the plan doesn't schedule. A replanned player's raid buffs
-    // and burst go on cooldown after their opener, before the rest is
-    // planned (the guides don't hold them for a heal), and keep their place
-    // with the opener's.
+    // used that the plan doesn't schedule, and their opener's steps (but
+    // the Energy Drains, which a heal can take the stacks of). A replanned
+    // player's raid buffs and burst go on cooldown after the opener, in the
+    // slots the heals and mitigations leave.
     const bursts = replannedPlayers.flatMap((p) =>
       burstActions(p.job ?? '').map((action) => ({ player: p.id, action })),
     );
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
-    const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving);
-    const burstKeys = new Set(bursts.map(key));
-    weaving.keep([...opening.uses.filter((u) => burstKeys.has(key(u))), ...burst]);
+    const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+    weaving.keep(
+      opening.uses
+        .filter((u) => u.action !== ENERGY_DRAIN)
+        .map((u) => ({
+          player: u.player,
+          at: u.at,
+          gcd: !!byId.get(u.action)?.gcd,
+          castMs: byId.get(u.action)?.castMs ?? 0,
+        })),
+    );
     // A GCD shield grows with its caster's healing potency buffs: those the
     // plan has up when it's cast, and the rest as played.
     const party = timeline.players.map((p) => p.id);
@@ -173,10 +182,16 @@ export class PlannerScheduler {
     const shown = shownSteps(opening, placed, (player) =>
       best.uses.filter((u) => u.player === player && stackTools.has(key(u))).map((u) => u.at),
     );
+    // An opener's Energy Drain gives its slot to what the plan put there.
+    const drains = shown.filter(
+      (u) =>
+        u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
+    );
+    const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving, [...best.uses, ...drains]);
     return {
       ...best,
       replanned: replannedPlayers.map((p) => p.id),
-      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...shown, ...burst].sort(
+      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...drains, ...burst].sort(
         (a, b) => a.at - b.at || a.player - b.player,
       ),
     };

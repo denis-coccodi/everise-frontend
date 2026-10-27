@@ -35,6 +35,7 @@ const burst = (job: string, opener: 'standard' | 'none' = 'standard') => {
     t.players,
     opening,
     Weaving.of(t, c, () => true),
+    opening.uses,
   ).map((u) => [u.name, u.at]);
 };
 

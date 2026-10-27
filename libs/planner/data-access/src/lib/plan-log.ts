@@ -58,14 +58,13 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       overcap: use.overcap ?? false,
       ...(use.opener ? { opener: true } : {}),
       ...(use.burst ? { burst: true } : {}),
+      ...(catalogAction.get(use.action)?.gcd ? { gcd: true } : {}),
     }));
+  const asPlayed = kept(plan, timeline, playerId, catalog);
   // A use comes before the hits it's for.
-  return [
-    ...damageGcds(plan, timeline, playerId, catalog),
-    ...uses,
-    ...kept(plan, timeline, playerId, catalog),
-    ...hits,
-  ].sort((a, b) => a.at - b.at);
+  return [...damageGcds(plan, timeline, playerId, catalog, asPlayed), ...uses, ...asPlayed, ...hits].sort(
+    (a, b) => a.at - b.at,
+  );
 }
 
 // A replanned player's buffs and enablers the plan leaves as they played
@@ -97,14 +96,21 @@ function kept(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: Ac
         damage: false,
         overcap: false,
         kept: whatItDoes(c.action, action),
+        ...(action?.gcd ? { gcd: true } : {}),
       };
     });
 }
 
-// The player's GCDs as played that the plan's oGCDs are woven after, where
-// the plan has no GCD of its own there, and their first if it was cast in
-// the countdown.
-function damageGcds(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanGcdEntry[] {
+// The player's GCDs as played that the plan's oGCDs are woven after (and
+// the ones `asPlayed` keeps), where the plan has no GCD of its own there,
+// and their first if it was cast in the countdown.
+function damageGcds(
+  plan: Plan,
+  timeline: PullTimeline,
+  playerId: number,
+  catalog?: ActionCatalog,
+  asPlayed: PlanUseEntry[] = [],
+): PlanGcdEntry[] {
   if (!catalog) return [];
   const gcd = new Map(catalog.actions.map((a) => [a.id, a.gcd]));
   const casts = timeline.playerCasts
@@ -116,9 +122,11 @@ function damageGcds(plan: Plan, timeline: PullTimeline, playerId: number, catalo
   const mine = plan.uses.filter((u) => u.player === playerId);
   const planned = new Set(mine.filter((u) => gcd.get(u.action)).map((u) => u.at));
   const after = new Set<number>();
-  for (const use of mine) {
-    if (gcd.get(use.action) !== false) continue;
-    const before = played.filter((at) => at <= use.at).at(-1);
+  const ogcds = [...mine.filter((u) => gcd.get(u.action) === false), ...asPlayed.filter((u) => !u.gcd)].map(
+    (u) => u.at,
+  );
+  for (const at of ogcds) {
+    const before = played.filter((t) => t <= at).at(-1);
     if (before !== undefined && !planned.has(before)) after.add(before);
   }
   if (prepull !== null && !planned.has(prepull)) after.add(prepull);

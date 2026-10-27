@@ -120,4 +120,17 @@ describe('Weaving', () => {
     // Or just before an oGCD that takes the moment asked.
     expect(free.gcdBefore(2, 30_000, 0, 0, [ogcd(30_000)])).toBe(29_400);
   });
+
+  it("keeps an opener's steps' slots: its GCD at one of theirs, its oGCDs", () => {
+    const opened = new Weaving([cast(10_000, 9), cast(12_500, 9), cast(15_000, 9)], gcdOf);
+    opened.keep([
+      { player: 1, at: 10_000, gcd: true, castMs: 0 },
+      { player: 1, at: 10_600, gcd: false, castMs: 0 },
+    ]);
+
+    // The GCD at 10s is the opener's: the next free one is at 12.5s.
+    expect(opened.gcdAfter(1, 10_000, 20_000, 1500, [])).toBe(12_500);
+    // After its lock, the opener's oGCD to 11.3s: the next slot then.
+    expect(opened.ogcdAfter(1, 10_000, 12_500, [])).toBe(11_300);
+  });
 });

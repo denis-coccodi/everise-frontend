@@ -43,6 +43,8 @@ export interface PlanUseEntry {
   burst?: boolean;
   // Kept as the player used it (a buff, an enabler), and what it does.
   kept?: string;
+  // A GCD (a heal spell, Afflatus Misery): it comes first in its row.
+  gcd?: boolean;
 }
 
 // One of the player's GCDs as played, which a planned oGCD is woven after:

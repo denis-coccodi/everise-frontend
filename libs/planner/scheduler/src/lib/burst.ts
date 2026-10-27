@@ -33,8 +33,8 @@ export function burstActions(job: string): number[] {
 }
 
 // The replanned players' burst after their opener, each use in the first
-// weave slot from when it's due that their opener and the uses before leave
-// free; and each astrologian's draws after the opener's, as they come
+// weave slot from when it's due that the plan (`planned`: its heals and
+// mitigations come first) and the uses before leave free; and each astrologian's draws after the opener's, as they come
 // (`opening.draws`), each followed by its card: the Balance after Astral
 // Draw, the Spear after Umbral Draw.
 export function burstUses(
@@ -43,6 +43,7 @@ export function burstUses(
   players: TimelinePlayer[],
   opening: Opening,
   weaving: Weaving,
+  planned: PlannedUse[],
 ): PlannedUse[] {
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const end = timeline.durationMs;
@@ -50,7 +51,9 @@ export function burstUses(
   for (const p of players) {
     const job = p.job ?? '';
     const opened = opening.uses.filter((u) => u.player === p.id);
-    const taken: Occupied[] = opened.map((u) => ({ at: u.at, gcd: !!byId.get(u.action)?.gcd, castMs: 0 }));
+    const taken: Occupied[] = planned
+      .filter((u) => u.player === p.id)
+      .map((u) => ({ at: u.at, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 }));
     const firstGcd = weaving.gcdsBetween(p.id, 0, end)[0];
     if (firstGcd === undefined) continue;
     // The first weave slot from `due`, at their next GCD if it's downtime.
