@@ -21,7 +21,7 @@ import {
   PlannedHit,
   PlannedUse,
 } from './plan.model';
-import type { Candidate, Spent } from './heal-plan.model';
+import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
@@ -39,8 +39,9 @@ const HEALS_PER_MECHANIC = 8;
 // action) up for it, and where its healer can act (`weaving`): an oGCD in a
 // weave slot, a GCD in place of one of theirs. A GCD heal can go with the
 // oGCD that pays only with one (`pairings`: Plenary Indulgence before a
-// Medica), the two planned together. Then each hit is judged by the HP it
-// leaves.
+// Medica), the two planned together. A replanned scholar's fairy heals as
+// `fairy` works out, in place of hers in the pull. Then each hit is judged
+// by the HP it leaves.
 export function planHeals(
   plan: Plan,
   timeline: PullTimeline,
@@ -51,6 +52,7 @@ export function planHeals(
   buffs = new Map<number, HealingBuff[]>(),
   weaving = new Weaving(),
   pairings: HealPairing[] = [],
+  fairy: FairyHealing = { events: [], recalculated: [] },
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -61,8 +63,9 @@ export function planHeals(
   const favourOf = (player: number): Favour => options.favour?.[player] ?? 'dps';
 
   const track = new HpTrack(maxHp, [
-    ...pullEvents(timeline, plan.mechanics, plan.hits, heals),
+    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated),
     ...naturalRegen(timeline),
+    ...fairy.events,
   ]);
   const hitAt = new Map<number, number[]>();
   for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);

@@ -12,6 +12,8 @@ import { Weaving } from './weaving';
 import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { mitigationTools } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
+import { fairyHeals, fairyKeys, fairyPower } from './fairy-heals';
+import type { FairyHealing } from './heal-plan.model';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -69,6 +71,19 @@ export class PlannerScheduler {
     const party = timeline.players.map((p) => p.id);
     const potency = new HealingBuffs(buffs, party, timeline, new Set([...mitigation, ...heals, ...pairings].map(key)));
     const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
+    // A replanned scholar's fairy heals on her own, as the HP the round
+    // before leaves calls for (as played in the first round).
+    const scholars = timeline.players.filter((p) => p.job === 'SCH' && replanned({ player: p.id }));
+    const fairyPowers = new Map(scholars.map((s) => [s.id, fairyPower(timeline, s.id, power.get(s.id) ?? null)]));
+    const fairy = (from?: Plan): FairyHealing =>
+      from?.hp.length
+        ? {
+            events: scholars.flatMap((s) =>
+              fairyHeals(timeline, s.id, fairyPowers.get(s.id) ?? null, from.uses, from.hp, maxHp),
+            ),
+            recalculated: scholars.flatMap((s) => fairyKeys(s.id)),
+          }
+        : { events: [], recalculated: [] };
     const once = (from?: Plan) =>
       planHeals(
         planMitigation(mechanics, alone, maxHp, options, from, fixed, weaving, shieldTimes),
@@ -80,9 +95,13 @@ export class PlannerScheduler {
         buffs,
         weaving,
         pairings,
+        fairy(from),
       );
 
     let best = once();
+    // The fairy's heals from the plan's own HP replace hers as played,
+    // whichever plan comes out better.
+    if (scholars.length) best = once(best);
     for (let round = 1; round < ROUNDS && best.hits.some((h) => !h.safe); round++) {
       const next = once(best);
       if (!better(next, best, maxHp, options)) break;

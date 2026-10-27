@@ -36,8 +36,7 @@ const SAME_STACK: Record<string, string> = {
 // gauge (50 of it about every 25 seconds of auto-attacks, up to 100),
 // Aetherflow and Addersgall (about one every 20 seconds, up to 3), the
 // Astrologian's cards (Astral and Umbral Draw take turns every 55 seconds,
-// each giving one of its own, so a card comes every 110), Seraph (out every 120 seconds, with two
-// Consolations), Tempera Coat (which Tempera Grassa uses up; back in 60
+// each giving one of its own, so a card comes every 110), Tempera Coat (which Tempera Grassa uses up; back in 60
 // to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), Lady of
 // Crowns (Umbral Draw's Minor Arcana, every 110 seconds) and Improvisation's finish (every 120
 // seconds: Improvisation itself isn't planned). One a use, as the planner
@@ -46,14 +45,11 @@ const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
 const card = (name: string): ToolPool => ({ name, gainMs: 110_000, max: 1 });
-const SERAPH: ToolPool = { name: 'Seraph', gainMs: 60_000, max: 2 };
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
 const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 120_000, max: 1 };
 export const POOLS: Record<number, ToolPool> = {
   25789: IMPROVISATION, // Improvised Finish
-  16546: SERAPH, // Consolation
-  16548: SERAPH, // Seraphic Veil
   34685: TEMPERA, // Tempera Coat
   34686: TEMPERA, // Tempera Grassa
   3542: OATH, // Sheltron
@@ -76,6 +72,12 @@ export const POOLS: Record<number, ToolPool> = {
   37024: card('the Arrow'),
 };
 
+// The scholar's Seraph: Summon Seraph brings her for 22s, in which she
+// casts Seraphic Veil by herself and Consolation when ordered.
+export const SUMMON_SERAPH = 16545;
+export const SERAPHIC_VEIL = 16548;
+export const SERAPH_MS = 22_000;
+
 // Actions another grants, by action, as the game has them: the catalog
 // gives them a recast of their own (a second or so), which isn't what limits
 // them. The plan uses one only after it has the action that grants it.
@@ -87,11 +89,16 @@ export const GRANTED: Record<number, Grant> = {
   36944: { action: 7394, withinMs: 30_000, uses: 1 }, // Earth's Reply, after Riddle of Earth
   3585: { action: 185, withinMs: 30_000, uses: 1 }, // Deployment Tactics, on an Adloquium's Galvanize
   37031: { action: 16559, withinMs: 30_000, uses: 1 }, // Sun Sign, while Suntouched from Neutral Sect
+  16546: { action: SUMMON_SERAPH, withinMs: SERAPH_MS, uses: 2 }, // Consolation, while Seraph is out
 };
 // Actions that grant another but mitigate nothing themselves (Neutral
-// Sect's buff and barriers are for the heals): tools all the same, so the
-// plan can use one with what it grants (Sun Sign).
-const GRANTING = new Set([16559]);
+// Sect's buff and barriers are for the heals; Summon Seraph only brings
+// her): tools all the same, so the plan can use one with what it grants
+// (Sun Sign, Consolation).
+const GRANTING = new Set([16559, SUMMON_SERAPH]);
+// What a pet casts on its own, never ordered (Seraphic Veil): the plan
+// works it out with the fairy's other healing (fairy-heals.ts).
+export const AUTOMATIC = new Set([SERAPHIC_VEIL]);
 
 // Shields an action copies from another's to the whole party, by action:
 // Deployment Tactics, an Adloquium's Galvanize (for what's left of it; the
@@ -156,6 +163,7 @@ export function mitigationTools(
   const byId = new Map(catalog.actions.map((action) => [action.id, action]));
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
+      if (AUTOMATIC.has(action.id)) continue;
       const own = power.get(player.id) ?? null;
       const from = byId.get(SPREADS[action.id]);
       const spread = action.effects.find((e) => e.kind === 'shield')?.status;

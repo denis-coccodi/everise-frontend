@@ -16,12 +16,15 @@ const NATURAL_SHARE = 0.01;
 // schedule as it was played (a tank's own sustain, Kardia, the faerie's
 // Embrace), all of it with its overheal, as the HP it lands on may differ.
 // Natural regeneration isn't among them: the log has it only where the HP
-// as played was missing some (`naturalRegen` recalculates it).
+// as played was missing some (`naturalRegen` recalculates it). Nor are the
+// heals `recalculated` names (player:action), which the plan works out
+// again (a replanned scholar's fairy).
 export function pullEvents(
   timeline: PullTimeline,
   mechanics: Mechanic[],
   hits: PlannedHit[],
   heals: HealTool[],
+  recalculated: string[] = [],
 ): HpEvent[] {
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const statusName = new Map(timeline.statuses.map((s) => [s.id, s.name]));
@@ -39,7 +42,7 @@ export function pullEvents(
 
   // The heals the plan counts itself: its heal tools' actions and the
   // statuses of their healing over time, by id or (for a pet's) by name.
-  const own = new Set<string>();
+  const own = new Set<string>(recalculated);
   for (const t of heals) {
     own.add(`${t.player}:${t.action}`).add(`${t.player}:${t.name}`);
     if (t.delayed) own.add(`${t.player}:${t.delayed.loggedAs}`).add(`${t.player}:status ${t.delayed.loggedAs}`);
