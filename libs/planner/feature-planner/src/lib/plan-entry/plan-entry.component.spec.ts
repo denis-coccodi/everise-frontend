@@ -62,6 +62,21 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Eukrasia, then Eukrasian Prognosis II For Killer Voice');
   });
 
+  it('says a use is part of the opener', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 8_700,
+        action: 'Energy Drain',
+        target: null,
+        covers: [],
+        damage: false,
+        overcap: false,
+        opener: true,
+      }).text,
+    ).toBe('Use Energy Drain Part of the opener');
+  });
+
   it('says why a use for no hit is there', () => {
     expect(
       render({ kind: 'use', at: 40_000, action: 'Assize', target: null, covers: [], damage: false, overcap: false })

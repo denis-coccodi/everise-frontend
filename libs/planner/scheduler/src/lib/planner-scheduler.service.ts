@@ -13,6 +13,7 @@ import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.mo
 import { AUTOMATIC, mitigationTools } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { withAetherflow } from './aetherflow';
+import { scholarTimes, withStacksLeft } from './openers';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
 
@@ -40,15 +41,28 @@ export class PlannerScheduler {
     for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player);
     const power = healPower(timeline, catalog);
+    // A replanned scholar starts with their opener (the standard one unless
+    // asked otherwise): it says when their Aetherflow stacks come and their
+    // fairy goes away for Dissipation.
+    const scholars = timeline.players.filter((p) => p.job === 'SCH' && replanned({ player: p.id }));
+    const openers = new Map(
+      scholars.map((s) => [s.id, scholarTimes(timeline, catalog, s.id, asked.openers?.[s.id] ?? 'standard')]),
+    );
+    const refills = new Map(
+      [...openers].map(([id, o]) => [id, [...o.aetherflow, ...o.dissipation].sort((a, b) => a - b)]),
+    );
+    const dissipations = new Map([...openers].map(([id, o]) => [id, o.dissipation]));
     // A scholar's fairy orders wait for her while Dissipation has her away.
     const mitigation = withAetherflow(
       timeline,
-      withFairyAway(timeline, mitigationTools(timeline.players, catalog, power)),
+      withFairyAway(timeline, mitigationTools(timeline.players, catalog, power), dissipations),
+      refills,
     );
     // The others' heals stay in the pull's healing, as played.
     const heals = withAetherflow(
       timeline,
-      withFairyAway(timeline, healTools(timeline.players, catalog, mitigation, power).filter(replanned)),
+      withFairyAway(timeline, healTools(timeline.players, catalog, mitigation, power).filter(replanned), dissipations),
+      refills,
     );
     const fixed = playedUses(
       timeline,
@@ -82,7 +96,6 @@ export class PlannerScheduler {
     const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
     // A replanned scholar's fairy heals on her own, as the HP the round
     // before leaves calls for (as played in the first round).
-    const scholars = timeline.players.filter((p) => p.job === 'SCH' && replanned({ player: p.id }));
     const fairyHeal = fairyPotency(level);
     const fairyPowers = new Map(
       scholars.map((s) => [s.id, fairyPower(timeline, s.id, power.get(s.id) ?? null, fairyHeal)]),
@@ -98,7 +111,16 @@ export class PlannerScheduler {
     const fairy = (from?: Plan): { healing: FairyHealing; casts: PlannedUse[] } => {
       if (!from?.hp.length) return { healing: { events: [], recalculated: [] }, casts: [] };
       const each = scholars.map((s) =>
-        fairyHeals(timeline, s.id, fairyPowers.get(s.id) ?? null, from.uses, from.hp, maxHp, fairyHeal),
+        fairyHeals(
+          timeline,
+          s.id,
+          fairyPowers.get(s.id) ?? null,
+          from.uses,
+          from.hp,
+          maxHp,
+          fairyHeal,
+          dissipations.get(s.id),
+        ),
       );
       return {
         healing: { events: each.flatMap((f) => f.events), recalculated: scholars.flatMap((s) => fairyKeys(s.id)) },
@@ -131,7 +153,22 @@ export class PlannerScheduler {
       best = next;
     }
     // Seraph casts her Veils herself: they're no use to list.
-    return { ...best, uses: best.uses.filter((u) => !AUTOMATIC.has(u.action)) };
+    // The openers' own steps (Energy Drains, Chain Stratagem...) show with
+    // it, but for the Energy Drains whose stacks the heals took.
+    const stackTools = new Set([...mitigation, ...heals].filter((t) => t.pool?.name === 'Aetherflow').map(key));
+    const opening = [...openers].flatMap(([id, o]) =>
+      withStacksLeft(
+        o.uses,
+        refills.get(id) ?? [],
+        best.uses.filter((u) => u.player === id && stackTools.has(key(u))).map((u) => u.at),
+      ),
+    );
+    return {
+      ...best,
+      uses: [...best.uses.filter((u) => !AUTOMATIC.has(u.action)), ...opening].sort(
+        (a, b) => a.at - b.at || a.player - b.player,
+      ),
+    };
   }
 
   // What the plan's options offer for the tanks' invulnerabilities.

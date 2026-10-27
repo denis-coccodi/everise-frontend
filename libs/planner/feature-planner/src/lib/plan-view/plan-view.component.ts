@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
 import { InvulnerabilitySetting, PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
+import { OPENERS, type OpenerId } from '@everise/planner/scheduler';
 import { FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
 // One of a tank's invulnerabilities in the form: a choice the plan has
@@ -31,6 +32,16 @@ export class PlanViewComponent {
   protected readonly clock = pullClock;
 
   protected readonly replanned = computed(() => this.plans.replan().includes(this.player().id));
+  // The openers the player's job has (none for most), and the one chosen:
+  // the standard one unless set otherwise.
+  protected readonly openers = computed(() => OPENERS[this.player().job ?? ''] ?? []);
+  protected readonly opener = computed<OpenerId>(() => this.plans.openers()[this.player().id] ?? 'standard');
+  protected readonly openerHint = computed(() => {
+    const chosen = this.openers().find((o) => o.id === this.opener());
+    return chosen?.source
+      ? `${chosen.name}, from ${chosen.source}: the pull starts with it, Aetherflow on cooldown after it.`
+      : 'No opener: the plan places Aetherflow on cooldown from the first GCD, and Dissipation where it was used.';
+  });
   // What a replanned healer favours: damage unless set to healing.
   protected readonly favour = computed(() => this.plans.favour()[this.player().id] ?? 'dps');
   // The tank's invulnerabilities: each choice the plan has, and one row for
@@ -85,6 +96,11 @@ export class PlanViewComponent {
       });
     return names.length ? `The plan couldn't use ${names.join(', ')}: the recast doesn't allow it.` : '';
   });
+
+  protected setOpener(value: string) {
+    const opener = this.openers().find((o) => o.id === value);
+    if (opener) this.plans.setOpener(this.player().id, opener.id);
+  }
 
   protected setFavour(value: string) {
     this.plans.setFavour(this.player().id, value === 'healing' ? 'healing' : 'dps');

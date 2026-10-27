@@ -5,11 +5,13 @@
   display: block;
 }
 
-.favour {
+.favour,
+.opener {
   max-width: 16rem;
 }
 
-cdt-field:has(.favour) {
+cdt-field:has(.favour),
+cdt-field:has(.opener) {
   margin-bottom: 0.75rem;
 }
 

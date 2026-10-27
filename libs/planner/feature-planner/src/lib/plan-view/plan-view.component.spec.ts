@@ -80,6 +80,30 @@ describe('PlanViewComponent', () => {
     expect(favour()?.selectedOptions[0].textContent).toBe('Healing');
   });
 
+  it('lets a replanned scholar pick their opener, the standard one by default', async () => {
+    const rendered = await openPlan();
+    const opener = () => rendered.page.querySelector<HTMLSelectElement>('#planner-opener');
+
+    click(rendered, rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1]);
+    expect(opener()).toBeNull();
+    click(rendered, replanTick(rendered.page, 'Heal Main'));
+    expect([...(opener()?.options ?? [])].map((o) => o.textContent?.trim())).toEqual([
+      'Use standard opener',
+      'Dissipation first',
+      'None: planned without an opener',
+    ]);
+    expect(opener()?.selectedOptions[0].textContent?.trim()).toBe('Use standard opener');
+
+    const field = opener() as HTMLSelectElement;
+    field.value = 'dissipation-first';
+    field.dispatchEvent(new Event('change'));
+    rendered.fixture.detectChanges();
+    expect(opener()?.selectedOptions[0].textContent?.trim()).toBe('Dissipation first');
+    expect(rendered.page.querySelector('cdt-planner-plan-view cdt-field')?.textContent).toContain(
+      'Dissipation first, from Icy Veins (7.55), The Balance (7.4)',
+    );
+  });
+
   it('keeps the plan when another player is picked, showing their part', async () => {
     const timeline = pullTimeline();
     timeline.damage[3].unmitigated = 300_000;

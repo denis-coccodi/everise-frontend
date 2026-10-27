@@ -37,6 +37,8 @@ export interface PlanUseEntry {
   damage: boolean;
   // A lily spent because the lilies are full.
   overcap: boolean;
+  // A step of the player's opener.
+  opener?: boolean;
 }
 
 // One of the player's GCDs as played, which a planned oGCD is woven after:

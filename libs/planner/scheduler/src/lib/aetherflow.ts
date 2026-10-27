@@ -19,14 +19,19 @@ export function refillsOf(timeline: PullTimeline, scholar: number): number[] {
 }
 
 // The tools with their player's Aetherflow stacks as the pull refills
-// them, in place of a pool that refills on its own.
+// them (or as `refills` has them, by player: an opener's), in place of a
+// pool that refills on its own.
 export function withAetherflow<T extends { player: number; pool: ToolPool | null }>(
   timeline: PullTimeline,
   tools: T[],
+  refills = new Map<number, number[]>(),
 ): T[] {
   return tools.map((t) =>
     t.pool?.name === 'Aetherflow'
-      ? { ...t, pool: { ...t.pool, gainMs: 60_000, refills: refillsOf(timeline, t.player) } }
+      ? {
+          ...t,
+          pool: { ...t.pool, gainMs: 60_000, refills: refills.get(t.player) ?? refillsOf(timeline, t.player) },
+        }
       : t,
   );
 }
