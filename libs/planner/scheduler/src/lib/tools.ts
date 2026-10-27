@@ -163,17 +163,20 @@ const FEY_UNION_HELD = 'while held, using the Faerie Gauge';
 
 // The mitigations and shields each player of the pull has, at their level.
 // A shield's HP comes from its caster's `power` (HP a potency heals) for
-// one given in potency or as a share of a heal.
+// one given in potency or as a share of a heal. With `automatic`, only
+// what a pet casts by herself (Seraphic Veil's barrier, which the plan
+// places where Seraph would cast it).
 export function mitigationTools(
   players: TimelinePlayer[],
   catalog: ActionCatalog,
   power: Map<number, number> = new Map(),
+  automatic = false,
 ): MitigationTool[] {
   const tools: MitigationTool[] = [];
   const byId = new Map(catalog.actions.map((action) => [action.id, action]));
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
-      if (AUTOMATIC.has(action.id)) continue;
+      if (AUTOMATIC.has(action.id) !== automatic) continue;
       const own = power.get(player.id) ?? null;
       const from = byId.get(SPREADS[action.id]);
       const spread = action.effects.find((e) => e.kind === 'shield')?.status;

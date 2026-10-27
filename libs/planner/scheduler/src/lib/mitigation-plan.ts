@@ -1,5 +1,6 @@
 import { fitsGrant, fitsPool, fitsRecast, isAway, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
+import { AUTOMATIC } from './tools';
 import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
 import type { PullFacts } from './coverage.model';
@@ -26,7 +27,9 @@ const RECITATION_MS = 15_000;
 // uses (the others', as played) stay as they are. Each use goes where its
 // player can act (`weaving`): an oGCD in a weave slot, a GCD in place of
 // one of theirs. A GCD shield grows with its caster's healing potency
-// buffs (`shieldTimes`).
+// buffs (`shieldTimes`). The `automatic` uses (Seraph's Seraphic Veils,
+// worked out each round) are given, never planned, and take none of their
+// owner's time.
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
@@ -36,6 +39,7 @@ export function planMitigation(
   fixed: PlannedUse[] = [],
   weaving = new Weaving(),
   shieldTimes?: PullFacts['shieldTimes'],
+  automatic: PlannedUse[] = [],
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -80,11 +84,13 @@ export function planMitigation(
     uses.push(candidate.use);
     toolOf.set(candidate.use, candidate.tool);
   };
-  const plannable = tools.filter((t) => !options.replan || options.replan.includes(t.player));
+  const plannable = tools.filter(
+    (t) => !AUTOMATIC.has(t.action) && (!options.replan || options.replan.includes(t.player)),
+  );
   // An earlier plan's mitigations stay: taking one away would leave its hits
   // bigger, and the HP after them lower than the plan was made for. (It has
   // the fixed ones already.)
-  for (const use of from?.uses ?? fixed) {
+  for (const use of [...(from?.uses ?? fixed).filter((u) => !AUTOMATIC.has(u.action)), ...automatic]) {
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }
@@ -93,7 +99,7 @@ export function planMitigation(
   const fit = (m: Mechanic, t: MitigationTool, at: number) => {
     const from = m.at - Math.min(...t.effects.map((e) => e.durationMs));
     const occupied = uses
-      .filter((u) => u.player === t.player)
+      .filter((u) => u.player === t.player && !AUTOMATIC.has(u.action))
       .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
     return t.gcd
       ? weaving.gcdBefore(t.player, at - t.castMs, from, t.castMs, occupied)
@@ -129,7 +135,9 @@ export function planMitigation(
     uses.filter((u) => u.player === player && u.action === action).map((u) => u.at);
 
   const occupiedBy = (player: number) =>
-    uses.filter((u) => u.player === player).map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
+    uses
+      .filter((u) => u.player === player && !AUTOMATIC.has(u.action))
+      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
 
   // The damage `added` uses take off the hits `wanted` of `m` (and, in a
   // burst, the earlier hits on those players, which leave them the HP they

@@ -47,7 +47,7 @@ describe('fairyHeals', () => {
   ];
 
   it('heals every 3.2s whoever is missing the most of their HP, and no one at full HP', () => {
-    const events = fairyHeals(timeline(), 2, 50, [], hp, maxHp, 180);
+    const { events } = fairyHeals(timeline(), 2, 50, [], hp, maxHp, 180);
 
     expect(events.map((e) => [e.at, e.player, e.amount])).toEqual([
       [4_200, 1, 9_000],
@@ -63,10 +63,15 @@ describe('fairyHeals', () => {
     t.playerCasts = [{ at: 4_000, source: 2, target: null, action: 3587, castMs: null }];
     const seraph = [{ player: 2, action: 16545, name: 'Summon Seraph', at: 12_000, target: null, covers: [] }];
 
-    const events = fairyHeals(t, 2, 50, seraph, hp, maxHp, 180);
+    const { events, casts } = fairyHeals(t, 2, 50, seraph, hp, maxHp, 180);
 
     // Away from 4s to 34s, but Seraph from 12s to 34s.
     expect(events.map((e) => e.at)).toEqual([13_800, 17_000]);
+    // Seraph's casts are Seraphic Veils, for their barriers.
+    expect(casts.map((c) => [c.at, c.action, c.target])).toEqual([
+      [13_800, 16548, 3],
+      [17_000, 16548, 3],
+    ]);
   });
 
   it("measures the fairy's healing from her own heals, or the scholar's", () => {
