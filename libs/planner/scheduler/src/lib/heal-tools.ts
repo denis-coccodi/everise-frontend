@@ -20,6 +20,12 @@ export const TICK_MS = 3000;
 // Pneuma (a damage spell that heals).
 const NEUTRAL_GCDS = new Set([16531, 16534, 24318]);
 
+// A DPS's heals the plan has them use when it replans them, those that cost
+// no damage: Second Wind, Curing Waltz, Lux Solaris, Earth's Reply.
+// (Vercure and Physick would take a damage GCD; Improvisation stops them to
+// dance; Star Prism is a damage spell of their burst, kept as played.)
+export const DPS_HEALS = new Set([7541, 16015, 36997, 36944]);
+
 // Heals that land later than they're used, by action: Earthly Star heals
 // fully once the star has grown, on its own when it runs out (20s) or set
 // off with Stellar Detonation from 10s; its log calls the heal Stellar
@@ -55,7 +61,9 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // Physis II before any of a Sage's heals in its 15s (its own regen, and 10%
 // more), as the guides have it go first; Recitation before an Adloquium,
 // Concitation, Indomitability or Excogitation, a critical heal (its making
-// them free of Aetherflow isn't counted).
+// them free of Aetherflow isn't counted); Emergency Tactics before an
+// Adloquium, Concitation, Manifestation or Accession, its Galvanize (180%
+// of the heal) healing instead (`converts`: no shield then).
 const PAIRED: Record<
   number,
   {
@@ -67,6 +75,7 @@ const PAIRED: Record<
     onTarget?: boolean;
     own?: boolean;
     critical?: boolean;
+    converts?: boolean;
   }
 > = {
   7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
@@ -81,6 +90,7 @@ const PAIRED: Record<
     own: true,
   },
   16542: { heals: [185, 37013, 3583, 7434], withinMs: 15_000, times: 1, potency: 0, critical: true },
+  3586: { heals: [185, 37013, 37015, 37016], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
 };
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
@@ -110,16 +120,17 @@ export function healPairings(
         barriers: paired.barriers ?? {},
         onTarget: paired.onTarget ?? false,
         own: paired.own ?? false,
+        converts: paired.converts ?? false,
       });
     }
   }
   return pairings;
 }
 
-// The heals the plan can count on: every heal of the healers' actions, and
-// the heals of the mitigations the plan has anyone use. Everyone else's
-// healing (a tank's own sustain, Second Wind, Holy Spirit) stays as it was
-// played. Heals that depend on what happens later count when they're one of
+// The heals the plan can count on: every heal of the healers' actions, a
+// DPS's that cost no damage (`DPS_HEALS`), and the heals of the
+// mitigations the plan has anyone use. Everyone else's healing (a tank's
+// own sustain, Holy Spirit) stays as it was played. Heals that depend on what happens later count when they're one of
 // the delayed or waiting ones above (Kardia isn't). Sizes come from the
 // caster's `power` (HP a potency heals) or the target's max HP.
 export function healTools(
@@ -132,7 +143,8 @@ export function healTools(
   const tools: HealTool[] = [];
   for (const player of players) {
     for (const action of playerActions(player, catalog)) {
-      if (player.role !== 'healer' && !planned.has(`${player.id}:${action.id}`)) continue;
+      const dps = player.role !== 'healer' && player.role !== 'tank' && DPS_HEALS.has(action.id);
+      if (player.role !== 'healer' && !dps && !planned.has(`${player.id}:${action.id}`)) continue;
       if (AUTOMATIC.has(action.id)) continue;
       const own = power.get(player.id) ?? null;
       const star = DELAYED[action.id];

@@ -156,6 +156,45 @@ describe('planHeals', () => {
     expect(plan([]).uses.map((u) => u.name)).toEqual(['Medica', 'Medica']);
   });
 
+  it('turns an Adloquium into a heal 2.8 times as big with Emergency Tactics, where the heal is what it takes', () => {
+    // The tank lands on 15,000 and needs 55,000 for the second buster:
+    // Adloquium heals 30,000 (300 potency, at the 100 HP a potency Lustrate
+    // heals as played), its Galvanize too as healing 84,000.
+    const cat = catalog();
+    cat.actions.push(
+      action(185, 'Adloquium', ['SCH'], 2.5, [heal(300)], { gcd: true, castMs: 2000 }),
+      action(3586, 'Emergency Tactics', ['SCH'], 15, []),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Adloquium');
+    const options = { margin: 0.1 };
+    const plan = (paired = healPairings(timeline.players, cat, power)) =>
+      planHeals(
+        planMitigation(mechanicsOf(timeline), [], maxHp, options),
+        timeline,
+        [],
+        heals,
+        maxHp,
+        options,
+        new Map(),
+        new Weaving(),
+        paired,
+      );
+
+    const withIt = plan();
+    expect(withIt.uses.map((u) => u.name)).toEqual(['Emergency Tactics', 'Adloquium']);
+    expect(withIt.hits[1]).toMatchObject({ safe: true });
+    expect(plan([]).uses.map((u) => u.name)).toEqual(['Adloquium', 'Adloquium']);
+  });
+
   it("counts Neutral Sect's barrier on an Aspected Benefic as a shield for the next hit", () => {
     // The scholar as an astrologian: the tank lands on 15,000. Aspected
     // Benefic heals 25,000, 30,000 under Neutral Sect, and leaves a 75,000

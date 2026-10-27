@@ -48,6 +48,21 @@ describe('PlannerStore', () => {
     expect(store.picked()).toBeNull();
   });
 
+  it('numbers the later fights FFLogs names alike', async () => {
+    const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678' });
+    const report = fightReport();
+    const [first] = report.pulls;
+    report.pulls = [
+      { ...first, id: 1, encounterId: 104, name: 'Lindwurm' },
+      { ...first, id: 2, encounterId: 105, name: 'Lindwurm' },
+    ];
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(report);
+    await settled();
+
+    expect(store.encounters().map((e) => e.name)).toEqual(['Lindwurm', 'Lindwurm II']);
+  });
+
   it('reads the pull picked and the action catalog', async () => {
     const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '3' });
 

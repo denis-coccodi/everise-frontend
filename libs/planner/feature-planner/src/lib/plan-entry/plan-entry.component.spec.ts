@@ -92,6 +92,21 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Chain Stratagem On cooldown, for the burst windows');
   });
 
+  it('says Rhizomata is for the heals after', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 30_000,
+        action: 'Rhizomata',
+        target: null,
+        covers: [],
+        damage: false,
+        overcap: false,
+        refill: true,
+      }).text,
+    ).toBe('Use Rhizomata Addersgall is running low: one more for the heals after');
+  });
+
   it('says a use is part of the opener', () => {
     expect(
       render({

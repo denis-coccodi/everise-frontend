@@ -72,6 +72,23 @@ describe('healTools', () => {
     expect(names).toContain('Adloquium');
   });
 
+  it("counts a DPS's heals that cost no damage (Second Wind), not a tank's", () => {
+    const c = catalog();
+    c.actions.push(action(7541, 'Second Wind', ['BRD', 'PLD'], 120, [{ ...heal(800), target: 'self' }]));
+
+    const own = healTools(
+      party(),
+      c,
+      [],
+      new Map([
+        [1, 50],
+        [3, 20],
+      ]),
+    ).filter((t) => t.name === 'Second Wind');
+
+    expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[3, 'free', { hp: 16_000 }]]);
+  });
+
   it('counts the grown Earthly Star as a delayed heal, set off by Stellar Detonation', () => {
     const c = withHeals();
     c.actions.push(
@@ -194,6 +211,16 @@ describe('healPairings', () => {
     // The log doesn't say: 1.5.
     expect(recitation(null)?.times).toBe(1.5);
     expect(recitation(null)?.heals).toEqual([185, 37013, 3583, 7434]);
+  });
+
+  it("has Emergency Tactics turn a scholar's Galvanize into healing", () => {
+    const cat = catalog();
+    cat.actions.push(action(3586, 'Emergency Tactics', ['SCH'], 15, []));
+
+    const tactics = healPairings(party(), cat, new Map([[2, 100]])).find((p) => p.name === 'Emergency Tactics');
+
+    // The heal and its 180% barrier, all healing, and no barrier.
+    expect(tactics).toMatchObject({ times: 2.8, converts: true, heals: [185, 37013, 37015, 37016] });
   });
 });
 

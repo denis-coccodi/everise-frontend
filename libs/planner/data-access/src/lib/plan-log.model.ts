@@ -41,6 +41,8 @@ export interface PlanUseEntry {
   opener?: boolean;
   // A raid buff or burst on cooldown, or an astrologian's draw and card.
   burst?: boolean;
+  // A resource for the heals after (Rhizomata).
+  refill?: boolean;
   // Kept as the player used it (a buff, an enabler), and what it does.
   kept?: string;
   // A GCD (a heal spell, Afflatus Misery): it comes first in its row.

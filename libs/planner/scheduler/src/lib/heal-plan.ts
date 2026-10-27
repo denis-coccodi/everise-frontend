@@ -1,4 +1,5 @@
 import { PullTimeline } from '@everise/core/api-types';
+import { DPS_HEALS } from './heal-tools';
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
@@ -60,7 +61,9 @@ export function planHeals(
   const mitigationOf = new Map(mitigation.map((t) => [key(t), t]));
   const party = timeline.players.map((p) => p.id);
   const healers = new Set(timeline.players.filter((p) => p.role === 'healer').map((p) => p.id));
-  const planned = heals.filter((t) => healers.has(t.player));
+  // The healers' heals, and a replanned DPS's (Lux Solaris...); the others'
+  // heals (a tank's Nascent Flash) are their mitigation's.
+  const planned = heals.filter((t) => healers.has(t.player) || DPS_HEALS.has(t.action));
   const favourOf = (player: number): Favour => options.favour?.[player] ?? 'dps';
 
   const track = new HpTrack(maxHp, [
@@ -186,8 +189,9 @@ export function planHeals(
       track.add(pick.events);
       uses.push(pick.use);
       boosts.add(pick.use);
+      // A shield Emergency Tactics turns into healing goes up as none.
       const mitigates = mitigationOf.get(key(pick.use));
-      if (mitigates) mitigate(pick.use, mitigates);
+      if (mitigates && !pick.paired?.pairing.converts) mitigate(pick.use, mitigates);
       if (pick.paired) {
         const { use, pairing } = pick.paired;
         uses.push(use);
