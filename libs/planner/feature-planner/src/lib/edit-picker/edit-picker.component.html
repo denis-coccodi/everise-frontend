@@ -1,0 +1,31 @@
+<div class="picker" role="group" [attr.aria-label]="'Add a skill'">
+  @if (slots().length) {
+    <cdt-field label="When" [for]="'planner-edit-slot-' + key()">
+      <select #where cdtInput [id]="'planner-edit-slot-' + key()" (change)="pickSlot(where.value)">
+        @for (s of slots(); track s.at; let i = $index) {
+          <option [value]="i" [selected]="i === shownIndex()">{{ s.label }}</option>
+        }
+      </select>
+    </cdt-field>
+    <ul class="choices">
+      @for (c of choices(); track c.action) {
+        <li>
+          @if (c.ok) {
+            <button type="button" cdtButton="outline-primary" size="sm" (click)="pick(c)">Add {{ c.name }}</button>
+            @if (c.replaces) {
+              <span class="note">in place of {{ c.replaces }}</span>
+            }
+          } @else {
+            <span class="unavailable">{{ c.name }}</span>
+            <span class="note">{{ c.reason }}</span>
+          }
+        </li>
+      } @empty {
+        <li class="note">None of their skills fits here.</li>
+      }
+    </ul>
+  } @else {
+    <p class="note">They used no GCD in the ten seconds before this: nowhere to put a skill.</p>
+  }
+  <button type="button" cdtButton="outline-secondary" size="sm" class="close" (click)="closed.emit()">Close</button>
+</div>

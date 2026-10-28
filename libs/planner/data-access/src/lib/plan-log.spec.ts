@@ -196,6 +196,8 @@ describe('planLog', () => {
         kind: 'use',
         at: 64_500,
         action: 'Reprisal',
+        // Its id, for the user to remove it.
+        id: 7535,
         target: null,
         first: null,
         covers: ['Killer Voice'],
@@ -206,6 +208,7 @@ describe('planLog', () => {
         kind: 'use',
         at: 199_500,
         action: 'Intervention',
+        id: 7382,
         target: 'Heal Main',
         first: null,
         covers: ['Killer Voice'],

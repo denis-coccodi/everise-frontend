@@ -93,3 +93,11 @@ cdt-planner-plan-view.shown {
     transition: none;
   }
 }
+
+// Editing the plan: its toggle and the way back, above the timeline.
+.edit-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}

@@ -28,6 +28,10 @@ export interface PlanUseEntry {
   kind: 'use';
   at: number;
   action: string;
+  // The action's id, for the user to remove it (a planned use, not one kept
+  // as played), and whether the user added it.
+  id?: number;
+  edited?: boolean;
   // Its icon (the game's id) and tooltip, when the catalog has them.
   icon?: number | null;
   description?: string | null;

@@ -38,7 +38,37 @@
         </h3>
         <div id="planner-timeline">
           @if (open().timeline) {
-            <cdt-planner-pull-compare [player]="p.name" [played]="log()" [planned]="planned()" [shown]="view()" />
+            @if (canEdit()) {
+              <!-- Editing the plan by hand: each change plans it again. -->
+              <div class="edit-bar">
+                <button
+                  type="button"
+                  cdtButton="outline-primary"
+                  size="sm"
+                  [attr.aria-pressed]="editing()"
+                  (click)="toggleEditing()"
+                >
+                  {{ editing() ? 'Done editing' : 'Edit plan' }}
+                </button>
+                @if (editor.count()) {
+                  <button type="button" cdtButton="outline-secondary" size="sm" (click)="editor.reset()">
+                    Reset my edits ({{ editor.count() }})
+                  </button>
+                }
+              </div>
+              <cdt-message tone="warning">{{ plans.editWarning() }}</cdt-message>
+            }
+            <cdt-planner-pull-compare
+              [player]="p.name"
+              [played]="log()"
+              [planned]="planned()"
+              [shown]="view()"
+              [editing]="editing() && canEdit()"
+              [slotsFor]="editor.slotsFor()"
+              [choicesFor]="editor.choicesFor()"
+              (removed)="editor.remove($event)"
+              (added)="editor.add($event)"
+            />
           }
         </div>
       </section>

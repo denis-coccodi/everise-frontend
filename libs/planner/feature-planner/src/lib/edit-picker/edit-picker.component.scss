@@ -1,0 +1,37 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+.picker {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-field);
+}
+
+.choices {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choices li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+}
+
+.unavailable {
+  color: var(--color-contrast-muted);
+}
+
+.note {
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
+}

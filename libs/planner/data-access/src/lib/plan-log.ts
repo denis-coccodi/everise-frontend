@@ -47,6 +47,8 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       kind: 'use',
       at: use.at,
       action: use.name,
+      id: use.action,
+      ...(use.edited ? { edited: true } : {}),
       ...(catalogAction.has(use.action)
         ? {
             icon: catalogAction.get(use.action)?.icon ?? null,

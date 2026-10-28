@@ -43,6 +43,36 @@
           <td class="plan">
             @for (entry of row.planned; track $index) {
               <cdt-planner-plan-entry [entry]="entry" />
+              @if (entry.kind === 'use' && entry.edited) {
+                <p class="yours">Added by you</p>
+              }
+              <!-- Editing: a planned skill (not one kept as played) can go. -->
+              @if (editing() && entry.kind === 'use' && entry.id) {
+                <button
+                  type="button"
+                  class="remove"
+                  cdtButton="outline-secondary"
+                  size="sm"
+                  (click)="removed.emit(entry)"
+                >
+                  Remove<span class="visually-hidden"> {{ entry.action }} at {{ clock(entry.at) }}</span>
+                </button>
+              }
+            }
+            @if (editing()) {
+              @if (picking() === row.at) {
+                <cdt-planner-edit-picker
+                  [slots]="slotsFor()(row.at)"
+                  [choicesFor]="choicesFor()"
+                  [key]="'' + row.at"
+                  (picked)="add($event)"
+                  (closed)="picking.set(null)"
+                />
+              } @else {
+                <button type="button" class="add" cdtButton="outline-primary" size="sm" (click)="picking.set(row.at)">
+                  Add a skill<span class="visually-hidden"> at {{ clock(row.shownAt) }}</span>
+                </button>
+              }
             }
           </td>
         </tr>

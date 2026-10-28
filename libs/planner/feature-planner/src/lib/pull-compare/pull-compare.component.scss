@@ -206,3 +206,17 @@ tr.only-plan {
     padding-right: 1.5rem;
   }
 }
+
+// Editing: a skill the user added says so; each planned one can go, and
+// each row can take one more.
+.yours {
+  margin: 0.1rem 0 0.4rem;
+  color: var(--color-label);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.remove,
+.add {
+  margin: 0.2rem 0 0.5rem;
+}
