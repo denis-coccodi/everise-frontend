@@ -72,7 +72,7 @@ export class PlannerScheduler {
       mitigation.filter((t) => !replanned(t)),
     );
     const fixed = [...played, ...placed.filter((u) => mitigates.has(u.player + ':' + u.action))];
-    const mechanics = mechanicsOf(timeline);
+    const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
       ...asked,

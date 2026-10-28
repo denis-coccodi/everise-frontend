@@ -6,14 +6,22 @@ const SAME_MECHANIC_MS = 1000;
 // A hit this many times what the attack usually does to a player (and more
 // than their max HP) is a failed mechanic.
 const FAILED_TIMES = 3;
+// More than this many times a player's max HP, no mitigation saves them.
+const UNSURVIVABLE = 3;
+// A death this soon after a hit is the hit's.
+const DEATH_MS = 2_000;
 
 // The pull's boss mechanics: its hits grouped by attack and moment, leaving
 // out damage over time ticks, auto-attacks ("Attack") and hits that did no
 // damage. A mechanic on most of the party is a raidwide; one on a tank or
 // two alone is a tank buster. A hit many times what the attack usually does
 // to a player (the median of its hits in the pull), and more than their max
-// HP, is a failed mechanic: avoidable.
-export function mechanicsOf(timeline: PullTimeline): Mechanic[] {
+// HP, is a failed mechanic when it killed them or no mitigation would save
+// them (`UNSURVIVABLE` times their max HP): one they survived as played was
+// mitigated, and the plan must cover it too. A failed one is avoided when
+// `ignore` says so, or when nothing would save them; the plan covers the
+// rest like any other hit.
+export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] {
   const actionName = new Map(timeline.actions.map((action) => [action.id, action.name]));
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
   const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp]));
@@ -25,10 +33,13 @@ export function mechanicsOf(timeline: PullTimeline): Mechanic[] {
   for (const name of new Set(hits.map(nameOf))) {
     usual.set(name, median(hits.filter((h) => nameOf(h) === name).map(unmitigated)));
   }
+  const died = (hit: TimelineHit) =>
+    timeline.deaths.some((d) => d.player === hit.target && d.at >= hit.at && d.at - hit.at <= DEATH_MS);
   const failed = (hit: TimelineHit) => {
     const max = maxHp.get(hit.target);
     const damage = unmitigated(hit);
-    return !!max && damage > max && damage > FAILED_TIMES * (usual.get(nameOf(hit)) ?? Infinity);
+    if (!max || damage <= max || damage <= FAILED_TIMES * (usual.get(nameOf(hit)) ?? Infinity)) return false;
+    return damage >= UNSURVIVABLE * max || died(hit);
   };
 
   const groups: { action: number; at: number; hits: TimelineHit[] }[] = [];
@@ -54,12 +65,17 @@ export function mechanicsOf(timeline: PullTimeline): Mechanic[] {
       kind,
       // One attack: one damage type.
       damageType: group.hits[0].damageType,
-      hits: group.hits.map((hit) => ({
-        player: hit.target,
-        unmitigated: unmitigated(hit),
-        asPlayed: hit.amount,
-        avoidable: failed(hit),
-      })),
+      hits: group.hits.map((hit) => {
+        const unsaved = unmitigated(hit) >= UNSURVIVABLE * (maxHp.get(hit.target) ?? Infinity);
+        const fails = failed(hit);
+        return {
+          player: hit.target,
+          unmitigated: unmitigated(hit),
+          asPlayed: hit.amount,
+          ...(fails ? { failed: true } : {}),
+          avoidable: fails && (ignore || unsaved),
+        };
+      }),
     };
   });
 }
