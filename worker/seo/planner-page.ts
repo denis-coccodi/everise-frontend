@@ -3,7 +3,7 @@ import { PageMeta, SITE_NAME, text } from './page-meta';
 const PLANNER_DESCRIPTION =
   "Plan your party's heals and mitigations for Final Fantasy XIV's Extreme, Savage and Ultimate fights " +
   'from an FFLogs report: when each healer and tank uses what, so every hit leaves the HP you choose. ' +
-  'Free with an Everise account.';
+  'Open to everyone, no account needed to try it.';
 
 // The fight planner's page, once the planner is switched on (the backend
 // answers GET /api/planner/available). A report or pull opened in it
