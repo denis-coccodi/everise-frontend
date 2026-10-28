@@ -6,6 +6,7 @@ import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
 import type { PullFacts } from './coverage.model';
 import type { Candidate, Granted } from './mitigation-plan.model';
+import type { MpModel } from './mp';
 
 // What an avoided hit does.
 const AVOIDED = { damage: 0, absorbed: 0, statuses: [], invulnerable: false };
@@ -20,17 +21,13 @@ const RECITATION_MS = 15_000;
 // The party's mitigations and shields planned over the pull: the most
 // dangerous mechanics first, each given them until every hit leaves the
 // margin, so big cooldowns aren't spent early on small hits; then the oGCDs
-// left over where they add the most margin. A GCD (Succor, Adloquium...)
-// costs damage, so it counts for less and isn't spent on spare margin.
-// Each hit is planned as if it landed at full HP; or, replanning `from` an
-// earlier plan, on top of its mitigations, at the HP its heals left. Only
-// the tools of the players `options.replan` names are planned; the `fixed`
-// uses (the others', as played) stay as they are. Each use goes where its
-// player can act (`weaving`): an oGCD in a weave slot, a GCD in place of
-// one of theirs. A GCD shield grows with its caster's healing potency
-// buffs (`shieldTimes`). The `automatic` uses (Seraph's Seraphic Veils,
-// worked out each round) are given, never planned, and take none of their
-// owner's time.
+// left where they add the most. A GCD (Succor...) costs damage, so it
+// counts for less and isn't spent on spare margin. Each hit is planned at
+// full HP, or `from` an earlier plan, at the HP its heals left. Only the
+// replanned players' tools are planned; the `fixed` uses stay. Each use
+// goes where its player can act (`weaving`), within their MP (`mp`). A GCD
+// shield grows with its caster's potency buffs (`shieldTimes`). The
+// `automatic` uses (Seraph's Seraphic Veils) are given, never planned.
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
@@ -41,6 +38,7 @@ export function planMitigation(
   weaving = new Weaving(),
   shieldTimes?: PullFacts['shieldTimes'],
   automatic: PlannedUse[] = [],
+  mp?: MpModel,
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -214,19 +212,21 @@ export function planMitigation(
   // when it can't be used for it. One another grants comes with a use of
   // that one where it has none, the two worth what they add together, the
   // other's GCD counted as one.
-  const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean): Candidate | null => {
+  const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean, drop = true): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const spent = t.pool
       ? uses.filter((u) => u.player === t.player && tool(u).pool?.name === t.pool?.name).map((u) => u.at)
       : [];
     const target = t.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
     const lasts = Math.max(...t.effects.map((e) => e.durationMs));
+    const own = [...fixed, ...uses].filter((u) => u.player === t.player);
     let found: Candidate | null = null;
     for (const moment of momentsFor(m, t, mechanics)) {
       const at = fit(m, t, moment);
       if (at === null || at < 0 || isAway(t, at) || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (cutsUnion(t.action, at, (a) => timesOf(t.player, a))) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
+      if (mp && !mp.affordable(t.player, t.action, at, own, drop)) continue;
       const needs =
         t.grantedBy && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy);
       for (const option of needs ? granting(m, t, at) : [{ granted: [], tool: t }]) {
@@ -316,7 +316,7 @@ export function planMitigation(
       return !invulnerable && damage > limit(m, h) / 2;
     };
     for (let n = 0; n < SPARE_PER_MECHANIC && m.hits.some(heavy); n++) {
-      const pick = pickBest(spare.map((t) => best(m, t, heavy)));
+      const pick = pickBest(spare.map((t) => best(m, t, heavy, false)));
       if (!pick) break;
       add(pick);
     }

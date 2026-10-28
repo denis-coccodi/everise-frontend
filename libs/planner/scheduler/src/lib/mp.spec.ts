@@ -1,5 +1,5 @@
 import { MpModel, mpShortOf } from './mp';
-import { catalog, pull } from './scheduler-fixtures';
+import { action, catalog, pull } from './scheduler-fixtures';
 import { Plan } from './plan.model';
 
 const PHYSICK = 190;
@@ -86,5 +86,42 @@ describe("a replanned healer's MP", () => {
     } as unknown as Plan;
 
     expect(mpShortOf(mp, plan)).toEqual([{ player: 2, at: 12_000 }]);
+  });
+
+  it("drops a Dark Knight's Edge of Shadow for The Blackest Night, but not one Dark Arts paid for", () => {
+    const TBN = 7393;
+    const EDGE = 16470;
+    const timeline = pull([]);
+    // The paladin (1) as a Dark Knight: two Edges, at 5s (paid, 3,000 down)
+    // and 20s (Dark Arts: MP unchanged), then at 1,000 MP.
+    timeline.players = timeline.players.map((p) =>
+      p.id === 1
+        ? {
+            ...p,
+            job: 'DRK',
+            maxMp: 10_000,
+            mp: [
+              { at: 0, mp: 4_000 },
+              { at: 6_000, mp: 1_000 },
+              { at: 21_000, mp: 1_000 },
+            ],
+          }
+        : p,
+    );
+    timeline.playerCasts = [
+      { at: 5_000, source: 1, target: 13, action: EDGE, castMs: null },
+      { at: 20_000, source: 1, target: 13, action: EDGE, castMs: null },
+    ];
+    const c = catalog();
+    c.actions.push(action(TBN, 'The Blackest Night', ['DRK'], 15, [], { mpCost: 3_000 }));
+    c.actions.push(action(EDGE, 'Edge of Shadow', ['DRK'], 1, [], { mpCost: 3_000 }));
+    const mp = MpModel.of(timeline, c, [1], new Set());
+    const tbn = [{ action: TBN, at: 30_000 }];
+
+    // With the first Edge dropped, The Blackest Night at 30s fits.
+    expect(mp.affordable(1, TBN, 30_000, [])).toBe(true);
+    expect(mp.dropped(1, tbn)).toEqual([5_000]);
+    // A second needs 3,000 more, and the other Edge frees nothing.
+    expect(mp.affordable(1, TBN, 45_000, tbn)).toBe(false);
   });
 });
