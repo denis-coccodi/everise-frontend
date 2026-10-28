@@ -24,7 +24,7 @@ export function severityOf(m: Mechanic, maxHp: Map<number, number | null>): Seve
   if (!shares.length) return null;
   const share = shares[Math.floor(shares.length / 2)];
   const from = m.kind === 'tankbuster' ? TANK : PARTY;
-  return { tier: TIERS[from.filter((start) => share >= start).length], kind: m.kind, share };
+  return { tier: TIERS[from.filter((start) => share >= start).length], kind: m.kind, share, damageType: m.damageType };
 }
 
 // Each boss attack's severity in the pull, by the attack and when it hit;

@@ -97,7 +97,7 @@ describe('playerLog', () => {
       // Well Fed is on them too, but covers nothing.
       covers: ['Rampart', 'Galvanize', 'Reprisal'],
       // Half their max HP on each player hit, before mitigation.
-      severity: { tier: 'moderate', kind: 'raidwide', share: 0.5 },
+      severity: { tier: 'moderate', kind: 'raidwide', share: 0.5, damageType: 'magic' },
     });
   });
 

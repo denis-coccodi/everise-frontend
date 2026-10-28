@@ -30,7 +30,9 @@
               <span class="severity" [attr.title]="severityHint(s)">
                 <span [class]="'dot ' + s.tier" aria-hidden="true"></span>{{ TIER_NAMES[s.tier] }}
               </span>
-              <span class="kind">{{ KIND_NAMES[s.kind] }}</span>
+              <span class="kind"
+                >{{ KIND_NAMES[s.kind] }}{{ s.damageType ? ' · ' + DAMAGE_NAMES[s.damageType] : '' }}</span
+              >
             }
           </th>
           <td class="played">

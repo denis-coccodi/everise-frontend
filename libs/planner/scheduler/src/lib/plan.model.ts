@@ -1,3 +1,6 @@
+import type { PlanEdits } from './edits.model';
+import type { InvulnerabilityChoice } from './invulnerabilities.model';
+export type { InvulnerabilityChoice, InvulnerabilityOptions } from './invulnerabilities.model';
 import type { MpShort, PlannedMp } from './mp.model';
 import type { OpenerId } from './openers.model';
 // What the scheduler plans from and answers. Times are ms from the pull's start.
@@ -18,6 +21,8 @@ export interface PlanOptions {
   openers?: Record<number, OpenerId>;
   // A replanned astrologian's other Lightspeed charge: as played, or planned.
   lightspeed?: Record<number, 'logged' | 'replan'>;
+  // The user's own: skills added (kept where put), and removed (not there).
+  edits?: PlanEdits;
   // Failed mechanics: covered like any other hit (left out), or avoided.
   failedMechanics?: 'cover' | 'ignore';
 }
@@ -25,23 +30,6 @@ export interface PlanOptions {
 // Favouring damage, a healer spends what would overcap on damage and keeps
 // GCD heals for where nothing else will do; favouring healing, they don't.
 export type Favour = 'dps' | 'healing';
-
-// An invulnerability on a mechanic, as a group's strategy has it (one tank
-// taking a mechanic the two would trade, or standing where it makes the
-// mechanic simpler); `mechanic` null: never this one.
-export interface InvulnerabilityChoice {
-  player: number;
-  action: number;
-  mechanic: number | null;
-}
-
-// What there is to choose from for the tanks' invulnerabilities: each
-// tank's, the mechanics that hit each player, and where the pull had them.
-export interface InvulnerabilityOptions {
-  tools: { player: number; action: number; name: string }[];
-  mechanics: { id: number; at: number; name: string; players: number[] }[];
-  played: InvulnerabilityChoice[];
-}
 
 // One player's part of a mechanic.
 export interface MechanicHit {
@@ -300,6 +288,8 @@ export interface PlannedUse {
   burst?: boolean;
   // A resource for the heals after (Rhizomata's Addersgall).
   refill?: boolean;
+  // Put there by the user's edit (`PlanOptions.edits`).
+  edited?: boolean;
 }
 
 // A hit as the plan leaves it.
