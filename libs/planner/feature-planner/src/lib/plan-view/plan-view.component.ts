@@ -97,6 +97,15 @@ export class PlanViewComponent {
     return names.length ? `The plan couldn't use ${names.join(', ')}: the recast doesn't allow it.` : '';
   });
 
+  // Where the plan wanted a heal of this player's they hadn't the MP for.
+  protected readonly mpShort = computed(() => {
+    const times = (this.current()?.mpShort ?? [])
+      .filter((s) => s.player === this.player().id)
+      .map((s) => pullClock(s.at));
+    if (!times.length) return '';
+    return `Short on MP at ${times.join(', ')}: the plan couldn't afford a heal there.`;
+  });
+
   protected setOpener(value: string) {
     const opener = this.openers().find((o) => o.id === value);
     if (opener) this.plans.setOpener(this.player().id, opener.id);

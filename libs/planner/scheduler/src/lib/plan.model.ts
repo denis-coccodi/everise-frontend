@@ -1,13 +1,12 @@
+import type { MpShort, PlannedMp } from './mp.model';
 import type { OpenerId } from './openers.model';
-// What the scheduler plans from and what it answers. Times are ms from the
-// pull's start.
+// What the scheduler plans from and answers. Times are ms from the pull's start.
 
 export interface PlanOptions {
   // The HP each hit must leave, as a share of max HP (0.1: 10%).
   margin: number;
-  // The players whose actions are planned (ids); everyone else's
-  // mitigations, heals and invulnerabilities stay as they played them.
-  // Left out, everyone's are planned.
+  // The players whose actions are planned (ids; left out, everyone);
+  // everyone else's mitigations, heals and invulnerabilities stay as played.
   replan?: number[];
   // The tanks' invulnerabilities the plan must use where they say; left
   // out, those of the pull, where they were used (`playedInvulnerabilities`).
@@ -331,19 +330,20 @@ export interface Plan {
   mechanics: Mechanic[];
   uses: PlannedUse[];
   hits: PlannedHit[];
-  // The invulnerabilities asked for that the plan couldn't use there: one
-  // the tank doesn't have, or that its recast doesn't allow.
+  // Invulnerabilities asked for that the plan couldn't use there.
   unplaced: InvulnerabilityChoice[];
   // Each player's HP with the plan; none before the heals are planned.
   hp: PlannedHp[];
+  // Replanned players' MP, and where a heal was turned down for it.
+  mp?: PlannedMp[];
+  mpShort?: MpShort[];
   // The players it replans (ids; left out, everyone), and what it plans for
   // them ("player:action"): their own uses of those aren't kept as played.
   replanned?: number[];
   scheduled?: string[];
 }
 
-// A player's HP with the plan: what it is after each moment something
-// changes it, in time order.
+// A player's HP with the plan: what it is after each change, in time order.
 export interface PlannedHp {
   player: number;
   points: { at: number; hp: number }[];

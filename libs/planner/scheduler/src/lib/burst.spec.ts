@@ -8,7 +8,7 @@ import { Weaving } from './weaving';
 const timeline = (job: string) => {
   const t = pull([]);
   t.durationMs = 250_000;
-  t.players = [{ id: 2, name: 'Heal Main', job, role: 'healer', maxHp: 100_000, stats: null }];
+  t.players = [{ id: 2, name: 'Heal Main', job, role: 'healer', maxHp: 100_000, maxMp: null, mp: [], stats: null }];
   t.playerCasts = Array.from({ length: 100 }, (_, i) => 500 + i * 2500)
     .filter((at) => at < 115_000 || at >= 135_000)
     .map((at) => ({ at, source: 2, target: null, action: 9, castMs: null }));

@@ -4345,6 +4345,7 @@ export interface components {
         castMs: number;
         recastMs: number;
         charges: number;
+        mpCost: number;
         cooldownGroup: number;
         range: number;
         radius: number;
@@ -4359,7 +4360,9 @@ export interface components {
             | 'maxHp'
             | 'healingReceived'
             | 'healingPotency'
-            | 'invulnerable';
+            | 'invulnerable'
+            | 'mp'
+            | 'mpRegen';
           /** @enum {string} */
           target: 'self' | 'target' | 'party' | 'enemies';
           status: string | null;
@@ -4389,7 +4392,9 @@ export interface components {
               | 'maxHp'
               | 'healingReceived'
               | 'healingPotency'
-              | 'invulnerable';
+              | 'invulnerable'
+              | 'mp'
+              | 'mpRegen';
             /** @enum {string} */
             target: 'self' | 'target' | 'party' | 'enemies';
             status: string | null;
@@ -5151,6 +5156,11 @@ export interface components {
         job: string | null;
         role: ('tank' | 'healer' | 'melee' | 'ranged' | 'caster') | null;
         maxHp: number | null;
+        maxMp: number | null;
+        mp: {
+          at: number;
+          mp: number;
+        }[];
         stats: {
           level: number;
           strength: number;

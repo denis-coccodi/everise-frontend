@@ -1,4 +1,6 @@
 import { Service } from '@angular/core';
+import { better } from './plan-score';
+import { MpModel, mpShortOf } from './mp';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
@@ -146,7 +148,11 @@ export class PlannerScheduler {
     };
     // A sage's Addersgall with their Rhizomata's stacks, once planned (below).
     const bonus = new Map<number, number[]>();
+    // The replanned players' MP, which a heal must be affordable with.
+    const ids = replannedPlayers.map((p) => p.id);
+    const mpModel = () => MpModel.of(timeline, catalog, ids, scheduled);
     const once = (from?: Plan) => {
+      const mp = mpModel();
       const { healing, casts } = fairy(from);
       const mitigated = planMitigation(
         mechanics,
@@ -159,7 +165,7 @@ export class PlannerScheduler {
         shieldTimes,
         casts,
       );
-      return planHeals(
+      const planned = planHeals(
         { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener), ...placed] },
         timeline,
         [...withRhizomata(mitigation, bonus), ...veils],
@@ -170,7 +176,9 @@ export class PlannerScheduler {
         weaving,
         pairings,
         healing,
+        mp,
       );
+      return { ...planned, mpShort: mpShortOf(mp, planned) };
     };
 
     let best = once();
@@ -209,11 +217,20 @@ export class PlannerScheduler {
     const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed];
     const burst = [...lightspeed, ...burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken)];
     const own = withGrantedCovers(best.uses).filter((u) => !AUTOMATIC.has(u.action));
+    const uses = [...own, ...drains, ...burst, ...rhizomata].sort((a, b) => a.at - b.at || a.player - b.player);
+    const finalMp = mpModel();
     return {
       ...best,
-      replanned: replannedPlayers.map((p) => p.id),
+      replanned: ids,
       scheduled: [...scheduled],
-      uses: [...own, ...drains, ...burst, ...rhizomata].sort((a, b) => a.at - b.at || a.player - b.player),
+      uses,
+      mp: ids.map((player) => ({
+        player,
+        points: finalMp.curve(
+          player,
+          uses.filter((u) => u.player === player),
+        ),
+      })),
     };
   }
 
@@ -227,18 +244,4 @@ export class PlannerScheduler {
       played: playedInvulnerabilities(timeline, mechanics, tools),
     };
   }
-}
-
-// Fewer hits short of the margin, or as many but short by less.
-function better(a: Plan, b: Plan, maxHp: Map<number, number>, options: PlanOptions) {
-  const score = (plan: Plan) => {
-    const short = plan.hits.filter((h) => !h.safe);
-    const by = short.reduce((sum, h) => {
-      const margin = options.margin * (maxHp.get(h.player) ?? 0);
-      return sum + Math.max(0, margin - ((h.hpBefore ?? 0) - h.planned));
-    }, 0);
-    return { count: short.length, by };
-  };
-  const [x, y] = [score(a), score(b)];
-  return x.count < y.count || (x.count === y.count && x.by < y.by);
 }
