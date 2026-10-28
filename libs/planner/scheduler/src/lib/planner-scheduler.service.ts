@@ -149,6 +149,7 @@ export class PlannerScheduler {
         weaving,
         shieldTimes,
         casts,
+        mp,
       );
       const planned = planHeals(
         { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener), ...placed, ...lucid] },
@@ -225,6 +226,10 @@ export class PlannerScheduler {
       mp: ids.map((player) => ({
         player,
         points: finalMp.curve(
+          player,
+          uses.filter((u) => u.player === player),
+        ),
+        dropped: finalMp.dropped(
           player,
           uses.filter((u) => u.player === player),
         ),

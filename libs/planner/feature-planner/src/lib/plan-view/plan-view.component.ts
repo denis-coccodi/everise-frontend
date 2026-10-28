@@ -105,6 +105,12 @@ export class PlanViewComponent {
     if (!times.length) return '';
     return `Short on MP at ${times.join(', ')}: the plan couldn't afford a heal there.`;
   });
+  // A Dark Knight's Edges of Shadow as played the plan drops for MP.
+  protected readonly dropped = computed(() => {
+    const times = this.current()?.mp?.find((m) => m.player === this.player().id)?.dropped ?? [];
+    if (!times.length) return '';
+    return `The plan drops the Edge of Shadow at ${times.map(pullClock).join(', ')} for The Blackest Night's MP.`;
+  });
 
   protected setOpener(value: string) {
     const opener = this.openers().find((o) => o.id === value);

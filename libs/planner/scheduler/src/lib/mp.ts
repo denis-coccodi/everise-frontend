@@ -8,6 +8,13 @@ const DEFAULT_TICK = 200;
 // Thin Air: the next spell within 12s costs no MP.
 const THIN_AIR = 7430;
 const THIN_AIR_MS = 12_000;
+// A Dark Knight's MP spenders the plan may drop for The Blackest Night's
+// MP: Edge and Flood of Shadow. One Dark Arts paid for (the log's MP
+// didn't drop by most of its cost) frees nothing.
+const EDGES = new Set([16470, 16469]);
+const PAID = 0.8;
+
+type Own = { logged: Change[]; max: number; tick: number; undone: Change[]; edges: Change[] };
 
 interface Change {
   at: number;
@@ -25,7 +32,7 @@ export class MpModel {
   readonly refused: { player: number; at: number }[] = [];
 
   private constructor(
-    private readonly players: Map<number, { logged: Change[]; max: number; tick: number; undone: Change[] }>,
+    private readonly players: Map<number, Own>,
     // What a use does to the player's MP: what it spends (negative) and
     // gains, as it's used and, for Lucid Dreaming, at each tick after.
     private readonly changesOf: (action: number, player: number, at: number) => Change[],
@@ -35,11 +42,15 @@ export class MpModel {
   // replaces.
   static of(timeline: PullTimeline, catalog: ActionCatalog, replanned: number[], scheduled: Set<string>) {
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-    const players = new Map<number, { logged: Change[]; max: number; tick: number; undone: Change[] }>();
+    const players = new Map<number, Own>();
     for (const p of timeline.players) {
       // A timeline read before MP was (an older cached one) has none.
       if (!replanned.includes(p.id) || !p.mp?.length || !p.maxMp) continue;
-      players.set(p.id, { logged: p.mp, max: p.maxMp, tick: tickOf(p.mp), undone: [] });
+      const edges = timeline.playerCasts
+        .filter((c) => c.source === p.id && EDGES.has(c.action))
+        .map((c) => ({ at: c.at, mp: byId.get(c.action)?.mpCost ?? 0 }))
+        .filter((e) => e.mp && paid(p.mp, e));
+      players.set(p.id, { logged: p.mp, max: p.maxMp, tick: tickOf(p.mp), undone: [], edges });
     }
     const model = new MpModel(players, (action, player, at) => {
       const a = byId.get(action);
@@ -78,34 +89,51 @@ export class MpModel {
   }
 
   // Whether the player can afford `action` at `at` with their other uses:
-  // their MP never runs out from then on. Recorded when not.
-  affordable(player: number, action: number, at: number, uses: { action: number; at: number }[]) {
+  // their MP never runs out from then on, a Dark Knight's Edges dropped if
+  // need be (`mayDrop`: not for spare margin). Recorded when not.
+  affordable(player: number, action: number, at: number, uses: { action: number; at: number }[], mayDrop = true) {
     const spends = this.changesOf(action, player, at).some((c) => c.mp < 0);
     if (!spends || !this.players.has(player)) return true;
-    const lowest = this.lowestFrom(player, at, [...uses, { action, at }]);
-    if (lowest >= 0) return true;
+    const kept = this.dropped(player, uses);
+    if (this.withDrops(player, [...uses, { action, at }], at, mayDrop ? undefined : kept).ok) return true;
     this.refused.push({ player, at });
     return false;
   }
 
   // The player's MP with these uses, at each change.
   curve(player: number, uses: { action: number; at: number }[]): Change[] {
-    return this.walk(player, uses).map(({ at, mp }) => ({ at, mp: Math.max(0, mp) }));
+    const { dropped } = this.withDrops(player, uses, -Infinity);
+    return this.walk(player, uses, dropped).map(({ at, mp }) => ({ at, mp: Math.max(0, mp) }));
   }
 
-  private lowestFrom(player: number, from: number, uses: { action: number; at: number }[]) {
-    return Math.min(
-      ...this.walk(player, uses)
-        .filter((c) => c.at >= from)
-        .map((c) => c.mp),
-    );
+  // The Edges of Shadow these uses need dropped for MP (their times).
+  dropped(player: number, uses: { action: number; at: number }[]): number[] {
+    return this.withDrops(player, uses, -Infinity)
+      .dropped.map((e) => e.at)
+      .sort((a, b) => a - b);
+  }
+
+  // Where MP runs out from `from` on, a Dark Knight's latest Edge before
+  // it is dropped, as long as that helps; ok when it no longer runs out.
+  // `only`: the Edges that may be dropped (by time), when not any.
+  private withDrops(player: number, uses: { action: number; at: number }[], from: number, only?: number[]) {
+    const all = this.players.get(player)?.edges ?? [];
+    const edges = only ? all.filter((e) => only.includes(e.at)) : all;
+    const dropped: Change[] = [];
+    for (;;) {
+      const low = this.walk(player, uses, dropped).find((c) => c.at >= from && c.mp < 0);
+      if (!low) return { ok: true, dropped };
+      const edge = [...edges].reverse().find((e) => e.at <= low.at && !dropped.includes(e));
+      if (!edge) return { ok: false, dropped };
+      dropped.push(edge);
+    }
   }
 
   // The log's MP plus the plan's difference, at every reading and use.
-  private walk(player: number, uses: { action: number; at: number }[]): Change[] {
+  private walk(player: number, uses: { action: number; at: number }[], dropped: Change[] = []): Change[] {
     const own = this.players.get(player);
     if (!own) return [];
-    const changes = [...own.undone, ...uses.flatMap((u) => this.changesOf(u.action, player, u.at))].sort(
+    const changes = [...own.undone, ...dropped, ...uses.flatMap((u) => this.changesOf(u.action, player, u.at))].sort(
       (a, b) => a.at - b.at,
     );
     const out: Change[] = [];
@@ -155,6 +183,13 @@ export function mpShortOf(mp: MpModel, plan: Plan): MpShort[] {
     if (hit) found.set(`${r.player}:${hit.at}`, { player: r.player, at: hit.at });
   }
   return [...found.values()].sort((a, b) => a.at - b.at);
+}
+
+// Whether the log's MP dropped for this Edge (not one Dark Arts paid for).
+function paid(readings: Change[], edge: Change) {
+  const before = [...readings].reverse().find((r) => r.at <= edge.at)?.mp;
+  const after = readings.find((r) => r.at > edge.at && r.at - edge.at < TICK_MS)?.mp;
+  return before !== undefined && after !== undefined && before - after >= PAID * edge.mp;
 }
 
 // The player's natural tick: the commonest small gain between readings
