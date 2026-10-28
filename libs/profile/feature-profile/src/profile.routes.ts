@@ -14,7 +14,7 @@ const titleOf =
   (route) =>
     inject(ProfileService)
       .getProfile(route.paramMap.get('id') ?? route.parent?.paramMap.get('id') ?? '')
-      .pipe(map((profile) => `${profile.username}'s ${what}`));
+      .pipe(map((profile) => `${profile.displayName}'s ${what}`));
 
 export const PROFILE_ROUTES: Routes = [
   {

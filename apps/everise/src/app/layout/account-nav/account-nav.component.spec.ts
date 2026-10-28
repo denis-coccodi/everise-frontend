@@ -6,7 +6,14 @@ describe('AccountNavComponent', () => {
   async function render(variant: 'menu' | 'list') {
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(AccountNavComponent);
-    fixture.componentRef.setInput('user', { id: 'u1', email: '', username: 'Avar Kriss', bio: '', image: '' });
+    fixture.componentRef.setInput('user', {
+      id: 'u1',
+      email: '',
+      username: 'avar',
+      displayName: 'Avar Kriss (Odin)',
+      bio: '',
+      image: '',
+    });
     fixture.componentRef.setInput('variant', variant);
     let signedOut = false;
     fixture.componentInstance.logout.subscribe(() => (signedOut = true));
@@ -19,7 +26,7 @@ describe('AccountNavComponent', () => {
 
     const trigger = host.querySelector('button[aria-haspopup=menu]') as HTMLButtonElement;
     // The name stays in the button for screen readers, also where only the picture shows.
-    expect(trigger.querySelector('.name')?.textContent).toBe('Avar Kriss');
+    expect(trigger.querySelector('.name')?.textContent).toBe('Avar Kriss (Odin)');
     expect(host.querySelector('[role=menu]')?.getAttribute('aria-label')).toBe('Account');
     const items = [...host.querySelectorAll('[role=menuitem]')] as HTMLElement[];
     expect(items.map((item) => item.textContent?.trim())).toEqual(['Your profile', 'Settings', 'Sign out']);
@@ -33,7 +40,7 @@ describe('AccountNavComponent', () => {
     const { fixture, host } = await render('list');
     const heading = host.querySelector('button.account-heading') as HTMLButtonElement;
     const links = host.querySelector('#account-links') as HTMLElement;
-    expect(heading.textContent?.trim()).toBe('Avar Kriss');
+    expect(heading.textContent?.trim()).toBe('Avar Kriss (Odin)');
     expect(links.hidden).toBe(true);
 
     heading.click();

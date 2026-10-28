@@ -28,14 +28,25 @@ describe('ConfirmEmailComponent', () => {
 
     const request = http.expectOne('/api/users/confirm-email');
     expect(JSON.parse(request.request.body)).toEqual({ token: 'the-token' });
-    request.flush({ user: { id: 'u1', username: 'Alisaie', email: 'a@example.com', bio: '', image: '' } });
+    request.flush({
+      user: {
+        id: 'u1',
+        username: 'alisaie',
+        displayName: 'Alisaie Leveilleur (Odin)',
+        email: 'a@example.com',
+        bio: '',
+        image: '',
+      },
+    });
     await fixture.whenStable();
 
-    expect(page.querySelector('[role=status]')?.textContent).toContain('Welcome to Everise, Alisaie!');
+    expect(page.querySelector('[role=status]')?.textContent).toContain(
+      'Welcome to Everise, Alisaie Leveilleur (Odin)!',
+    );
     expect(page.querySelector('a[href="/"]')).not.toBeNull();
     const store = TestBed.inject(AuthStore);
     expect(store.loggedIn()).toBe(true);
-    expect(store.user().username).toBe('Alisaie');
+    expect(store.user().username).toBe('alisaie');
   });
 
   it("says why a link doesn't work, and offers to sign in", async () => {

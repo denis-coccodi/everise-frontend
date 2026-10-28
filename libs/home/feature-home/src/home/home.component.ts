@@ -104,7 +104,7 @@ export class HomeComponent {
       .events$.pipe(takeUntilDestroyed())
       .subscribe(({ article }) => {
         if (this.articlesListStore.addLiveArticle(article)) {
-          this.announcement.set(`New post by ${article.author.username}: ${article.title}`);
+          this.announcement.set(`New post by ${article.author.displayName}: ${article.title}`);
         }
       });
   }
