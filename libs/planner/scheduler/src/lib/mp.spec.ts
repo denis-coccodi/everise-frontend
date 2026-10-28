@@ -124,4 +124,45 @@ describe("a replanned healer's MP", () => {
     // A second needs 3,000 more, and the other Edge frees nothing.
     expect(mp.affordable(1, TBN, 45_000, tbn)).toBe(false);
   });
+
+  it('makes the spell right after a planned Thin Air free', () => {
+    const { mp } = model([
+      [0, 1_000],
+      [30, 1_000],
+    ]);
+    const thinAir = { action: 7430, at: 9_000 };
+
+    expect(mp.affordable(2, ADLOQUIUM, 10_000, [])).toBe(true);
+    expect(mp.curve(2, [thinAir, { action: ADLOQUIUM, at: 10_000 }]).at(-1)?.mp).toBe(1_000);
+    // Only the first: the second costs its 900.
+    const two = [thinAir, { action: ADLOQUIUM, at: 10_000 }, { action: ADLOQUIUM, at: 12_000 }];
+    expect(mp.curve(2, two).at(-1)?.mp).toBe(100);
+  });
+
+  it('gives back the MP a death as played took, when the plan keeps them alive', () => {
+    const timeline = pull([]);
+    timeline.playerCasts = [];
+    // Down at 10s with 6,000 MP; raised at 40s with 2,000.
+    timeline.players = timeline.players.map((p) =>
+      p.id === 2
+        ? {
+            ...p,
+            maxMp: 10_000,
+            mp: [
+              { at: 0, mp: 6_000 },
+              { at: 10_000, mp: 0 },
+              { at: 40_000, mp: 2_000 },
+            ],
+          }
+        : p,
+    );
+    timeline.deaths = [{ at: 10_000, player: 2, action: null, source: null }];
+    const c = catalog();
+    const dead = MpModel.of(timeline, c, [2], new Set());
+    const alive = MpModel.of(timeline, c, [2], new Set(), () => true);
+
+    expect(dead.curve(2, []).at(-1)?.mp).toBe(2_000);
+    // 6,000 kept, and 10 ticks of 200 while they'd have been down.
+    expect(alive.curve(2, []).at(-1)?.mp).toBe(8_000);
+  });
 });
