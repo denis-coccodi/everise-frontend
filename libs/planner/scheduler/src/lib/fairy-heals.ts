@@ -1,6 +1,7 @@
 import { PullTimeline } from '@everise/core/api-types';
 import type { HpEvent } from './hp-track.model';
-import type { PlannedHp, PlannedUse } from './plan.model';
+import type { FairyHealing } from './heal-plan.model';
+import type { Plan, PlannedHp, PlannedUse } from './plan.model';
 import { AETHERPACT, FEY_UNION_TICKS, SERAPHIC_VEIL, SERAPH_MS, SUMMON_SERAPH } from './tools';
 
 // What the scholar's fairy heals on her own, for a scholar the plan
@@ -135,4 +136,26 @@ function mostMissing(hp: PlannedHp[], maxHp: Map<number, number>, at: number): n
     }
   }
   return pick;
+}
+
+// The replanned scholars' fairies, healing as the HP of the plan before
+// (`from`) calls for: their heals, and the HP events and casts they make;
+// nothing before a first plan.
+export function scholarsFairy(
+  timeline: PullTimeline,
+  scholars: { id: number }[],
+  powers: Map<number, number | null>,
+  maxHp: Map<number, number>,
+  potency: number,
+  given: Map<number, number[]>,
+  from?: Plan,
+): { healing: FairyHealing; casts: PlannedUse[] } {
+  if (!from?.hp.length) return { healing: { events: [], recalculated: [] }, casts: [] };
+  const each = scholars.map((s) =>
+    fairyHeals(timeline, s.id, powers.get(s.id) ?? null, from.uses, from.hp, maxHp, potency, given.get(s.id)),
+  );
+  return {
+    healing: { events: each.flatMap((f) => f.events), recalculated: scholars.flatMap((s) => fairyKeys(s.id)) },
+    casts: each.flatMap((f) => f.casts),
+  };
 }

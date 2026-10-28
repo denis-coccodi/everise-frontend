@@ -1,5 +1,6 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { InvulnerabilityChoice, Mechanic, MitigationTool } from './plan.model';
+import { InvulnerabilityChoice, InvulnerabilityOptions, Mechanic, MitigationTool } from './plan.model';
+import { mechanicsOf } from './mechanics';
 
 // The tanks' invulnerabilities as the pull has them: each use, on the
 // first mechanic that hit its user while it was up (one that covered
@@ -22,4 +23,16 @@ export function playedInvulnerabilities(
     if (covered) choices.push({ player: cast.source, action: cast.action, mechanic: covered.id });
   }
   return choices;
+}
+
+// What the plan's options offer for the tanks' invulnerabilities, from
+// everyone's mitigation `tools`.
+export function invulnerabilityOptions(timeline: PullTimeline, tools: MitigationTool[]): InvulnerabilityOptions {
+  const invulnerable = tools.filter((t) => t.effects.some((e) => e.invulnerable));
+  const mechanics = mechanicsOf(timeline);
+  return {
+    tools: invulnerable.map(({ player, action, name }) => ({ player, action, name })),
+    mechanics: mechanics.map((m) => ({ id: m.id, at: m.at, name: m.name, players: m.hits.map((h) => h.player) })),
+    played: playedInvulnerabilities(timeline, mechanics, invulnerable),
+  };
 }
