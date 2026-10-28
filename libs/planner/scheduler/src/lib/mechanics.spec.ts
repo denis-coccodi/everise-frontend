@@ -61,4 +61,30 @@ describe('mechanicsOf', () => {
       ['Tower', 3],
     ]);
   });
+
+  it('counts a big hit the player survived, or one mitigation could save them from, as a hit to cover', () => {
+    // The scholar took 150,000 from a tower, five times the others' 30,000
+    // and more than their 100,000 HP: survived as played, it's no failure.
+    // The bard took as much and died of it: a failure. The paladin took
+    // 150,000 at 70s and didn't die then either.
+    const t = pull([
+      [10, 'Tower', 1, 30_000],
+      [10, 'Tower', 2, 150_000],
+      [10, 'Tower', 3, 30_000],
+      [40, 'Tower', 1, 30_000],
+      [40, 'Tower', 2, 30_000],
+      [40, 'Tower', 3, 150_000],
+      [70, 'Tower', 1, 150_000],
+      [70, 'Tower', 2, 30_000],
+      [70, 'Tower', 3, 30_000],
+    ]);
+    t.deaths = [
+      { at: 40_500, player: 3, action: 0, source: null },
+      { at: 90_000, player: 1, action: 0, source: null },
+    ];
+
+    const failed = mechanicsOf(t).flatMap((m) => m.hits.filter((h) => h.avoidable).map((h) => [m.at, h.player]));
+
+    expect(failed).toEqual([[40_000, 3]]);
+  });
 });
