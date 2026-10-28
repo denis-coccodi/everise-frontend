@@ -41,6 +41,8 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
           HOME_DESCRIPTION,
           [
             ['/party-finder', 'Party Finder: live listings on every data centre'],
+            ['/venues', 'Venues: player-run taverns and clubs opening this week'],
+            ['/events', 'Events: the community calendar for this week'],
             ['/market-history', 'Market History: the best price on every world of your region'],
             ['/roulette', 'Duty Roulette: let three reels pick your next run'],
             ['/waking-sands', 'The Waking Sands: talk with members and the Scions'],

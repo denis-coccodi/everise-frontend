@@ -21,6 +21,8 @@ import { ListingFound, listingIdIn, listingPage } from './seo/listing-page';
 import { PageMeta, headTags, rootContent } from './seo/page-meta';
 import { Board, dataCentreIn, dataCentrePage, partyFinderPage } from './seo/party-finder-page';
 import { staticPage } from './seo/static-pages';
+import { EventFound, EventList, eventPage, eventsPage } from './seo/event-pages';
+import { VenueFound, VenueList, venuePage, venuesDataCentreIn, venuesPage } from './seo/venue-pages';
 
 interface Fetcher {
   fetch(request: Request): Promise<Response>;
@@ -48,6 +50,8 @@ interface HtmlRewriter {
 declare const HTMLRewriter: { new (): HtmlRewriter };
 
 const ARTICLE_PAGE = /^\/article\/([^/]+)\/?$/;
+const VENUE_PAGE = /^\/venues\/([^/]+)\/?$/;
+const EVENT_PAGE = /^\/events\/(\d+)\/?$/;
 // A data centre's old address, /party-finder/light (now ?dc=light).
 const OLD_DATA_CENTRE_PAGE = /^\/party-finder\/([a-z]+)\/?$/i;
 // How long a page waits for the Party Finder before it's sent without it.
@@ -111,6 +115,25 @@ async function pageMeta(request: Request, env: Env, pathname: string): Promise<P
   if (listingId) {
     const found = await apiJson<ListingFound>(request, env, `/party-finder/listings/${listingId}`, BOARD_WAIT_MS);
     return listingPage(listingId, found);
+  }
+  const venue = VENUE_PAGE.exec(pathname);
+  if (venue) {
+    const id = encodeURIComponent(decodeURIComponent(venue[1]));
+    const found = await apiJson<VenueFound>(request, env, `/venues/${id}`, BOARD_WAIT_MS);
+    return found && venuePage(found, env.SITE_URL);
+  }
+  if (pathname === '/venues' || pathname === '/venues/') {
+    const dataCentre = venuesDataCentreIn(new URL(request.url));
+    const list = await apiJson<VenueList>(request, env, `/venues?dataCentre=${dataCentre}`, BOARD_WAIT_MS);
+    return venuesPage(dataCentre, list);
+  }
+  const event = EVENT_PAGE.exec(pathname);
+  if (event) {
+    const found = await apiJson<EventFound>(request, env, `/events/${event[1]}`, BOARD_WAIT_MS);
+    return found && eventPage(found, env.SITE_URL);
+  }
+  if (pathname === '/events' || pathname === '/events/') {
+    return eventsPage(await apiJson<EventList>(request, env, '/events', BOARD_WAIT_MS));
   }
   const dataCentre = dataCentreIn(new URL(request.url));
   if (dataCentre || pathname === '/party-finder' || pathname === '/party-finder/') {
