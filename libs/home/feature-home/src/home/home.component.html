@@ -5,10 +5,10 @@
     </h1>
     <p>A laid-back, friendly free company. Everyone is welcome.</p>
     @if (!isLoggedIn()) {
-      <!-- What guests can use, and why a few things ask them to sign in. -->
-      <p class="free">
-        Everything on Everise is free. A few features ask you to sign in: the ones that post for you, remember things
-        for you, or do heavy lifting we keep away from bots. Anyone can sign up, in the free company or not.
+      <!-- Guests: anyone can join, and what an account is for. -->
+      <p class="join">
+        <strong>Anyone can <a routerLink="/register">sign up</a>, in the free company or not.</strong> With an account
+        you can post, follow other members, and chat with the Scions in the Waking Sands.
       </p>
     }
     <cdt-community-links look="buttons" />

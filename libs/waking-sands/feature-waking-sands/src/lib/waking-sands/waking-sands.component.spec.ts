@@ -17,24 +17,28 @@ const TATARU = {
   name: 'Tataru Taru',
   title: 'Receptionist of the Scions of the Seventh Dawn',
   image: '/tataru.png',
+  local: false,
 };
 const BARNABY = {
   id: 'barnaby',
   name: 'Barnaby Rostnsthalsyn',
   title: 'Self-proclaimed primal slayer and a right bad influence',
   image: '/barnaby.png',
+  local: true,
 };
 const URIANGER = {
   id: 'urianger',
   name: 'Urianger Augurelt',
   title: 'Astrologian and scholar of Sharlayan',
   image: '/urianger.png',
+  local: false,
 };
 const YSHTOLA = {
   id: 'yshtola',
   name: "Y'shtola Rhul",
   title: 'Sorceress of the Scions of the Seventh Dawn',
   image: '/yshtola.png',
+  local: false,
 };
 
 const line = (id: string, from: string, name: string, text: string, extra: Partial<SandsLine> = {}): SandsLine => ({
@@ -74,6 +78,7 @@ describe('WakingSandsComponent', () => {
           provide: AuthStore,
           useValue: {
             loggedIn: signal(loggedIn),
+            getUserLoaded: signal(true),
             user: signal({ id: 'm1', username: 'Minfilia', image: '/minfilia.png', email: 'm@example.com', bio: '' }),
           },
         },
@@ -82,10 +87,14 @@ describe('WakingSandsComponent', () => {
     fixture = TestBed.createComponent(WakingSandsComponent);
     http = TestBed.inject(HttpTestingController);
     page = fixture.nativeElement as HTMLElement;
-    http
-      .expectOne('/api/waking-sands/room')
-      .flush({ available, characters, present, lines, limits } satisfies SandsRoom);
     await fixture.whenStable();
+    // Only a member's page opens the room.
+    if (loggedIn) {
+      http
+        .expectOne('/api/waking-sands/room')
+        .flush({ available, characters, present, lines, limits } satisfies SandsRoom);
+      await fixture.whenStable();
+    }
   }
 
   const text = (el: Element | null | undefined) => el?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
@@ -150,7 +159,12 @@ describe('WakingSandsComponent', () => {
       await fixture.whenStable();
     }
 
-    expect(names()).toEqual(['Urianger Augurelt', 'Tataru Taru', 'Barnaby Rostnsthalsyn', "Y'shtola Rhul"]);
+    // The game's characters, then the free company's own.
+    expect(names()).toEqual(['Urianger Augurelt', 'Tataru Taru', "Y'shtola Rhul", 'Barnaby Rostnsthalsyn']);
+    expect([...page.querySelectorAll('.others .group')].map(text)).toEqual([
+      'Friends and foes of the Warrior of Light',
+      "Vesper Bay's regulars",
+    ]);
 
     await search('YSHTOLA');
     expect(names()).toEqual(['Urianger Augurelt', "Y'shtola Rhul"]);
@@ -158,6 +172,8 @@ describe('WakingSandsComponent', () => {
 
     await search('primal slayer');
     expect(names()).toEqual(['Urianger Augurelt', 'Barnaby Rostnsthalsyn']);
+    // A group with nobody in the search isn't shown.
+    expect([...page.querySelectorAll('.others .group')].map(text)).toEqual(["Vesper Bay's regulars"]);
 
     await search('moogle');
     expect(names()).toEqual(['Urianger Augurelt']);
@@ -266,13 +282,17 @@ describe('WakingSandsComponent', () => {
     expect(text(page.querySelector('[role=alert]'))).toContain('closed for the rest of the day');
   });
 
-  it('lets guests watch, and asks them to sign in to talk', async () => {
-    await render({ loggedIn: false, present: ['tataru'] });
+  it("invites guests to sign in, and doesn't open the room for them", async () => {
+    await render({ loggedIn: false });
 
+    expect(page.querySelector('cdt-sands-room')).toBeNull();
     expect(page.querySelector('textarea')).toBeNull();
-    expect(button('Invite')).toBeUndefined();
-    expect(button('Send out')).toBeUndefined();
-    expect(text(page.querySelector('.sign-in'))).toContain('to join the conversation');
+    expect(text(page.querySelector('.pitch .join'))).toContain('Anyone can sign up, in the free company or not');
+    const links = [...page.querySelectorAll<HTMLAnchorElement>('.pitch .actions a')];
+    expect(links.map((a) => [text(a), a.getAttribute('href')])).toEqual([
+      ['Sign in', '/login'],
+      ['Sign up', '/register'],
+    ]);
   });
 
   it('offers no invitations while three characters are in, and says why', async () => {

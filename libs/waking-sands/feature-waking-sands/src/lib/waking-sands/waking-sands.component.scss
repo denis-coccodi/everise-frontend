@@ -22,9 +22,7 @@ h1 {
   font-size: clamp(1.8rem, 5vw, 2.8rem);
 }
 
-.hero p,
-.notice,
-.fan-note {
+.hero p {
   color: var(--color-contrast-muted);
   text-align: center;
 }
@@ -43,18 +41,34 @@ h1 {
   color: var(--color-danger);
 }
 
-.fan-note {
-  margin: 1rem auto 0;
-  max-width: 48rem;
-  font-size: 0.8rem;
+// What guests are shown: what the room is, and the way in.
+.pitch {
+  display: block;
+  max-width: 44rem;
+  margin: 0 auto;
 }
 
-// Phones: who's here above the conversation. Wide screens: side by side.
-.layout {
+.features {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0 0 0 1.25rem;
+  color: var(--color-contrast-soft);
+
+  strong {
+    color: var(--color-contrast);
+  }
+}
+
+.join {
+  margin: 0 0 1rem;
+  color: var(--color-contrast-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 @include bp.up(lg) {
@@ -71,11 +85,5 @@ h1 {
     max-width: 52rem;
     margin-top: 0.6rem;
     padding: 0.4rem 1rem;
-  }
-
-  // Both columns as tall as the conversation: the cast fits beside it.
-  .layout {
-    grid-template-columns: 320px minmax(0, 1fr);
-    align-items: stretch;
   }
 }

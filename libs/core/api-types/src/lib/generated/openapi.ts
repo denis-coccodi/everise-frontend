@@ -5378,6 +5378,7 @@ export interface components {
         name: string;
         title: string;
         image?: string;
+        local: boolean;
       }[];
       present: string[];
       lines: components['schemas']['SandsLine'][];

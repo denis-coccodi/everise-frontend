@@ -32,11 +32,17 @@
   <!-- Scrolls inside, so a long cast never stretches the page; focusable so
        the keyboard can scroll it too. -->
   <div class="others" role="region" aria-label="Everyone else" tabindex="0">
-    <ul class="cast">
-      @for (character of store.others(); track character.id) {
-        <ng-container *ngTemplateOutlet="row; context: { $implicit: character, present: false }" />
-      }
-    </ul>
+    @for (group of groups(); track group.heading) {
+      <!-- Its own box, so its name only sticks while its rows scroll by. -->
+      <div>
+        <h4 class="group">{{ group.heading }}</h4>
+        <ul class="cast">
+          @for (character of group.characters; track character.id) {
+            <ng-container *ngTemplateOutlet="row; context: { $implicit: character, present: false }" />
+          }
+        </ul>
+      </div>
+    }
     @if (store.others().length === 0) {
       <p class="hint">
         {{ store.search().trim() ? 'Nobody else matches "' + store.search().trim() + '".' : 'Everyone is in.' }}
@@ -53,22 +59,20 @@
       <a class="name" [routerLink]="['/profile', 'character:' + character.id]">{{ character.name }}</a>
       <span class="title">{{ character.title }}</span>
     </span>
-    @if (signedIn()) {
-      @if (present) {
-        <button
-          type="button"
-          class="action"
-          cdtButton="outline-secondary"
-          size="sm"
-          (click)="store.dismiss(character.id)"
-        >
-          Send out<span class="visually-hidden"> {{ character.name }}</span>
-        </button>
-      } @else if (!store.full()) {
-        <button type="button" class="action" cdtButton size="sm" (click)="store.invite(character.id)">
-          Invite<span class="visually-hidden"> {{ character.name }}</span>
-        </button>
-      }
+    @if (present) {
+      <button
+        type="button"
+        class="action"
+        cdtButton="outline-secondary"
+        size="sm"
+        (click)="store.dismiss(character.id)"
+      >
+        Send out<span class="visually-hidden"> {{ character.name }}</span>
+      </button>
+    } @else if (!store.full()) {
+      <button type="button" class="action" cdtButton size="sm" (click)="store.invite(character.id)">
+        Invite<span class="visually-hidden"> {{ character.name }}</span>
+      </button>
     }
   </li>
 </ng-template>

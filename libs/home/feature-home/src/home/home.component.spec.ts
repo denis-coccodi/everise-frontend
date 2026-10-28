@@ -47,9 +47,11 @@ describe('HomeComponent Discord box', () => {
     expect(widgetRequests()).toHaveLength(0);
   });
 
-  it('tells guests everything is free, and why a few things need signing in', async () => {
+  it('tells guests that anyone can sign up, in the free company or not', async () => {
     const guest = await render(false);
-    expect(guest.page.querySelector('cdt-banner .free')?.textContent).toContain('Everything on Everise is free.');
+    const join = guest.page.querySelector('cdt-banner .join');
+    expect(join?.textContent).toContain('Anyone can sign up, in the free company or not.');
+    expect(join?.querySelector('a')?.getAttribute('href')).toBe('/register');
   });
 
   it('shows it to members, and once a guest signs in', async () => {

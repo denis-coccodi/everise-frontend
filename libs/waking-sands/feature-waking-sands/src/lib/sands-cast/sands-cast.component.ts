@@ -1,7 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AuthStore } from '@everise/auth/data-access';
 import {
   AvatarComponent,
   ButtonComponent,
@@ -12,9 +11,10 @@ import {
 import { WakingSandsStore } from '@everise/waking-sands/data-access';
 
 // "Who's here": the characters in the room, then everyone else, found by
-// name or title with the search, in a list that scrolls on its own; each
-// name leads to their profile, with Invite or Send out for signed-in members
-// (none while the room is full), and the fan-work note.
+// name or title with the search, in a list that scrolls on its own: the
+// game's characters, then the free company's own (`local`). Each name leads
+// to their profile, with Invite or Send out (no Invite while the room is
+// full).
 @Component({
   selector: 'cdt-sands-cast',
   templateUrl: './sands-cast.component.html',
@@ -32,7 +32,15 @@ import { WakingSandsStore } from '@everise/waking-sands/data-access';
 })
 export class SandsCastComponent {
   protected readonly store = inject(WakingSandsStore);
-  protected readonly signedIn = inject(AuthStore).loggedIn;
+  // Everyone else, the game's characters apart from the free company's own;
+  // a group nobody in the search belongs to isn't shown.
+  protected readonly groups = computed(() => {
+    const others = this.store.others();
+    return [
+      { heading: 'Friends and foes of the Warrior of Light', characters: others.filter((c) => !c.local) },
+      { heading: "Vesper Bay's regulars", characters: others.filter((c) => c.local) },
+    ].filter((group) => group.characters.length > 0);
+  });
   // For screen readers: how many characters the search shows.
   protected readonly found = computed(() => {
     const count = this.store.others().length;
