@@ -17,47 +17,57 @@ const LOOK_AHEAD_MS = 180_000;
 const STEP_MS = 500;
 // How far before a moment the picker offers slots.
 const SLOTS_MS = 10_000;
-// How long before its mechanic an invulnerability goes up, at most.
-const INVULNERABLE_BEFORE_MS = 30_000;
+// How long after its use an invulnerability saves its user, at most.
+const SAVES_MS = 15_000;
 
 const sameUse = (a: { player: number; action: number; at: number }, b: PlanEdit) =>
   a.player === b.player && a.action === b.action && Math.abs(a.at - b.at) < REMOVED_MS;
 
-// The tools with the removed skills kept out of where they were (as when a
-// fairy is away), for the planner to put them anywhere else they're needed.
-// An invulnerability only ever goes just before the hit it saves: removed,
-// it's kept off that mechanic (the half minute around it), not just its slot.
+// The tools with the removed skills kept out of where they were, for the
+// planner to put them anywhere else they're needed. A removed
+// invulnerability is also kept off the mechanic it was saving (`notFor`),
+// and only that one: it may still save one just before or after.
 export function withBans<T extends { player: number; action: number; away?: { from: number; to: number }[] }>(
   tools: T[],
   edits: PlanEdits | undefined,
+  mechanics: Mechanic[] = [],
 ): T[] {
   if (!edits?.removed.length) return tools;
   return tools.map((t) => {
     const banned = edits.removed.filter((r) => r.player === t.player && r.action === t.action);
     if (!banned.length) return t;
+    const away = [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - REMOVED_MS, to: r.at + REMOVED_MS }))];
     const effects = (t as { effects?: { invulnerable?: boolean }[] }).effects ?? [];
-    const ms = effects.some((e) => e.invulnerable) ? INVULNERABLE_BEFORE_MS : REMOVED_MS;
-    return { ...t, away: [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - ms, to: r.at + ms }))] };
+    if (!effects.some((e) => e.invulnerable)) return { ...t, away };
+    const notFor = banned.map((r) => savedBy(r, mechanics)).filter((id): id is number => id !== null);
+    return { ...t, away, notFor };
   });
 }
 
+// The mechanic an invulnerability used at `r` was saving its user from: the
+// first that hits them in the seconds after.
+function savedBy(r: PlanEdit, mechanics: Mechanic[]) {
+  const hit = mechanics
+    .filter((m) => m.at >= r.at && m.at - r.at <= SAVES_MS && m.hits.some((h) => h.player === r.player))
+    .sort((a, b) => a.at - b.at)[0];
+  return hit?.id ?? null;
+}
+
 // The tanks' invulnerabilities as the pull had them, but those the user
-// removed: one taken out in the seconds before its mechanic is no longer
-// forced there (the plan may still use it where nothing else saves a hit).
+// removed: one taken out for its mechanic is no longer forced there (the
+// plan may still use it where nothing else saves a hit).
 export function keptInvulnerabilities(
   choices: InvulnerabilityChoice[],
   mechanics: Mechanic[],
   edits: PlanEdits | undefined,
 ): InvulnerabilityChoice[] {
   if (!edits?.removed.length) return choices;
-  const at = new Map(mechanics.map((m) => [m.id, m.at]));
-  return choices.filter((c) => {
-    const hit = c.mechanic === null ? undefined : at.get(c.mechanic);
-    if (hit === undefined) return true;
-    return !edits.removed.some(
-      (r) => r.player === c.player && r.action === c.action && r.at <= hit && hit - r.at <= INVULNERABLE_BEFORE_MS,
-    );
-  });
+  return choices.filter(
+    (c) =>
+      !edits.removed.some(
+        (r) => r.player === c.player && r.action === c.action && savedBy(r, mechanics) === c.mechanic,
+      ),
+  );
 }
 
 // Whether a use the plan would keep fixed (an opener's step) was removed.

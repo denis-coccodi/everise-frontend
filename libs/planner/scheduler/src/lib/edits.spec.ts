@@ -1,4 +1,4 @@
-import { editChoices, keptInvulnerabilities } from './edits';
+import { editChoices, keptInvulnerabilities, withBans } from './edits';
 import { PlannerScheduler } from './planner-scheduler.service';
 import { catalog, pull } from './scheduler-fixtures';
 
@@ -67,19 +67,29 @@ describe("the user's edits to a plan", () => {
     expect(soil?.reason).toMatch(/^(No Aetherflow until|Recast: back at)/);
   });
 
-  it('stops forcing an invulnerability as played once the user removes it', () => {
-    const hallowed = { player: 1, action: 30, mechanic: 0 };
-    const mechanics = [{ id: 0, at: 65_000 }] as Parameters<typeof keptInvulnerabilities>[1];
+  // Two mechanics on the tank (1), 5s apart.
+  const mechanics = [
+    { id: 0, at: 65_000, hits: [{ player: 1 }] },
+    { id: 1, at: 70_000, hits: [{ player: 1 }] },
+  ] as Parameters<typeof keptInvulnerabilities>[1];
+  const removedAt = (at: number) => ({ added: [], removed: [{ player: 1, action: 30, at }] });
 
-    expect(keptInvulnerabilities([hallowed], mechanics, undefined)).toEqual([hallowed]);
-    // Removed a few seconds before its mechanic: no longer kept there.
-    expect(
-      keptInvulnerabilities([hallowed], mechanics, { added: [], removed: [{ player: 1, action: 30, at: 62_000 }] }),
-    ).toEqual([]);
-    // Another skill, or one long before: still kept.
-    expect(
-      keptInvulnerabilities([hallowed], mechanics, { added: [], removed: [{ player: 1, action: 30, at: 10_000 }] }),
-    ).toEqual([hallowed]);
+  it('stops forcing an invulnerability as played on the mechanic the user took it off, and only that one', () => {
+    const first = { player: 1, action: 30, mechanic: 0 };
+    const second = { player: 1, action: 30, mechanic: 1 };
+
+    expect(keptInvulnerabilities([first, second], mechanics, undefined)).toEqual([first, second]);
+    // Removed 3s before the first: no longer forced there, still on the next.
+    expect(keptInvulnerabilities([first, second], mechanics, removedAt(62_000))).toEqual([second]);
+    // Removed long before either: both kept.
+    expect(keptInvulnerabilities([first, second], mechanics, removedAt(10_000))).toEqual([first, second]);
+  });
+
+  it('keeps a removed invulnerability off the mechanic it saved, and only its slot otherwise', () => {
+    const hallowed = { player: 1, action: 30, effects: [{ invulnerable: true }] };
+    const [banned] = withBans([hallowed], removedAt(62_000), mechanics);
+
+    expect(banned).toMatchObject({ notFor: [0], away: [{ from: 60_500, to: 63_500 }] });
   });
 
   it("lets the user's placement win over the planner's own: those give way", () => {

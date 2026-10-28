@@ -6,14 +6,19 @@ import { withEnablerWindows } from './enabled-windows';
 import { withFairyAway } from './fairy-heals';
 import { withDraws } from './opening';
 import type { Opening } from './openers.model';
-import type { HealTool, MitigationTool } from './plan.model';
+import type { HealTool, Mechanic, MitigationTool } from './plan.model';
 
 // The tools as the pull and the opener allow them: a scholar's fairy
 // orders wait for her while Dissipation has her away; Aetherflow comes
 // with its refills, an astrologian's cards with their draws; Lux Solaris
 // waits for the burst that grants it; and the user's removed skills aren't
 // planned where they were.
-export function toolWindows(timeline: PullTimeline, opening: Opening, edits: PlanEdits | undefined) {
+export function toolWindows(
+  timeline: PullTimeline,
+  opening: Opening,
+  edits: PlanEdits | undefined,
+  mechanics: Mechanic[],
+) {
   const { dissipations, refills } = opening;
   return <T extends MitigationTool | HealTool>(tools: T[]) =>
     withBans(
@@ -22,5 +27,6 @@ export function toolWindows(timeline: PullTimeline, opening: Opening, edits: Pla
         withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening),
       ),
       edits,
+      mechanics,
     );
 }

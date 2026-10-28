@@ -12,8 +12,7 @@ import type { MpModel } from './mp';
 const AVOIDED = { damage: 0, absorbed: 0, statuses: [], invulnerable: false };
 // The spare pass adds at most this many uses to one mechanic.
 const SPARE_PER_MECHANIC = 4;
-// What a weaponskill or spell is worth next to an oGCD doing as much: it
-// costs a GCD the player would deal damage with.
+// A GCD's worth next to an oGCD doing as much: it costs a GCD of damage.
 const GCD_WORTH = 0.4;
 // How long before a heal Recitation can go up for it.
 const RECITATION_MS = 15_000;
@@ -117,6 +116,7 @@ export function planMitigation(
       at === null ||
       at < 0 ||
       isAway(t, at) ||
+      t.notFor?.includes(m.id) ||
       !fitsRecast(times, at, t.recastMs, t.charges)
     ) {
       unplaced.push(choice);
@@ -248,9 +248,9 @@ export function planMitigation(
     return found;
   };
 
-  // A tank's invulnerability for `m`, at the first moment it fits; null
-  // when it doesn't.
+  // A tank's invulnerability for `m` (not one taken off it), where it fits.
   const invulnerabilityFor = (m: Mechanic, t: MitigationTool): Candidate | null => {
+    if (t.notFor?.includes(m.id)) return null;
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const at = momentsFor(m, t, mechanics)
       .map((moment) => fit(m, t, moment))
