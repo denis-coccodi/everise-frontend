@@ -21,6 +21,7 @@ import { ListingFound, listingIdIn, listingPage } from './seo/listing-page';
 import { PageMeta, headTags, rootContent } from './seo/page-meta';
 import { Board, dataCentreIn, dataCentrePage, partyFinderPage } from './seo/party-finder-page';
 import { staticPage } from './seo/static-pages';
+import { plannerPage } from './seo/planner-page';
 import { EventFound, EventList, eventPage, eventsPage } from './seo/event-pages';
 import { VenueFound, VenueList, venuePage, venuesDataCentreIn, venuesPage } from './seo/venue-pages';
 
@@ -56,6 +57,8 @@ const EVENT_PAGE = /^\/events\/(\d+)\/?$/;
 const OLD_DATA_CENTRE_PAGE = /^\/party-finder\/([a-z]+)\/?$/i;
 // How long a page waits for the Party Finder before it's sent without it.
 const BOARD_WAIT_MS = 1500;
+// How long a page waits to learn whether the planner is on.
+const PLANNER_WAIT_MS = 1000;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -82,10 +85,11 @@ export default {
     } else if (pathname === '/robots.txt') {
       response = textResponse(robotsTxt(env.SITE_URL, indexable), 'text/plain');
     } else if (pathname === '/sitemap.xml') {
-      response = textResponse(
-        sitemapXml(env.SITE_URL, await apiJson<SitemapData>(request, env, '/sitemap')),
-        'application/xml',
-      );
+      const [data, planner] = await Promise.all([
+        apiJson<SitemapData>(request, env, '/sitemap'),
+        plannerOn(request, env),
+      ]);
+      response = textResponse(sitemapXml(env.SITE_URL, data, planner), 'application/xml');
     } else if (request.method === 'GET') {
       const meta = await pageMeta(request, env, pathname);
       response = meta ? await withMeta(request, env, meta) : await env.ASSETS.fetch(request);
@@ -146,7 +150,19 @@ async function pageMeta(request: Request, env: Env, pathname: string): Promise<P
     );
     return partyFinderPage(dataCentre, board, env.SITE_URL, Date.now());
   }
-  return staticPage(pathname.replace(/(.)\/$/, '$1'), env.SITE_URL);
+  if (pathname === '/planner' || pathname === '/planner/') {
+    // Switched off, it's left to the app (which has no such page then).
+    return (await plannerOn(request, env)) ? plannerPage(new URL(request.url)) : undefined;
+  }
+  const path = pathname.replace(/(.)\/$/, '$1');
+  const home = path === '/' || path === '/home';
+  return staticPage(path, env.SITE_URL, { planner: home && (await plannerOn(request, env)) });
+}
+
+// Whether the fight planner is switched on: the backend only has its API
+// then (the `planner` feature), and answers 404 otherwise.
+async function plannerOn(request: Request, env: Env): Promise<boolean> {
+  return !!(await apiJson<{ available: boolean }>(request, env, '/planner/available', PLANNER_WAIT_MS));
 }
 
 // The app's page with the page's tags in its <head> and its words in
