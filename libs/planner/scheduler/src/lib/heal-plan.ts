@@ -1,4 +1,5 @@
 import { PullTimeline } from '@everise/core/api-types';
+import type { MpModel } from './mp';
 import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from './heal-tools';
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
@@ -57,6 +58,7 @@ export function planHeals(
   weaving = new Weaving(),
   pairings: HealPairing[] = [],
   fairy: FairyHealing = { events: [], recalculated: [] },
+  mp?: MpModel,
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -207,7 +209,21 @@ export function planHeals(
             },
             short,
           );
-        const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf);
+        const own = spent.filter((s) => s.player === tool.player);
+        const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
+        const candidate = best(
+          tool,
+          m,
+          anchor,
+          short,
+          spent,
+          eventsOf,
+          deficits,
+          weaving,
+          pairWith,
+          favourOf,
+          affordable,
+        );
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
       }
       if (!pick) break;

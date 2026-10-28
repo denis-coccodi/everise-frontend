@@ -46,6 +46,10 @@ function core(e: ActionEffect): string {
       return `+${e.percent}% healing`;
     case 'invulnerable':
       return 'invulnerable';
+    case 'mp':
+      return e.percent !== null ? `+${e.percent}% of max MP` : `+${e.potency} MP`;
+    case 'mpRegen':
+      return `+${(e.potency ?? 0) * 10} MP a tick`;
   }
 }
 

@@ -9,6 +9,8 @@ export function party(): PullTimeline['players'] {
     job,
     role,
     maxHp: 100_000,
+    maxMp: null,
+    mp: [],
     stats: null,
   });
   return [player(1, 'PLD', 'tank'), player(2, 'SCH', 'healer'), player(3, 'BRD', 'ranged')];
@@ -69,6 +71,7 @@ export function action(
     castMs: 0,
     recastMs: recastS * 1000,
     charges: 1,
+    mpCost: 0,
     cooldownGroup: id,
     range: 0,
     radius: 0,

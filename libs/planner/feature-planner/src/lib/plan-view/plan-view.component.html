@@ -46,4 +46,6 @@
     }
   </fieldset>
 }
-<cdt-message [tone]="unplaced() ? 'warning' : 'status'">{{ summary() }} {{ unplaced() }}</cdt-message>
+<cdt-message [tone]="unplaced() || mpShort() ? 'warning' : 'status'">
+  {{ summary() }} {{ unplaced() }} {{ mpShort() }}
+</cdt-message>

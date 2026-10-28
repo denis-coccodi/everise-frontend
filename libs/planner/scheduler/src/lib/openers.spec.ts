@@ -7,7 +7,7 @@ import { withStacksLeft } from './openers';
 const timeline = (job: string) => {
   const t = pull([]);
   t.durationMs = 250_000;
-  t.players = [{ id: 2, name: 'Heal Main', job, role: 'healer', maxHp: 100_000, stats: null }];
+  t.players = [{ id: 2, name: 'Heal Main', job, role: 'healer', maxHp: 100_000, maxMp: null, mp: [], stats: null }];
   t.playerCasts = [
     ...Array.from({ length: 14 }, (_, i) => ({ at: 500 + i * 2500, source: 2, target: null, action: 9, castMs: null })),
     { at: 200_000, source: 2, target: null, action: 3587, castMs: null },

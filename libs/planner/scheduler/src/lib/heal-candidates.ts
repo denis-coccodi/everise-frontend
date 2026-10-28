@@ -52,6 +52,8 @@ export function best(
   weaving: Weaving,
   pairWith: (use: PlannedUse, events: HpEvent[]) => Paired[],
   favourOf: (player: number) => Favour,
+  // Whether the healer has the MP for it then (MpModel).
+  affordable: (at: number) => boolean = () => true,
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
   const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
@@ -121,6 +123,7 @@ export function best(
       )
     )
       continue;
+    if (!affordable(at)) continue;
     const { grantedBy } = tool;
     if (grantedBy && !fitsGrant(timesOf(tool.action), timesOf(grantedBy.action), at, grantedBy)) continue;
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };
