@@ -23,5 +23,8 @@ export interface HpCurve {
   job: string | null;
   played: HpPoint[];
   planned: HpPoint[] | null;
+  // A replanned player's MP with the plan, as a share of their max MP (null
+  // for the others, and before it's planned).
+  mp: HpPoint[] | null;
   marks: HpMark[];
 }

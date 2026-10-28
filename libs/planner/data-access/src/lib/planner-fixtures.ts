@@ -61,6 +61,7 @@ export function actionCatalog(): ActionCatalog {
     castMs: 0,
     recastMs: 60_000,
     charges: 1,
+    mpCost: 0,
     cooldownGroup: id,
     range: 0,
     radius: 0,
@@ -144,8 +145,8 @@ export function pullTimeline(): PullTimeline {
     startedAt: '2026-10-20T19:03:00.000Z',
     durationMs: 303_000,
     players: [
-      { id: 1, name: 'Tank Main', job: 'PLD', role: 'tank', maxHp: 325_090, stats: null },
-      { id: 2, name: 'Heal Main', job: 'SCH', role: 'healer', maxHp: 200_000, stats: null },
+      { id: 1, name: 'Tank Main', job: 'PLD', role: 'tank', maxHp: 325_090, maxMp: null, mp: [], stats: null },
+      { id: 2, name: 'Heal Main', job: 'SCH', role: 'healer', maxHp: 200_000, maxMp: null, mp: [], stats: null },
     ],
     enemies: [
       { id: -1, name: 'Environment', boss: false },

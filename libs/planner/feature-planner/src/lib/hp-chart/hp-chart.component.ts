@@ -45,11 +45,13 @@ export class HpChartComponent {
 
   protected readonly showPlayed = signal(true);
   protected readonly showPlanned = signal(true);
+  protected readonly showMp = signal(true);
   private readonly hidden = signal(new Set<number>());
   protected readonly at = signal<number | null>(null);
   protected readonly clock = pullClock;
 
   protected readonly planned = computed(() => this.curves().some((c) => c.planned));
+  protected readonly withMp = computed(() => this.curves().some((c) => c.mp));
   protected readonly shown = computed(() => this.curves().filter((c) => !this.hidden().has(c.id)));
   protected readonly marginTop = computed(() => (1 - this.margin()) * 100);
   protected readonly marginLabel = computed(() => `${percent.format(this.margin())} margin`);
@@ -98,6 +100,7 @@ export class HpChartComponent {
     const lines: [string, HpPoint[] | null, boolean][] = [
       ['played', curve.played, this.showPlayed()],
       ['plan', curve.planned, this.showPlanned()],
+      ['MP', curve.mp, this.showMp()],
     ];
     for (const [name, points, show] of lines) {
       if (!points || !show) continue;

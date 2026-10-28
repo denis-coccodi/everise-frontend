@@ -16,6 +16,7 @@ describe('HpChartComponent', () => {
         { at: 0, share: 1 },
         { at: 60_000, share: 0.5 },
       ],
+      mp: null,
       marks: [],
     },
     {
@@ -29,6 +30,11 @@ describe('HpChartComponent', () => {
       planned: [
         { at: 0, share: 1 },
         { at: 120_000, share: 0.05 },
+      ],
+      // The replanned healer's MP with the plan.
+      mp: [
+        { at: 0, share: 1 },
+        { at: 90_000, share: 0.3 },
       ],
       marks: [
         { at: 120_000, share: 0, kind: 'death', action: null },
@@ -57,9 +63,12 @@ describe('HpChartComponent', () => {
     ]);
     expect(readouts()).toEqual([
       'Lowest: played 20% at 1:00, plan 50% at 1:00',
-      'Lowest: played 0% at 2:00, plan 5% at 2:00',
+      'Lowest: played 0% at 2:00, plan 5% at 2:00, MP 30% at 1:30',
     ]);
     expect(host.querySelectorAll('path.played')).toHaveLength(2);
+    // MP only where the plan has it, dashed apart from HP.
+    expect(host.querySelectorAll('path.mp')).toHaveLength(1);
+    expect(host.querySelector('.key.mp')?.parentElement?.textContent?.trim()).toBe('MP (plan)');
     expect(host.querySelector('.margin-key')?.textContent?.trim()).toBe('10% margin');
   });
 
@@ -98,7 +107,7 @@ describe('HpChartComponent', () => {
     press('End');
     expect(slider.getAttribute('aria-valuetext')).toBe('3:00');
     press('PageDown');
-    expect(readouts()).toEqual(['2:50: played 20%, plan 50%', '2:50: played 0%, plan 5%']);
+    expect(readouts()).toEqual(['2:50: played 20%, plan 50%', '2:50: played 0%, plan 5%, MP 30%']);
     press('Escape');
     expect(readouts()[0]).toMatch(/^Lowest/);
   });

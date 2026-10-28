@@ -16,6 +16,8 @@ export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
     const max = player.maxHp;
     if (!max) continue;
     const planned = plan?.hp.find((h) => h.player === player.id);
+    const mp = plan?.mp?.find((m) => m.player === player.id);
+    const maxMp = player.maxMp ?? 0;
     const share = (hp: number) => Math.min(1, Math.max(0, hp / max));
     const marks: HpMark[] = timeline.deaths
       .filter((d) => d.player === player.id)
@@ -32,6 +34,7 @@ export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
       job: player.job,
       played: played(timeline, player.id, max),
       planned: planned ? planned.points.map((p) => ({ at: p.at, share: share(p.hp) })) : null,
+      mp: mp?.points.length && maxMp ? mp.points.map((p) => ({ at: p.at, share: Math.min(1, p.mp / maxMp) })) : null,
       marks: marks.sort((a, b) => a.at - b.at),
     });
   }
