@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import { landedGcds, pressedFirst, type Plan, type PlannedUse } from '@everise/planner/scheduler';
+import { landedGcds, pressedFirst, attackSeverity, type Plan, type PlannedUse } from '@everise/planner/scheduler';
 import { onlyDamage, whatItDoes } from './action-kinds';
 import { countdownStart } from './pull-time';
 import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
@@ -13,6 +13,8 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
   const playerName = new Map(timeline.players.map((p) => [p.id, p.name]));
   const catalogAction = new Map(catalog?.actions.map((a) => [a.id, a]));
   const maxHp = timeline.players.find((p) => p.id === playerId)?.maxHp ?? null;
+  // As the pull's log has it, so both columns agree.
+  const severity = attackSeverity(timeline);
   const hits: PlanHitEntry[] = plan.hits
     .filter((hit) => hit.player === playerId)
     .map((hit) => {
@@ -21,6 +23,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
         kind: 'hit',
         at: m?.at ?? 0,
         action: m?.name ?? 'Unknown',
+        severity: m ? severity(m.action, m.at) : null,
         unmitigated: hit.unmitigated,
         planned: hit.planned,
         asPlayed: hit.asPlayed,

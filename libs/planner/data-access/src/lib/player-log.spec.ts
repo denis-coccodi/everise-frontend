@@ -96,6 +96,8 @@ describe('playerLog', () => {
       hpShare: 285_090 / 325_090,
       // Well Fed is on them too, but covers nothing.
       covers: ['Rampart', 'Galvanize', 'Reprisal'],
+      // Half their max HP on each player hit, before mitigation.
+      severity: { tier: 'moderate', kind: 'raidwide', share: 0.5 },
     });
   });
 

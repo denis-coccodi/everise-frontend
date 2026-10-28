@@ -62,6 +62,7 @@ describe('planLog', () => {
         safe: true,
         avoidable: false,
         covers: ['Reprisal'],
+        severity: { tier: 'moderate', kind: 'raidwide', share: 0.5 },
       },
       expect.objectContaining({ kind: 'hit', at: 200_000, safe: false }),
     ]);

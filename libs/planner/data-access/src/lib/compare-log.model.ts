@@ -1,3 +1,4 @@
+import type { Severity } from '@everise/planner/scheduler';
 import type { PlanEntry } from './plan-log.model';
 import type { LogEntry } from './player-log.model';
 
@@ -10,4 +11,6 @@ export interface CompareRow {
   shownAt: number;
   played: LogEntry[];
   planned: PlanEntry[];
+  // How hard the row's attack hits, when it has one.
+  severity: Severity | null;
 }

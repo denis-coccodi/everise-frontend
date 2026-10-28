@@ -23,7 +23,16 @@
           [class.only-plan]="!row.played.length"
           [class.revealed]="revealed() === row.at"
         >
-          <th scope="row" class="time">{{ clock(row.shownAt) }}</th>
+          <th scope="row" class="time">
+            {{ clock(row.shownAt) }}
+            @if (row.severity; as s) {
+              <!-- How hard the row's attack hits: its name, a dot of its colour. -->
+              <span class="severity" [attr.title]="severityHint(s)">
+                <span [class]="'dot ' + s.tier" aria-hidden="true"></span>{{ TIER_NAMES[s.tier] }}
+              </span>
+              <span class="kind">{{ KIND_NAMES[s.kind] }}</span>
+            }
+          </th>
           <td class="played">
             @for (entry of row.played; track $index) {
               <cdt-planner-played-entry [entry]="entry" />
