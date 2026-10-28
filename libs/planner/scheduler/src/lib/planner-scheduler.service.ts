@@ -150,8 +150,7 @@ export class PlannerScheduler {
         casts: each.flatMap((f) => f.casts),
       };
     };
-    // A sage's Addersgall with their Rhizomata's stacks, once the plan has
-    // them (below).
+    // A sage's Addersgall with their Rhizomata's stacks, once planned (below).
     const bonus = new Map<number, number[]>();
     const once = (from?: Plan) => {
       const { healing, casts } = fairy(from);
@@ -219,6 +218,7 @@ export class PlannerScheduler {
     return {
       ...best,
       replanned: replannedPlayers.map((p) => p.id),
+      scheduled: [...scheduled],
       uses: [...own, ...drains, ...burst, ...rhizomata].sort((a, b) => a.at - b.at || a.player - b.player),
     };
   }

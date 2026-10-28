@@ -20,6 +20,7 @@ describe('pairingsFor', () => {
     onTarget: false,
     own: false,
     converts: false,
+    bond: 0,
   };
   const pneuma = { player: 2, action: 24318, gcd: true, castMs: 1500, effects: [] } as unknown as HealTool;
   const use: PlannedUse = { player: 2, action: 24318, name: 'Pneuma', at: 60_000, target: null, covers: [3] };
@@ -88,6 +89,7 @@ describe('pairingsFor', () => {
       times: 1.1,
       own: true,
       converts: false,
+      bond: 0,
     };
     const regen = (paired: PlannedUse) => [{ at: paired.at + 3000, player: 1, amount: 13_000 }];
 

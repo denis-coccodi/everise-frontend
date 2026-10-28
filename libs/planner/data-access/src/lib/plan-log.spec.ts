@@ -134,6 +134,25 @@ describe('planLog', () => {
     expect(kept([2])).toEqual([]);
   });
 
+  it("keeps none of a replanned player's uses of what the plan schedules for them", () => {
+    const catalog = actionCatalog();
+    catalog.actions.push({
+      ...catalog.actions[0],
+      id: 3612,
+      name: 'Synastry',
+      effects: [],
+      description: 'Generate an aetheric bond.',
+    });
+    const timeline = pullTimeline();
+    timeline.playerCasts.push({ at: 50_000, source: 1, target: null, action: 3612, castMs: null });
+
+    const kept = (scheduled: string[]) =>
+      planLog({ ...plan, replanned: [1], scheduled }, timeline, 1, catalog).filter((e) => e.kind === 'use' && e.kept);
+
+    expect(kept([]).map((e) => e.at)).toEqual([50_000]);
+    expect(kept(['1:3612'])).toEqual([]);
+  });
+
   it('shows a buff the plan has on cooldown as such, and none of its played uses', () => {
     const catalog = actionCatalog();
     catalog.actions.push({

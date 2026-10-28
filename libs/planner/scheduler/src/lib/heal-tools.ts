@@ -34,6 +34,7 @@ export const SOTERIA = 24294;
 const SOTERIA_POTENCY = 119;
 const SOTERIA_HEALS = 4;
 export const KARDIA = 24285;
+export const HOROSCOPE = 16557;
 const KARDIA_POTENCY = 170;
 export const KARDIA_HEALS = 4;
 // The status Kardion's heals come by in the log.
@@ -85,9 +86,9 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // instead (`converts`: no shield then), and under Seraphism (its recast 1s)
 // before a Manifestation or Accession; Horoscope before a Helios, Aspected
 // Helios or Helios Conjunction in its 10s, Horoscope Helios then healing 400
-// potency on each member it reaches (read as the Helios lands); Synastry
-// before a Benefic, Benefic II or Aspected Benefic in its 20s, its bond's
-// 40% of the heal (on the same member, as the plan has it).
+// potency on each member it reaches (read again as the Helios lands, a press
+// of its own); Synastry, its bond on the member who needs it most, 40% of
+// each Benefic, Benefic II or Aspected Benefic in its 20s on them too.
 const PAIRED: Record<
   number,
   {
@@ -100,6 +101,7 @@ const PAIRED: Record<
     own?: boolean;
     critical?: boolean;
     converts?: boolean;
+    bond?: number;
   }
 > = {
   7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
@@ -117,7 +119,7 @@ const PAIRED: Record<
   3586: { heals: [185, 37013], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
   37037: { heals: [37015, 37016], withinMs: 15_000, times: 2.8, potency: 0, converts: true },
   16557: { heals: [3600, 3601, 37030], withinMs: 10_000, times: 1, potency: 400 },
-  3612: { heals: [3594, 3610, 3595], withinMs: 20_000, times: 1.4, potency: 0, onTarget: true },
+  3612: { heals: [3594, 3610, 3595], withinMs: 20_000, times: 1, potency: 0, bond: 0.4 },
 };
 
 // The healers' oGCDs that go with one of their GCD heals (`PAIRED`), the
@@ -148,6 +150,7 @@ export function healPairings(
         onTarget: paired.onTarget ?? false,
         own: paired.own ?? false,
         converts: paired.converts ?? false,
+        bond: paired.bond ?? 0,
       });
     }
   }

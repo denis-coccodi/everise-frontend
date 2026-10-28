@@ -248,7 +248,7 @@ describe('healPairings', () => {
 
     const synastry = healPairings(party(), cat, new Map([[2, 100]])).find((p) => p.name === 'Synastry');
 
-    expect(synastry).toMatchObject({ times: 1.4, onTarget: true, withinMs: 20_000, heals: [3594, 3610, 3595] });
+    expect(synastry).toMatchObject({ times: 1, bond: 0.4, withinMs: 20_000, heals: [3594, 3610, 3595] });
   });
 });
 

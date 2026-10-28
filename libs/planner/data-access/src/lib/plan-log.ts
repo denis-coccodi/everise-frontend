@@ -59,7 +59,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       ...(use.opener ? { opener: true } : {}),
       ...(use.burst ? { burst: true } : {}),
       ...(use.refill ? { refill: true } : {}),
-      ...(use.back ? { back: true } : {}),
+      ...(use.again ? { again: use.again } : {}),
       ...(catalogAction.get(use.action)?.gcd ? { gcd: true } : {}),
     }));
   const asPlayed = kept(plan, timeline, playerId, catalog);
@@ -72,7 +72,8 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
 // A replanned player's buffs and enablers the plan leaves as they played
 // them (Lucid Dreaming, a raid buff, a potion): not their attacks, nor a
 // heal or mitigation (the plan's are its own), nor one the plan uses itself
-// close by (an opener's Chain Stratagem) or on cooldown (its burst).
+// close by (an opener's Chain Stratagem) or on cooldown (its burst), nor one
+// it plans for them (Synastry, Recitation): theirs gave up its slot.
 const SAME_USE_MS = 10_000;
 // Eukrasia: before a Eukrasian heal the plan's own says so ("Eukrasia, then"),
 // before Eukrasian Dosis it's the rotation's damage.
@@ -87,6 +88,7 @@ function kept(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: Ac
       const action = byId.get(c.action);
       if (c.source !== playerId || c.action === EUKRASIA || onlyDamage(c.action, action) || action?.effects.length)
         return false;
+      if (plan.scheduled?.includes(playerId + ':' + c.action)) return false;
       return !mine.some((u) => u.action === c.action && (u.burst || u.refill || Math.abs(u.at - c.at) < SAME_USE_MS));
     })
     .map((c) => {
