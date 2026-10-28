@@ -60,12 +60,14 @@ export class PullCompareComponent {
   readonly editing = input(false);
   readonly slotsFor = input<(at: number) => EditSlot[]>(() => []);
   readonly choicesFor = input<(at: number) => EditChoice[]>(() => []);
+  readonly party = input<{ id: number; name: string }[]>([]);
+  readonly defaultTarget = input<number | null>(null);
   readonly removed = output<PlanUseEntry>();
-  readonly added = output<{ at: number; action: number }>();
+  readonly added = output<{ at: number; action: number; target: number | null }>();
   // The row whose picker is open.
   protected readonly picking = signal<number | null>(null);
 
-  protected add(skill: { at: number; action: number }) {
+  protected add(skill: { at: number; action: number; target: number | null }) {
     this.picking.set(null);
     this.added.emit(skill);
   }

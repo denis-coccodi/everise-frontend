@@ -64,6 +64,8 @@
                 <cdt-planner-edit-picker
                   [slots]="slotsFor()(row.at)"
                   [choicesFor]="choicesFor()"
+                  [party]="party()"
+                  [defaultTarget]="defaultTarget()"
                   [key]="'' + row.at"
                   (picked)="add($event)"
                   (closed)="picking.set(null)"

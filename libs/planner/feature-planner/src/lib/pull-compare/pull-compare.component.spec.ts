@@ -102,9 +102,34 @@ describe('PullCompareComponent', () => {
     fixture.componentRef.setInput('planned', planned);
     fixture.componentRef.setInput('shown', 'plan');
     fixture.componentRef.setInput('slotsFor', () => [{ at: 58_000, label: 'After Fast Blade at 0:58.0' }]);
+    fixture.componentRef.setInput('party', [
+      { id: 1, name: 'Tank Main' },
+      { id: 2, name: 'Heal Main' },
+    ]);
+    fixture.componentRef.setInput('defaultTarget', 1);
+    const icons = { icon: null, description: null, replacesIcon: null };
     fixture.componentRef.setInput('choicesFor', () => [
-      { action: 7535, name: 'Reprisal', gcd: false, ok: true, reason: null, replaces: null },
-      { action: 17, name: 'Sentinel', gcd: false, ok: false, reason: 'Recast: back at 3:30', replaces: null },
+      { action: 7535, name: 'Reprisal', gcd: false, ok: true, reason: null, replaces: null, targeted: false, ...icons },
+      {
+        action: 7382,
+        name: 'Intervention',
+        gcd: false,
+        ok: true,
+        reason: null,
+        replaces: null,
+        targeted: true,
+        ...icons,
+      },
+      {
+        action: 17,
+        name: 'Sentinel',
+        gcd: false,
+        ok: false,
+        reason: 'Recast: back at 3:30',
+        replaces: null,
+        targeted: false,
+        ...icons,
+      },
     ]);
     const removed: unknown[] = [];
     const added: unknown[] = [];
@@ -132,9 +157,22 @@ describe('PullCompareComponent', () => {
     const picker = host.querySelector('cdt-planner-edit-picker') as HTMLElement;
     expect(picker.querySelector('option')?.textContent?.trim()).toBe('After Fast Blade at 0:58.0');
     expect(picker.textContent).toContain('Recast: back at 3:30');
-    [...picker.querySelectorAll<HTMLButtonElement>('button')]
-      .find((b) => b.textContent?.includes('Add Reprisal'))
-      ?.click();
-    expect(added).toEqual([{ at: 58_000, action: 7535 }]);
+    const press = (text: string) =>
+      [...host.querySelectorAll<HTMLButtonElement>('cdt-planner-edit-picker button')]
+        .find((b) => b.textContent?.includes(text))
+        ?.click();
+    press('Add Reprisal');
+    expect(added).toEqual([{ at: 58_000, action: 7535, target: null }]);
+
+    // One that goes on a party member: on the tank until another is picked.
+    host.querySelector<HTMLButtonElement>('td.plan button.add')?.click();
+    fixture.detectChanges();
+    expect(host.querySelector('cdt-planner-edit-picker')?.textContent).toContain('Add Intervention on Tank Main');
+    const on = host.querySelector<HTMLSelectElement>('select[id^=planner-edit-target]') as HTMLSelectElement;
+    on.value = '2';
+    on.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    press('Add Intervention on Heal Main');
+    expect(added[1]).toEqual({ at: 58_000, action: 7382, target: 2 });
   });
 });

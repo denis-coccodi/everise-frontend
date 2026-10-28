@@ -7,16 +7,37 @@
         }
       </select>
     </cdt-field>
+    @if (anyTargeted() && party().length) {
+      <cdt-field label="On" [for]="'planner-edit-target-' + key()" hint="For a skill that goes on one party member.">
+        <select #on cdtInput [id]="'planner-edit-target-' + key()" (change)="pickTarget(on.value)">
+          @for (p of party(); track p.id) {
+            <option [value]="p.id" [selected]="p.id === target()">{{ p.name }}</option>
+          }
+        </select>
+      </cdt-field>
+    }
     <ul class="choices">
       @for (c of choices(); track c.action) {
         <li>
           @if (c.ok) {
-            <button type="button" cdtButton="outline-primary" size="sm" (click)="pick(c)">Add {{ c.name }}</button>
+            <!-- Its icon and name; no tooltip inside a button. -->
+            <button type="button" cdtButton="outline-primary" size="sm" (click)="pick(c)">
+              Add <cdt-planner-action-name [name]="c.name" [icon]="c.icon" />{{
+                c.targeted && targetName() ? ' on ' + targetName() : ''
+              }}
+            </button>
             @if (c.replaces) {
-              <span class="note">in place of {{ c.replaces }}</span>
+              <span class="note"
+                >in place of <cdt-planner-action-name [name]="c.replaces" [icon]="c.replacesIcon"
+              /></span>
             }
           } @else {
-            <span class="unavailable">{{ c.name }}</span>
+            <cdt-planner-action-name
+              class="unavailable"
+              [name]="c.name"
+              [icon]="c.icon"
+              [description]="c.description"
+            />
             <span class="note">{{ c.reason }}</span>
           }
         </li>

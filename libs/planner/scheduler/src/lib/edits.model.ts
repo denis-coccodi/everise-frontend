@@ -26,6 +26,12 @@ export interface EditChoice {
   ok: boolean;
   reason: string | null;
   replaces: string | null;
+  // It goes on one party member, for the user to pick.
+  targeted: boolean;
+  // Its icon (the game's id) and tooltip, and the replaced GCD's icon.
+  icon: number | null;
+  description: string | null;
+  replacesIcon: number | null;
 }
 
 // A moment the user can put a skill at, and where it is in the player's

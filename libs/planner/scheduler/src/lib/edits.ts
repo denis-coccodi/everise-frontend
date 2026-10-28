@@ -126,6 +126,10 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
       ok: !reasons.length,
       reason: reasons[0] ?? null,
       replaces: replaced ? (byId.get(replaced.action)?.name ?? null) : null,
+      targeted: action.effects.some((e) => e.target === 'target'),
+      icon: action.icon,
+      description: action.description,
+      replacesIcon: replaced ? (byId.get(replaced.action)?.icon ?? null) : null,
     });
   }
   return choices.sort((a, b) => Number(b.ok) - Number(a.ok) || a.name.localeCompare(b.name));
