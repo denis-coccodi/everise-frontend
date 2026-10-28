@@ -8,27 +8,27 @@
     </p>
   </header>
 
-  @switch (store.loadState()) {
-    @case ('loading') {
-      <p class="notice">Opening the doors…</p>
-    }
-    @case ('error') {
-      <p class="notice">The Waking Sands couldn't be reached. Try again in a moment.</p>
-    }
-    @default {
-      @if (!store.available()) {
-        <p class="notice">The Waking Sands isn't open yet. Come back soon!</p>
-      } @else {
-        <div class="layout">
-          <cdt-sands-cast />
-          <cdt-sands-conversation />
-        </div>
-        <p class="fan-note">
-          Everyone on this page shares the room. FINAL FANTASY XIV's characters and the free company's own are voiced by
-          an AI as fan work: they can get things wrong, and some of them swear. FINAL FANTASY XIV characters and
-          portraits © SQUARE ENIX.
-        </p>
-      }
-    }
+  @if (auth.loggedIn()) {
+    <cdt-sands-room />
+  } @else if (auth.getUserLoaded()) {
+    <cdt-panel heading="Pull up a chair" class="pitch">
+      <ul class="features">
+        <li>
+          <strong>The Scions and their friends.</strong> Tataru, Y'shtola, Alphinaud and many more, voiced by an AI that
+          knows their whole story.
+        </li>
+        <li>
+          <strong>One room for everyone.</strong> Invite whoever you like, and talk with them and the other members.
+        </li>
+        <li><strong>Vesper Bay's regulars</strong>, too: the free company's own characters drop by.</li>
+      </ul>
+      <p class="join">
+        Sign in to step inside. <strong>Anyone can sign up</strong>, in the free company or not, and it takes a minute.
+      </p>
+      <div class="actions">
+        <a cdtButton routerLink="/login">Sign in</a>
+        <a cdtButton="outline-primary" routerLink="/register">Sign up</a>
+      </div>
+    </cdt-panel>
   }
 </div>

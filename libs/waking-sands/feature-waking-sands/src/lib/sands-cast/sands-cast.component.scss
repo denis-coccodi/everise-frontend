@@ -45,6 +45,21 @@
   outline-offset: 2px;
 }
 
+// Each group's name stays at the top of the box while its rows scroll.
+.group {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0.5rem 0 0.3rem;
+  border-bottom: var(--border-width) solid var(--color-border-faint);
+  background: var(--color-field);
+  color: var(--color-contrast-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .others .hint {
   margin: 0.6rem 0;
 }

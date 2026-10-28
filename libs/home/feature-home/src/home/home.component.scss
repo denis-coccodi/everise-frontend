@@ -34,11 +34,16 @@ cdt-banner p {
   color: var(--color-contrast-muted);
 }
 
-// Guests: what's free, and why a few things need signing in.
-cdt-banner .free {
+// Guests: anyone can join, and what an account is for.
+cdt-banner .join {
   max-width: 36rem;
   margin: 0.5rem auto 0;
   font-size: 0.9rem;
+
+  // Underlined: in light mode the link's colour is close to the bold text's.
+  a {
+    text-decoration: underline;
+  }
 }
 
 .feed-toggle {
