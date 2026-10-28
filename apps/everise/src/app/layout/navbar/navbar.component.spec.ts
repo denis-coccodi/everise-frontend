@@ -28,7 +28,14 @@ describe('NavbarComponent', () => {
 
     fixture = TestBed.createComponent(NavbarComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('user', { id: 'u1', email: '', username: 'Tataru', bio: '', image: '' });
+    fixture.componentRef.setInput('user', {
+      id: 'u1',
+      email: '',
+      username: 'Tataru',
+      displayName: 'Tataru',
+      bio: '',
+      image: '',
+    });
     fixture.componentRef.setInput('isLoggedIn', false);
     document.body.appendChild(fixture.nativeElement);
     await fixture.whenStable();

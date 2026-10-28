@@ -12,8 +12,13 @@ import { NotificationsComponent } from './notifications.component';
 @Component({ imports: [NotificationsComponent], template: '<cdt-notifications /><p id="outside">Elsewhere</p>' })
 class PageComponent {}
 
-const alisaie = { id: 'u-alisaie', username: 'Alisaie', image: '/alisaie.png' };
-const alphinaud = { id: 'u-alphinaud', username: 'Alphinaud', image: '/alphinaud.png' };
+const alisaie = { id: 'u-alisaie', username: 'alisaie', displayName: 'Alisaie', image: '/alisaie.png' };
+const alphinaud = {
+  id: 'u-alphinaud',
+  username: 'Alphinaud',
+  displayName: 'Alphinaud (Twintania)',
+  image: '/alphinaud.png',
+};
 
 function notification(changes: Partial<Notification>): Notification {
   return {
@@ -104,8 +109,8 @@ describe('NotificationsComponent', () => {
     const sentence = (item: Element) =>
       item.querySelector('.text')?.textContent?.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim();
     expect(items.map(sentence)).toEqual([
-      'Alisaie and Alphinaud liked your post Coil tonight, unread',
-      'Alphinaud commented on your post Coil tonight',
+      'Alisaie and Alphinaud (Twintania) liked your post Coil tonight, unread',
+      'Alphinaud (Twintania) commented on your post Coil tonight',
       'Alisaie started following you, unread',
     ]);
     const links = [...items[0].querySelectorAll('.text a')].map((a) => a.getAttribute('href'));

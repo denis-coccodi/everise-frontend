@@ -5,7 +5,7 @@ import { AuthService, AuthStore } from '@everise/auth/data-access';
 import { serverMessage } from '@everise/core/forms';
 import { ButtonComponent } from '@everise/ui/components';
 
-type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | { kind: 'failed'; message: string };
+type State = { kind: 'confirming' } | { kind: 'confirmed'; name: string } | { kind: 'failed'; message: string };
 
 // Where the link in a confirmation email leads (/confirm-email?token=…): it
 // confirms the address and signs in.
@@ -24,7 +24,7 @@ type State = { kind: 'confirming' } | { kind: 'confirmed'; username: string } | 
                   <p>Confirming…</p>
                 }
                 @case ('confirmed') {
-                  <p>Your email address is confirmed. Welcome to Everise, {{ username() }}!</p>
+                  <p>Your email address is confirmed. Welcome to Everise, {{ name() }}!</p>
                   <a cdtButton routerLink="/">Go to the home page</a>
                 }
                 @case ('failed') {
@@ -60,15 +60,15 @@ export class ConfirmEmailComponent implements OnInit {
     this.authService.confirmEmail(token).subscribe({
       next: ({ user }) => {
         this.authStore.confirmed(user);
-        this.state.set({ kind: 'confirmed', username: user.username });
+        this.state.set({ kind: 'confirmed', name: user.displayName });
       },
       error: (error: unknown) => this.state.set({ kind: 'failed', message: serverMessage(error) }),
     });
   }
 
-  protected username() {
+  protected name() {
     const state = this.state();
-    return state.kind === 'confirmed' ? state.username : '';
+    return state.kind === 'confirmed' ? state.name : '';
   }
 
   protected message() {

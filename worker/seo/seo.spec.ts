@@ -196,6 +196,26 @@ describe('static and post pages', () => {
     );
   });
 
+  it('names a member by their character, linking their profile by username', () => {
+    const page = articlePage(
+      {
+        id: 'post-4',
+        title: 'Savage clear!',
+        description: 'Finally.',
+        body: '…',
+        author: { username: 'avar', displayName: 'Avar Kriss (Odin)' },
+      },
+      SITE,
+    );
+
+    expect(headTags(page, SITE)).toContain('<meta property="article:author" content="Avar Kriss (Odin)" />');
+    expect(page.jsonLd).toContainEqual(
+      expect.objectContaining({
+        author: { '@type': 'Person', name: 'Avar Kriss (Odin)', url: 'https://everise.dev/profile/avar' },
+      }),
+    );
+  });
+
   it('a guest roulette result Tataru posted names her character profile', () => {
     const page = articlePage(
       {
