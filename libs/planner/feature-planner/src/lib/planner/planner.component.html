@@ -7,31 +7,15 @@
     </p>
   </header>
 
-  @if (auth.loggedIn()) {
-    <cdt-planner-tool />
-  } @else if (auth.getUserLoaded()) {
-    <cdt-panel heading="Plan your heals and mitigations" class="pitch">
-      <ul class="features">
-        <li><strong>Your own party.</strong> Your jobs, your HP and the damage you really took, from your log.</li>
-        <li>
-          <strong>Every hit explained.</strong> What each attack did to each player, how much mitigation and shields
-          took off, and what was up when it landed.
-        </li>
-        <li>
-          <strong>Every heal and mitigation.</strong> What each job's actions do, with their numbers from the game's own
-          tooltips.
-        </li>
-      </ul>
-      <p class="join">
-        Free, like everything on Everise. You only need an account, which keeps bots from using up the FFLogs lookups
-        everyone shares. Anyone can make one in a minute, in the free company or not.
-      </p>
-      <div class="actions">
-        <a cdtButton routerLink="/login">Sign in</a>
-        <a cdtButton="outline-primary" routerLink="/register">Sign up</a>
-      </div>
-    </cdt-panel>
+  @if (auth.getUserLoaded() && !auth.loggedIn()) {
+    <!-- Guests may plan too, within the FFLogs lookups they're given. -->
+    <p class="guest-note">
+      You're planning as a guest: up to 10 new reports and 10 new pulls an hour. Want more?
+      <strong>Anyone can <a routerLink="/register">sign up</a></strong
+      >, in the free company or not.
+    </p>
   }
+  <cdt-planner-tool />
 
   <!-- Thanks to the projects the page is built on, for everyone to see. -->
   <p class="credits">

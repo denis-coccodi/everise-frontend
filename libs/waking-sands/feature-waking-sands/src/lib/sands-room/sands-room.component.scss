@@ -1,0 +1,35 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+@use '../../../../../ui/components/src/theme/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.notice,
+.fan-note {
+  color: var(--color-contrast-muted);
+  text-align: center;
+}
+
+.fan-note {
+  margin: 1rem auto 0;
+  max-width: 48rem;
+  font-size: 0.8rem;
+}
+
+// Phones: who's here above the conversation. Wide screens: side by side.
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@include bp.up(lg) {
+  // Both columns as tall as the conversation: the cast fits beside it.
+  .layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: stretch;
+  }
+}

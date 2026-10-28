@@ -26,33 +26,16 @@ h1 {
   font-size: clamp(1.8rem, 5vw, 2.8rem);
 }
 
-// What guests are shown: what the page does, and the way in.
-.pitch {
+// Guests: how much they may load, and the way in.
+.guest-note {
   max-width: 44rem;
-  margin: 0 auto;
-}
-
-.features {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0 0 1.25rem;
-  padding: 0 0 0 1.25rem;
+  margin: 0 auto 1.25rem;
   color: var(--color-contrast-soft);
+  text-align: center;
 
-  strong {
-    color: var(--color-contrast);
+  a {
+    text-decoration: underline;
   }
-}
-
-.join {
-  margin: 0 0 1rem;
-  color: var(--color-contrast-soft);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 // The thanks to FFLogs and XIVAPI, under everything.

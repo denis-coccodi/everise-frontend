@@ -1,25 +1,21 @@
 import { renderPlanner } from '../planner-page-testing';
 
 describe('PlannerComponent', () => {
-  it('tells guests what it does and how to get in, without asking for a report', async () => {
-    const { page, http } = await renderPlanner('/planner', { signedIn: false });
+  it('gives guests the tool, and tells them how much they may load', async () => {
+    const { page } = await renderPlanner('/planner', { signedIn: false });
 
     expect(page.querySelector('h1')?.textContent).toBe('Fight Planner');
-    expect(page.querySelector('.pitch')?.textContent).toContain('Every hit explained.');
-    const links = [...page.querySelectorAll('.actions a')].map((a) => [a.textContent?.trim(), a.getAttribute('href')]);
-    expect(links).toEqual([
-      ['Sign in', '/login'],
-      ['Sign up', '/register'],
-    ]);
-    expect(page.querySelector('cdt-planner-tool')).toBeNull();
-    http.expectNone(() => true);
+    expect(page.querySelector('cdt-planner-tool')).not.toBeNull();
+    const note = page.querySelector('.guest-note');
+    expect(note?.textContent).toContain('up to 10 new reports and 10 new pulls an hour');
+    expect(note?.querySelector('a')?.getAttribute('href')).toBe('/register');
   });
 
-  it('gives members the tool', async () => {
+  it('gives members the tool, with no note', async () => {
     const { page } = await renderPlanner();
 
     expect(page.querySelector('cdt-planner-tool')).not.toBeNull();
-    expect(page.querySelector('.pitch')).toBeNull();
+    expect(page.querySelector('.guest-note')).toBeNull();
   });
 
   it.each([true, false])('thanks FFLogs and XIVAPI, for everyone (signed in: %s)', async (signedIn) => {
