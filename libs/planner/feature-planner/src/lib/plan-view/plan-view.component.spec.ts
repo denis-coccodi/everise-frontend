@@ -80,6 +80,25 @@ describe('PlanViewComponent', () => {
     expect(favour()?.selectedOptions[0].textContent).toBe('Healing');
   });
 
+  it("lets a replanned astrologian leave Lightspeed's second charge as logged, or replan it", async () => {
+    const timeline = pullTimeline();
+    timeline.players = timeline.players.map((p) => (p.id === 2 ? { ...p, job: 'AST' } : p));
+    const rendered = await openPlan(timeline);
+    const second = () => rendered.page.querySelector<HTMLSelectElement>('#planner-lightspeed');
+
+    click(rendered, rendered.page.querySelectorAll<HTMLButtonElement>('[aria-label=Players] button')[1]);
+    expect(second()).toBeNull();
+    click(rendered, replanTick(rendered.page, 'Heal Main'));
+    expect([...(second()?.options ?? [])].map((o) => o.textContent?.trim())).toEqual(['Leave as logged', 'Replan it']);
+    expect(second()?.selectedOptions[0].textContent?.trim()).toBe('Leave as logged');
+
+    const field = second() as HTMLSelectElement;
+    field.value = 'replan';
+    field.dispatchEvent(new Event('change'));
+    rendered.fixture.detectChanges();
+    expect(second()?.selectedOptions[0].textContent?.trim()).toBe('Replan it');
+  });
+
   it('lets a replanned scholar pick their opener, the standard one by default', async () => {
     const rendered = await openPlan();
     const opener = () => rendered.page.querySelector<HTMLSelectElement>('#planner-opener');

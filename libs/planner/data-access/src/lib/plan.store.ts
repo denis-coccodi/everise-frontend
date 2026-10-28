@@ -32,6 +32,9 @@ interface PlanState {
   invulnerabilities: InvulnerabilityChoice[];
   // What each player favours, damage (left out) or healing, by id.
   favour: Record<number, Favour>;
+  // A replanned astrologian's other Lightspeed charge, by id: as played
+  // (left out) or planned.
+  lightspeed: Record<number, 'logged' | 'replan'>;
   // The opener each player starts with, the standard one (left out) or
   // another (`OPENERS`), by id.
   openers: Record<number, OpenerId>;
@@ -56,6 +59,7 @@ export const PlanStore = signalStore(
     replan: [],
     invulnerabilities: [],
     favour: {},
+    lightspeed: {},
     openers: {},
     invulnerabilityOptions: null,
     plan: null,
@@ -100,6 +104,7 @@ export const PlanStore = signalStore(
           replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
           invulnerabilities: [],
           favour: {},
+          lightspeed: {},
           openers: {},
           invulnerabilityOptions: null,
         });
@@ -120,6 +125,9 @@ export const PlanStore = signalStore(
       // new one for an invulnerability that has none.
       setFavour(player: number, favour: Favour) {
         patchState(store, { favour: { ...store.favour(), [player]: favour } });
+      },
+      setLightspeed(player: number, second: 'logged' | 'replan') {
+        patchState(store, { lightspeed: { ...store.lightspeed(), [player]: second } });
       },
       setOpener(player: number, opener: OpenerId) {
         patchState(store, { openers: { ...store.openers(), [player]: opener } });
@@ -146,6 +154,7 @@ export const PlanStore = signalStore(
             replan: store.replan(),
             invulnerabilities: store.invulnerabilities(),
             favour: store.favour(),
+            lightspeed: store.lightspeed(),
             openers: store.openers(),
           });
           patchState(store, { plan, pullId, planning: false });

@@ -1,4 +1,5 @@
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
+import { fitsRecast } from './coverage';
 import { UMBRAL_DRAW } from './opener-presets';
 import type { BurstAction } from './burst.model';
 import type { Opening } from './openers.model';
@@ -16,6 +17,8 @@ const LIGHTSPEED = 3606;
 const LIGHTSPEED_MS = 15_000;
 // A Lightspeed of the player's this far from the plan's is their second charge.
 const SECOND_CHARGE_MS = 20_000;
+// How often a planned second charge is looked for.
+const STEP_MS = 5_000;
 const THE_BALANCE = 37023;
 const THE_SPEAR = 37026;
 
@@ -114,17 +117,27 @@ export function placeLightspeed(
   players: TimelinePlayer[],
   opening: Opening,
   weaving: Weaving,
+  // Each astrologian's other charge: as played (left out), or planned.
+  second: Record<number, 'logged' | 'replan'> = {},
 ): PlannedUse[] {
+  const replanSecond = (player: number) => second[player] === 'replan';
   const uses = burstUses(timeline, catalog, players, opening, weaving, opening.uses, true);
+  for (const p of players.filter((o) => o.job === 'AST' && replanSecond(o.id))) {
+    uses.push(...secondCharges(p.id, timeline.durationMs, catalog, weaving, [...opening.uses, ...uses]));
+  }
   weaving.keep(uses.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
   for (const p of players.filter((o) => o.job === 'AST')) {
     const planned = [...opening.uses, ...uses].filter((u) => u.player === p.id && u.action === LIGHTSPEED);
     // Their other charge, for movement: each of theirs far from the plan's
     // stays as played (and shows so in the plan's log).
-    const own = timeline.playerCasts.filter(
-      (c) =>
-        c.source === p.id && c.action === LIGHTSPEED && planned.every((u) => Math.abs(u.at - c.at) >= SECOND_CHARGE_MS),
-    );
+    const own = replanSecond(p.id)
+      ? []
+      : timeline.playerCasts.filter(
+          (c) =>
+            c.source === p.id &&
+            c.action === LIGHTSPEED &&
+            planned.every((u) => Math.abs(u.at - c.at) >= SECOND_CHARGE_MS),
+        );
     weaving.keep(own.map((c) => ({ player: p.id, at: c.at, gcd: false, castMs: 0 })));
     weaving.lightspeed(
       p.id,
@@ -132,4 +145,29 @@ export function placeLightspeed(
     );
   }
   return uses;
+}
+
+// A replanned astrologian's other Lightspeed charge, planned: used whenever
+// a charge is there to spare, in the first weave slot, so it never sits at
+// two and its faster casts free as much weave room as they can.
+function secondCharges(
+  player: number,
+  durationMs: number,
+  catalog: ActionCatalog,
+  weaving: Weaving,
+  uses: PlannedUse[],
+): PlannedUse[] {
+  const lightspeed = catalog.actions.find((a) => a.id === LIGHTSPEED);
+  if (!lightspeed) return [];
+  const times = uses.filter((u) => u.player === player && u.action === LIGHTSPEED).map((u) => u.at);
+  const added: PlannedUse[] = [];
+  for (let at = 0; at < durationMs; at += STEP_MS) {
+    if (!fitsRecast(times, at, lightspeed.recastMs, lightspeed.charges)) continue;
+    const taken = [...times.map((t) => ({ at: t, gcd: false, castMs: 0 }))];
+    const slot = weaving.ogcdAfter(player, at, at + STEP_MS, taken);
+    if (slot === null || !fitsRecast(times, slot, lightspeed.recastMs, lightspeed.charges)) continue;
+    times.push(slot);
+    added.push({ player, action: LIGHTSPEED, name: lightspeed.name, at: slot, target: null, covers: [] });
+  }
+  return added;
 }

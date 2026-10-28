@@ -21,6 +21,18 @@
     </select>
   </cdt-field>
 }
+@if (replanned() && player().job === 'AST') {
+  <cdt-field
+    label="Lightspeed's second charge"
+    for="planner-lightspeed"
+    hint="Leave as logged: kept where they used it, often to move through a mechanic while casting. Replan: used whenever a charge is spare, for faster casts and more weave room."
+  >
+    <select #second id="planner-lightspeed" cdtInput class="lightspeed" (change)="setLightspeed(second.value)">
+      <option value="logged" [selected]="lightspeed() === 'logged'">Leave as logged</option>
+      <option value="replan" [selected]="lightspeed() === 'replan'">Replan it</option>
+    </select>
+  </cdt-field>
+}
 @if (replanned() && invulnerabilities().length) {
   <fieldset class="invulnerabilities">
     <legend>Invulnerabilities</legend>

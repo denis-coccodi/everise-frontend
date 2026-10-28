@@ -12,12 +12,12 @@ export interface PlanOptions {
   // out, those of the pull, where they were used (`playedInvulnerabilities`).
   // Any other the plan uses only where nothing else saves a hit.
   invulnerabilities?: InvulnerabilityChoice[];
-  // What each replanned player favours, by id: damage (the default) or
-  // healing (`Favour`).
+  // What each replanned player favours, by id: damage (default) or healing.
   favour?: Record<number, Favour>;
-  // The opener each replanned player starts with, by id, for the jobs that
-  // have them (`OPENERS`); left out, the standard one.
+  // Each replanned player's opener, by id; left out, the standard one.
   openers?: Record<number, OpenerId>;
+  // A replanned astrologian's other Lightspeed charge: as played, or planned.
+  lightspeed?: Record<number, 'logged' | 'replan'>;
   // Failed mechanics: covered like any other hit (left out), or avoided.
   failedMechanics?: 'cover' | 'ignore';
 }
