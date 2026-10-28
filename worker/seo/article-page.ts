@@ -42,6 +42,9 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
     article.author.character && article.author.id ? article.author.id : author,
   )}`;
   return {
+    // Little text of its own (an automatic roulette or Party Finder post, a
+    // test): kept out of search results, as out of the sitemap.
+    ...(article.body.trim().length < MIN_INDEXED_TEXT ? { noindex: true } : {}),
     title: `${article.title} · ${SITE_NAME}`,
     description,
     path,
@@ -68,6 +71,10 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
     )}`,
   };
 }
+
+// The least text of its own a post needs to be in search results (the
+// backend's sitemap uses the same).
+const MIN_INDEXED_TEXT = 100;
 
 // The most a page's words carry of a post's text.
 const MAX_BODY_TEXT = 5000;

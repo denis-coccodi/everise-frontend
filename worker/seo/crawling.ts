@@ -1,15 +1,28 @@
 // robots.txt and sitemap.xml, for search engines.
 
+import { eventPath } from './event-pages';
 import { dataCentrePage } from './party-finder-page';
+import { venuePath } from './venue-pages';
 
-// What GET /api/sitemap answers.
+// What GET /api/sitemap answers (an older backend: no venues or events).
 export interface SitemapData {
   articles: { id: string; updatedAt: string }[];
   dataCentres: string[];
+  venues?: string[];
+  events?: number[];
 }
 
 // The pages every sitemap lists, besides posts and data centres.
-const FIXED_PAGES = ['/', '/party-finder', '/market-history', '/roulette', '/waking-sands', '/privacy'];
+const FIXED_PAGES = [
+  '/',
+  '/party-finder',
+  '/venues',
+  '/events',
+  '/market-history',
+  '/roulette',
+  '/waking-sands',
+  '/privacy',
+];
 
 // Production welcomes crawlers to everything but the API and the members'
 // own pages; any other host (staging, a preview) asks them to stay away.
@@ -32,6 +45,8 @@ export function sitemapXml(siteUrl: string, data: SitemapData | undefined): stri
   const entries = [
     ...FIXED_PAGES.map((path) => entry(siteUrl + path)),
     ...(data?.dataCentres ?? []).map((name) => entry(siteUrl + dataCentrePage(name))),
+    ...(data?.venues ?? []).map((id) => entry(siteUrl + venuePath(id))),
+    ...(data?.events ?? []).map((id) => entry(siteUrl + eventPath(id))),
     ...(data?.articles ?? []).map((article) =>
       entry(`${siteUrl}/article/${encodeURIComponent(article.id)}`, article.updatedAt),
     ),
