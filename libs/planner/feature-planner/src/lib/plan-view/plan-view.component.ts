@@ -44,6 +44,8 @@ export class PlanViewComponent {
   });
   // What a replanned healer favours: damage unless set to healing.
   protected readonly favour = computed(() => this.plans.favour()[this.player().id] ?? 'dps');
+  // A replanned astrologian's other Lightspeed charge: as played by default.
+  protected readonly lightspeed = computed(() => this.plans.lightspeed()[this.player().id] ?? 'logged');
   // The tank's invulnerabilities: each choice the plan has, and one row for
   // each with none.
   protected readonly invulnerabilities = computed<InvulnerabilityRow[]>(() => {
@@ -115,6 +117,10 @@ export class PlanViewComponent {
   protected setOpener(value: string) {
     const opener = this.openers().find((o) => o.id === value);
     if (opener) this.plans.setOpener(this.player().id, opener.id);
+  }
+
+  protected setLightspeed(value: string) {
+    this.plans.setLightspeed(this.player().id, value === 'replan' ? 'replan' : 'logged');
   }
 
   protected setFavour(value: string) {

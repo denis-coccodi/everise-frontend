@@ -114,7 +114,7 @@ export class PlannerScheduler {
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
     weaving.keep(opening.uses.filter((u) => u.action !== ENERGY_DRAIN).map(slot));
     // An astrologian's Lightspeeds go first: they make weave room.
-    const lightspeed = placeLightspeed(timeline, catalog, replannedPlayers, opening, weaving);
+    const lightspeed = placeLightspeed(timeline, catalog, replannedPlayers, opening, weaving, options.lightspeed);
     // A GCD shield grows with its caster's healing potency buffs: those the
     // plan has up when it's cast, and the rest as played.
     const party = timeline.players.map((p) => p.id);

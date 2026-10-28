@@ -78,6 +78,28 @@ describe('burstUses', () => {
     ]);
   });
 
+  it("plans an astrologian's other Lightspeed charge when asked, so it's never spare", () => {
+    const t = timeline('AST');
+    const c = cat();
+    const opening = openingOf(t, c, t.players, { 2: 'standard' });
+    const lightspeeds = (second: 'logged' | 'replan') =>
+      placeLightspeed(
+        t,
+        c,
+        t.players,
+        opening,
+        Weaving.of(t, c, () => true),
+        { 2: second },
+      ).filter((u) => u.name === 'Lightspeed');
+
+    expect(lightspeeds('logged')).toHaveLength(1);
+    // 2 charges a minute over 250s: at most 5 with the burst's, never 3 in 60s.
+    const replanned = lightspeeds('replan').map((u) => u.at);
+    expect(replanned.length).toBeGreaterThan(2);
+    for (const at of replanned)
+      expect(replanned.filter((b) => b > at - 60_000 && b <= at).length).toBeLessThanOrEqual(2);
+  });
+
   it("has a warrior's Inner Release each minute and Infuriate twice, from the opener's last", () => {
     expect(burst('WAR')).toEqual([
       // After the opener's at 8.7s; one due in the downtime waits for it.
