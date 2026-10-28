@@ -1,5 +1,5 @@
 import { ActionCatalog, CatalogAction, PullTimeline, TimelineAura } from '@everise/core/api-types';
-import { catalogAtLevel, pullLevel } from '@everise/planner/scheduler';
+import { attackSeverity, catalogAtLevel, pullLevel } from '@everise/planner/scheduler';
 import { onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import { countdownStart } from './pull-time';
@@ -28,6 +28,7 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
   }
   const maxHp = timeline.players.find((player) => player.id === playerId)?.maxHp ?? null;
 
+  const severity = attackSeverity(timeline);
   const hits: HitEntry[] = timeline.damage
     .filter((hit) => hit.target === playerId && !hit.tick)
     .map((hit) => ({
@@ -46,6 +47,7 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
         ...hit.statuses.filter((id) => covering.has(id)).map(statusName),
         ...debuffsOn(timeline.auras, hit.source, hit.at, onEnemies).map(statusName),
       ],
+      severity: severity(hit.action, hit.at),
     }));
 
   // Everything they used but their attacks (heals, mitigations, enablers,

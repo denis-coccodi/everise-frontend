@@ -1,5 +1,28 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
 import { LogEntry, PlanEntry, compareLog, pullClockTenths } from '@everise/planner/data-access';
+import type { Severity, SeverityTier } from '@everise/planner/scheduler';
+
+const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 });
+// How hard an attack hits, in words, and what that calls for.
+const TIER_NAMES: Record<SeverityTier, string> = {
+  light: 'Light',
+  moderate: 'Moderate',
+  heavy: 'Heavy',
+  lethal: 'Lethal',
+  overkill: 'Overkill',
+};
+const TIER_HINTS: Record<SeverityTier, string> = {
+  light: 'Healing covers it.',
+  moderate: 'Some mitigation, or a heal after.',
+  heavy: 'Party mitigation or a shield.',
+  lethal: 'Kills without mitigation: stack it.',
+  overkill: 'Stack everything, or an invulnerability.',
+};
+const KIND_NAMES: Record<Severity['kind'], string> = {
+  raidwide: 'Raidwide',
+  tankbuster: 'Tank buster',
+  targeted: 'Targeted',
+};
 import { PlanEntryComponent } from '../plan-entry/plan-entry.component';
 import { PlayedEntryComponent } from '../played-entry/played-entry.component';
 
@@ -25,6 +48,13 @@ export class PullCompareComponent {
   readonly shown = input<'played' | 'plan'>('played');
 
   protected readonly clock = pullClockTenths;
+  protected readonly TIER_NAMES = TIER_NAMES;
+  protected readonly KIND_NAMES = KIND_NAMES;
+  // What a tier means, for its tooltip.
+  protected severityHint(s: Severity) {
+    const share = percent.format(s.share);
+    return `${TIER_NAMES[s.tier]}: about ${share} of max HP before mitigation. ${TIER_HINTS[s.tier]}`;
+  }
   protected readonly rows = computed(() => compareLog(this.played(), this.planned() ?? []));
   // The moment last opened from elsewhere (the HP chart), marked.
   protected readonly revealed = signal<number | null>(null);

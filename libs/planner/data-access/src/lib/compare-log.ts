@@ -23,7 +23,7 @@ export function compareLog(played: LogEntry[], planned: PlanEntry[]): CompareRow
     let row = rows.at(-1);
     const gcd = 'planned' in entry && isGcd(entry.planned);
     if (!row || entry.at > until || (gcd && row.planned.some(isGcd))) {
-      row = { at: entry.at, shownAt: entry.at, played: [], planned: [] };
+      row = { at: entry.at, shownAt: entry.at, played: [], planned: [], severity: null };
       rows.push(row);
       until = entry.at + SAME_ROW_MS;
     }
@@ -32,6 +32,8 @@ export function compareLog(played: LogEntry[], planned: PlanEntry[]): CompareRow
     if (castAt !== null && castAt !== undefined) row.shownAt = Math.min(row.shownAt, castAt);
     if ('played' in entry) row.played.push(entry.played);
     else row.planned.push(entry.planned);
+    const hit = 'played' in entry ? entry.played : entry.planned;
+    if (hit.kind === 'hit' && !row.severity) row.severity = hit.severity;
   }
   for (const row of rows) row.planned.sort((a, b) => Number(isGcd(b)) - Number(isGcd(a)));
   return rows;

@@ -1,3 +1,4 @@
+import type { Severity } from '@everise/planner/scheduler';
 // A hit a player took, and what covered it.
 export interface HitEntry {
   kind: 'hit';
@@ -17,6 +18,8 @@ export interface HitEntry {
   // The mitigations and shields on them, and the enemy debuffs (Reprisal,
   // Addle...) on whoever hit them, when it landed.
   covers: string[];
+  // How hard the attack hits (null: no boss mechanic, or no max HP).
+  severity: Severity | null;
 }
 
 // A heal or mitigation the player used.

@@ -57,9 +57,12 @@
   --palette-magenta-600: #94378a;
   --palette-magenta-500: #b44ba8;
   --palette-magenta-300: #dc8bd3;
+  --palette-ember-900: #5c2208;
+  --palette-ember-700: #873510;
   --palette-ember-600: #a8471c;
   --palette-ember-500: #c95a28;
   --palette-ember-300: #f08a5d;
+  --palette-ember-200: #f6b896;
   --palette-jade-600: #2b8a52;
   --palette-jade-400: #6fcf8f;
 }
@@ -130,6 +133,14 @@
   --color-chart-6: var(--palette-violet-300);
   --color-chart-7: var(--palette-mist-300);
   --color-chart-8: var(--palette-haze-500);
+
+  /* How hard a boss attack hits (the planner): one hue, more contrast with
+     the surface the harder it hits: brighter here, darker in light mode. */
+  --color-severity-light: var(--palette-ember-700);
+  --color-severity-moderate: var(--palette-ember-600);
+  --color-severity-heavy: var(--palette-ember-500);
+  --color-severity-lethal: var(--palette-ember-300);
+  --color-severity-overkill: var(--palette-ember-200);
 
   /* The crystal motif (icons, the wheel hub): teal in both modes. */
   --color-crystal: var(--palette-crystal-500);
@@ -261,6 +272,12 @@ body.light {
   --color-chart-6: var(--palette-violet-500);
   --color-chart-7: var(--palette-slate-600);
   --color-chart-8: var(--palette-haze-600);
+
+  --color-severity-light: var(--palette-ember-200);
+  --color-severity-moderate: var(--palette-ember-300);
+  --color-severity-heavy: var(--palette-ember-500);
+  --color-severity-lethal: var(--palette-ember-700);
+  --color-severity-overkill: var(--palette-ember-900);
 
   --color-avatar: var(--palette-mist-200);
 

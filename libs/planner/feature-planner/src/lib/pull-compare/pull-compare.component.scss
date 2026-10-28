@@ -66,6 +66,55 @@ tbody .time {
   font-variant-numeric: tabular-nums;
 }
 
+// The row's attack: how hard it hits (a dot of the tier's colour and its
+// name, in the text's colour) and what kind of attack it is.
+.severity,
+.kind {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.severity {
+  margin-top: 0.2rem;
+  color: var(--color-contrast);
+  font-weight: 600;
+}
+
+.kind {
+  color: var(--color-contrast-muted);
+}
+
+.dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.3rem;
+  border-radius: 50%;
+  border: var(--border-width) solid var(--color-contrast-faint);
+  vertical-align: baseline;
+
+  &.light {
+    background: var(--color-severity-light);
+  }
+
+  &.moderate {
+    background: var(--color-severity-moderate);
+  }
+
+  &.heavy {
+    background: var(--color-severity-heavy);
+  }
+
+  &.lethal {
+    background: var(--color-severity-lethal);
+  }
+
+  &.overkill {
+    background: var(--color-severity-overkill);
+  }
+}
+
 // Several things at one moment: a gap between them.
 td > * + * {
   margin-top: 0.5rem;

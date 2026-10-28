@@ -1,3 +1,4 @@
+import type { Severity } from '@everise/planner/scheduler';
 // A hit as the plan leaves it.
 export interface PlanHitEntry {
   kind: 'hit';
@@ -18,6 +19,8 @@ export interface PlanHitEntry {
   failed?: boolean;
   avoidable: boolean;
   covers: string[];
+  // How hard the attack hits (null: no max HP to tell).
+  severity: Severity | null;
 }
 
 // A mitigation, shield or heal the plan has the player use.
