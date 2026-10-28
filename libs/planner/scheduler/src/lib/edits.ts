@@ -25,6 +25,8 @@ const sameUse = (a: { player: number; action: number; at: number }, b: PlanEdit)
 
 // The tools with the removed skills kept out of where they were (as when a
 // fairy is away), for the planner to put them anywhere else they're needed.
+// An invulnerability only ever goes just before the hit it saves: removed,
+// it's kept off that mechanic (the half minute around it), not just its slot.
 export function withBans<T extends { player: number; action: number; away?: { from: number; to: number }[] }>(
   tools: T[],
   edits: PlanEdits | undefined,
@@ -33,10 +35,9 @@ export function withBans<T extends { player: number; action: number; away?: { fr
   return tools.map((t) => {
     const banned = edits.removed.filter((r) => r.player === t.player && r.action === t.action);
     if (!banned.length) return t;
-    return {
-      ...t,
-      away: [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - REMOVED_MS, to: r.at + REMOVED_MS }))],
-    };
+    const effects = (t as { effects?: { invulnerable?: boolean }[] }).effects ?? [];
+    const ms = effects.some((e) => e.invulnerable) ? INVULNERABLE_BEFORE_MS : REMOVED_MS;
+    return { ...t, away: [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - ms, to: r.at + ms }))] };
   });
 }
 
@@ -87,8 +88,10 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
   const catalog = catalogAtLevel(full, pullLevel(timeline));
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const scheduled = new Set(plan.scheduled ?? []);
-  const own = plan.uses.filter((u) => u.player === player);
-  // Their uses: the plan's, and theirs as played of what it doesn't plan.
+  // Their uses that stay put: the user's own, their opener's and burst, and
+  // theirs as played of what the plan doesn't plan. The planner's other
+  // choices give way: the plan is made again around what the user adds.
+  const own = plan.uses.filter((u) => u.player === player && (u.edited || u.opener || u.burst || u.refill));
   const used = [
     ...own,
     ...timeline.playerCasts
@@ -115,8 +118,13 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
     // Recast and charges, shared with its cooldown group.
     const group = timesOf((a) => a.cooldownGroup === action.cooldownGroup && !a.gcd);
     if (!action.gcd && !fitsRecast(group, at, action.recastMs, action.charges)) {
+      // One used later that its recast would clash with, or back after one before.
+      const before = group.filter((t) => t <= at);
+      const later = group.filter((t) => t > at && t - at < action.recastMs).sort((a, b) => a - b)[0];
       reasons.push(
-        `Recast: back at ${clock(nextFit(at, (t) => fitsRecast(group, t, action.recastMs, action.charges)))}`,
+        later !== undefined && fitsRecast(before, at, action.recastMs, action.charges)
+          ? `Recast: also used at ${clock(later)}`
+          : `Recast: back at ${clock(nextFit(at, (t) => fitsRecast(before, t, action.recastMs, action.charges)))}`,
       );
     }
     // A gauge (Oath, Aetherflow, Addersgall, lilies...).

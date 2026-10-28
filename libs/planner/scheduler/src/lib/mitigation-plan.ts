@@ -104,8 +104,7 @@ export function planMitigation(
       ? weaving.gcdBefore(t.player, at - t.castMs, from, t.castMs, occupied)
       : weaving.ogcdBefore(t.player, at, from, occupied);
   };
-  // The invulnerabilities asked for go first, just before their mechanic,
-  // as their recast allows (an earlier plan has them already).
+  // The invulnerabilities asked for first, before their mechanic (not banned).
   const unplaced = [...(from?.unplaced ?? [])];
   for (const choice of from ? [] : (options.invulnerabilities ?? [])) {
     const m = mechanics.find((o) => o.id === choice.mechanic);
@@ -117,6 +116,7 @@ export function planMitigation(
       !t?.effects.some((e) => e.invulnerable) ||
       at === null ||
       at < 0 ||
+      isAway(t, at) ||
       !fitsRecast(times, at, t.recastMs, t.charges)
     ) {
       unplaced.push(choice);
@@ -256,7 +256,7 @@ export function planMitigation(
       .map((moment) => fit(m, t, moment))
       .find(
         (moment): moment is number =>
-          moment !== null && moment >= 0 && fitsRecast(times, moment, t.recastMs, t.charges),
+          moment !== null && moment >= 0 && !isAway(t, moment) && fitsRecast(times, moment, t.recastMs, t.charges),
       );
     if (at === undefined) return null;
     return {

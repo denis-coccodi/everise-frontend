@@ -49,7 +49,7 @@ describe("the user's edits to a plan", () => {
 
   it("says when a skill's gauge is empty", () => {
     const p = plan();
-    // The scholar's Aetherflow, spent at the start: none left.
+    // The scholar's Aetherflow, spent by the user at the start: none left.
     p.uses.push(
       ...[1_000, 2_000, 3_000].map((at) => ({
         player: 2,
@@ -58,6 +58,7 @@ describe("the user's edits to a plan", () => {
         at,
         target: null,
         covers: [],
+        edited: true,
       })),
     );
     const soil = editChoices(p, timeline(), catalog(), 2, 5_000).find((c) => c.action === SACRED_SOIL);
@@ -79,5 +80,16 @@ describe("the user's edits to a plan", () => {
     expect(
       keptInvulnerabilities([hallowed], mechanics, { added: [], removed: [{ player: 1, action: 30, at: 10_000 }] }),
     ).toEqual([hallowed]);
+  });
+
+  it("lets the user's placement win over the planner's own: those give way", () => {
+    const p = plan();
+    const rampart = p.uses.find((u) => u.player === 1 && u.action === RAMPART);
+    expect(rampart).toBeDefined();
+
+    // 10s before the planner's Rampart, well within its 90s recast.
+    const choice = editChoices(p, timeline(), catalog(), 1, rampart!.at - 10_000).find((c) => c.action === RAMPART);
+
+    expect(choice?.ok).toBe(true);
   });
 });
