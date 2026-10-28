@@ -45,7 +45,7 @@ describe('how hard an attack hits', () => {
       [2, 3, 4, 5, 6, 7, 8].map((p) => [p, 20_000]),
     );
 
-    expect(severityOf(m, maxHp)).toEqual({ tier: 'light', kind: 'raidwide', share: 0.2 });
+    expect(severityOf(m, maxHp)).toEqual({ tier: 'light', kind: 'raidwide', share: 0.2, damageType: 'magic' });
   });
 
   it("measures a tank buster on the tank's own scale", () => {

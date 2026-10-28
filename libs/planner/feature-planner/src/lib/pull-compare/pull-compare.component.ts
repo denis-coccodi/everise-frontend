@@ -18,6 +18,13 @@ const TIER_HINTS: Record<SeverityTier, string> = {
   lethal: 'Kills without mitigation: stack it.',
   overkill: 'Stack everything, or an invulnerability.',
 };
+// Physical and magic mitigation each take off their share; nothing takes
+// off special (unique) damage.
+const DAMAGE_NAMES: Record<NonNullable<Severity['damageType']>, string> = {
+  physical: 'Physical',
+  magic: 'Magic',
+  unique: 'Special',
+};
 const KIND_NAMES: Record<Severity['kind'], string> = {
   raidwide: 'Raidwide',
   tankbuster: 'Tank buster',
@@ -50,6 +57,7 @@ export class PullCompareComponent {
   protected readonly clock = pullClockTenths;
   protected readonly TIER_NAMES = TIER_NAMES;
   protected readonly KIND_NAMES = KIND_NAMES;
+  protected readonly DAMAGE_NAMES = DAMAGE_NAMES;
   // What a tier means, for its tooltip.
   protected severityHint(s: Severity) {
     const share = percent.format(s.share);

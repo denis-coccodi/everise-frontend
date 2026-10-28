@@ -1,0 +1,142 @@
+import type { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
+import { fitsRecast, poolLevel } from './coverage';
+import type { EditChoice, PlanEdit, PlanEdits } from './edits.model';
+import type { Plan, PlannedUse } from './plan.model';
+import { GRANTED, POOLS, playerActions } from './tools';
+import { catalogAtLevel, pullLevel } from './trait-levels';
+
+// A removed skill isn't planned this close to where it was again.
+const REMOVED_MS = 1_500;
+// An oGCD needs this much room from the player's other actions.
+const WEAVE_MS = 600;
+// A GCD added within this of one of theirs takes its place.
+const SAME_GCD_MS = 600;
+// How far the picker looks for when a skill fits again.
+const LOOK_AHEAD_MS = 180_000;
+const STEP_MS = 500;
+
+const sameUse = (a: { player: number; action: number; at: number }, b: PlanEdit) =>
+  a.player === b.player && a.action === b.action && Math.abs(a.at - b.at) < REMOVED_MS;
+
+// The tools with the removed skills kept out of where they were (as when a
+// fairy is away), for the planner to put them anywhere else they're needed.
+export function withBans<T extends { player: number; action: number; away?: { from: number; to: number }[] }>(
+  tools: T[],
+  edits: PlanEdits | undefined,
+): T[] {
+  if (!edits?.removed.length) return tools;
+  return tools.map((t) => {
+    const banned = edits.removed.filter((r) => r.player === t.player && r.action === t.action);
+    if (!banned.length) return t;
+    return {
+      ...t,
+      away: [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - REMOVED_MS, to: r.at + REMOVED_MS }))],
+    };
+  });
+}
+
+// Whether a use the plan would keep fixed (an opener's step) was removed.
+export const notRemoved = (edits: PlanEdits | undefined) => (u: PlannedUse) =>
+  !edits?.removed.some((r) => sameUse(u, r));
+
+// The user's added skills, as uses the plan keeps where they are.
+export function addedUses(edits: PlanEdits | undefined, catalog: ActionCatalog): PlannedUse[] {
+  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  return (edits?.added ?? []).map((e) => ({
+    player: e.player,
+    action: e.action,
+    name: byId.get(e.action)?.name ?? 'Unknown',
+    at: e.at,
+    target: e.target ?? null,
+    covers: [],
+    edited: true,
+  }));
+}
+
+// What the user could add for `player` at `at`, in the plan as it stands:
+// each of their skills that heals, mitigates or grants one that does, and
+// whether its recast, its gauge, its MP, what it needs used first and the
+// room to use it allow it then; the ones that fit first.
+export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCatalog, player: number, at: number) {
+  const who = timeline.players.find((p) => p.id === player);
+  if (!who) return [];
+  const catalog = catalogAtLevel(full, pullLevel(timeline));
+  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  const scheduled = new Set(plan.scheduled ?? []);
+  const own = plan.uses.filter((u) => u.player === player);
+  // Their uses: the plan's, and theirs as played of what it doesn't plan.
+  const used = [
+    ...own,
+    ...timeline.playerCasts
+      .filter((c) => c.source === player && !scheduled.has(`${player}:${c.action}`))
+      .map((c) => ({ action: c.action, at: c.at })),
+  ];
+  const timesOf = (test: (a: CatalogAction) => boolean) =>
+    used
+      .filter((u) => {
+        const a = byId.get(u.action);
+        return !!a && test(a);
+      })
+      .map((u) => u.at);
+  const gcds = timeline.playerCasts.filter((c) => c.source === player && byId.get(c.action)?.gcd);
+  const mpAt = (t: number) => {
+    const points = plan.mp?.find((m) => m.player === player)?.points ?? [];
+    return [...points].reverse().find((p) => p.at <= t)?.mp ?? null;
+  };
+  const choices: EditChoice[] = [];
+  for (const action of playerActions(who, catalog)) {
+    const helps = action.effects.some((e) => e.kind !== 'mp' && e.kind !== 'mpRegen') || action.id in GRANTED;
+    if (!helps) continue;
+    const reasons: string[] = [];
+    // Recast and charges, shared with its cooldown group.
+    const group = timesOf((a) => a.cooldownGroup === action.cooldownGroup && !a.gcd);
+    if (!action.gcd && !fitsRecast(group, at, action.recastMs, action.charges)) {
+      reasons.push(
+        `Recast: back at ${clock(nextFit(at, (t) => fitsRecast(group, t, action.recastMs, action.charges)))}`,
+      );
+    }
+    // A gauge (Oath, Aetherflow, Addersgall, lilies...).
+    const pool = POOLS[action.id];
+    if (pool) {
+      const spent = timesOf((a) => POOLS[a.id]?.name === pool.name);
+      if (poolLevel(spent, at, pool) < 1) {
+        reasons.push(`No ${pool.name} until ${clock(nextFit(at, (t) => poolLevel(spent, t, pool) >= 1))}`);
+      }
+    }
+    // What it needs used first (Divine Caress after Temperance...).
+    const grant = GRANTED[action.id];
+    if (grant && !used.some((u) => u.action === grant.action && u.at <= at && at - u.at <= grant.withinMs)) {
+      reasons.push(`Needs ${byId.get(grant.action)?.name ?? 'its enabler'} in the ${grant.withinMs / 1000}s before`);
+    }
+    // MP.
+    const mp = mpAt(at);
+    if (action.mpCost && mp !== null && mp < action.mpCost) {
+      reasons.push(`Needs ${action.mpCost.toLocaleString('en')} MP (${Math.round(mp).toLocaleString('en')} then)`);
+    }
+    // Room: a weave slot for an oGCD, one of their GCDs for a GCD.
+    const replaced = action.gcd ? gcds.find((g) => Math.abs(g.at - at) <= SAME_GCD_MS) : undefined;
+    if (action.gcd && !replaced) reasons.push('No GCD of theirs here to replace');
+    if (!action.gcd && used.some((u) => Math.abs(u.at - at) < WEAVE_MS)) reasons.push('No room to weave it here');
+    choices.push({
+      action: action.id,
+      name: action.name,
+      gcd: action.gcd,
+      ok: !reasons.length,
+      reason: reasons[0] ?? null,
+      replaces: replaced ? (byId.get(replaced.action)?.name ?? null) : null,
+    });
+  }
+  return choices.sort((a, b) => Number(b.ok) - Number(a.ok) || a.name.localeCompare(b.name));
+}
+
+// The first moment from `at` a test passes, looking a few minutes ahead.
+function nextFit(at: number, fits: (t: number) => boolean) {
+  for (let t = at; t <= at + LOOK_AHEAD_MS; t += STEP_MS) if (fits(t)) return t;
+  return at + LOOK_AHEAD_MS;
+}
+
+// m:ss, as the planner's times show.
+function clock(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}

@@ -13,14 +13,14 @@ import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
 import { Weaving, WEAVE_MS } from './weaving';
-import { HealTool, InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
+import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { AUTOMATIC, mitigationTools, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
-import { withAetherflow } from './aetherflow';
-import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
-import { fairyPotency, fairyPower, scholarsFairy, withFairyAway } from './fairy-heals';
+import { openingOf, placedSteps, shownSteps } from './opening';
+import { fairyPotency, fairyPower, scholarsFairy } from './fairy-heals';
 import { burstActions, burstUses, placeLightspeed } from './burst';
-import { withEnablerWindows } from './enabled-windows';
+import { addedUses, notRemoved } from './edits';
+import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
 
@@ -55,12 +55,8 @@ export class PlannerScheduler {
     const scholars = timeline.players.filter((p) => p.job === 'SCH' && replanned({ player: p.id }));
     const replannedPlayers = timeline.players.filter((p) => replanned({ player: p.id }));
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
-    const { dissipations, refills } = opening;
-    const opened = <T extends MitigationTool | HealTool>(tools: T[]) =>
-      withEnablerWindows(
-        timeline,
-        withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening),
-      );
+    const { dissipations } = opening;
+    const opened = toolWindows(timeline, opening, asked.edits);
     // A scholar's fairy orders wait for her while Dissipation has her away;
     // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
     const mitigation = opened(mitigationTools(timeline.players, catalog, power));
@@ -68,7 +64,11 @@ export class PlannerScheduler {
     const heals = opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned));
     // An opener's heals and mitigations (The Blackest Night) stay as it has them.
     const tools = new Set([...heals, ...mitigation.filter(replanned)].map((t) => t.player + ':' + t.action));
-    const placed = placedSteps(opening, (u) => tools.has(u.player + ':' + u.action));
+    // The user's added skills stay where they put them, as the opener's do.
+    const added = addedUses(asked.edits, catalog);
+    const placed = [...placedSteps(opening, (u) => tools.has(u.player + ':' + u.action)), ...added].filter(
+      notRemoved(asked.edits),
+    );
     const mitigates = new Set(mitigation.map((t) => t.player + ':' + t.action));
     const played = playedUses(
       timeline,
@@ -112,7 +112,7 @@ export class PlannerScheduler {
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
-    weaving.keep(opening.uses.filter((u) => u.action !== ENERGY_DRAIN).map(slot));
+    weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));
     // An astrologian's Lightspeeds go first: they make weave room.
     const lightspeed = placeLightspeed(timeline, catalog, replannedPlayers, opening, weaving, options.lightspeed);
     // A GCD shield grows with its caster's healing potency buffs: those the
@@ -160,7 +160,7 @@ export class PlannerScheduler {
         mp,
       );
       const planned = planHeals(
-        { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener), ...placed, ...lucid] },
+        { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener && !u.edited), ...placed, ...lucid] },
         timeline,
         [...withRhizomata(mitigation, bonus), ...veils],
         withRhizomata(heals, bonus),

@@ -9,4 +9,7 @@ export interface Severity {
   kind: 'raidwide' | 'tankbuster' | 'targeted';
   // The median of its hits' unmitigated damage, as a share of max HP.
   share: number;
+  // Physical, magic, or special (unique: no mitigation takes it off);
+  // null when the log doesn't say.
+  damageType: 'physical' | 'magic' | 'unique' | null;
 }
