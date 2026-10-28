@@ -1,21 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
-import { InvulnerabilitySetting, PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
+import { PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
 import { OPENERS, type OpenerId } from '@everise/planner/scheduler';
 import { FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
-// One of a tank's invulnerabilities in the form: a choice the plan has
-// (`index` in the options' list), or none yet.
-interface InvulnerabilityRow {
-  key: string;
-  action: number;
-  name: string;
-  index: number | null;
-  setting: InvulnerabilitySetting;
-}
-
 // The player's own part of planning, in their tab: what a replanned healer
-// favours, damage or healing; a replanned tank's invulnerabilities; and how
+// favours, damage or healing; how a replanned tank's invulnerabilities are
+// planned; and how
 // the plan went for them (their part of it is in the pull view's timeline). The margin and the button are the plan form's,
 // above the tabs.
 @Component({
@@ -46,30 +37,9 @@ export class PlanViewComponent {
   protected readonly favour = computed(() => this.plans.favour()[this.player().id] ?? 'dps');
   // A replanned astrologian's other Lightspeed charge: as played by default.
   protected readonly lightspeed = computed(() => this.plans.lightspeed()[this.player().id] ?? 'logged');
-  // The tank's invulnerabilities: each choice the plan has, and one row for
-  // each with none.
-  protected readonly invulnerabilities = computed<InvulnerabilityRow[]>(() => {
-    const options = this.plans.invulnerabilityOptions();
-    const id = this.player().id;
-    const rows: InvulnerabilityRow[] = [];
-    for (const tool of options?.tools.filter((t) => t.player === id) ?? []) {
-      const choices = this.plans
-        .invulnerabilities()
-        .map((choice, index) => ({ choice, index }))
-        .filter(({ choice }) => choice.player === id && choice.action === tool.action);
-      for (const { choice, index } of choices) {
-        const setting = choice.mechanic === null ? 'never' : choice.mechanic;
-        rows.push({ key: `${tool.action}:${index}`, action: tool.action, name: tool.name, index, setting });
-      }
-      if (!choices.length) {
-        rows.push({ key: `${tool.action}:new`, action: tool.action, name: tool.name, index: null, setting: 'planner' });
-      }
-    }
-    return rows;
-  });
-  // The mechanics that hit this player, to put an invulnerability on.
-  protected readonly mechanics = computed(
-    () => this.plans.invulnerabilityOptions()?.mechanics.filter((m) => m.players.includes(this.player().id)) ?? [],
+  // A replanned tank with invulnerabilities, told how they're planned.
+  protected readonly invulnerable = computed(
+    () => !!this.plans.invulnerabilityOptions()?.tools.some((t) => t.player === this.player().id),
   );
 
   // The plan, when it's for the pull open.
@@ -125,10 +95,5 @@ export class PlanViewComponent {
 
   protected setFavour(value: string) {
     this.plans.setFavour(this.player().id, value === 'healing' ? 'healing' : 'dps');
-  }
-
-  protected setInvulnerability(row: InvulnerabilityRow, value: string) {
-    const setting: InvulnerabilitySetting = value === 'never' || value === 'planner' ? value : Number(value);
-    this.plans.setInvulnerability(this.player().id, row.action, row.index, setting);
   }
 }

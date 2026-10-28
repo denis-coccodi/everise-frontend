@@ -1,17 +1,9 @@
 import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type {
-  Favour,
-  InvulnerabilityChoice,
-  InvulnerabilityOptions,
-  OpenerId,
-  Plan,
-  PlanEdit,
-  PlanEdits,
-} from '@everise/planner/scheduler';
+import type { Favour, InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
 import { editWarning, editsKey, NO_EDITS, saveEdits, storedEdits } from './plan-edits';
-import type { FailedMechanics, InvulnerabilitySetting, PlanPlayer } from './plan.model';
+import type { FailedMechanics, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
 // person may set.
@@ -32,13 +24,10 @@ interface PlanState {
   margin: number;
   // Failed mechanics: covered like any other hit, or taken as avoided.
   failedMechanics: FailedMechanics;
-  // For the pull open: the players to replan (ids), the tanks'
-  // invulnerabilities where the plan must use them, and what there is to
-  // choose from.
+  // For the pull open: the players to replan (ids).
   preparedFor: number | null;
   players: PlanPlayer[];
   replan: number[];
-  invulnerabilities: InvulnerabilityChoice[];
   // What each player favours, damage (left out) or healing, by id.
   favour: Record<number, Favour>;
   // A replanned astrologian's other Lightspeed charge, by id: as played
@@ -71,7 +60,6 @@ export const PlanStore = signalStore(
     preparedFor: null,
     players: [],
     replan: [],
-    invulnerabilities: [],
     favour: {},
     lightspeed: {},
     openers: {},
@@ -112,7 +100,6 @@ export const PlanStore = signalStore(
           margin: store.margin() / 100,
           failedMechanics: store.failedMechanics(),
           replan: store.replan(),
-          invulnerabilities: store.invulnerabilities(),
           favour: store.favour(),
           lightspeed: store.lightspeed(),
           openers: store.openers(),
@@ -146,7 +133,8 @@ export const PlanStore = signalStore(
         patchState(store, { failedMechanics });
       },
       // The options for a pull just opened: those last replanned replanned
-      // again, the invulnerabilities where the pull had them.
+      // again, the user's edits to it, and the tanks' invulnerabilities (for
+      // the plan view's words on those it couldn't use).
       async prepare(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, players: PlanPlayer[]) {
         if (store.preparedFor() === pullId) return;
         const remembered = storedReplan();
@@ -154,7 +142,6 @@ export const PlanStore = signalStore(
           preparedFor: pullId,
           players,
           replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
-          invulnerabilities: [],
           favour: {},
           lightspeed: {},
           openers: {},
@@ -166,7 +153,7 @@ export const PlanStore = signalStore(
         try {
           const options = (await store._scheduler()).invulnerabilityOptions(timeline, catalog);
           if (store.preparedFor() !== pullId) return;
-          patchState(store, { invulnerabilityOptions: options, invulnerabilities: options.played });
+          patchState(store, { invulnerabilityOptions: options });
         } catch {
           patchState(store, { error: LOAD_ERROR });
         }
@@ -176,8 +163,6 @@ export const PlanStore = signalStore(
         replanOnly(on ? [...others, playerId] : others);
       },
       replanOnly,
-      // One of a tank's invulnerability choices (`index` in the list), or a
-      // new one for an invulnerability that has none.
       setFavour(player: number, favour: Favour) {
         patchState(store, { favour: { ...store.favour(), [player]: favour } });
       },
@@ -186,17 +171,6 @@ export const PlanStore = signalStore(
       },
       setOpener(player: number, opener: OpenerId) {
         patchState(store, { openers: { ...store.openers(), [player]: opener } });
-      },
-      setInvulnerability(player: number, action: number, index: number | null, setting: InvulnerabilitySetting) {
-        const list = [...store.invulnerabilities()];
-        if (setting === 'planner') {
-          if (index !== null) list.splice(index, 1);
-        } else {
-          const choice = { player, action, mechanic: setting === 'never' ? null : setting };
-          if (index === null) list.push(choice);
-          else list[index] = choice;
-        }
-        patchState(store, { invulnerabilities: list });
       },
       run,
       // A skill the user puts in the plan, or takes out (one they added
