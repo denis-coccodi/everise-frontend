@@ -90,4 +90,51 @@ describe('PullCompareComponent', () => {
     expect(host.querySelector('tr.revealed th')?.textContent?.trim()).toBe('1:30.0');
     expect(host.querySelector('.scroller')?.getAttribute('aria-label')).toBe("Tank Main's timeline");
   });
+
+  it('lets the user remove a planned skill, and add one at a slot near a row, while editing', () => {
+    const fixture = TestBed.createComponent(PullCompareComponent);
+    const planned: PlanEntry[] = [
+      { ...plannedUse(60_000, 'Rampart'), id: 7531 } as PlanEntry,
+      { ...plannedUse(90_000, 'Sentinel'), id: 17, edited: true } as PlanEntry,
+    ];
+    fixture.componentRef.setInput('player', 'Tank Main');
+    fixture.componentRef.setInput('played', []);
+    fixture.componentRef.setInput('planned', planned);
+    fixture.componentRef.setInput('shown', 'plan');
+    fixture.componentRef.setInput('slotsFor', () => [{ at: 58_000, label: 'After Fast Blade at 0:58.0' }]);
+    fixture.componentRef.setInput('choicesFor', () => [
+      { action: 7535, name: 'Reprisal', gcd: false, ok: true, reason: null, replaces: null },
+      { action: 17, name: 'Sentinel', gcd: false, ok: false, reason: 'Recast: back at 3:30', replaces: null },
+    ]);
+    const removed: unknown[] = [];
+    const added: unknown[] = [];
+    fixture.componentInstance.removed.subscribe((e) => removed.push(e));
+    fixture.componentInstance.added.subscribe((e) => added.push(e));
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const buttons = () => [...host.querySelectorAll<HTMLButtonElement>('td.plan button')];
+
+    // Not editing: nothing to press, but the user's own says so.
+    expect(buttons()).toEqual([]);
+    expect(host.querySelector('.yours')?.textContent).toBe('Added by you');
+
+    fixture.componentRef.setInput('editing', true);
+    fixture.detectChanges();
+    buttons()
+      .find((b) => b.textContent?.includes('Remove'))
+      ?.click();
+    expect(removed).toEqual([planned[0]]);
+
+    buttons()
+      .find((b) => b.textContent?.includes('Add a skill'))
+      ?.click();
+    fixture.detectChanges();
+    const picker = host.querySelector('cdt-planner-edit-picker') as HTMLElement;
+    expect(picker.querySelector('option')?.textContent?.trim()).toBe('After Fast Blade at 0:58.0');
+    expect(picker.textContent).toContain('Recast: back at 3:30');
+    [...picker.querySelectorAll<HTMLButtonElement>('button')]
+      .find((b) => b.textContent?.includes('Add Reprisal'))
+      ?.click();
+    expect(added).toEqual([{ at: 58_000, action: 7535 }]);
+  });
 });

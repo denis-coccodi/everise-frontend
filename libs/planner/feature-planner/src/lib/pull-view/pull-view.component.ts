@@ -11,8 +11,17 @@ import {
   viewChild,
 } from '@angular/core';
 import { TimelinePlayer } from '@everise/core/api-types';
-import { PlanStore, PlannerStore, hpCurves, planLog, playerLog, pullClock } from '@everise/planner/data-access';
 import {
+  PlanStore,
+  PlannerStore,
+  hpCurves,
+  planEditor,
+  planLog,
+  playerLog,
+  pullClock,
+} from '@everise/planner/data-access';
+import {
+  ButtonComponent,
   CheckboxComponent,
   MessageComponent,
   PanelComponent,
@@ -34,6 +43,7 @@ import { PullCompareComponent } from '../pull-compare/pull-compare.component';
   templateUrl: './pull-view.component.html',
   styleUrl: './pull-view.component.scss',
   imports: [
+    ButtonComponent,
     CheckboxComponent,
     HpChartComponent,
     MessageComponent,
@@ -111,6 +121,12 @@ export class PullViewComponent {
       ? planLog(plan, pull.value(), player.id, catalog.hasValue() ? catalog.value() : undefined)
       : null;
   });
+  // Editing the plan by hand: a replanned player's, once the pull is planned.
+  protected readonly editing = signal(false);
+  protected readonly canEdit = computed(
+    () => !!this.planned() && this.plans.replan().includes(this.player()?.id ?? -1),
+  );
+  protected readonly editor = planEditor(this.store, this.plans, this.player);
   protected readonly loading = computed(() => this.store.pull.isLoading() || this.store.catalog.isLoading());
   protected readonly error = computed(() =>
     this.loading() ? '' : this.store.pullError() || this.store.catalogError(),
@@ -118,6 +134,12 @@ export class PullViewComponent {
 
   protected choose(playerId: number) {
     this.chosen.set(playerId);
+  }
+
+  // Into edit mode on the plan's side (narrower screens show one at a time).
+  protected toggleEditing() {
+    this.editing.update((on) => !on);
+    if (this.editing()) this.view.set('plan');
   }
 
   protected toggle(part: Fold) {

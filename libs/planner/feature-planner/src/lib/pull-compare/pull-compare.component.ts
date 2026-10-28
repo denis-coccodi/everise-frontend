@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
-import { LogEntry, PlanEntry, compareLog, pullClockTenths } from '@everise/planner/data-access';
-import type { Severity, SeverityTier } from '@everise/planner/scheduler';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
+import { LogEntry, PlanEntry, PlanUseEntry, compareLog, pullClockTenths } from '@everise/planner/data-access';
+import { ButtonComponent } from '@everise/ui/components';
+import { EditPickerComponent } from '../edit-picker/edit-picker.component';
+import type { EditChoice, EditSlot, Severity, SeverityTier } from '@everise/planner/scheduler';
 
 const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 });
 // How hard an attack hits, in words, and what that calls for.
@@ -43,7 +45,7 @@ import { PlayedEntryComponent } from '../played-entry/played-entry.component';
   selector: 'cdt-planner-pull-compare',
   templateUrl: './pull-compare.component.html',
   styleUrl: './pull-compare.component.scss',
-  imports: [PlanEntryComponent, PlayedEntryComponent],
+  imports: [ButtonComponent, EditPickerComponent, PlanEntryComponent, PlayedEntryComponent],
   host: { '[class.show-plan]': "shown() === 'plan'", '[class.no-plan]': 'planned() === null' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -53,6 +55,20 @@ export class PullCompareComponent {
   // Null before the pull is planned.
   readonly planned = input.required<PlanEntry[] | null>();
   readonly shown = input<'played' | 'plan'>('played');
+  // Editing the plan by hand: a skill removed, or one added at a slot near
+  // a row (`slotsFor` it, and `choicesFor` each slot).
+  readonly editing = input(false);
+  readonly slotsFor = input<(at: number) => EditSlot[]>(() => []);
+  readonly choicesFor = input<(at: number) => EditChoice[]>(() => []);
+  readonly removed = output<PlanUseEntry>();
+  readonly added = output<{ at: number; action: number }>();
+  // The row whose picker is open.
+  protected readonly picking = signal<number | null>(null);
+
+  protected add(skill: { at: number; action: number }) {
+    this.picking.set(null);
+    this.added.emit(skill);
+  }
 
   protected readonly clock = pullClockTenths;
   protected readonly TIER_NAMES = TIER_NAMES;

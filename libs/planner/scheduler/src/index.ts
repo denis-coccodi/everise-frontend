@@ -21,5 +21,5 @@ export type { OpenerId, OpenerPreset } from './lib/openers.model';
 export { ENABLERS } from './lib/enablers';
 export { attackSeverity, severityOf } from './lib/severity';
 export type { Severity, SeverityTier } from './lib/severity.model';
-export { editChoices } from './lib/edits';
-export type { EditChoice, PlanEdit, PlanEdits } from './lib/edits.model';
+export { editChoices, editSlots } from './lib/edits';
+export type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './lib/edits.model';

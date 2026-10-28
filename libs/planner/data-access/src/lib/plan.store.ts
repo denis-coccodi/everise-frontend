@@ -1,7 +1,16 @@
 import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { Favour, InvulnerabilityChoice, InvulnerabilityOptions, OpenerId, Plan } from '@everise/planner/scheduler';
+import type {
+  Favour,
+  InvulnerabilityChoice,
+  InvulnerabilityOptions,
+  OpenerId,
+  Plan,
+  PlanEdit,
+  PlanEdits,
+} from '@everise/planner/scheduler';
+import { editWarning, editsKey, NO_EDITS, saveEdits, storedEdits } from './plan-edits';
 import type { FailedMechanics, InvulnerabilitySetting, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
@@ -39,6 +48,11 @@ interface PlanState {
   // another (`OPENERS`), by id.
   openers: Record<number, OpenerId>;
   invulnerabilityOptions: InvulnerabilityOptions | null;
+  // The user's edits to the pull's plan, the key they're remembered by, and
+  // what the last one did when it left more hits short.
+  edits: PlanEdits;
+  editsKey: string;
+  editWarning: string;
   // The last plan, and the pull it's for.
   plan: Plan | null;
   pullId: number | null;
@@ -62,6 +76,9 @@ export const PlanStore = signalStore(
     lightspeed: {},
     openers: {},
     invulnerabilityOptions: null,
+    edits: NO_EDITS,
+    editsKey: '',
+    editWarning: '',
     plan: null,
     pullId: null,
     planning: false,
@@ -86,6 +103,41 @@ export const PlanStore = signalStore(
       }
       patchState(store, { replan: playerIds });
     };
+    // Plans the pull with the options set.
+    const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
+      patchState(store, { planning: true, error: '' });
+      try {
+        const scheduler = await store._scheduler();
+        const plan = scheduler.plan(timeline, catalog, {
+          margin: store.margin() / 100,
+          failedMechanics: store.failedMechanics(),
+          replan: store.replan(),
+          invulnerabilities: store.invulnerabilities(),
+          favour: store.favour(),
+          lightspeed: store.lightspeed(),
+          openers: store.openers(),
+          edits: store.edits(),
+        });
+        patchState(store, { plan, pullId, planning: false });
+      } catch {
+        patchState(store, { planning: false, error: LOAD_ERROR });
+      }
+    };
+    // An edit, saved for the pull, then the plan again: the hits it leaves
+    // short that weren't before.
+    const edited = async (
+      pullId: number,
+      timeline: PullTimeline,
+      catalog: ActionCatalog,
+      change: (edits: PlanEdits) => PlanEdits,
+    ) => {
+      const edits = change(store.edits());
+      saveEdits(store.editsKey(), edits);
+      const before = store.plan();
+      patchState(store, { edits });
+      await run(pullId, timeline, catalog);
+      patchState(store, { editWarning: editWarning(before, store.plan()) });
+    };
     return {
       setMargin(margin: number) {
         patchState(store, { margin });
@@ -107,6 +159,9 @@ export const PlanStore = signalStore(
           lightspeed: {},
           openers: {},
           invulnerabilityOptions: null,
+          edits: storedEdits(editsKey(timeline.code, pullId)),
+          editsKey: editsKey(timeline.code, pullId),
+          editWarning: '',
         });
         try {
           const options = (await store._scheduler()).invulnerabilityOptions(timeline, catalog);
@@ -143,24 +198,31 @@ export const PlanStore = signalStore(
         }
         patchState(store, { invulnerabilities: list });
       },
-      // Plans the pull with the options set.
-      async run(pullId: number, timeline: PullTimeline, catalog: ActionCatalog) {
-        patchState(store, { planning: true, error: '' });
-        try {
-          const scheduler = await store._scheduler();
-          const plan = scheduler.plan(timeline, catalog, {
-            margin: store.margin() / 100,
-            failedMechanics: store.failedMechanics(),
-            replan: store.replan(),
-            invulnerabilities: store.invulnerabilities(),
-            favour: store.favour(),
-            lightspeed: store.lightspeed(),
-            openers: store.openers(),
-          });
-          patchState(store, { plan, pullId, planning: false });
-        } catch {
-          patchState(store, { planning: false, error: LOAD_ERROR });
-        }
+      run,
+      // A skill the user puts in the plan, or takes out (one they added
+      // comes out of their edits; a planned one isn't planned there again),
+      // or all their edits undone; each plans the pull again, saying so when
+      // it leaves more hits short than before.
+      async addSkill(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, added: PlanEdit) {
+        await edited(pullId, timeline, catalog, (e) => ({ ...e, added: [...e.added, added] }));
+      },
+      async removeSkill(
+        pullId: number,
+        timeline: PullTimeline,
+        catalog: ActionCatalog,
+        use: PlanEdit & { edited?: boolean },
+      ) {
+        const same = (e: PlanEdit) => e.player === use.player && e.action === use.action && e.at === use.at;
+        const { player, action, at } = use;
+        await edited(pullId, timeline, catalog, (e) =>
+          use.edited
+            ? { ...e, added: e.added.filter((a) => !same(a)) }
+            : { ...e, removed: [...e.removed, { player, action, at }] },
+        );
+      },
+      async resetEdits(pullId: number, timeline: PullTimeline, catalog: ActionCatalog) {
+        await edited(pullId, timeline, catalog, () => NO_EDITS);
+        patchState(store, { editWarning: '' });
       },
     };
   }),

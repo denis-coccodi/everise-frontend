@@ -1,6 +1,6 @@
 import type { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
 import { fitsRecast, poolLevel } from './coverage';
-import type { EditChoice, PlanEdit, PlanEdits } from './edits.model';
+import type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './edits.model';
 import type { Plan, PlannedUse } from './plan.model';
 import { GRANTED, POOLS, playerActions } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
@@ -14,6 +14,8 @@ const SAME_GCD_MS = 600;
 // How far the picker looks for when a skill fits again.
 const LOOK_AHEAD_MS = 180_000;
 const STEP_MS = 500;
+// How far before a moment the picker offers slots.
+const SLOTS_MS = 10_000;
 
 const sameUse = (a: { player: number; action: number; at: number }, b: PlanEdit) =>
   a.player === b.player && a.action === b.action && Math.abs(a.at - b.at) < REMOVED_MS;
@@ -129,14 +131,32 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
   return choices.sort((a, b) => Number(b.ok) - Number(a.ok) || a.name.localeCompare(b.name));
 }
 
+// Where the user can put a skill near a moment: in place of each of the
+// player's GCDs as played in the seconds before it (for a GCD), or in the
+// weave slot after each (for an oGCD), the latest first.
+export function editSlots(timeline: PullTimeline, full: ActionCatalog, player: number, at: number): EditSlot[] {
+  const byId = new Map(catalogAtLevel(full, pullLevel(timeline)).actions.map((a) => [a.id, a]));
+  const gcds = timeline.playerCasts
+    .filter((c) => c.source === player && byId.get(c.action)?.gcd && c.at <= at && at - c.at <= SLOTS_MS)
+    .sort((a, b) => b.at - a.at);
+  return gcds.flatMap((g) => {
+    const name = byId.get(g.action)?.name ?? 'their GCD';
+    return [
+      { at: g.at + Math.max(g.castMs ?? 0, WEAVE_MS), label: `After ${name} at ${clock(g.at, true)}` },
+      { at: g.at, label: `In place of ${name} at ${clock(g.at, true)}` },
+    ];
+  });
+}
+
 // The first moment from `at` a test passes, looking a few minutes ahead.
 function nextFit(at: number, fits: (t: number) => boolean) {
   for (let t = at; t <= at + LOOK_AHEAD_MS; t += STEP_MS) if (fits(t)) return t;
   return at + LOOK_AHEAD_MS;
 }
 
-// m:ss, as the planner's times show.
-function clock(ms: number) {
+// m:ss (or m:ss.t), as the planner's times show.
+function clock(ms: number, tenths = false) {
   const s = Math.max(0, Math.floor(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const base = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  return tenths ? `${base}.${Math.floor((Math.max(0, ms) % 1000) / 100)}` : base;
 }

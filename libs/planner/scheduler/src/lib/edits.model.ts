@@ -27,3 +27,10 @@ export interface EditChoice {
   reason: string | null;
   replaces: string | null;
 }
+
+// A moment the user can put a skill at, and where it is in the player's
+// rotation ("After Glare III at 3:12.0").
+export interface EditSlot {
+  at: number;
+  label: string;
+}
