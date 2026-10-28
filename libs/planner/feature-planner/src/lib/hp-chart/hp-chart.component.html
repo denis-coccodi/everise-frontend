@@ -9,6 +9,12 @@
         <span class="key planned" aria-hidden="true"></span>Plan
       </cdt-checkbox>
     }
+    @if (withMp()) {
+      <!-- A replanned player's MP with the plan, on the same 0–100% scale. -->
+      <cdt-checkbox [checked]="showMp()" (checkedChange)="showMp.set($event)">
+        <span class="key mp" aria-hidden="true"></span>MP (plan)
+      </cdt-checkbox>
+    }
     @if (margin()) {
       <span class="margin-key"><span class="key margin" aria-hidden="true"></span>{{ marginLabel() }}</span>
     }
@@ -50,6 +56,9 @@
           }
           @if (showPlanned() && curve.planned) {
             <path class="planned" [attr.d]="path(curve.planned)" />
+          }
+          @if (showMp() && curve.mp) {
+            <path class="mp" [attr.d]="path(curve.mp)" />
           }
         </svg>
         @if (cursorLeft() !== null) {

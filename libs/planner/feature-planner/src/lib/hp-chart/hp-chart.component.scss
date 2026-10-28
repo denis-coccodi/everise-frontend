@@ -43,6 +43,12 @@
     border-color: var(--color-chart-1);
   }
 
+  // Dashed, as its line: MP, not HP.
+  &.mp {
+    border-top-style: dashed;
+    border-color: var(--color-chart-2);
+  }
+
   &.margin {
     border-top-width: 1px;
     border-color: var(--color-contrast-muted);
@@ -150,7 +156,8 @@
 }
 
 .played,
-.planned {
+.planned,
+.mp {
   fill: none;
   stroke-width: 2px;
   stroke-linejoin: round;
@@ -163,6 +170,11 @@
 
 .planned {
   stroke: var(--color-chart-1);
+}
+
+.mp {
+  stroke: var(--color-chart-2);
+  stroke-dasharray: 6 4;
 }
 
 .x-ticks {
