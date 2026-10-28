@@ -7,8 +7,8 @@ import type { PlannerStore } from './planner.store';
 
 // Editing the plan by hand, for the player whose tab is open: where a skill
 // can go near a moment and which fit there, and each change (a skill
-// added on themselves when it goes on one, one taken out, all undone),
-// which plans the pull again.
+// added, on whoever the user picked when it goes on one; one taken out;
+// all undone), which plans the pull again.
 export function planEditor(
   store: InstanceType<typeof PlannerStore>,
   plans: InstanceType<typeof PlanStore>,
@@ -33,9 +33,15 @@ export function planEditor(
       const [timeline, actions] = [pull.value(), catalog.value()];
       return (at: number) => editChoices(plan, timeline, actions, p.id, at);
     }),
-    add(skill: { at: number; action: number }) {
+    // Who a single-target skill goes on until the user picks: the first
+    // tank, where most of them go, or the player themself.
+    defaultTarget: computed(() => {
+      const players = store.pull.hasValue() ? store.pull.value().players : [];
+      return players.find((x) => x.role === 'tank')?.id ?? player()?.id ?? null;
+    }),
+    add(skill: { at: number; action: number; target: number | null }) {
       const p = player();
-      if (p) edit((id, t, c) => plans.addSkill(id, t, c, { ...skill, player: p.id, target: p.id }));
+      if (p) edit((id, t, c) => plans.addSkill(id, t, c, { ...skill, player: p.id, target: skill.target ?? p.id }));
     },
     remove(entry: PlanUseEntry) {
       const p = player();

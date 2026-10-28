@@ -66,6 +66,8 @@
               [editing]="editing() && canEdit()"
               [slotsFor]="editor.slotsFor()"
               [choicesFor]="editor.choicesFor()"
+              [party]="players()"
+              [defaultTarget]="editor.defaultTarget()"
               (removed)="editor.remove($event)"
               (added)="editor.add($event)"
             />
