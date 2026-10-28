@@ -27,7 +27,8 @@ function siteData(siteUrl: string): object[] {
 
 // The pages whose words don't come from data, by path. /party-finder and
 // its data centres are in party-finder-page.ts, posts in article-page.ts.
-export function staticPage(path: string, siteUrl: string): PageMeta | undefined {
+// `planner`: the fight planner is switched on, and the home page links it.
+export function staticPage(path: string, siteUrl: string, options: { planner?: boolean } = {}): PageMeta | undefined {
   switch (path) {
     case '/':
     case '/home':
@@ -43,6 +44,9 @@ export function staticPage(path: string, siteUrl: string): PageMeta | undefined 
             ['/party-finder', 'Party Finder: live listings on every data centre'],
             ['/venues', 'Venues: player-run taverns and clubs opening this week'],
             ['/events', 'Events: the community calendar for this week'],
+            ...(options.planner
+              ? ([['/planner', 'Fight planner: heals and mitigations from your FFLogs report']] as [string, string][])
+              : []),
             ['/market-history', 'Market History: the best price on every world of your region'],
             ['/roulette', 'Duty Roulette: let three reels pick your next run'],
             ['/waking-sands', 'The Waking Sands: talk with members and the Scions'],

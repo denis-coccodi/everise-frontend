@@ -41,9 +41,11 @@ export function robotsTxt(siteUrl: string, production: boolean): string {
 }
 
 // The site's pages; without data (the backend unreachable), the fixed ones.
-export function sitemapXml(siteUrl: string, data: SitemapData | undefined): string {
+// The fight planner's page once it's switched on (`planner`).
+export function sitemapXml(siteUrl: string, data: SitemapData | undefined, planner = false): string {
   const entries = [
     ...FIXED_PAGES.map((path) => entry(siteUrl + path)),
+    ...(planner ? [entry(siteUrl + '/planner')] : []),
     ...(data?.dataCentres ?? []).map((name) => entry(siteUrl + dataCentrePage(name))),
     ...(data?.venues ?? []).map((id) => entry(siteUrl + venuePath(id))),
     ...(data?.events ?? []).map((id) => entry(siteUrl + eventPath(id))),

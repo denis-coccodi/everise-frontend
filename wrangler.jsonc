@@ -27,6 +27,7 @@
       "/venues/*",
       "/events",
       "/events/*",
+      "/planner",
       "/roulette",
       "/waking-sands",
       "/privacy",
