@@ -19,7 +19,7 @@ import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
 import { fairyPotency, fairyPower, scholarsFairy } from './fairy-heals';
 import { burstActions, burstUses, placeLightspeed } from './burst';
-import { addedUses, notRemoved } from './edits';
+import { addedUses, keptInvulnerabilities, notRemoved } from './edits';
 import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
@@ -79,8 +79,10 @@ export class PlannerScheduler {
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
       ...asked,
-      invulnerabilities: (asked.invulnerabilities ?? playedInvulnerabilities(timeline, mechanics, mitigation)).filter(
-        replanned,
+      invulnerabilities: keptInvulnerabilities(
+        (asked.invulnerabilities ?? playedInvulnerabilities(timeline, mechanics, mitigation)).filter(replanned),
+        mechanics,
+        asked.edits,
       ),
     };
     // The oGCDs that only pay with a GCD heal (Plenary Indulgence) are

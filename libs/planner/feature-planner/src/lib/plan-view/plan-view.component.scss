@@ -1,5 +1,4 @@
 // Uses the theme's role tokens only (libs/ui/components/src/theme).
-@use '../../../../../ui/components/src/theme/breakpoints' as bp;
 
 :host {
   display: block;
@@ -18,22 +17,6 @@ cdt-field:has(.lightspeed) {
 }
 
 .invulnerabilities {
-  display: grid;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-
-  legend {
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-  }
-
-  select {
-    max-width: 100%;
-  }
-}
-
-@include bp.up(sm) {
-  .invulnerabilities {
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  }
+  margin: 0 0 0.75rem;
+  color: var(--color-contrast-soft);
 }

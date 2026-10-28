@@ -1,4 +1,4 @@
-import { editChoices } from './edits';
+import { editChoices, keptInvulnerabilities } from './edits';
 import { PlannerScheduler } from './planner-scheduler.service';
 import { catalog, pull } from './scheduler-fixtures';
 
@@ -64,5 +64,20 @@ describe("the user's edits to a plan", () => {
 
     expect(soil?.ok).toBe(false);
     expect(soil?.reason).toMatch(/^(No Aetherflow until|Recast: back at)/);
+  });
+
+  it('stops forcing an invulnerability as played once the user removes it', () => {
+    const hallowed = { player: 1, action: 30, mechanic: 0 };
+    const mechanics = [{ id: 0, at: 65_000 }] as Parameters<typeof keptInvulnerabilities>[1];
+
+    expect(keptInvulnerabilities([hallowed], mechanics, undefined)).toEqual([hallowed]);
+    // Removed a few seconds before its mechanic: no longer kept there.
+    expect(
+      keptInvulnerabilities([hallowed], mechanics, { added: [], removed: [{ player: 1, action: 30, at: 62_000 }] }),
+    ).toEqual([]);
+    // Another skill, or one long before: still kept.
+    expect(
+      keptInvulnerabilities([hallowed], mechanics, { added: [], removed: [{ player: 1, action: 30, at: 10_000 }] }),
+    ).toEqual([hallowed]);
   });
 });

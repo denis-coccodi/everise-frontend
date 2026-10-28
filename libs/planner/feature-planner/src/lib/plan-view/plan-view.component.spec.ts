@@ -11,35 +11,20 @@ import {
 describe('PlanViewComponent', () => {
   beforeEach(() => localStorage.clear());
 
-  const select = (page: HTMLElement) =>
-    page.querySelector<HTMLSelectElement>('cdt-planner-plan-view .invulnerabilities select');
   const messages = (page: HTMLElement) =>
     [...page.querySelectorAll('cdt-planner-plan-view cdt-message')].map((m) => m.textContent?.trim());
 
-  it("offers a replanned tank's invulnerabilities, where the pull had them by default", async () => {
-    const timeline = pullTimeline();
-    timeline.playerCasts.push({ at: 62_000, source: 1, target: null, action: 30, castMs: null });
-    const rendered = await openPlan(timeline, withHallowedGround());
+  it('tells a replanned tank how their invulnerabilities are planned, with no dropdown for them', async () => {
+    const rendered = await openPlan(pullTimeline(), withHallowedGround());
+    const note = () => rendered.page.querySelector('cdt-planner-plan-view .invulnerabilities');
 
-    expect(select(rendered.page)).toBeNull();
+    expect(note()).toBeNull();
     click(rendered, replanTick(rendered.page, 'Tank Main'));
-    await waitFor(rendered, () => !!select(rendered.page));
+    await waitFor(rendered, () => !!note());
 
-    expect(rendered.page.querySelector('label[for^=planner-invulnerability]')?.textContent).toContain(
-      'Hallowed Ground',
-    );
-    const field = select(rendered.page) as HTMLSelectElement;
-    expect([...field.options].map((o) => o.textContent?.trim())).toEqual([
-      'Only if needed',
-      'Never',
-      '1:05 Killer Voice',
-    ]);
-    expect(field.selectedOptions[0].textContent).toBe('1:05 Killer Voice');
-
-    field.value = 'never';
-    field.dispatchEvent(new Event('change'));
-    rendered.fixture.detectChanges();
-    expect(select(rendered.page)?.selectedOptions[0].textContent).toBe('Never');
+    expect(note()?.textContent).toContain('Invulnerabilities stay where the pull had them');
+    expect(note()?.textContent).toContain('Edit plan');
+    expect(rendered.page.querySelector('[id^=planner-invulnerability]')).toBeNull();
   });
 
   it("says how the plan went for the player, and which invulnerability it couldn't use", async () => {

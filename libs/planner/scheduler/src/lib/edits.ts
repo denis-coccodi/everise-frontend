@@ -1,7 +1,8 @@
 import type { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
 import { fitsRecast, poolLevel } from './coverage';
 import type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './edits.model';
-import type { Plan, PlannedUse } from './plan.model';
+import type { InvulnerabilityChoice } from './invulnerabilities.model';
+import type { Mechanic, Plan, PlannedUse } from './plan.model';
 import { GRANTED, POOLS, playerActions } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 
@@ -16,6 +17,8 @@ const LOOK_AHEAD_MS = 180_000;
 const STEP_MS = 500;
 // How far before a moment the picker offers slots.
 const SLOTS_MS = 10_000;
+// How long before its mechanic an invulnerability goes up, at most.
+const INVULNERABLE_BEFORE_MS = 30_000;
 
 const sameUse = (a: { player: number; action: number; at: number }, b: PlanEdit) =>
   a.player === b.player && a.action === b.action && Math.abs(a.at - b.at) < REMOVED_MS;
@@ -34,6 +37,25 @@ export function withBans<T extends { player: number; action: number; away?: { fr
       ...t,
       away: [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - REMOVED_MS, to: r.at + REMOVED_MS }))],
     };
+  });
+}
+
+// The tanks' invulnerabilities as the pull had them, but those the user
+// removed: one taken out in the seconds before its mechanic is no longer
+// forced there (the plan may still use it where nothing else saves a hit).
+export function keptInvulnerabilities(
+  choices: InvulnerabilityChoice[],
+  mechanics: Mechanic[],
+  edits: PlanEdits | undefined,
+): InvulnerabilityChoice[] {
+  if (!edits?.removed.length) return choices;
+  const at = new Map(mechanics.map((m) => [m.id, m.at]));
+  return choices.filter((c) => {
+    const hit = c.mechanic === null ? undefined : at.get(c.mechanic);
+    if (hit === undefined) return true;
+    return !edits.removed.some(
+      (r) => r.player === c.player && r.action === c.action && r.at <= hit && hit - r.at <= INVULNERABLE_BEFORE_MS,
+    );
   });
 }
 

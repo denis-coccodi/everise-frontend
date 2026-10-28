@@ -33,30 +33,11 @@
     </select>
   </cdt-field>
 }
-@if (replanned() && invulnerabilities().length) {
-  <fieldset class="invulnerabilities">
-    <legend>Invulnerabilities</legend>
-    @for (row of invulnerabilities(); track row.key) {
-      <cdt-field
-        [label]="row.name"
-        [for]="'planner-invulnerability-' + row.key"
-        hint="Where the group uses it, as in the pull by default: a mechanic one tank takes alone, or makes simpler. Only if needed: where nothing else saves a hit."
-      >
-        <select
-          #choice
-          cdtInput
-          [id]="'planner-invulnerability-' + row.key"
-          (change)="setInvulnerability(row, choice.value)"
-        >
-          <option value="planner" [selected]="row.setting === 'planner'">Only if needed</option>
-          <option value="never" [selected]="row.setting === 'never'">Never</option>
-          @for (m of mechanics(); track m.id) {
-            <option [value]="m.id" [selected]="row.setting === m.id">{{ clock(m.at) }} {{ m.name }}</option>
-          }
-        </select>
-      </cdt-field>
-    }
-  </fieldset>
+@if (replanned() && invulnerable()) {
+  <p class="invulnerabilities">
+    Invulnerabilities stay where the pull had them, and the plan uses others only where nothing else saves a hit. Use
+    <strong>Edit plan</strong> on the timeline to remove one, or put one on another mechanic.
+  </p>
 }
 <cdt-message [tone]="unplaced() || mpShort() ? 'warning' : 'status'">
   {{ summary() }} {{ unplaced() }} {{ mpShort() }} {{ dropped() }}
