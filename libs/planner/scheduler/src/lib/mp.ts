@@ -1,20 +1,26 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { MpShort } from './mp.model';
+import type { MpShort, PlannedMp } from './mp.model';
 import type { Plan } from './plan.model';
+import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 
 // The game's MP tick, and the natural one when the log can't tell.
 const TICK_MS = 3_000;
 const DEFAULT_TICK = 200;
-// Thin Air: the next spell within 12s costs no MP.
-const THIN_AIR = 7430;
-const THIN_AIR_MS = 12_000;
 // A Dark Knight's MP spenders the plan may drop for The Blackest Night's
 // MP: Edge and Flood of Shadow. One Dark Arts paid for (the log's MP
 // didn't drop by most of its cost) frees nothing.
 const EDGES = new Set([16470, 16469]);
 const PAID = 0.8;
 
-type Own = { logged: Change[]; max: number; tick: number; undone: Change[]; edges: Change[] };
+// `dead`: when they lay dead as played, where the plan doesn't prevent it.
+type Own = {
+  logged: Change[];
+  max: number;
+  tick: number;
+  undone: Change[];
+  edges: Change[];
+  dead: { from: number; to: number }[];
+};
 
 interface Change {
   at: number;
@@ -39,8 +45,15 @@ export class MpModel {
   ) {}
 
   // `scheduled`: the plan's player:action keys, whose uses as played it
-  // replaces.
-  static of(timeline: PullTimeline, catalog: ActionCatalog, replanned: number[], scheduled: Set<string>) {
+  // replaces. `alive`: whether the plan keeps a player alive at a moment
+  // they died as played (left out, it doesn't).
+  static of(
+    timeline: PullTimeline,
+    catalog: ActionCatalog,
+    replanned: number[],
+    scheduled: Set<string>,
+    alive: (player: number, at: number) => boolean = () => false,
+  ) {
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const players = new Map<number, Own>();
     for (const p of timeline.players) {
@@ -50,7 +63,7 @@ export class MpModel {
         .filter((c) => c.source === p.id && EDGES.has(c.action))
         .map((c) => ({ at: c.at, mp: byId.get(c.action)?.mpCost ?? 0 }))
         .filter((e) => e.mp && paid(p.mp, e));
-      players.set(p.id, { logged: p.mp, max: p.maxMp, tick: tickOf(p.mp), undone: [], edges });
+      players.set(p.id, { logged: p.mp, max: p.maxMp, tick: tickOf(p.mp), undone: [], edges, dead: [] });
     }
     const model = new MpModel(players, (action, player, at) => {
       const a = byId.get(action);
@@ -85,6 +98,24 @@ export class MpModel {
       const undone = changes.map((c) => ({ at: c.at, mp: -c.mp - (free && c.at === cast.at ? (a?.mpCost ?? 0) : 0) }));
       own.undone.push(...undone.filter((c) => c.mp !== 0));
     }
+    // A death the plan prevents: the MP it took comes back, with what they
+    // would have regained while down, and the raise's MP is taken away. One
+    // it doesn't: their MP while down counts for nothing.
+    for (const death of timeline.deaths) {
+      const own = players.get(death.player);
+      if (!own) continue;
+      // The log's MP can read 0 a moment before the death itself.
+      const last = [...own.logged].reverse().find((r) => r.at < death.at && r.mp > 0);
+      if (!last) continue;
+      const down = own.logged.find((r) => r.at > last.at)?.at ?? death.at;
+      const raised = own.logged.find((r) => r.at > death.at && r.mp > 0);
+      if (!alive(death.player, death.at)) {
+        own.dead.push({ from: down, to: raised?.at ?? Infinity });
+        continue;
+      }
+      own.undone.push({ at: down, mp: last.mp });
+      if (raised) own.undone.push({ at: raised.at, mp: (own.tick * (raised.at - down)) / TICK_MS - raised.mp });
+    }
     return model;
   }
 
@@ -103,7 +134,17 @@ export class MpModel {
   // The player's MP with these uses, at each change.
   curve(player: number, uses: { action: number; at: number }[]): Change[] {
     const { dropped } = this.withDrops(player, uses, -Infinity);
-    return this.walk(player, uses, dropped).map(({ at, mp }) => ({ at, mp: Math.max(0, mp) }));
+    // Between readings, a refund can show over the max for a moment.
+    const max = this.players.get(player)?.max ?? Infinity;
+    return this.walk(player, uses, dropped).map(({ at, mp }) => ({ at, mp: Math.min(max, Math.max(0, mp)) }));
+  }
+
+  // Each of these players' MP with the plan's uses, and the Edges it drops.
+  plannedMp(players: number[], uses: { player: number; action: number; at: number }[]): PlannedMp[] {
+    return players.map((player) => {
+      const own = uses.filter((u) => u.player === player);
+      return { player, points: this.curve(player, own), dropped: this.dropped(player, own) };
+    });
   }
 
   // The Edges of Shadow these uses need dropped for MP (their times).
@@ -117,11 +158,13 @@ export class MpModel {
   // it is dropped, as long as that helps; ok when it no longer runs out.
   // `only`: the Edges that may be dropped (by time), when not any.
   private withDrops(player: number, uses: { action: number; at: number }[], from: number, only?: number[]) {
-    const all = this.players.get(player)?.edges ?? [];
+    const own = this.players.get(player);
+    const all = own?.edges ?? [];
     const edges = only ? all.filter((e) => only.includes(e.at)) : all;
+    const down = (at: number) => !!own?.dead.some((d) => at >= d.from && at < d.to);
     const dropped: Change[] = [];
     for (;;) {
-      const low = this.walk(player, uses, dropped).find((c) => c.at >= from && c.mp < 0);
+      const low = this.walk(player, uses, dropped).find((c) => c.at >= from && c.mp < 0 && !down(c.at));
       if (!low) return { ok: true, dropped };
       const edge = [...edges].reverse().find((e) => e.at <= low.at && !dropped.includes(e));
       if (!edge) return { ok: false, dropped };
@@ -129,13 +172,27 @@ export class MpModel {
     }
   }
 
+  // What the plan's uses do to the player's MP; a spell right after a
+  // planned Thin Air costs nothing.
+  private planned(player: number, uses: { action: number; at: number }[]): Change[] {
+    let thinAir = -Infinity;
+    return [...uses]
+      .sort((a, b) => a.at - b.at)
+      .flatMap((u) => {
+        if (u.action === THIN_AIR) thinAir = u.at;
+        const changes = this.changesOf(u.action, player, u.at);
+        const spends = changes.some((c) => c.at === u.at && c.mp < 0);
+        if (!spends || u.at - thinAir > THIN_AIR_MS) return changes;
+        thinAir = -Infinity;
+        return changes.filter((c) => !(c.at === u.at && c.mp < 0));
+      });
+  }
+
   // The log's MP plus the plan's difference, at every reading and use.
   private walk(player: number, uses: { action: number; at: number }[], dropped: Change[] = []): Change[] {
     const own = this.players.get(player);
     if (!own) return [];
-    const changes = [...own.undone, ...dropped, ...uses.flatMap((u) => this.changesOf(u.action, player, u.at))].sort(
-      (a, b) => a.at - b.at,
-    );
+    const changes = [...own.undone, ...dropped, ...this.planned(player, uses)].sort((a, b) => a.at - b.at);
     const out: Change[] = [];
     let delta = 0;
     let last = own.logged[0].at;
@@ -183,6 +240,15 @@ export function mpShortOf(mp: MpModel, plan: Plan): MpShort[] {
     if (hit) found.set(`${r.player}:${hit.at}`, { player: r.player, at: hit.at });
   }
   return [...found.values()].sort((a, b) => a.at - b.at);
+}
+
+// Whether the plan keeps a player alive at a moment: their HP with it then.
+export function aliveIn(plan: Plan) {
+  return (player: number, at: number) => {
+    const points = plan.hp.find((h) => h.player === player)?.points ?? [];
+    const hp = [...points].reverse().find((p) => p.at <= at)?.hp;
+    return hp !== undefined && hp > 0;
+  };
 }
 
 // Whether the log's MP dropped for this Edge (not one Dark Arts paid for).

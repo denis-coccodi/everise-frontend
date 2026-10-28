@@ -1,6 +1,6 @@
 import { Service } from '@angular/core';
 import { better } from './plan-score';
-import { MpModel, mpShortOf } from './mp';
+import { aliveIn, MpModel, mpShortOf } from './mp';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
@@ -8,6 +8,7 @@ import { healPairings, healTools } from './heal-tools';
 import { HealingBuffs, healingBuffsOf } from './healing-buffs';
 import { invulnerabilityOptions, playedInvulnerabilities } from './invulnerabilities';
 import { LUCID_DREAMING, lucidTimes, lucidUse } from './lucid';
+import { THIN_AIR, thinAirTimes, thinAirUse } from './thin-air';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
@@ -102,7 +103,11 @@ export class PlannerScheduler {
       ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),
     ];
     const healers = replannedPlayers.filter((p) => p.role === 'healer').map((p) => p.id);
-    const lucids = healers.map((player) => ({ player, action: LUCID_DREAMING }));
+    const whms = replannedPlayers.filter((p) => p.job === 'WHM').map((p) => p.id);
+    const lucids = [
+      ...healers.map((player) => ({ player, action: LUCID_DREAMING })),
+      ...whms.map((player) => ({ player, action: THIN_AIR })),
+    ];
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts, ...lucids].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
@@ -135,9 +140,12 @@ export class PlannerScheduler {
     let lucid: PlannedUse[] = [];
     // The replanned players' MP, which a heal must be affordable with.
     const ids = replannedPlayers.map((p) => p.id);
-    const mpModel = () => MpModel.of(timeline, catalog, ids, scheduled);
+    // Until the plan places its own Lucid Dreaming, their Lucids as played stay.
+    const lucidKeys = new Set(healers.map((h) => key({ player: h, action: LUCID_DREAMING })));
+    const current = () => (lucid.length ? scheduled : new Set([...scheduled].filter((k) => !lucidKeys.has(k))));
+    const mpModel = (from?: Plan) => MpModel.of(timeline, catalog, ids, current(), from && aliveIn(from));
     const once = (from?: Plan) => {
-      const mp = mpModel();
+      const mp = mpModel(from);
       const { healing, casts } = fairy(from);
       const mitigated = planMitigation(
         mechanics,
@@ -202,7 +210,7 @@ export class PlannerScheduler {
     );
     // A replanned healer's Lucid Dreaming where the plan runs their MP low;
     // the heals are planned again with it, unless that comes out worse.
-    const low = mpModel();
+    const low = MpModel.of(timeline, catalog, ids, scheduled, aliveIn(best));
     const withLucid = [...best.uses, ...rhizomata];
     lucid = healers.flatMap((h) =>
       lucidTimes(h, low, withLucid, weaving, byId, timeline.durationMs).map((at) => lucidUse(h, at)),
@@ -213,27 +221,23 @@ export class PlannerScheduler {
       if (better(best, next, maxHp, options)) lucid = [];
       else best = next;
     }
-    const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed];
+    // A replanned white mage's Thin Air: a charge for each raise, the rest on costly spells.
+    const thinAir = whms.flatMap((w) =>
+      thinAirTimes(w, timeline, best.uses, weaving, byId).map((at) => thinAirUse(w, at)),
+    );
+    const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed, ...thinAir];
     const burst = [...lightspeed, ...burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken)];
     const own = withGrantedCovers(best.uses).filter((u) => !AUTOMATIC.has(u.action));
-    const uses = [...own, ...drains, ...burst, ...rhizomata].sort((a, b) => a.at - b.at || a.player - b.player);
-    const finalMp = mpModel();
+    const uses = [...own, ...drains, ...burst, ...rhizomata, ...thinAir].sort(
+      (a, b) => a.at - b.at || a.player - b.player,
+    );
+    const finalMp = mpModel(best);
     return {
       ...best,
       replanned: ids,
-      scheduled: [...scheduled],
+      scheduled: [...current()],
       uses,
-      mp: ids.map((player) => ({
-        player,
-        points: finalMp.curve(
-          player,
-          uses.filter((u) => u.player === player),
-        ),
-        dropped: finalMp.dropped(
-          player,
-          uses.filter((u) => u.player === player),
-        ),
-      })),
+      mp: finalMp.plannedMp(ids, uses),
     };
   }
 
