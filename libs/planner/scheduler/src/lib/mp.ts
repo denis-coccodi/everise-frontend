@@ -5,6 +5,9 @@ import type { Plan } from './plan.model';
 // The game's MP tick, and the natural one when the log can't tell.
 const TICK_MS = 3_000;
 const DEFAULT_TICK = 200;
+// Thin Air: the next spell within 12s costs no MP.
+const THIN_AIR = 7430;
+const THIN_AIR_MS = 12_000;
 
 interface Change {
   at: number;
@@ -23,7 +26,9 @@ export class MpModel {
 
   private constructor(
     private readonly players: Map<number, { logged: Change[]; max: number; tick: number; undone: Change[] }>,
-    private readonly costOf: (action: number, player: number) => number,
+    // What a use does to the player's MP: what it spends (negative) and
+    // gains, as it's used and, for Lucid Dreaming, at each tick after.
+    private readonly changesOf: (action: number, player: number, at: number) => Change[],
   ) {}
 
   // `scheduled`: the plan's player:action keys, whose uses as played it
@@ -36,20 +41,38 @@ export class MpModel {
       if (!replanned.includes(p.id) || !p.mp?.length || !p.maxMp) continue;
       players.set(p.id, { logged: p.mp, max: p.maxMp, tick: tickOf(p.mp), undone: [] });
     }
-    const model = new MpModel(players, (action, player) => {
+    const model = new MpModel(players, (action, player, at) => {
       const a = byId.get(action);
-      if (!a) return 0;
+      if (!a) return [];
       const max = players.get(player)?.max ?? 10_000;
       const gain = a.effects
         .filter((e) => e.kind === 'mp')
         .reduce((sum, e) => sum + (e.percent !== null ? (e.percent / 100) * max : (e.potency ?? 0)), 0);
-      return a.mpCost - gain;
+      const ticks = a.effects
+        .filter((e) => e.kind === 'mpRegen')
+        .flatMap((e) =>
+          Array.from({ length: Math.floor((e.durationMs ?? 0) / TICK_MS) }, (_, k) => ({
+            at: at + (k + 1) * TICK_MS,
+            mp: (e.potency ?? 0) * 10,
+          })),
+        );
+      const now = gain - a.mpCost;
+      return [...(now ? [{ at, mp: now }] : []), ...ticks];
     });
+    // Undone: what the played uses did, the other way. A spell a played
+    // Thin Air made free cost nothing to give back.
+    const thinAir = new Map<number, number>();
     for (const cast of timeline.playerCasts) {
       const own = players.get(cast.source);
-      if (!own || !scheduled.has(`${cast.source}:${cast.action}`)) continue;
-      const cost = model.costOf(cast.action, cast.source);
-      if (cost) own.undone.push({ at: cast.at, mp: cost });
+      if (!own) continue;
+      if (cast.action === THIN_AIR) thinAir.set(cast.source, cast.at);
+      const a = byId.get(cast.action);
+      const free = !!a?.mpCost && cast.at - (thinAir.get(cast.source) ?? -Infinity) <= THIN_AIR_MS;
+      if (free) thinAir.delete(cast.source);
+      if (!scheduled.has(`${cast.source}:${cast.action}`)) continue;
+      const changes = model.changesOf(cast.action, cast.source, cast.at);
+      const undone = changes.map((c) => ({ at: c.at, mp: -c.mp - (free && c.at === cast.at ? (a?.mpCost ?? 0) : 0) }));
+      own.undone.push(...undone.filter((c) => c.mp !== 0));
     }
     return model;
   }
@@ -57,8 +80,8 @@ export class MpModel {
   // Whether the player can afford `action` at `at` with their other uses:
   // their MP never runs out from then on. Recorded when not.
   affordable(player: number, action: number, at: number, uses: { action: number; at: number }[]) {
-    const cost = this.costOf(action, player);
-    if (cost <= 0 || !this.players.has(player)) return true;
+    const spends = this.changesOf(action, player, at).some((c) => c.mp < 0);
+    if (!spends || !this.players.has(player)) return true;
     const lowest = this.lowestFrom(player, at, [...uses, { action, at }]);
     if (lowest >= 0) return true;
     this.refused.push({ player, at });
@@ -82,10 +105,9 @@ export class MpModel {
   private walk(player: number, uses: { action: number; at: number }[]): Change[] {
     const own = this.players.get(player);
     if (!own) return [];
-    const changes = [
-      ...own.undone,
-      ...uses.map((u) => ({ at: u.at, mp: -this.costOf(u.action, player) })).filter((c) => c.mp !== 0),
-    ].sort((a, b) => a.at - b.at);
+    const changes = [...own.undone, ...uses.flatMap((u) => this.changesOf(u.action, player, u.at))].sort(
+      (a, b) => a.at - b.at,
+    );
     const out: Change[] = [];
     let delta = 0;
     let last = own.logged[0].at;

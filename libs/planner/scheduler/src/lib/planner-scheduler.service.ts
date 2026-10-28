@@ -6,7 +6,8 @@ import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
 import { healPairings, healTools } from './heal-tools';
 import { HealingBuffs, healingBuffsOf } from './healing-buffs';
-import { playedInvulnerabilities } from './invulnerabilities';
+import { invulnerabilityOptions, playedInvulnerabilities } from './invulnerabilities';
+import { LUCID_DREAMING, lucidTimes, lucidUse } from './lucid';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
@@ -16,8 +17,7 @@ import { AUTOMATIC, mitigationTools, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { withAetherflow } from './aetherflow';
 import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
-import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
-import type { FairyHealing } from './heal-plan.model';
+import { fairyPotency, fairyPower, scholarsFairy, withFairyAway } from './fairy-heals';
 import { burstActions, burstUses, placeLightspeed } from './burst';
 import { withEnablerWindows } from './enabled-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
@@ -101,7 +101,9 @@ export class PlannerScheduler {
       ...replannedPlayers.flatMap((p) => burstActions(p.job ?? '').map((action) => ({ player: p.id, action }))),
       ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),
     ];
-    const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts].map(key));
+    const healers = replannedPlayers.filter((p) => p.role === 'healer').map((p) => p.id);
+    const lucids = healers.map((player) => ({ player, action: LUCID_DREAMING }));
+    const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts, ...lucids].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
@@ -127,27 +129,10 @@ export class PlannerScheduler {
       new Map([...fairyPowers].filter((e): e is [number, number] => e[1] !== null)),
       true,
     );
-    const fairy = (from?: Plan): { healing: FairyHealing; casts: PlannedUse[] } => {
-      if (!from?.hp.length) return { healing: { events: [], recalculated: [] }, casts: [] };
-      const each = scholars.map((s) =>
-        fairyHeals(
-          timeline,
-          s.id,
-          fairyPowers.get(s.id) ?? null,
-          from.uses,
-          from.hp,
-          maxHp,
-          fairyHeal,
-          dissipations.get(s.id),
-        ),
-      );
-      return {
-        healing: { events: each.flatMap((f) => f.events), recalculated: scholars.flatMap((s) => fairyKeys(s.id)) },
-        casts: each.flatMap((f) => f.casts),
-      };
-    };
+    const fairy = (from?: Plan) => scholarsFairy(timeline, scholars, fairyPowers, maxHp, fairyHeal, dissipations, from);
     // A sage's Addersgall with their Rhizomata's stacks, once planned (below).
     const bonus = new Map<number, number[]>();
+    let lucid: PlannedUse[] = [];
     // The replanned players' MP, which a heal must be affordable with.
     const ids = replannedPlayers.map((p) => p.id);
     const mpModel = () => MpModel.of(timeline, catalog, ids, scheduled);
@@ -166,7 +151,7 @@ export class PlannerScheduler {
         casts,
       );
       const planned = planHeals(
-        { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener), ...placed] },
+        { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener), ...placed, ...lucid] },
         timeline,
         [...withRhizomata(mitigation, bonus), ...veils],
         withRhizomata(heals, bonus),
@@ -214,6 +199,19 @@ export class PlannerScheduler {
       (u) =>
         u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
     );
+    // A replanned healer's Lucid Dreaming where the plan runs their MP low;
+    // the heals are planned again with it, unless that comes out worse.
+    const low = mpModel();
+    const withLucid = [...best.uses, ...rhizomata];
+    lucid = healers.flatMap((h) =>
+      lucidTimes(h, low, withLucid, weaving, byId, timeline.durationMs).map((at) => lucidUse(h, at)),
+    );
+    if (lucid.length) {
+      weaving.keep(lucid.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
+      const next = once(best);
+      if (better(best, next, maxHp, options)) lucid = [];
+      else best = next;
+    }
     const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed];
     const burst = [...lightspeed, ...burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken)];
     const own = withGrantedCovers(best.uses).filter((u) => !AUTOMATIC.has(u.action));
@@ -236,12 +234,6 @@ export class PlannerScheduler {
 
   // What the plan's options offer for the tanks' invulnerabilities.
   invulnerabilityOptions(timeline: PullTimeline, catalog: ActionCatalog): InvulnerabilityOptions {
-    const tools = mitigationTools(timeline.players, catalog).filter((t) => t.effects.some((e) => e.invulnerable));
-    const mechanics = mechanicsOf(timeline);
-    return {
-      tools: tools.map(({ player, action, name }) => ({ player, action, name })),
-      mechanics: mechanics.map((m) => ({ id: m.id, at: m.at, name: m.name, players: m.hits.map((h) => h.player) })),
-      played: playedInvulnerabilities(timeline, mechanics, tools),
-    };
+    return invulnerabilityOptions(timeline, mitigationTools(timeline.players, catalog));
   }
 }
