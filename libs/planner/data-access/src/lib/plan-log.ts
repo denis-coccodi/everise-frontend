@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import { landedGcds, pressedFirst, type Plan } from '@everise/planner/scheduler';
+import { landedGcds, pressedFirst, type Plan, type PlannedUse } from '@everise/planner/scheduler';
 import { onlyDamage, whatItDoes } from './action-kinds';
 import { countdownStart } from './pull-time';
 import type { PlanGcdEntry, PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
@@ -74,6 +74,10 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
 // heal or mitigation (the plan's are its own), nor one the plan uses itself
 // close by (an opener's Chain Stratagem) or on cooldown (its burst).
 const SAME_USE_MS = 10_000;
+// A Lightspeed of theirs this far from the plan's is their second charge,
+// for movement: kept as played.
+const LIGHTSPEED = 3606;
+const SECOND_CHARGE_MS = 20_000;
 // Eukrasia: before a Eukrasian heal the plan's own says so ("Eukrasia, then"),
 // before Eukrasian Dosis it's the rotation's damage.
 const EUKRASIA = 24290;
@@ -87,7 +91,11 @@ function kept(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: Ac
       const action = byId.get(c.action);
       if (c.source !== playerId || c.action === EUKRASIA || onlyDamage(c.action, action) || action?.effects.length)
         return false;
-      return !mine.some((u) => u.action === c.action && (u.burst || u.refill || Math.abs(u.at - c.at) < SAME_USE_MS));
+      const near = (u: PlannedUse) =>
+        Math.abs(u.at - c.at) < (c.action === LIGHTSPEED ? SECOND_CHARGE_MS : SAME_USE_MS);
+      return !mine.some(
+        (u) => u.action === c.action && (near(u) || (c.action !== LIGHTSPEED && (u.burst || u.refill))),
+      );
     })
     .map((c) => {
       const action = byId.get(c.action);
