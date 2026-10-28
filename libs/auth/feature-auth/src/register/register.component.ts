@@ -1,8 +1,9 @@
-import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
+import { InputErrorsComponent, ListErrorsComponent, characterRules } from '@everise/core/forms';
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormField, FormRoot, email, form, maxLength, minLength, required } from '@angular/forms/signals';
 import { RouterModule } from '@angular/router';
 import { AuthStore } from '@everise/auth/data-access';
+import { CharacterFieldsComponent } from '@everise/auth/character-fields';
 import {
   ButtonComponent,
   FieldComponent,
@@ -18,7 +19,7 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
 
 // The sign-up form, in a window: what signs in first (email, password with
 // its rule shown up front and a "Show" button), then the username, set
-// apart: it's only how others see you.
+// apart with the optional character: only how others see you.
 @Component({
   selector: 'cdt-register',
   templateUrl: './register.component.html',
@@ -37,6 +38,7 @@ import { SocialSignInComponent } from '../social-sign-in/social-sign-in.componen
     InputErrorsComponent,
     SocialSignInComponent,
     CheckEmailComponent,
+    CharacterFieldsComponent,
     TurnstileComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,7 +55,7 @@ export class RegisterComponent {
   protected readonly turnstileToken = signal<string | null>(null);
   protected readonly waitingForCheck = computed(() => this.checked && !this.turnstileToken());
 
-  private readonly newUser = signal({ email: '', password: '', username: '' });
+  private readonly newUser = signal({ email: '', password: '', username: '', characterName: '', server: '' });
   protected readonly form = form(
     this.newUser,
     (path) => {
@@ -64,6 +66,7 @@ export class RegisterComponent {
       minLength(path.password, 8);
       maxLength(path.password, 72);
       required(path.username);
+      characterRules(path.characterName, path.server);
     },
     { submission: { action: async () => this.signUp() } },
   );
@@ -75,7 +78,12 @@ export class RegisterComponent {
   });
 
   private signUp() {
-    this.authStore.register({ user: this.newUser(), turnstileToken: this.turnstileToken() ?? undefined });
+    // The character only when given (the form has checked it's both).
+    const { characterName, server, ...user } = this.newUser();
+    this.authStore.register({
+      user: { ...user, ...(characterName.trim() ? { characterName, server } : {}) },
+      turnstileToken: this.turnstileToken() ?? undefined,
+    });
     // Keep the name and email, so a problem only needs that field fixed.
     this.form.password().reset('');
     // A pass works once: the next try needs a new one.

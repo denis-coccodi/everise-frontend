@@ -57,18 +57,20 @@ describe('RegisterComponent', () => {
     };
   }
 
-  it('asks for what signs in first, then the username apart, under its own heading', async () => {
+  it('asks for what signs in first, then the username and character apart, under their own heading', async () => {
     const { page } = await render('');
 
     expect([...page.querySelectorAll('form input')].map((input) => input.id)).toEqual([
       'email',
       'password',
       'username',
+      'character-name',
     ]);
     const profile = page.querySelector('fieldset.profile') as HTMLFieldSetElement;
     expect(profile.querySelector('legend')?.textContent?.trim()).toBe('Your name on Everise');
     expect(profile.querySelector('#username')?.getAttribute('aria-describedby')).toBe('username-hint');
     expect(page.querySelector('#username-hint')?.textContent).toContain('You sign in with your email');
+    expect(profile.querySelector('cdt-character-fields #character-world')).not.toBeNull();
     expect(page.querySelector('[data-testid=sign-up]')?.textContent?.trim()).toBe('Create account');
   });
 
@@ -126,6 +128,36 @@ describe('RegisterComponent', () => {
 
     expect(JSON.parse(http.expectOne('/api/users').request.body)).toEqual({
       user: { username: 'alisaie', email: 'alisaie@example.com', password: 'echo-of-light' },
+    });
+  });
+
+  it('signs up with a character once both the name and the world are given', async () => {
+    const { fixture, page, type, http, button } = await render('');
+    http.expectOne('/api/market/regions').flush({
+      regions: [{ id: 'europe', name: 'Europe', dataCentres: [{ name: 'Light', worlds: [{ id: 71, name: 'Odin' }] }] }],
+      defaultRegion: 'europe',
+      homeWorld: 'Odin',
+    });
+    await fixture.whenStable();
+
+    type('character-name', 'Alisaie Leveilleur');
+    await fixture.whenStable();
+    expect(button.disabled).toBe(true);
+
+    const world = page.querySelector('#character-world') as HTMLSelectElement;
+    world.value = 'Odin';
+    world.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    button.click();
+
+    expect(JSON.parse(http.expectOne('/api/users').request.body)).toEqual({
+      user: {
+        username: 'alisaie',
+        email: 'alisaie@example.com',
+        password: 'echo-of-light',
+        characterName: 'Alisaie Leveilleur',
+        server: 'Odin',
+      },
     });
   });
 });

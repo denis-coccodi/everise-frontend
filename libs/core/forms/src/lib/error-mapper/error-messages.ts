@@ -11,6 +11,9 @@ export const ERROR_MESSAGES: Record<string, ErrorMessage> = {
   sameEmail: () => `That's already your email address.`,
   min: (error) => `Use ${'min' in error ? Number(error.min) : 0} or more.`,
   max: (error) => `Use ${'max' in error ? Number(error.max) : 0} or less.`,
+  characterName: () => `Enter your character's first and last name as the game shows them, like Avar Kriss.`,
+  characterWorldMissing: () => `Choose your character's world too, or leave the name empty.`,
+  characterNameMissing: () => `Enter your character's name too, or choose no world.`,
 };
 
 // The minLength validator's error: { kind: 'minLength', minLength }.

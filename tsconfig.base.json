@@ -44,6 +44,7 @@
       "@everise/planner/scheduler": ["./libs/planner/scheduler/src/index.ts"],
       "@everise/events/feature-events": ["./libs/events/feature-events/src/index.ts"],
       "@everise/events/event-card": ["./libs/events/feature-event-card/src/index.ts"],
+      "@everise/auth/character-fields": ["./libs/auth/feature-character-fields/src/index.ts"],
       "@everise/profile/data-access": ["./libs/profile/data-access/src/index.ts"],
       "@everise/profile/feature-profile": ["./libs/profile/feature-profile/src/index.ts"],
       "@everise/notifications/data-access": ["./libs/notifications/data-access/src/index.ts"],

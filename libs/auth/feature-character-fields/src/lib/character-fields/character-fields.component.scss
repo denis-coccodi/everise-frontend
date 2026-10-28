@@ -1,0 +1,28 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+// A group in the form, its legend labelled like the fields around it; the
+// name and the world stack like the form's other fields, under the hint.
+:host {
+  display: block;
+}
+
+.character {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-contrast-soft);
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-contrast-muted);
+}

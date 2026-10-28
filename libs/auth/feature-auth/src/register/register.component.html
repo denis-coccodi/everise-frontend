@@ -49,10 +49,12 @@
                     cdtInput="lg"
                   />
                   <p id="username-hint" class="hint">
-                    Shown on your posts and profile. You sign in with your email, and can change this later in Settings.
+                    Shown on your posts and profile, unless you add your character below. You sign in with your email,
+                    and can change both later in Settings.
                   </p>
                   <cdt-input-errors [field]="form.username" />
                 </cdt-field>
+                <cdt-character-fields [name]="form.characterName" [world]="form.server" />
               </fieldset>
 
               <cdt-turnstile action="signup" (token)="turnstileToken.set($event)" />

@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthStore } from '@everise/auth/data-access';
@@ -26,6 +26,9 @@ const user: User = {
   id: 'u1',
   email: 'urianger@example.com',
   username: 'Urianger',
+  characterName: null,
+  server: null,
+  displayName: 'Urianger',
   token: 'token',
   bio: null,
   image: '/a.png',
@@ -122,6 +125,44 @@ describe('SettingsComponent profile', () => {
     expect(page.querySelector('cdt-account-security')).not.toBeNull();
 
     (page.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
-    expect(Object.keys(authStore.updateUser.mock.calls[0][0]).sort()).toEqual(['bio', 'darkMode', 'username']);
+    expect(Object.keys(authStore.updateUser.mock.calls[0][0]).sort()).toEqual([
+      'bio',
+      'characterName',
+      'darkMode',
+      'server',
+      'username',
+    ]);
+  });
+
+  it('shows the saved character, and clears it when both are emptied', async () => {
+    const { fixture, page, authStore } = await render({
+      ...user,
+      characterName: 'Urianger Augurelt',
+      server: 'Odin',
+      displayName: 'Urianger Augurelt (Odin)',
+    });
+    TestBed.inject(HttpTestingController)
+      .expectOne('/market/regions')
+      .flush({
+        regions: [
+          { id: 'europe', name: 'Europe', dataCentres: [{ name: 'Light', worlds: [{ id: 71, name: 'Odin' }] }] },
+        ],
+        defaultRegion: 'europe',
+        homeWorld: 'Odin',
+      });
+    await fixture.whenStable();
+    const name = page.querySelector('#character-name') as HTMLInputElement;
+    const world = page.querySelector('#character-world') as HTMLSelectElement;
+    expect(name.value).toBe('Urianger Augurelt');
+    expect(world.value).toBe('Odin');
+
+    name.value = '';
+    name.dispatchEvent(new Event('input'));
+    world.value = '';
+    world.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    (page.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+
+    expect(authStore.updateUser).toHaveBeenCalledWith(expect.objectContaining({ characterName: '', server: '' }));
   });
 });
