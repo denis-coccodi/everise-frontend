@@ -209,6 +209,9 @@ export class MpModel {
       delta = this.settle(delta, logged, own, reading.at - last);
       last = reading.at;
       logged = reading.mp;
+      // Those at the reading's own moment go with it: one point, not a
+      // spike (a death's MP given back at the reading that shows it gone).
+      for (; i < changes.length && changes[i].at === reading.at; i++) delta += changes[i].mp;
       delta = Math.min(delta, own.max - logged);
       out.push({ at: reading.at, mp: logged + delta });
     }

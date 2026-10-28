@@ -164,5 +164,7 @@ describe("a replanned healer's MP", () => {
     expect(dead.curve(2, []).at(-1)?.mp).toBe(2_000);
     // 6,000 kept, and 10 ticks of 200 while they'd have been down.
     expect(alive.curve(2, []).at(-1)?.mp).toBe(8_000);
+    // No drop to 0 where the log shows them gone, not even for a moment.
+    expect(alive.curve(2, []).map((c) => c.mp)).not.toContain(0);
   });
 });

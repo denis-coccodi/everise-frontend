@@ -7,7 +7,7 @@ const link = (value: string, target: NotificationTarget): NotificationPart => ({
   text: value,
   ...target,
 });
-const actor = (value: NotificationActor) => link(value.username, { path: ['/profile', value.id] });
+const actor = (value: NotificationActor) => link(value.displayName, { path: ['/profile', value.id] });
 
 // What an admin made the member, in words.
 const ROLE_NAMES: Record<string, string> = { 'staging-tester': 'a staging tester', user: 'a member' };

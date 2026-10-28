@@ -3,7 +3,7 @@
     <div class="author">
       <cdt-byline
         [image]="article().author.image"
-        [name]="article().author.username"
+        [name]="article().author.displayName"
         [date]="article().createdAt"
         [link]="['/profile', article().author.id]"
       />
@@ -16,7 +16,7 @@
           (click)="toggleFollow(article())"
         >
           {{ article().author.following ? 'Unfollow' : 'Follow'
-          }}<span class="visually-hidden"> {{ article().author.username }}</span>
+          }}<span class="visually-hidden"> {{ article().author.displayName }}</span>
         </button>
       }
     </div>

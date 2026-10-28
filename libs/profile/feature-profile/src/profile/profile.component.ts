@@ -16,7 +16,7 @@ export class ProfileComponent {
   private readonly authStore = inject(AuthStore);
 
   $profileLoading = this.profileStore.getProfileLoading;
-  $username = this.profileStore.username;
+  $displayName = this.profileStore.displayName;
   $id = this.profileStore.id;
   $image = this.profileStore.image;
   $bio = this.profileStore.bio;
