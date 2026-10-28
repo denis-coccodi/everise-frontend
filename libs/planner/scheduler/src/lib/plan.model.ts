@@ -19,12 +19,12 @@ export interface PlanOptions {
   // The opener each replanned player starts with, by id, for the jobs that
   // have them (`OPENERS`); left out, the standard one.
   openers?: Record<number, OpenerId>;
+  // Failed mechanics: covered like any other hit (left out), or avoided.
+  failedMechanics?: 'cover' | 'ignore';
 }
 
-// Favouring damage, a healer spends what would overcap on damage (a white
-// mage's third lily, for Afflatus Misery) and keeps GCD heals for where
-// nothing else will do; favouring healing, they don't, and GCD heals cost
-// less.
+// Favouring damage, a healer spends what would overcap on damage and keeps
+// GCD heals for where nothing else will do; favouring healing, they don't.
 export type Favour = 'dps' | 'healing';
 
 // An invulnerability on a mechanic, as a group's strategy has it (one tank
@@ -51,9 +51,9 @@ export interface MechanicHit {
   unmitigated: number;
   // What they took in the pull, after what was up then.
   asPlayed: number;
-  // A failed mechanic (an unsoaked tower, a missed stack): many times what
-  // the attack does to everyone else, and more than the player's HP. The
-  // plan takes it as avoided.
+  // A failed mechanic (an unsoaked tower, a missed stack: `failed`), and
+  // whether the plan takes it as avoided (asked to, or nothing saves them).
+  failed?: boolean;
   avoidable: boolean;
 }
 

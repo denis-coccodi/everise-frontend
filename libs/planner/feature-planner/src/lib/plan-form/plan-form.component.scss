@@ -32,7 +32,7 @@
 // Wider: the button beside the field.
 @include bp.up(sm) {
   .plan-form {
-    grid-template-columns: minmax(0, 14rem) auto;
+    grid-template-columns: minmax(0, 14rem) minmax(0, 14rem) auto;
     // The button keeps its own width rather than the rest of the row.
     justify-content: start;
     align-items: start;

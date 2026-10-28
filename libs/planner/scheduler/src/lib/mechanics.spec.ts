@@ -62,7 +62,7 @@ describe('mechanicsOf', () => {
     ]);
   });
 
-  it('counts a big hit the player survived, or one mitigation could save them from, as a hit to cover', () => {
+  it('counts a big hit the player survived as a hit to cover, and one that killed them as failed', () => {
     // The scholar took 150,000 from a tower, five times the others' 30,000
     // and more than their 100,000 HP: survived as played, it's no failure.
     // The bard took as much and died of it: a failure. The paladin took
@@ -83,8 +83,12 @@ describe('mechanicsOf', () => {
       { at: 90_000, player: 1, action: 0, source: null },
     ];
 
-    const failed = mechanicsOf(t).flatMap((m) => m.hits.filter((h) => h.avoidable).map((h) => [m.at, h.player]));
+    const marked = (ignore: boolean, key: 'failed' | 'avoidable') =>
+      mechanicsOf(t, ignore).flatMap((m) => m.hits.filter((h) => h[key]).map((h) => [m.at, h.player]));
 
-    expect(failed).toEqual([[40_000, 3]]);
+    // Failed either way; avoided only when failed mechanics are ignored.
+    expect(marked(false, 'failed')).toEqual([[40_000, 3]]);
+    expect(marked(false, 'avoidable')).toEqual([]);
+    expect(marked(true, 'avoidable')).toEqual([[40_000, 3]]);
   });
 });
