@@ -65,6 +65,8 @@ export interface Mechanic {
 export interface MitigationTool {
   // When it can't be used: a fairy's order while Dissipation has her away.
   away?: { from: number; to: number }[];
+  // The mechanics an invulnerability isn't for (ids): ones the user took it off.
+  notFor?: number[];
   player: number;
   action: number;
   name: string;

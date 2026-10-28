@@ -17,46 +17,57 @@ const LOOK_AHEAD_MS = 180_000;
 const STEP_MS = 500;
 // How far before a moment the picker offers slots.
 const SLOTS_MS = 10_000;
-// How long before its mechanic an invulnerability goes up, at most.
-const INVULNERABLE_BEFORE_MS = 30_000;
+// How long after its use an invulnerability saves its user, at most.
+const SAVES_MS = 15_000;
 
 const sameUse = (a: { player: number; action: number; at: number }, b: PlanEdit) =>
   a.player === b.player && a.action === b.action && Math.abs(a.at - b.at) < REMOVED_MS;
 
-// The tools with the removed skills kept out of where they were (as when a
-// fairy is away), for the planner to put them anywhere else they're needed.
+// The tools with the removed skills kept out of where they were, for the
+// planner to put them anywhere else they're needed. A removed
+// invulnerability is also kept off the mechanic it was saving (`notFor`),
+// and only that one: it may still save one just before or after.
 export function withBans<T extends { player: number; action: number; away?: { from: number; to: number }[] }>(
   tools: T[],
   edits: PlanEdits | undefined,
+  mechanics: Mechanic[] = [],
 ): T[] {
   if (!edits?.removed.length) return tools;
   return tools.map((t) => {
     const banned = edits.removed.filter((r) => r.player === t.player && r.action === t.action);
     if (!banned.length) return t;
-    return {
-      ...t,
-      away: [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - REMOVED_MS, to: r.at + REMOVED_MS }))],
-    };
+    const away = [...(t.away ?? []), ...banned.map((r) => ({ from: r.at - REMOVED_MS, to: r.at + REMOVED_MS }))];
+    const effects = (t as { effects?: { invulnerable?: boolean }[] }).effects ?? [];
+    if (!effects.some((e) => e.invulnerable)) return { ...t, away };
+    const notFor = banned.map((r) => savedBy(r, mechanics)).filter((id): id is number => id !== null);
+    return { ...t, away, notFor };
   });
 }
 
+// The mechanic an invulnerability used at `r` was saving its user from: the
+// first that hits them in the seconds after.
+function savedBy(r: PlanEdit, mechanics: Mechanic[]) {
+  const hit = mechanics
+    .filter((m) => m.at >= r.at && m.at - r.at <= SAVES_MS && m.hits.some((h) => h.player === r.player))
+    .sort((a, b) => a.at - b.at)[0];
+  return hit?.id ?? null;
+}
+
 // The tanks' invulnerabilities as the pull had them, but those the user
-// removed: one taken out in the seconds before its mechanic is no longer
-// forced there (the plan may still use it where nothing else saves a hit).
+// removed: one taken out for its mechanic is no longer forced there (the
+// plan may still use it where nothing else saves a hit).
 export function keptInvulnerabilities(
   choices: InvulnerabilityChoice[],
   mechanics: Mechanic[],
   edits: PlanEdits | undefined,
 ): InvulnerabilityChoice[] {
   if (!edits?.removed.length) return choices;
-  const at = new Map(mechanics.map((m) => [m.id, m.at]));
-  return choices.filter((c) => {
-    const hit = c.mechanic === null ? undefined : at.get(c.mechanic);
-    if (hit === undefined) return true;
-    return !edits.removed.some(
-      (r) => r.player === c.player && r.action === c.action && r.at <= hit && hit - r.at <= INVULNERABLE_BEFORE_MS,
-    );
-  });
+  return choices.filter(
+    (c) =>
+      !edits.removed.some(
+        (r) => r.player === c.player && r.action === c.action && savedBy(r, mechanics) === c.mechanic,
+      ),
+  );
 }
 
 // Whether a use the plan would keep fixed (an opener's step) was removed.
@@ -87,8 +98,10 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
   const catalog = catalogAtLevel(full, pullLevel(timeline));
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const scheduled = new Set(plan.scheduled ?? []);
-  const own = plan.uses.filter((u) => u.player === player);
-  // Their uses: the plan's, and theirs as played of what it doesn't plan.
+  // Their uses that stay put: the user's own, their opener's and burst, and
+  // theirs as played of what the plan doesn't plan. The planner's other
+  // choices give way: the plan is made again around what the user adds.
+  const own = plan.uses.filter((u) => u.player === player && (u.edited || u.opener || u.burst || u.refill));
   const used = [
     ...own,
     ...timeline.playerCasts
@@ -115,8 +128,13 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
     // Recast and charges, shared with its cooldown group.
     const group = timesOf((a) => a.cooldownGroup === action.cooldownGroup && !a.gcd);
     if (!action.gcd && !fitsRecast(group, at, action.recastMs, action.charges)) {
+      // One used later that its recast would clash with, or back after one before.
+      const before = group.filter((t) => t <= at);
+      const later = group.filter((t) => t > at && t - at < action.recastMs).sort((a, b) => a - b)[0];
       reasons.push(
-        `Recast: back at ${clock(nextFit(at, (t) => fitsRecast(group, t, action.recastMs, action.charges)))}`,
+        later !== undefined && fitsRecast(before, at, action.recastMs, action.charges)
+          ? `Recast: also used at ${clock(later)}`
+          : `Recast: back at ${clock(nextFit(at, (t) => fitsRecast(before, t, action.recastMs, action.charges)))}`,
       );
     }
     // A gauge (Oath, Aetherflow, Addersgall, lilies...).

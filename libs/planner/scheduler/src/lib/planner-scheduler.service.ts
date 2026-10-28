@@ -56,7 +56,8 @@ export class PlannerScheduler {
     const replannedPlayers = timeline.players.filter((p) => replanned({ player: p.id }));
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
     const { dissipations } = opening;
-    const opened = toolWindows(timeline, opening, asked.edits);
+    const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
+    const opened = toolWindows(timeline, opening, asked.edits, mechanics);
     // A scholar's fairy orders wait for her while Dissipation has her away;
     // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
     const mitigation = opened(mitigationTools(timeline.players, catalog, power));
@@ -75,7 +76,6 @@ export class PlannerScheduler {
       mitigation.filter((t) => !replanned(t)),
     );
     const fixed = [...played, ...placed.filter((u) => mitigates.has(u.player + ':' + u.action))];
-    const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
       ...asked,
