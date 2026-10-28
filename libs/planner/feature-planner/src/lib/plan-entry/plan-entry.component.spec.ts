@@ -237,4 +237,17 @@ describe('PlanEntryComponent', () => {
       unsafe: false,
     });
   });
+
+  it('says a failed mechanic the plan covers is planned for anyway', () => {
+    const failed = hit({
+      unmitigated: 150_000,
+      planned: 80_000,
+      safe: true,
+      avoidable: false,
+      failed: true,
+      covers: ['Rampart'],
+    });
+
+    expect(render(failed).text).toContain('A failed mechanic, planned for anyway. Covered by Rampart');
+  });
 });

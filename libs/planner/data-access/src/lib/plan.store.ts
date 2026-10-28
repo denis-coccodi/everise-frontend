@@ -2,7 +2,7 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { Favour, InvulnerabilityChoice, InvulnerabilityOptions, OpenerId, Plan } from '@everise/planner/scheduler';
-import type { InvulnerabilitySetting, PlanPlayer } from './plan.model';
+import type { FailedMechanics, InvulnerabilitySetting, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
 // person may set.
@@ -21,6 +21,8 @@ const LOAD_ERROR = "The planner couldn't be loaded. Check your connection, then 
 interface PlanState {
   // The HP each hit must leave, in percent of max HP.
   margin: number;
+  // Failed mechanics: covered like any other hit, or taken as avoided.
+  failedMechanics: FailedMechanics;
   // For the pull open: the players to replan (ids), the tanks'
   // invulnerabilities where the plan must use them, and what there is to
   // choose from.
@@ -48,6 +50,7 @@ interface PlanState {
 export const PlanStore = signalStore(
   withState<PlanState>({
     margin: DEFAULT_MARGIN,
+    failedMechanics: 'cover',
     preparedFor: null,
     players: [],
     replan: [],
@@ -82,6 +85,9 @@ export const PlanStore = signalStore(
     return {
       setMargin(margin: number) {
         patchState(store, { margin });
+      },
+      setFailedMechanics(failedMechanics: FailedMechanics) {
+        patchState(store, { failedMechanics });
       },
       // The options for a pull just opened: those last replanned replanned
       // again, the invulnerabilities where the pull had them.
@@ -136,6 +142,7 @@ export const PlanStore = signalStore(
           const scheduler = await store._scheduler();
           const plan = scheduler.plan(timeline, catalog, {
             margin: store.margin() / 100,
+            failedMechanics: store.failedMechanics(),
             replan: store.replan(),
             invulnerabilities: store.invulnerabilities(),
             favour: store.favour(),

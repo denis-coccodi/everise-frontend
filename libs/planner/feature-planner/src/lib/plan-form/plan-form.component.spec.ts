@@ -122,4 +122,20 @@ describe('PlanFormComponent', () => {
     );
     expect(submit(rendered.page)?.disabled).toBe(true);
   });
+
+  it('plans for failed mechanics by default, or ignores them', async () => {
+    const rendered = await openPlan();
+    const select = rendered.page.querySelector<HTMLSelectElement>('#planner-failed') as HTMLSelectElement;
+
+    expect([...select.options].map((o) => [o.textContent?.trim(), o.selected])).toEqual([
+      ['Plan for them', true],
+      ['Ignore them', false],
+    ]);
+
+    select.value = 'ignore';
+    select.dispatchEvent(new Event('change'));
+    rendered.fixture.detectChanges();
+
+    expect(select.value).toBe('ignore');
+  });
 });

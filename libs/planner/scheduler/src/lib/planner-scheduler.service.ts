@@ -16,7 +16,7 @@ import { withAetherflow } from './aetherflow';
 import { openingOf, placedSteps, shownSteps, withDraws } from './opening';
 import { fairyHeals, fairyKeys, fairyPotency, fairyPower, withFairyAway } from './fairy-heals';
 import type { FairyHealing } from './heal-plan.model';
-import { burstActions, burstUses } from './burst';
+import { burstActions, burstUses, placeLightspeed } from './burst';
 import { withEnablerWindows } from './enabled-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
@@ -72,7 +72,7 @@ export class PlannerScheduler {
       mitigation.filter((t) => !replanned(t)),
     );
     const fixed = [...played, ...placed.filter((u) => mitigates.has(u.player + ':' + u.action))];
-    const mechanics = mechanicsOf(timeline);
+    const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
       ...asked,
@@ -102,16 +102,10 @@ export class PlannerScheduler {
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts].map(key));
     const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-    weaving.keep(
-      opening.uses
-        .filter((u) => u.action !== ENERGY_DRAIN)
-        .map((u) => ({
-          player: u.player,
-          at: u.at,
-          gcd: !!byId.get(u.action)?.gcd,
-          castMs: byId.get(u.action)?.castMs ?? 0,
-        })),
-    );
+    const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
+    weaving.keep(opening.uses.filter((u) => u.action !== ENERGY_DRAIN).map(slot));
+    // An astrologian's Lightspeeds go first: they make weave room.
+    const lightspeed = placeLightspeed(timeline, catalog, replannedPlayers, opening, weaving);
     // A GCD shield grows with its caster's healing potency buffs: those the
     // plan has up when it's cast, and the rest as played.
     const party = timeline.players.map((p) => p.id);
@@ -212,8 +206,8 @@ export class PlannerScheduler {
       (u) =>
         u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
     );
-    const taken = [...best.uses, ...drains, ...rhizomata];
-    const burst = burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken);
+    const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed];
+    const burst = [...lightspeed, ...burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken)];
     const own = withGrantedCovers(best.uses).filter((u) => !AUTOMATIC.has(u.action));
     return {
       ...best,

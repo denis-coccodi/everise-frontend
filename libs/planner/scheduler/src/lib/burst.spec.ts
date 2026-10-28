@@ -1,5 +1,5 @@
 import { action, catalog, pull } from './scheduler-fixtures';
-import { burstUses } from './burst';
+import { burstUses, placeLightspeed } from './burst';
 import { openingOf } from './opening';
 import { Weaving } from './weaving';
 
@@ -34,14 +34,11 @@ const burst = (job: string, opener: 'standard' | 'none' = 'standard') => {
   const t = timeline(job);
   const c = cat();
   const opening = openingOf(t, c, t.players, { 2: opener });
-  return burstUses(
-    t,
-    c,
-    t.players,
-    opening,
-    Weaving.of(t, c, () => true),
-    opening.uses,
-  ).map((u) => [u.name, u.at]);
+  const weaving = Weaving.of(t, c, () => true);
+  // The Lightspeeds first, as the scheduler places them.
+  const lightspeed = placeLightspeed(t, c, t.players, opening, weaving);
+  const rest = burstUses(t, c, t.players, opening, weaving, opening.uses);
+  return [...lightspeed, ...rest].map((u) => [u.name, u.at]);
 };
 
 describe('burstUses', () => {
@@ -64,9 +61,9 @@ describe('burstUses', () => {
 
   it("has an astrologian's Divination and a Lightspeed each two minutes, and their draws each with its card", () => {
     expect(burst('AST')).toEqual([
-      // A weave after each other where they meet.
-      ['Divination', 136_100],
-      ['Lightspeed', 136_800],
+      // Lightspeed placed first; Divination a weave after it.
+      ['Lightspeed', 136_100],
+      ['Divination', 136_800],
       // Astral Draw (the countdown's, then 110s on) with the Balance, Umbral
       // Draw (the opener's at 11.9s, then 110s on) with the Spear: each card
       // a weave after its draw, or after the next GCD when there's no room.
