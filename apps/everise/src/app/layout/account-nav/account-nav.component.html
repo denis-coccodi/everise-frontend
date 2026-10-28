@@ -2,7 +2,7 @@
   <cdt-menu label="Account">
     <span cdtMenuTrigger class="account" data-testid="loggedin-user">
       <cdt-avatar [src]="user().image" [size]="28" />
-      <span class="name">{{ user().username }}</span>
+      <span class="name">{{ user().displayName }}</span>
     </span>
     <a cdtMenuItem [routerLink]="['/profile', user().id]">Your profile</a>
     <a cdtMenuItem routerLink="/settings">Settings</a>
@@ -17,7 +17,7 @@
     (click)="unfolded.set(!unfolded())"
   >
     <cdt-avatar [src]="user().image" [size]="28" />
-    <span class="heading-name">{{ user().username }}</span>
+    <span class="heading-name">{{ user().displayName }}</span>
     <cdt-icon class="chevron" name="chevron-right" />
   </button>
   <ul id="account-links" class="account-links" [hidden]="!unfolded()">

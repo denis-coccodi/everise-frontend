@@ -4,5 +4,14 @@
   "projectType": "library",
   "sourceRoot": "libs/profile/feature-profile/src",
   "prefix": "cdt",
-  "tags": ["type:feature"]
+  "tags": ["type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{projectRoot}/../../../coverage/libs/profile/feature-profile"
+      }
+    }
+  }
 }

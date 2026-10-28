@@ -2,7 +2,12 @@ import { Notification } from '@everise/core/api-types';
 import { notificationAge, notificationLink, notificationParts } from './notification-text';
 import type { NotificationPart } from './notification-text.model';
 
-const member = (username: string) => ({ id: `id-${username}`, username, image: `/${username}.png` });
+const member = (username: string) => ({
+  id: `id-${username}`,
+  username,
+  displayName: username,
+  image: `/${username}.png`,
+});
 
 function notification(changes: Partial<Notification> = {}): Notification {
   return {

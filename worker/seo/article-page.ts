@@ -10,7 +10,9 @@ export interface Article {
   updatedAt?: string;
   // `character` on a Waking Sands character (Tataru, who posts guests'
   // roulette results), whose profile is found by id (`character:<id>`).
-  author: { id?: string; username: string; character?: string };
+  // `displayName` is what the site calls them ("Avar Kriss (Odin)"); older
+  // backends sent only the username.
+  author: { id?: string; username: string; displayName?: string; character?: string };
   roulette?: { type: string; name: string; detail: string; image: number | null };
   // A shared Party Finder listing, with the picture of its card.
   partyFinder?: { picture?: string };
@@ -37,9 +39,9 @@ export function articlePage(article: Article, siteUrl: string): PageMeta {
     : (article.partyFinder?.picture ?? firstImage ?? thumbnail);
   // Always the id, even when an old link was followed.
   const path = `/article/${encodeURIComponent(article.id)}`;
-  const author = article.author.username;
+  const author = article.author.displayName ?? article.author.username;
   const authorUrl = `${siteUrl}/profile/${encodeURIComponent(
-    article.author.character && article.author.id ? article.author.id : author,
+    article.author.character && article.author.id ? article.author.id : article.author.username,
   )}`;
   return {
     // Little text of its own (an automatic roulette or Party Finder post, a

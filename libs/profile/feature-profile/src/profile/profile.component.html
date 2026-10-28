@@ -5,7 +5,7 @@
         <div class="col-xs-12 col-md-10 offset-md-1">
           <cdt-avatar class="user-img" [src]="$image()" [size]="100" frame="highlight" />
           <h1 class="name" data-testid="article-author-profile" [hidden]="$profileLoading()">
-            {{ $username() }}
+            {{ $displayName() }}
           </h1>
           <p>{{ $bio() }}</p>
           @if ($isCharacter()) {
@@ -23,7 +23,7 @@
                 (click)="toggleFollowing()"
               >
                 {{ $following() ? 'Unfollow' : 'Follow' }}
-                {{ $username() }}
+                {{ $displayName() }}
               </button>
             }
             <!-- Only on your own profile. (A [hidden] would lose to the button's display.) -->

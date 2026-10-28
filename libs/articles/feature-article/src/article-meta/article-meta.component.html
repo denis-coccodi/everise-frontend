@@ -1,7 +1,7 @@
 <div class="article-meta">
   <cdt-byline
     [image]="article().author.image"
-    [name]="article().author.username"
+    [name]="article().author.displayName"
     [date]="article().createdAt"
     [link]="['/profile', article().author.id]"
     avatarTestId="article-author"
@@ -26,7 +26,7 @@
         (click)="toggleFollow()"
       >
         {{ article().author.following ? 'Unfollow' : 'Follow' }}
-        {{ article().author.username }}
+        {{ article().author.displayName }}
       </button>
     }
     <button [cdtButton]="article().favorited ? 'primary' : 'outline-primary'" size="sm" (click)="toggleFavorite()">

@@ -6,7 +6,7 @@
   <div cdtCardFooter class="footer">
     <cdt-byline
       [image]="comment().author.image"
-      [name]="comment().author.username"
+      [name]="comment().author.displayName"
       [date]="comment().createdAt"
       [link]="['/profile', comment().author.id]"
     />
