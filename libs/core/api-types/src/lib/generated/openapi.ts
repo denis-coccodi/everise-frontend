@@ -3094,7 +3094,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** The posts and Party Finder pages for the site's sitemap */
+    /** The posts, Party Finder pages, venues and events for the site's sitemap */
     get: {
       parameters: {
         query?: never;
@@ -5405,6 +5405,8 @@ export interface components {
         | 'Meteor'
         | 'Materia'
       )[];
+      venues: string[];
+      events: number[];
     };
     StagingAccessResponse: {
       stagingAccess: components['schemas']['StagingAccessSync'];
