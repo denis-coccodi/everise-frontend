@@ -1,5 +1,5 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { DPS_HEALS, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from './heal-tools';
+import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from './heal-tools';
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
@@ -31,6 +31,8 @@ import type { HpCheckpoint, HpEvent } from './hp-track.model';
 // heal between them. A second is time for an oGCD heal (a burst's hits come
 // about that far apart).
 const GAP_MS = 1000;
+// How soon after its Helios lands Horoscope is read at the latest.
+const READ_MS = 5_000;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 
@@ -79,10 +81,21 @@ export function planHeals(
   const boosts = new HealingBuffs(buffs, party, timeline, scheduled);
   for (const use of plan.uses) boosts.add(use);
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
-  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => [
-    ...boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd),
-    ...movedAway(tool, use),
-  ];
+  const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => {
+    const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
+    return [...own, ...movedAway(tool, use), ...bonded(tool, use, own)];
+  };
+  // A heal spell in a planned Synastry's 20s heals its bond its share too.
+  const bonded = (tool: HealTool, use: PlannedUse, own: HpEvent[]): HpEvent[] => {
+    const p = pairings.find((o) => o.bond && o.player === use.player && o.heals.includes(tool.action));
+    const bond = p && uses.find((u) => u.action === p.action && u.player === use.player && u.at <= use.at);
+    if (!p || !bond || bond.target === null || use.at > bond.at + p.withinMs || !own.length) return [];
+    const lands = Math.min(...own.map((e) => e.at));
+    const healed = use.target ?? use.player;
+    return own
+      .filter((e) => e.at === lands && e.player === healed)
+      .map((e) => ({ at: lands, player: bond.target as number, amount: e.amount * p.bond }));
+  };
   // Kardia moved: the Kardion heals its holder had as played meanwhile.
   const movedAway = (tool: HealTool, use: PlannedUse): HpEvent[] => {
     if (tool.action !== KARDIA) return [];
@@ -192,6 +205,7 @@ export function planHeals(
               const own = healOf.get(key(pairing));
               return own ? eventsFor(own, paired, 0) : [];
             },
+            short,
           );
         const candidate = best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf);
         if (candidate && (!pick || better(candidate, pick))) pick = candidate;
@@ -236,6 +250,26 @@ export function planHeals(
       }
       const { group, pool, gcd, castMs } = pick.tool;
       spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
+      // Horoscope Helios heals when read: Horoscope pressed again, as the
+      // Helios lands.
+      if (pick.paired?.pairing.action === HOROSCOPE) {
+        const { player } = pick.use;
+        const lands = pick.use.at + pick.tool.castMs;
+        const mine = spent.filter((s) => s.player === player);
+        const read = weaving.ogcdAfter(player, lands, lands + READ_MS, mine);
+        if (read !== null) {
+          uses.push({ ...pick.paired.use, at: read, target: null, again: 'horoscope' });
+          spent.push({
+            player,
+            action: HOROSCOPE,
+            at: read,
+            group: `read:${player}`,
+            pool: null,
+            gcd: false,
+            castMs: 0,
+          });
+        }
+      }
       // A moved Kardia goes back on its holder afterwards: another press.
       if (pick.tool.action === KARDIA) {
         const { player, at } = pick.use;
@@ -247,7 +281,7 @@ export function planHeals(
           spent.filter((s) => s.player === player),
         );
         if (back !== null) {
-          uses.push({ ...pick.use, at: back, target: holder, covers: [], back: true });
+          uses.push({ ...pick.use, at: back, target: holder, covers: [], again: 'kardia' });
           spent.push({ player, action: KARDIA, at: back, group: `back:${player}`, pool: null, gcd: false, castMs: 0 });
         }
       }

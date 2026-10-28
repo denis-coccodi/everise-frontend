@@ -44,8 +44,8 @@ export interface PlanUseEntry {
   burst?: boolean;
   // A resource for the heals after (Rhizomata).
   refill?: boolean;
-  // Kardia put back where it was, after a move.
-  back?: boolean;
+  // A second press: Kardia put back, or Horoscope read again.
+  again?: 'kardia' | 'horoscope';
   // Kept as the player used it (a buff, an enabler), and what it does.
   kept?: string;
   // A GCD (a heal spell, Afflatus Misery): it comes first in its row.

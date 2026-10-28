@@ -234,10 +234,71 @@ describe('planHeals', () => {
       healPairings(timeline.players, cat, power),
     );
 
-    expect(plan.uses.map((u) => u.name)).toEqual(['Horoscope', 'Helios']);
-    const [horoscope, helios] = plan.uses;
+    // Then read again as the Helios lands, for Horoscope Helios to heal.
+    expect(plan.uses.map((u) => [u.name, u.again ?? null])).toEqual([
+      ['Horoscope', null],
+      ['Helios', null],
+      ['Horoscope', 'horoscope'],
+    ]);
+    const [horoscope, helios, read] = plan.uses;
     expect(helios.at + 1500 - horoscope.at).toBeLessThanOrEqual(10_000);
+    expect(read.at).toBeGreaterThanOrEqual(helios.at + 1500);
     expect(plan.hits.filter((h) => h.mechanic === plan.hits[3].mechanic).every((h) => h.safe)).toBe(true);
+  });
+
+  it('bonds Synastry to whoever needs it most, giving them 40% of each Benefic in its 20s', () => {
+    // The scholar as an astrologian. The tank (1) lands on 15,000 at 30s and
+    // the bard (3) on 40,000; both need 70,000 for the raidwide at 45s.
+    // Benefic II heals 50,000: on the tank, with the bond on the bard
+    // (20,000 of it), each needs one.
+    const cat = catalog();
+    cat.actions.push(
+      action(3610, 'Benefic II', ['SCH'], 2.5, [heal(500)], { gcd: true, castMs: 1500 }),
+      action(3612, 'Synastry', ['SCH'], 120, []),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [30, 'Buster', 3, 60_000],
+        [45, 'Raidwide', 1, 60_000],
+        [45, 'Raidwide', 3, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Benefic II');
+    const options = { margin: 0.1 };
+
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+      new Map(),
+      new Weaving(),
+      healPairings(timeline.players, cat, power),
+    );
+
+    const synastry = plan.uses.find((u) => u.name === 'Synastry');
+    expect(synastry).toBeDefined();
+    const benefics = plan.uses.filter((u) => u.name === 'Benefic II');
+    // Fewer Benefics than without the bond, and every hit at 45s safe.
+    const without = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+      new Map(),
+      new Weaving(),
+      [],
+    );
+    expect(benefics.length).toBeLessThan(without.uses.filter((u) => u.name === 'Benefic II').length);
+    expect(plan.hits.filter((h) => h.mechanic === plan.hits[2].mechanic).every((h) => h.safe)).toBe(true);
   });
 
   it('moves Kardia to whoever needs it and back, the tank losing its Kardion heals meanwhile', () => {
@@ -281,9 +342,9 @@ describe('planHeals', () => {
 
     // On the bard for its four heals, then pressed again back on the tank:
     // Kardia stays where it's put.
-    expect(plan.uses.map((u) => [u.name, u.target, u.back ?? false])).toEqual([
+    expect(plan.uses.map((u) => [u.name, u.target, u.again ?? false])).toEqual([
       ['Kardia', 3, false],
-      ['Kardia', 1, true],
+      ['Kardia', 1, 'kardia'],
     ]);
     const [moved, back] = plan.uses;
     expect(back.at - moved.at).toBeGreaterThanOrEqual(12_000);

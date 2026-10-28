@@ -198,12 +198,9 @@ export interface HealTool {
 // GCD heal).
 export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd';
 
-// An oGCD that only pays with one of its user's heals after it: Plenary
-// Indulgence before a Medica, Cure III or Afflatus Rapture (its Confession
-// heals each member the heal reaches), Zoe before a Sage's GCD heal (50%
-// more), Neutral Sect before an Aspected Benefic or Helios Conjunction (20%
-// more), Krasis on the member a Sage's heal is for (20% more). The plan
-// uses it only with one.
+// An oGCD that only pays with one of its user's heals after it (Plenary
+// Indulgence before a Medica, Zoe, Neutral Sect, Krasis...): the plan uses it
+// only with one (PAIRED in heal-tools.ts).
 export interface HealPairing {
   player: number;
   action: number;
@@ -223,6 +220,8 @@ export interface HealPairing {
   own: boolean;
   // The heal's shield heals instead (Emergency Tactics): none goes up.
   converts: boolean;
+  // The share of each such heal meanwhile another member gets (Synastry's).
+  bond: number;
   extra: ShieldSize | null;
   // The barrier it leaves on whoever each heal reaches, as a share of what
   // the heal heals them, by heal (Neutral Sect's: 250% for an Aspected
@@ -295,8 +294,9 @@ export interface PlannedUse {
   overcap?: boolean;
   // A step of the player's opener (an Energy Drain, Chain Stratagem...).
   opener?: boolean;
-  // Kardia put back where it was, after a move: it stays until moved.
-  back?: boolean;
+  // A second press: Kardia put back where it was (it stays until moved), or
+  // Horoscope read again, for Horoscope Helios to heal.
+  again?: 'kardia' | 'horoscope';
   // A raid buff or burst on cooldown, or an astrologian's draw and card.
   burst?: boolean;
   // A resource for the heals after (Rhizomata's Addersgall).
@@ -315,8 +315,7 @@ export interface PlannedHit {
   // Their HP when it lands, with the plan's heals; null when the pull
   // doesn't say their max HP.
   hpBefore: number | null;
-  // The planned damage as a share of their max HP; null when the pull
-  // doesn't say their max HP.
+  // The planned damage as a share of their max HP (null: unknown max HP).
   share: number | null;
   // Whether it leaves at least the margin of their HP, or can't kill them
   // (an invulnerability is up), or is avoided (a failed mechanic, taking
@@ -335,11 +334,12 @@ export interface Plan {
   // The invulnerabilities asked for that the plan couldn't use there: one
   // the tank doesn't have, or that its recast doesn't allow.
   unplaced: InvulnerabilityChoice[];
-  // Each player's HP over the pull with the plan; none before the heals
-  // are planned.
+  // Each player's HP with the plan; none before the heals are planned.
   hp: PlannedHp[];
-  // The players it replans (ids); left out, everyone.
+  // The players it replans (ids; left out, everyone), and what it plans for
+  // them ("player:action"): their own uses of those aren't kept as played.
   replanned?: number[];
+  scheduled?: string[];
 }
 
 // A player's HP with the plan: what it is after each moment something

@@ -21,6 +21,7 @@ export function pairingsFor(
   weaving: Weaving,
   maxHp: Map<number, number>,
   ownEvents: (pairing: HealPairing, use: PlannedUse) => HpEvent[] = () => [],
+  short = new Map<number, number>(),
 ): Paired[] {
   if (!events.length) return [];
   // The heal itself takes its slot: an oGCD's weave, a GCD's own.
@@ -48,11 +49,25 @@ export function pairingsFor(
       pairing.onTarget && e.player !== healed ? e : { ...e, amount: e.amount * pairing.times },
     );
     const target = pairing.onTarget ? healed : null;
-    const paired = { player: use.player, action: pairing.action, name: pairing.name, at, target, covers: use.covers };
+    // Synastry's bond, on whoever is shortest: its share of the heal.
+    const neediest = [...short].reduce<[number, number] | null>((a, b) => (!a || b[1] > a[1] ? b : a), null);
+    const bondTo = pairing.bond ? (neediest?.[0] ?? healed) : null;
+    const bonded = boosted
+      .filter((e) => bondTo !== null && e.at === lands && e.player === healed)
+      .map((e) => ({ at: lands, player: bondTo as number, amount: e.amount * pairing.bond }));
+    const on = bondTo ?? target;
+    const paired = {
+      player: use.player,
+      action: pairing.action,
+      name: pairing.name,
+      at,
+      target: on,
+      covers: use.covers,
+    };
     found.push({
       use: paired,
       pairing,
-      events: [...boosted, ...more, ...(pairing.own ? ownEvents(pairing, paired) : [])],
+      events: [...boosted, ...more, ...bonded, ...(pairing.own ? ownEvents(pairing, paired) : [])],
       barrier: barrierOf(
         pairing,
         tool,

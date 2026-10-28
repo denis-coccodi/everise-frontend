@@ -92,6 +92,21 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Chain Stratagem On cooldown, for the burst windows');
   });
 
+  it('says Horoscope is read again, for Horoscope Helios', () => {
+    expect(
+      render({
+        kind: 'use',
+        at: 52_000,
+        action: 'Horoscope',
+        target: null,
+        covers: [],
+        damage: false,
+        overcap: false,
+        again: 'horoscope',
+      }).text,
+    ).toBe('Use Horoscope Read again: Horoscope Helios heals now');
+  });
+
   it('says Kardia is put back where it was', () => {
     expect(
       render({
@@ -102,7 +117,7 @@ describe('PlanEntryComponent', () => {
         covers: [],
         damage: false,
         overcap: false,
-        back: true,
+        again: 'kardia',
       }).text,
     ).toBe('Use Kardia on Tank Main Back where it was: Kardia stays until moved');
   });
