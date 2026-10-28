@@ -8,6 +8,16 @@
     <input id="planner-margin" type="number" cdtInput inputmode="numeric" [formField]="form.margin" />
     <cdt-input-errors [field]="form.margin" />
   </cdt-field>
+  <cdt-field
+    label="Failed mechanics"
+    for="planner-failed"
+    hint="A hit far bigger than the others took from the same attack, which killed the player. Planned for: the plan mitigates and heals it as far as the party's tools allow. Ignored: the plan takes it as avoided."
+  >
+    <select #failing id="planner-failed" cdtInput (change)="setFailedMechanics(failing.value)">
+      <option value="cover" [selected]="plans.failedMechanics() === 'cover'">Plan for them</option>
+      <option value="ignore" [selected]="plans.failedMechanics() === 'ignore'">Ignore them</option>
+    </select>
+  </cdt-field>
   <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning() || !plans.replan().length">
     {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
   </button>

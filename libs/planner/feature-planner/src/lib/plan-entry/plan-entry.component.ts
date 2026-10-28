@@ -26,8 +26,9 @@ export class PlanEntryComponent {
   // What the plan has up for a hit.
   protected covered(hit: PlanHitEntry) {
     if (hit.avoidable) return 'Not planned for: the plan takes it as avoided';
-    if (hit.covers.length) return `Covered by ${hit.covers.join(', ')}`;
-    return hit.safe ? 'No mitigation needed' : 'No mitigation, shield or heal was free for it';
+    const failed = hit.failed ? 'A failed mechanic, planned for anyway. ' : '';
+    if (hit.covers.length) return `${failed}Covered by ${hit.covers.join(', ')}`;
+    return failed + (hit.safe ? 'No mitigation needed' : 'No mitigation, shield or heal was free for it');
   }
 
   // "Takes 40,000 of 100,000 (45% of max HP), 20,000 shielded; at 90% HP,

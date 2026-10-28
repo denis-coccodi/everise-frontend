@@ -9,7 +9,7 @@ export { planLog, unsafeHits } from './lib/plan-log';
 export { hpCurves, lowest, lowestPerBucket, shareAt } from './lib/hp-curves';
 export type { HpCurve, HpMark, HpPoint } from './lib/hp-curves.model';
 export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';
-export type { InvulnerabilitySetting, PlanPlayer } from './lib/plan.model';
+export type { FailedMechanics, InvulnerabilitySetting, PlanPlayer } from './lib/plan.model';
 export type { PlanEntry, PlanGcdEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';
 export type { CompareRow } from './lib/compare-log.model';
 export type { EncounterPulls } from './lib/planner.model';
