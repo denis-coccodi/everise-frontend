@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, effect, inject, signal } from '@angular/core';
 import { FormField, FormRoot, form, required } from '@angular/forms/signals';
 import { AuthStore } from '@everise/auth/data-access';
-import { InputErrorsComponent, ListErrorsComponent } from '@everise/core/forms';
+import { CharacterFieldsComponent } from '@everise/auth/character-fields';
+import { InputErrorsComponent, ListErrorsComponent, characterRules } from '@everise/core/forms';
 import { SettingsStore } from '@everise/settings/data-access';
 import { ButtonComponent, FieldComponent, InputComponent, SwitchComponent } from '@everise/ui/components';
 import { AccountSecurityComponent } from '../account-security/account-security.component';
@@ -9,8 +10,8 @@ import { AdminMembersComponent } from '../admin-members/admin-members.component'
 import { AdminCharactersComponent } from '../admin-characters/admin-characters.component';
 import { PictureSettingsComponent } from '../picture-settings/picture-settings.component';
 
-// The settings: the profile (picture, name, bio) and the colour mode, then
-// the account's email, password and sign-ins in their own section.
+// The settings: the profile (picture, name, character, bio) and the colour
+// mode, then the account's email, password and sign-ins in their own section.
 @Component({
   selector: 'cdt-settings',
   templateUrl: './settings.component.html',
@@ -19,6 +20,7 @@ import { PictureSettingsComponent } from '../picture-settings/picture-settings.c
     AccountSecurityComponent,
     AdminMembersComponent,
     AdminCharactersComponent,
+    CharacterFieldsComponent,
     FieldComponent,
     ButtonComponent,
     SwitchComponent,
@@ -37,6 +39,8 @@ export class SettingsComponent implements OnDestroy {
 
   private readonly settings = signal({
     username: '',
+    characterName: '',
+    server: '',
     bio: '',
     darkMode: this.settingsStore.darkMode(),
   });
@@ -44,6 +48,7 @@ export class SettingsComponent implements OnDestroy {
     this.settings,
     (path) => {
       required(path.username);
+      characterRules(path.characterName, path.server);
     },
     { submission: { action: async () => this.save() } },
   );
@@ -51,9 +56,11 @@ export class SettingsComponent implements OnDestroy {
   readonly setUserDataToForm = effect(() => {
     const userLoaded = this.authStore.getUserLoaded();
     if (userLoaded) {
-      const { username, bio, darkMode } = this.authStore.user();
+      const { username, characterName, server, bio, darkMode } = this.authStore.user();
       this.settings.update((settings) => ({
         username,
+        characterName: characterName ?? '',
+        server: server ?? '',
         bio: bio ?? '',
         darkMode: darkMode ?? settings.darkMode,
       }));
@@ -78,8 +85,9 @@ export class SettingsComponent implements OnDestroy {
   // The mode is saved only once it's the person's choice: one they saved
   // before, or the switch flipped; otherwise it keeps following the default.
   private save() {
-    const { username, bio, darkMode } = this.settings();
+    const { username, characterName, server, bio, darkMode } = this.settings();
     const chosen = this.authStore.user().darkMode !== undefined || this.form.darkMode().dirty();
-    this.authStore.updateUser({ username, bio, ...(chosen ? { darkMode } : {}) });
+    // An empty name and world clear the character.
+    this.authStore.updateUser({ username, characterName, server, bio, ...(chosen ? { darkMode } : {}) });
   }
 }

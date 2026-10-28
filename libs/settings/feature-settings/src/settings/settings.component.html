@@ -30,6 +30,7 @@
               />
               <cdt-input-errors [field]="form.username" />
             </cdt-field>
+            <cdt-character-fields [name]="form.characterName" [world]="form.server" />
             <cdt-field label="Bio" for="bio">
               <textarea
                 cdtInput="lg"

@@ -1,0 +1,39 @@
+<fieldset class="character">
+  <legend class="legend">Your character</legend>
+  <p id="character-hint" class="hint">
+    Optional. With both, Everise calls you by your character instead of your username, like Avar Kriss (Odin).
+  </p>
+  <cdt-field label="Character name" for="character-name">
+    <input
+      [formField]="name()"
+      type="text"
+      id="character-name"
+      autocomplete="off"
+      spellcheck="false"
+      aria-describedby="character-hint"
+      cdtInput="lg"
+    />
+    <cdt-input-errors [field]="name()" />
+  </cdt-field>
+  <cdt-field label="World" for="character-world">
+    <select [formField]="world()" id="character-world" aria-describedby="character-hint" cdtInput="lg">
+      <option value="">None</option>
+      @if (unlisted(); as world) {
+        <option [value]="world">{{ world }}</option>
+      }
+      @for (dataCentre of dataCentres(); track dataCentre.name) {
+        <optgroup [label]="dataCentre.name + ' (' + dataCentre.region + ')'">
+          @for (option of dataCentre.worlds; track option.id) {
+            <option [value]="option.name">{{ option.name }}</option>
+          }
+        </optgroup>
+      }
+    </select>
+    <cdt-input-errors [field]="world()" />
+  </cdt-field>
+  <cdt-message tone="error">
+    @if (dataCentres() === null) {
+      Couldn't load the list of worlds. Reload the page to try again.
+    }
+  </cdt-message>
+</fieldset>

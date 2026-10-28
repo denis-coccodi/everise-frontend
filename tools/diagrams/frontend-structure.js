@@ -68,6 +68,7 @@ const PROJECTS = {
     routes: ['/login  /register  /privacy', '/confirm-email  /forgot-password', '/reset-password'],
     lines: ['Sign in, sign up, email and password'],
   },
+  'auth-feature-character-fields': { lines: ["A member's character name and", 'world, at sign-up and in settings'] },
   media: { lines: ['Pictures, GIFs, YouTube and rich', 'text in posts; the attachments editor'] },
   'core-api-types': { lines: ['Generated from the backend’s', 'openapi.json (api-types)'] },
   'core-http-client': { lines: ['ApiService, API_URL,', 'LiveUpdates (WebSocket)'] },
