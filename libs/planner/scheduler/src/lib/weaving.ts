@@ -16,6 +16,7 @@ const LANDED_SHARE = 0.75;
 const CAST_BAR_MS = 1500;
 // Lightspeed: every spell cast in it is instant (2.5s off each cast).
 const LIGHTSPEED = 841;
+const LIGHTSPEED_CUT_MS = 2_500;
 // How much later than Eukrasia's recast its GCD may come and still be the
 // one it augments (latency, a late press).
 const EUKRASIA_SLACK_MS = 500;
@@ -66,7 +67,9 @@ export class Weaving {
         const castMs = cast.castMs ?? 0;
         const inLightspeed = lightspeed.some((a) => a.target === cast.source && a.from <= cast.at && cast.at <= a.to);
         const instant = inLightspeed || (castMs === 0 && (castOf.get(cast.action) ?? 0) > 0);
-        push(this.gcds, cast.source, { at: cast.at, castMs, ...(instant ? { instant } : {}) });
+        const fullMs = castOf.get(cast.action) ?? 0;
+        const flags = { ...(instant ? { instant } : {}), ...(inLightspeed ? { lightspeed: true } : {}) };
+        push(this.gcds, cast.source, { at: cast.at, castMs, fullMs, ...flags });
       } else if (!planned(cast.source, cast.action)) push(this.kept, cast.source, cast.at);
     }
     for (const list of this.gcds.values()) {
@@ -94,6 +97,22 @@ export class Weaving {
   // oGCDs do, a GCD the GCD of theirs it's at.
   keep(uses: ({ player: number } & Occupied)[]) {
     for (const { player, ...use } of uses) push(this.fixed, player, use);
+  }
+
+  // A player's Lightspeeds as the plan has them, in place of their own: a
+  // spell begun in one is 2.5s shorter (instant, for most), its cast's weave
+  // room free; one only shorter by theirs as played is cast again.
+  lightspeed(player: number, windows: { from: number; to: number }[]) {
+    for (const g of this.gcds.get(player) ?? []) {
+      if (g.landed || !g.fullMs) continue;
+      if (windows.some((w) => w.from <= g.at && g.at <= w.to)) {
+        g.castMs = Math.max(0, g.fullMs - LIGHTSPEED_CUT_MS);
+        if (!g.castMs) g.instant = true;
+      } else if (g.lightspeed) {
+        g.castMs = g.fullMs;
+        delete g.instant;
+      }
+    }
   }
 
   // How long a GCD of this cast takes at one of the player's GCDs: none

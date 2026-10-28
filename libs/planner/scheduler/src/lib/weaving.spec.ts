@@ -121,6 +121,28 @@ describe('Weaving', () => {
     expect(free.gcdBefore(2, 30_000, 0, 0, [ogcd(30_000)])).toBe(29_400);
   });
 
+  it("makes a spell in a planned Lightspeed instant, and one only in the player's own Lightspeed cast again", () => {
+    // 1.5s spells at 10s and 12.5s; the second was instant in the player's
+    // own Lightspeed (841, from 12s).
+    const ls = new Weaving(
+      [cast(10_000, 190, 1500), cast(12_500, 190, 0), cast(15_000, 9)],
+      gcdOf,
+      () => true,
+      new Map([[190, 1500]]),
+      [{ status: 841, source: 1, target: 1, from: 12_000, to: 13_000, stacks: null, shield: null }],
+    );
+    // Before: an oGCD only after the cast at 10s ends (11.5s), and right
+    // after the instant one at 12.5s (13.1s).
+    expect(ls.ogcdAfter(1, 10_000, 12_500, [])).toBe(11_500);
+    expect(ls.ogcdAfter(1, 12_500, 15_000, [])).toBe(13_100);
+
+    // The plan's Lightspeed from 9s to 11s instead.
+    ls.lightspeed(1, [{ from: 9_000, to: 11_000 }]);
+
+    expect(ls.ogcdAfter(1, 10_000, 12_500, [])).toBe(10_600);
+    expect(ls.ogcdAfter(1, 12_500, 15_000, [])).toBe(14_000);
+  });
+
   it("keeps an opener's steps' slots: its GCD at one of theirs, its oGCDs", () => {
     const opened = new Weaving([cast(10_000, 9), cast(12_500, 9), cast(15_000, 9)], gcdOf);
     opened.keep([

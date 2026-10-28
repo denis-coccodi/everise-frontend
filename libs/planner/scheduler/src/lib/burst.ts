@@ -12,6 +12,10 @@ const TWO_MINUTES = 120_000;
 const GCD_MS = 2_500;
 const WEAVE_MS = 700;
 export const ASTRAL_DRAW = 37017;
+const LIGHTSPEED = 3606;
+const LIGHTSPEED_MS = 15_000;
+// A Lightspeed of the player's this far from the plan's is their second charge.
+const SECOND_CHARGE_MS = 20_000;
 const THE_BALANCE = 37023;
 const THE_SPEAR = 37026;
 
@@ -51,6 +55,7 @@ export function burstUses(
   opening: Opening,
   weaving: Weaving,
   planned: PlannedUse[],
+  early = false,
 ): PlannedUse[] {
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const end = timeline.durationMs;
@@ -72,7 +77,7 @@ export function burstUses(
       taken.push({ at, gcd: false, castMs: 0 });
       return at;
     };
-    for (const b of BURST[job] ?? []) {
+    for (const b of (BURST[job] ?? []).filter((x) => (x.action === LIGHTSPEED) === early)) {
       const action = byId.get(b.action);
       if (!action) continue;
       const every = b.everyMs ?? action.recastMs;
@@ -83,7 +88,7 @@ export function burstUses(
         due = at + every;
       }
     }
-    const draws = opening.draws.get(p.id);
+    const draws = early ? undefined : opening.draws.get(p.id);
     if (!draws) continue;
     const drawn = (action: number) => opened.some((u) => u.action === action);
     const later = (times: number[], action: number) => (drawn(action) ? times.slice(1) : times).filter((t) => t > 0);
@@ -95,6 +100,36 @@ export function burstUses(
       const at = place(s.draw, s.draw === ASTRAL_DRAW ? 'Astral Draw' : 'Umbral Draw', s.at);
       if (at !== null) place(s.card, s.card === THE_BALANCE ? 'the Balance' : 'the Spear', at + WEAVE_MS);
     }
+  }
+  return uses;
+}
+
+// A replanned astrologian's Lightspeeds, placed before the heals and
+// mitigations since they make weave room: the opener's, then one each two
+// minutes; their slots kept, and the spells in their 15s shorter
+// (`Weaving.lightspeed`).
+export function placeLightspeed(
+  timeline: PullTimeline,
+  catalog: ActionCatalog,
+  players: TimelinePlayer[],
+  opening: Opening,
+  weaving: Weaving,
+): PlannedUse[] {
+  const uses = burstUses(timeline, catalog, players, opening, weaving, opening.uses, true);
+  weaving.keep(uses.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
+  for (const p of players.filter((o) => o.job === 'AST')) {
+    const planned = [...opening.uses, ...uses].filter((u) => u.player === p.id && u.action === LIGHTSPEED);
+    // Their other charge, for movement: each of theirs far from the plan's
+    // stays as played (and shows so in the plan's log).
+    const own = timeline.playerCasts.filter(
+      (c) =>
+        c.source === p.id && c.action === LIGHTSPEED && planned.every((u) => Math.abs(u.at - c.at) >= SECOND_CHARGE_MS),
+    );
+    weaving.keep(own.map((c) => ({ player: p.id, at: c.at, gcd: false, castMs: 0 })));
+    weaving.lightspeed(
+      p.id,
+      [...planned, ...own].map((u) => ({ from: u.at, to: u.at + LIGHTSPEED_MS })),
+    );
   }
   return uses;
 }
