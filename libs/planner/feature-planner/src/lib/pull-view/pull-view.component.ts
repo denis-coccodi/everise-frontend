@@ -139,16 +139,22 @@ export class PullViewComponent {
     this.chosen.set(playerId);
   }
 
-  // Into edit mode on the plan's side (narrower screens show one at a time).
+  // Into edit mode on the plan's side (narrower screens show one at a time),
+  // or out of it. It goes by what shows: edit mode left on for a player the
+  // plan no longer replans (planned again without them) reads as off, so
+  // pressing the button plans them and edits, rather than turning it off.
   protected async toggleEditing() {
+    if (this.editing() && this.canEdit()) {
+      this.editing.set(false);
+      return;
+    }
     const [player, { pull, catalog, pullId }] = [this.player(), this.store];
     const id = pullId();
-    if (!this.editing() && !this.canEdit() && player && id && pull.hasValue() && catalog.hasValue()) {
+    if (!this.canEdit() && player && id && pull.hasValue() && catalog.hasValue()) {
       if (!this.plans.replan().includes(player.id)) this.plans.setReplanned(player.id, true);
       await this.plans.run(id, pull.value(), catalog.value());
-      if (!this.canEdit()) return;
     }
-    this.editing.update((on) => !on);
+    this.editing.set(this.canEdit());
     if (this.editing()) this.view.set('plan');
   }
 
