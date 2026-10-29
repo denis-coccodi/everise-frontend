@@ -1,4 +1,4 @@
-import { mechanicsOf } from './mechanics';
+import { mechanicsOf, missingAttacks, referenceDamage } from './mechanics';
 import { pull } from './scheduler-fixtures';
 
 describe('mechanicsOf', () => {
@@ -71,10 +71,33 @@ describe('mechanicsOf', () => {
 
     // The median of the tank's own (120,000, 130,000), not the healer's.
     expect(blocked?.hits).toEqual([
-      { player: 1, unmitigated: 130_000, asPlayed: 0, avoidable: false, estimated: true },
+      { player: 1, unmitigated: 130_000, asPlayed: 0, avoidable: false, estimated: 'pull' },
     ]);
     expect(mechanicsOf(lone)).toEqual([]);
     expect(mechanicsOf(nothing).map((m) => m.at)).toEqual([20_000]);
+  });
+
+  it("takes an attack blocked every time from other groups' kills: their role's, else anyone's", () => {
+    const lone = pull([[60, 'Lone Buster', 1, 0]]);
+    lone.damage[0].unmitigated = null;
+    lone.damage[0].statuses = [82];
+    lone.statuses = [{ id: 82, name: 'Hallowed Ground' }];
+    expect(missingAttacks(lone)).toEqual(['Lone Buster']);
+
+    // Two kills: the tank (1, PLD) took 200,000 and 220,000, the healer 90,000.
+    const kills = [
+      pull([[30, 'Lone Buster', 1, 200_000]]),
+      pull([
+        [40, 'Lone Buster', 1, 220_000],
+        [40, 'Lone Buster', 2, 90_000],
+      ]),
+    ];
+    const references = referenceDamage(kills, ['Lone Buster', 'Never Seen']);
+
+    expect(references).toEqual({ 'Lone Buster': { byRole: { tank: 220_000, healer: 90_000 }, any: 200_000 } });
+    expect(mechanicsOf({ ...lone, references })[0].hits).toEqual([
+      { player: 1, unmitigated: 220_000, asPlayed: 0, avoidable: false, estimated: 'clears' },
+    ]);
   });
 
   it('marks a failed mechanic: many times what the attack does to others, and more than their HP', () => {

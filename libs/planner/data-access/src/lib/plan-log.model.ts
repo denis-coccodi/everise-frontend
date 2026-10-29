@@ -20,8 +20,9 @@ export interface PlanHitEntry {
   avoidable: boolean;
   // A wipe: nobody survives it whatever is used.
   wipe?: boolean;
-  // Its damage estimated: an invulnerability blocked it in the pull.
-  estimated?: boolean;
+  // Its damage estimated (an invulnerability blocked it in the pull): from
+  // the pull's own hits of the attack, or other groups' kills.
+  estimated?: 'pull' | 'clears';
   covers: string[];
   // How hard the attack hits (null: no max HP to tell).
   severity: Severity | null;

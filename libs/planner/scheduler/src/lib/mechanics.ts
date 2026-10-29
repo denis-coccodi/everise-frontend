@@ -1,5 +1,6 @@
 import { PullTimeline, TimelineHit } from '@everise/core/api-types';
 import { Mechanic } from './plan.model';
+import type { ReferenceDamage, ReferencedTimeline } from './reference-damage.model';
 
 // Hits of one attack this close to the first are one mechanic.
 const SAME_MECHANIC_MS = 1000;
@@ -25,12 +26,12 @@ const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking
 // `ignore` says so, or when nothing would save them; the plan covers the
 // rest like any other hit. A raidwide every hit of which is unsurvivable is
 // a wipe (`wipe`): nothing saves anyone, so it's taken as avoided.
-export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] {
+export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mechanic[] {
   const actionName = new Map(timeline.actions.map((action) => [action.id, action.name]));
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
   const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp]));
   const raidwideAt = Math.max(2, Math.ceil(timeline.players.length * 0.75));
-  const estimated = blockedHits(timeline, actionName);
+  const { estimated, fromClears } = blockedHits(timeline, actionName);
   const blocked = new Set(estimated.values());
   const hits = timeline.damage.map((hit) => estimated.get(hit) ?? hit).filter((hit) => isMechanicHit(hit, actionName));
   // By the attack's name: the game gives some variants of one their own ids.
@@ -80,7 +81,7 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
           unmitigated: unmitigated(hit),
           asPlayed: hit.amount,
           ...(fails ? { failed: true } : {}),
-          ...(blocked.has(hit) ? { estimated: true } : {}),
+          ...(blocked.has(hit) ? { estimated: fromClears.has(hit) ? ('clears' as const) : ('pull' as const) } : {}),
           avoidable: wipe || (fails && (ignore || unsurvivable(hit))),
         };
       }),
@@ -100,14 +101,18 @@ export function isMechanicHit(hit: TimelineHit, actionName: Map<number, string>)
 // log has nothing of them, neither damage nor what anything took off. Each
 // gets the attack's usual damage before mitigation in the pull (the median
 // of its other hits): on the same player, else their role's, else anyone's.
-// One the pull has no other hit of stays out, as does a hit of nothing with
-// none of these up (an attack that does nothing to some).
-function blockedHits(timeline: PullTimeline, actionName: Map<number, string>) {
+// One the pull has no other hit of gets what other groups' kills say
+// (`references`: their role's, else anyone's), or stays out (`missing`), as
+// does a hit of nothing with none of these up (an attack that does nothing
+// to some).
+function blockedHits(timeline: ReferencedTimeline, actionName: Map<number, string>) {
   const role = new Map(timeline.players.map((p) => [p.id, p.role]));
   const blocking = new Set(timeline.statuses.filter((s) => BLOCKING.has(s.name)).map((s) => s.id));
   const nameOf = (hit: TimelineHit) => actionName.get(hit.action) ?? String(hit.action);
   const known = timeline.damage.filter((h) => !h.tick && unmitigated(h) > 0);
   const out = new Map<TimelineHit, TimelineHit>();
+  const missing = new Set<string>();
+  const fromClears = new Set<TimelineHit>();
   for (const hit of timeline.damage) {
     if (hit.tick || hit.unmitigated !== null || hit.amount || hit.mitigated || hit.absorbed) continue;
     if (!hit.statuses.some((id) => blocking.has(id))) continue;
@@ -117,7 +122,47 @@ function blockedHits(timeline: PullTimeline, actionName: Map<number, string>) {
       same.filter((h) => role.get(h.target) === role.get(hit.target)),
       same,
     ].find((group) => group.length);
-    if (pick) out.set(hit, { ...hit, unmitigated: median(pick.map(unmitigated)) });
+    const reference = timeline.references?.[nameOf(hit)];
+    const usual = pick
+      ? median(pick.map(unmitigated))
+      : reference && (reference.byRole[role.get(hit.target) ?? ''] ?? reference.any);
+    if (!usual) {
+      missing.add(nameOf(hit));
+      continue;
+    }
+    const estimate = { ...hit, unmitigated: usual };
+    out.set(hit, estimate);
+    if (!pick) fromClears.add(estimate);
+  }
+  return { estimated: out, fromClears, missing };
+}
+
+// The attacks an invulnerability blocked every time they landed in the
+// pull, by name: other groups' kills can say what they do.
+export function missingAttacks(timeline: PullTimeline): string[] {
+  const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
+  return [...blockedHits(timeline, actionName).missing];
+}
+
+// What other groups' kills (`timelines`) say each of `attacks` does before
+// mitigation: the median of its hits per role and on anyone; an attack none
+// of them has a hit of is left out.
+export function referenceDamage(timelines: PullTimeline[], attacks: string[]): ReferenceDamage {
+  const out: ReferenceDamage = {};
+  for (const name of attacks) {
+    const hits = timelines.flatMap((t) => {
+      const role = new Map(t.players.map((p) => [p.id, p.role ?? '']));
+      const ids = new Set(t.actions.filter((a) => a.name === name).map((a) => a.id));
+      return t.damage
+        .filter((h) => ids.has(h.action) && !h.tick && unmitigated(h) > 0)
+        .map((h) => ({ role: role.get(h.target) ?? '', damage: unmitigated(h) }));
+    });
+    if (!hits.length) continue;
+    const byRole: Record<string, number> = {};
+    for (const r of new Set(hits.map((h) => h.role))) {
+      byRole[r] = median(hits.filter((h) => h.role === r).map((h) => h.damage));
+    }
+    out[name] = { byRole, any: median(hits.map((h) => h.damage)) };
   }
   return out;
 }

@@ -58,7 +58,12 @@ export class PlanEntryComponent {
         ? ''
         : `; at ${percent.format(hit.before)} HP, leaves ${percent.format(hit.after)}`;
     // Blocked by an invulnerability as played: the attack's usual damage.
-    const estimated = hit.estimated ? ' (estimated: an invulnerability blocked it)' : '';
+    const estimated =
+      hit.estimated === 'clears'
+        ? " (estimated from other groups' kills: an invulnerability blocked it every time)"
+        : hit.estimated
+          ? ' (estimated: an invulnerability blocked it)'
+          : '';
     return `${taken}${hp}; took ${number.format(hit.asPlayed)} as played${estimated}.`;
   }
 }

@@ -2729,6 +2729,54 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/planner/reports/{code}/pulls/{pullId}/clears': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Other groups' kills of a pull's fight */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          code: string;
+          pullId: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The kills. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['PlannerClearsResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile-images/{id}': {
     parameters: {
       query?: never;
@@ -5123,6 +5171,12 @@ export interface components {
     };
     PlannerAvailableResponse: {
       available: boolean;
+    };
+    PlannerClearsResponse: {
+      clears: {
+        code: string;
+        pullId: number;
+      }[];
     };
     PresentResponse: {
       present: string[];
