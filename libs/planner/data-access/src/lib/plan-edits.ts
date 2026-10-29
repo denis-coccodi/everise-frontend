@@ -23,15 +23,15 @@ export function saveEdits(key: string, edits: PlanEdits) {
   }
 }
 
-// What an edit did when the plan after it leaves hits short that the one
-// before didn't; empty when it doesn't.
+// What the user's edits did when the plan with them leaves hits short that
+// the one without them (`before`) doesn't; empty when it doesn't.
 export function editWarning(before: Plan | null, after: Plan | null): string {
   const shortBefore = new Set(unsafe(before));
   const newly = unsafe(after).filter((k) => !shortBefore.has(k));
   if (!newly.length) return '';
   const named = [...new Set(newly.map((k) => mechanicLabel(after, k)))];
-  const hits = newly.length === 1 ? 'hit falls' : 'hits fall';
-  return `This placement may be wrong: ${newly.length} more ${hits} short now (${named.join(', ')}).`;
+  const hits = newly.length === 1 ? 'hit' : 'hits';
+  return `Your edits leave ${newly.length} more ${hits} short than the plan without them (${named.join(', ')}).`;
 }
 
 // A plan's hits short of the margin, as "<mechanic>:<player>".

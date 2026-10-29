@@ -18,6 +18,27 @@ describe('PlanStore', () => {
     expect(store.edits().added).toEqual([first, skill]);
   });
 
+  it('warns of what the edits leave short against the plan without them, not the step before', async () => {
+    const store = setup();
+    const [timeline, catalog] = [pullTimeline(), actionCatalog()];
+    await store.run(1, timeline, catalog);
+    const original = store.plan();
+    const rampart = original?.uses.find((u) => u.action === 7531);
+    expect(rampart).toBeDefined();
+
+    // Out of its place: compared with the original plan.
+    await store.removeSkill(1, timeline, catalog, { player: rampart!.player, action: 7531, at: rampart!.at });
+    expect(store.basePlan()).toBe(original);
+    const removedOnly = store.editWarning();
+    // Then elsewhere: still against the original, which isn't planned again.
+    await store.addSkill(1, timeline, catalog, { player: rampart!.player, action: 7531, at: 5_000 });
+    expect(store.basePlan()).toBe(original);
+    expect(typeof removedOnly).toBe('string');
+    // All undone: nothing to warn of.
+    await store.resetEdits(1, timeline, catalog);
+    expect(store.editWarning()).toBe('');
+  });
+
   it('undoes one edit, keeping the others, and plans the pull again', async () => {
     const store = setup();
     const [timeline, catalog] = [pullTimeline(), actionCatalog()];
