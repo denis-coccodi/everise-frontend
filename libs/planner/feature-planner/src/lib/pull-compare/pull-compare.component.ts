@@ -9,6 +9,7 @@ import {
   TIER_NAMES,
   compareLog,
   pullClockTenths,
+  type PickedSkill,
 } from '@everise/planner/data-access';
 import { ButtonComponent } from '@everise/ui/components';
 import { EditPickerComponent } from '../edit-picker/edit-picker.component';
@@ -46,11 +47,11 @@ export class PullCompareComponent {
   readonly party = input<{ id: number; name: string }[]>([]);
   readonly defaultTarget = input<number | null>(null);
   readonly removed = output<PlanUseEntry>();
-  readonly added = output<{ at: number; action: number; target: number | null }>();
+  readonly added = output<PickedSkill>();
   // The row whose picker is open.
   protected readonly picking = signal<number | null>(null);
 
-  protected add(skill: { at: number; action: number; target: number | null }) {
+  protected add(skill: PickedSkill) {
     this.picking.set(null);
     this.added.emit(skill);
   }
