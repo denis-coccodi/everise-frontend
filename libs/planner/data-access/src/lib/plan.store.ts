@@ -2,7 +2,7 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { Favour, InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
-import { editWarning, editsKey, NO_EDITS, saveEdits, storedEdits } from './plan-edits';
+import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits } from './plan-edits';
 import type { FailedMechanics, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
@@ -38,10 +38,14 @@ interface PlanState {
   openers: Record<number, OpenerId>;
   invulnerabilityOptions: InvulnerabilityOptions | null;
   // The user's edits to the pull's plan, the key they're remembered by, and
-  // what the last one did when it left more hits short.
+  // the hits they leave short that the plan without them doesn't.
   edits: PlanEdits;
   editsKey: string;
   editWarning: string;
+  // The plan without the edits, and the options it was made with, to
+  // compare against (made again only when those change).
+  basePlan: Plan | null;
+  baseKey: string;
   // The last plan, and the pull it's for.
   plan: Plan | null;
   pullId: number | null;
@@ -67,6 +71,8 @@ export const PlanStore = signalStore(
     edits: NO_EDITS,
     editsKey: '',
     editWarning: '',
+    basePlan: null,
+    baseKey: '',
     plan: null,
     pullId: null,
     planning: false,
@@ -91,27 +97,37 @@ export const PlanStore = signalStore(
       }
       patchState(store, { replan: playerIds });
     };
-    // Plans the pull with the options set.
+    // Plans the pull with the options set, and with the user's edits, says
+    // what they leave short that the plan without them doesn't: a move (out
+    // of one place, into another) reads as one change, whatever the steps.
     const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
       patchState(store, { planning: true, error: '', editWarning: '' });
       try {
         const scheduler = await store._scheduler();
-        const plan = scheduler.plan(timeline, catalog, {
+        const options = {
           margin: store.margin() / 100,
           failedMechanics: store.failedMechanics(),
           replan: store.replan(),
           favour: store.favour(),
           lightspeed: store.lightspeed(),
           openers: store.openers(),
-          edits: store.edits(),
-        });
-        patchState(store, { plan, pullId, planning: false });
+        };
+        const edits = store.edits();
+        const plan = scheduler.plan(timeline, catalog, { ...options, edits });
+        const baseKey = JSON.stringify({ pullId, ...options });
+        const edited = edits.added.length + edits.removed.length > 0;
+        const basePlan = !edited
+          ? plan
+          : store.baseKey() === baseKey
+            ? store.basePlan()
+            : scheduler.plan(timeline, catalog, options);
+        const editWarning = edited ? editWarningFor(basePlan, plan) : '';
+        patchState(store, { plan, pullId, planning: false, basePlan, baseKey, editWarning });
       } catch {
         patchState(store, { planning: false, error: LOAD_ERROR });
       }
     };
-    // An edit, saved for the pull, then the plan again: the hits it leaves
-    // short that weren't before.
+    // An edit, saved for the pull, then the plan again.
     const edited = async (
       pullId: number,
       timeline: PullTimeline,
@@ -120,10 +136,8 @@ export const PlanStore = signalStore(
     ) => {
       const edits = change(store.edits());
       saveEdits(store.editsKey(), edits);
-      const before = store.plan();
       patchState(store, { edits });
       await run(pullId, timeline, catalog);
-      patchState(store, { editWarning: editWarning(before, store.plan()) });
     };
     return {
       setMargin(margin: number) {
@@ -205,7 +219,6 @@ export const PlanStore = signalStore(
       },
       async resetEdits(pullId: number, timeline: PullTimeline, catalog: ActionCatalog) {
         await edited(pullId, timeline, catalog, () => NO_EDITS);
-        patchState(store, { editWarning: '' });
       },
     };
   }),

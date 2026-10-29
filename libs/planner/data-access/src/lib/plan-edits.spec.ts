@@ -13,10 +13,10 @@ describe("an edit's warning", () => {
 
   it('says which hits the edit left short that were safe before', () => {
     expect(editWarning(plan([]), plan([1, 2]))).toBe(
-      'This placement may be wrong: 2 more hits fall short now (3:14 Killer Voice, 5:40 Blast Beat).',
+      'Your edits leave 2 more hits short than the plan without them (3:14 Killer Voice, 5:40 Blast Beat).',
     );
     expect(editWarning(plan([1]), plan([1, 2]))).toBe(
-      'This placement may be wrong: 1 more hit falls short now (5:40 Blast Beat).',
+      'Your edits leave 1 more hit short than the plan without them (5:40 Blast Beat).',
     );
   });
 
