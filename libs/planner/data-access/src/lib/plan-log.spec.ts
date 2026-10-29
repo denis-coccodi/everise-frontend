@@ -110,6 +110,25 @@ describe('planLog', () => {
     ]);
   });
 
+  it('keeps an attack that heals too as played, not as a dropped heal', () => {
+    const catalog = actionCatalog();
+    const blade = catalog.actions.find((a) => a.id === 9);
+    const adlo = catalog.actions.find((a) => a.name === 'Adloquium');
+    // Fast Blade made to heal its user, as Confiteor does.
+    Object.assign(blade ?? {}, {
+      gcd: true,
+      effects: adlo?.effects.slice(0, 1) ?? [],
+      description: 'Deals physical damage.',
+    });
+
+    const log = planLog({ ...plan, replanned: [1] }, pullTimeline(), 1, catalog);
+
+    expect(log.find((e) => e.kind === 'use' && e.at === 62_000)).toEqual(
+      expect.objectContaining({ action: 'Fast Blade', attack: true, kept: 'Damage' }),
+    );
+    expect(log.some((e) => e.kind === 'use' && e.instead)).toBe(false);
+  });
+
   it('shows their first GCD when they cast it in the countdown', () => {
     // Landing at 0.8s, 1.5s before the next (their GCD: 2.3s).
     const catalog = actionCatalog();

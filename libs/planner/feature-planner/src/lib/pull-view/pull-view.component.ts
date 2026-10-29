@@ -123,10 +123,11 @@ export class PullViewComponent {
       ? planLog(plan, pull.value(), player.id, catalog.hasValue() ? catalog.value() : undefined)
       : null;
   });
-  // Editing the plan by hand: a replanned player's, once the pull is planned.
+  // Editing the plan by hand: a player the plan replanned. Asked for
+  // anyone else (or before planning), they're ticked and the pull planned.
   protected readonly editing = signal(false);
   protected readonly canEdit = computed(
-    () => !!this.planned() && this.plans.replan().includes(this.player()?.id ?? -1),
+    () => !!this.planned() && !!this.plans.plan()?.replanned?.includes(this.player()?.id ?? -1),
   );
   protected readonly editor = planEditor(this.store, this.plans, this.player);
   protected readonly loading = computed(() => this.store.pull.isLoading() || this.store.catalog.isLoading());
@@ -139,7 +140,14 @@ export class PullViewComponent {
   }
 
   // Into edit mode on the plan's side (narrower screens show one at a time).
-  protected toggleEditing() {
+  protected async toggleEditing() {
+    const [player, { pull, catalog, pullId }] = [this.player(), this.store];
+    const id = pullId();
+    if (!this.editing() && !this.canEdit() && player && id && pull.hasValue() && catalog.hasValue()) {
+      if (!this.plans.replan().includes(player.id)) this.plans.setReplanned(player.id, true);
+      await this.plans.run(id, pull.value(), catalog.value());
+      if (!this.canEdit()) return;
+    }
     this.editing.update((on) => !on);
     if (this.editing()) this.view.set('plan');
   }
