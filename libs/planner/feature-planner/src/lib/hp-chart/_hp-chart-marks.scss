@@ -11,7 +11,7 @@
 }
 
 // A mark: a death as played (a cross), a hit short with the plan (a dot in
-// the danger colour), a failed mechanic taken as avoided (a ring).
+// the danger colour), a failed mechanic taken as avoided or a wipe (a ring).
 .mark {
   position: absolute;
   width: 0.6rem;
@@ -24,7 +24,8 @@
     background: var(--color-danger);
   }
 
-  &.avoided {
+  &.avoided,
+  &.wipe {
     border: 2px solid var(--color-chart-1);
     background: var(--color-surface);
   }

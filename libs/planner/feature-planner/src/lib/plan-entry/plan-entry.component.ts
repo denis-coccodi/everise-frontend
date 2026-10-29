@@ -34,6 +34,7 @@ export class PlanEntryComponent {
 
   // What the plan has up for a hit.
   protected covered(hit: PlanHitEntry) {
+    if (hit.wipe) return 'Not planned for: nothing saves anyone from it';
     if (hit.avoidable) return 'Not planned for: the plan takes it as avoided';
     const failed = hit.failed ? 'A failed mechanic, planned for anyway. ' : '';
     if (hit.covers.length) return `${failed}Covered by ${hit.covers.join(', ')}`;
@@ -43,6 +44,9 @@ export class PlanEntryComponent {
   // "Takes 40,000 of 100,000 (45% of max HP), 20,000 shielded; at 90% HP,
   // leaves 45%; took 52,000 as played."
   protected detail(hit: PlanHitEntry) {
+    if (hit.wipe) {
+      return `A wipe: ${number.format(hit.unmitigated)} before mitigation, many times anyone's HP; took ${number.format(hit.asPlayed)} as played.`;
+    }
     if (hit.avoidable) {
       return `A failed mechanic: ${number.format(hit.unmitigated)} before mitigation, more than their HP; took ${number.format(hit.asPlayed)} as played.`;
     }

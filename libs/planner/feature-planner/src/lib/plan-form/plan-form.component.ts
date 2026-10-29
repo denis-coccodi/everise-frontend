@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
 import { InputErrorsComponent } from '@everise/core/forms';
-import { MARGIN_RANGE, PlanStore, PlannerStore, unsafeHits } from '@everise/planner/data-access';
+import { MARGIN_RANGE, PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
 import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
 // Planning the pull open, for everyone: the HP margin to keep, who to
@@ -47,9 +47,17 @@ export class PlanFormComponent {
     if (!plan) return '';
     const margin = this.plans.margin();
     const short = unsafeHits(plan);
-    const failed = plan.hits.filter((h) => h.avoidable).length;
+    const wipes = new Set(plan.mechanics.filter((m) => m.wipe).map((m) => m.id));
+    const failed = plan.hits.filter((h) => h.avoidable && !wipes.has(h.mechanic)).length;
     const covered = plan.mechanics.flatMap((m) => m.hits).filter((h) => h.failed && !h.avoidable).length;
+    const wiped = plan.mechanics
+      .filter((m) => m.wipe)
+      .map((m) => `${m.name} at ${pullClock(m.at)}`)
+      .filter((x, i, all) => all.indexOf(x) === i);
     const avoided =
+      (wiped.length
+        ? ` Left out, as nothing saves anyone from ${wiped.length === 1 ? 'it' : 'them'}: ${wiped.join(', ')}.`
+        : '') +
       (failed
         ? ` ${failed} ${failed === 1 ? 'hit is a failed mechanic' : 'hits are failed mechanics'}, taken as avoided.`
         : '') +

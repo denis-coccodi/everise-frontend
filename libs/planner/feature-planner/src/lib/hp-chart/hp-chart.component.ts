@@ -129,6 +129,7 @@ export class HpChartComponent {
     if (mark.kind === 'death') return `Died at ${when}, as played`;
     const attack = `${mark.action}${mark.tier ? ` (${TIER_NAMES[mark.tier]})` : ''}, ${when}`;
     if (mark.kind === 'avoided') return `${attack}: a failed mechanic, taken as avoided`;
+    if (mark.kind === 'wipe') return `${attack}: a wipe nobody survives, not planned for`;
     return `${attack}: short with the plan, ${percent.format(mark.share)} left`;
   }
 
