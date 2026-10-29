@@ -45,16 +45,23 @@
                 cdtButton="outline-primary"
                 size="sm"
                 [attr.aria-pressed]="editing() && canEdit()"
-                [disabled]="plans.planning()"
+                [attr.aria-describedby]="canEdit() ? null : 'planner-edit-note'"
+                [disabled]="!canEdit() || plans.planning()"
                 (click)="toggleEditing()"
               >
-                {{ editing() && canEdit() ? 'Done editing' : plans.planning() ? 'Planning…' : 'Edit plan' }}
+                {{ editing() && canEdit() ? 'Done editing' : 'Edit plan' }}
               </button>
               <!-- Saved edits show before the pull is planned again (a reload). -->
               @if (editor.count()) {
                 <button type="button" cdtButton="outline-secondary" size="sm" (click)="editor.reset()">
                   Reset my edits ({{ editor.count() }})
                 </button>
+              }
+              @if (!canEdit()) {
+                <!-- Editing needs a plan with them in it: planning stays the user's to start. -->
+                <p class="edit-note" id="planner-edit-note">
+                  Plan the pull with {{ p.name }} ticked to edit their plan.
+                </p>
               }
             </div>
             @if (canEdit()) {
