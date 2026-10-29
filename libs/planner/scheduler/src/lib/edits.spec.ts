@@ -25,6 +25,13 @@ describe("the user's edits to a plan", () => {
     expect(paladin(p).filter(([name]) => name === 'Sentinel')).toHaveLength(1);
   });
 
+  it('leaves out the edits of a player planned as they played', () => {
+    const edits = { added: [{ player: 1, action: SENTINEL, at: 20_000 }], removed: [] };
+    const asPlayed = new PlannerScheduler().plan(timeline(), catalog(), { margin: 0.1, edits, replan: [2] });
+
+    expect(asPlayed.uses.some((u) => u.edited)).toBe(false);
+  });
+
   it('says what an added skill covers, as the planner’s do', () => {
     // Sentinel (15s) 10s before the buster at 60s covers it; at 20s, nothing.
     const near = plan({ added: [{ player: 1, action: SENTINEL, at: 50_000 }], removed: [] });
