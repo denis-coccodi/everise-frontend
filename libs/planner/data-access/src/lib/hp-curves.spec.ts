@@ -68,7 +68,17 @@ describe('hpCurves', () => {
       { at: 0, share: 1 },
       { at: 65_000, share: 0.75 },
     ]);
-    expect(healer?.marks).toContainEqual({ at: 200_000, share: 0.055, kind: 'short', action: 'Wall' });
+    // Wall isn't an attack of the log's: no tier.
+    expect(healer?.marks).toContainEqual({ at: 200_000, share: 0.055, kind: 'short', action: 'Wall', tier: null });
+  });
+
+  it('gives how hard each boss attack on them hits, once per attack, not the ticks', () => {
+    const healer = hpCurves(timeline(), null).find((c) => c.name === 'Heal Main');
+
+    expect(healer?.hits).toEqual([
+      { at: 65_000, action: 'Killer Voice', tier: 'moderate' },
+      { at: 200_000, action: 'Killer Voice', tier: 'moderate' },
+    ]);
   });
 
   it('reads a curve at a moment, and its lowest point', () => {

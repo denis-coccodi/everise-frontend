@@ -37,3 +37,67 @@
       linear-gradient(-45deg, transparent 40%, var(--color-contrast) 40% 60%, transparent 60%);
   }
 }
+
+// The boss attacks under a plot, and their key: a tick in its tier's colour,
+// taller the harder it hits (--tier-share of the tallest), so the colour
+// isn't all that tells them apart.
+.tiers {
+  position: relative;
+  height: 0.6rem;
+}
+
+.tier {
+  display: inline-block;
+  width: 2px;
+  height: calc(100% * var(--tier-share));
+  background: var(--color-severity-light);
+  --tier-share: 0.3;
+
+  .tiers & {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+  }
+
+  &.moderate {
+    background: var(--color-severity-moderate);
+    --tier-share: 0.45;
+  }
+
+  &.heavy {
+    background: var(--color-severity-heavy);
+    --tier-share: 0.6;
+  }
+
+  &.lethal {
+    background: var(--color-severity-lethal);
+    --tier-share: 0.8;
+  }
+
+  &.overkill {
+    background: var(--color-severity-overkill);
+    --tier-share: 1;
+  }
+}
+
+.tier-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  color: var(--color-contrast-soft);
+  font-size: 0.85rem;
+
+  .item {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.3rem;
+  }
+
+  // A bar 0.8rem at its tallest.
+  .tier {
+    width: 0.3rem;
+    height: calc(0.8rem * var(--tier-share));
+  }
+}

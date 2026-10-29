@@ -1,5 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { HpCurve, HpPoint, lowest, lowestPerBucket, pullClock, shareAt } from '@everise/planner/data-access';
+import {
+  HpCurve,
+  HpPoint,
+  TIER_NAMES,
+  lowest,
+  lowestPerBucket,
+  pullClock,
+  shareAt,
+} from '@everise/planner/data-access';
+import type { SeverityTier } from '@everise/planner/scheduler';
 import { ButtonComponent, CheckboxComponent } from '@everise/ui/components';
 
 // The plot's drawing box; the SVG stretches it to the panel's size.
@@ -17,7 +26,8 @@ const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionD
 // The party's HP over the pull, a panel per member on one time axis: as
 // played (grey) and with the plan (the accent), as shares of max HP, the
 // margin a line across. Marks show a death as played, a hit the plan leaves
-// short and a failed mechanic it takes as avoided. Either line, and each
+// short and a failed mechanic it takes as avoided; ticks under each plot,
+// the boss attacks on them by tier (taller and darker the harder). Either line, and each
 // member, can be hidden. A cursor shared by every panel (the pointer, or
 // the arrow keys: the plot is a slider) says each member's HP then; without
 // it, each panel says its lowest, so the chart reads without seeing it.
@@ -117,9 +127,17 @@ export class HpChartComponent {
   protected markText(mark: HpCurve['marks'][number]) {
     const when = pullClock(mark.at);
     if (mark.kind === 'death') return `Died at ${when}, as played`;
-    if (mark.kind === 'avoided') return `${mark.action}, ${when}: a failed mechanic, taken as avoided`;
-    return `${mark.action}, ${when}: short with the plan, ${percent.format(mark.share)} left`;
+    const attack = `${mark.action}${mark.tier ? ` (${TIER_NAMES[mark.tier]})` : ''}, ${when}`;
+    if (mark.kind === 'avoided') return `${attack}: a failed mechanic, taken as avoided`;
+    return `${attack}: short with the plan, ${percent.format(mark.share)} left`;
   }
+
+  protected hitText(hit: HpCurve['hits'][number]) {
+    return `${hit.action}, ${pullClock(hit.at)}: ${TIER_NAMES[hit.tier]}`;
+  }
+
+  protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
+  protected readonly TIER_NAMES = TIER_NAMES;
 
   protected point(event: PointerEvent) {
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect();

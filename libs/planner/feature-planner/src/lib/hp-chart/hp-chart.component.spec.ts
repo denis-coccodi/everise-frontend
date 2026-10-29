@@ -18,6 +18,7 @@ describe('HpChartComponent', () => {
       ],
       mp: null,
       marks: [],
+      hits: [{ at: 60_000, action: 'Buster', tier: 'lethal' }],
     },
     {
       id: 2,
@@ -38,8 +39,9 @@ describe('HpChartComponent', () => {
       ],
       marks: [
         { at: 120_000, share: 0, kind: 'death', action: null },
-        { at: 120_000, share: 0.05, kind: 'short', action: 'Wall' },
+        { at: 120_000, share: 0.05, kind: 'short', action: 'Wall', tier: 'heavy' },
       ],
+      hits: [],
     },
   ];
 
@@ -77,7 +79,24 @@ describe('HpChartComponent', () => {
 
     expect([...host.querySelectorAll('.panel ul li')].map((li) => li.textContent?.trim())).toEqual([
       'Died at 2:00, as played',
-      'Wall, 2:00: short with the plan, 5% left',
+      'Wall (Heavy), 2:00: short with the plan, 5% left',
+    ]);
+  });
+
+  it('ticks the boss attacks under each plot by tier, with a key', () => {
+    const { host } = render();
+    const ticks = [...host.querySelectorAll<HTMLElement>('.tiers .tier')];
+
+    // At 1:00 of the 3:00 the chart spans.
+    expect(ticks.map((t) => [t.classList.contains('lethal'), t.title, parseFloat(t.style.left).toFixed(1)])).toEqual([
+      [true, 'Buster, 1:00: Lethal', '33.3'],
+    ]);
+    expect([...host.querySelectorAll('.tier-key .item')].map((i) => i.textContent?.trim())).toEqual([
+      'Light',
+      'Moderate',
+      'Heavy',
+      'Lethal',
+      'Overkill',
     ]);
   });
 
