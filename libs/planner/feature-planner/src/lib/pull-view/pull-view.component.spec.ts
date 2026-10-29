@@ -12,6 +12,15 @@ describe('PullViewComponent', () => {
     expect(document.activeElement?.tagName).not.toBe('CDT-PLANNER-PULL-VIEW');
   });
 
+  it('waits for a plan with the player in it before editing, and says so', async () => {
+    const { page } = await renderPull();
+    const edit = page.querySelector<HTMLButtonElement>('.edit-bar button');
+    expect(edit?.textContent?.trim()).toBe('Edit plan');
+    expect(edit?.disabled).toBe(true);
+    expect(page.querySelector('#planner-edit-note')?.textContent?.trim()).toBe(
+      'Plan the pull with Tank Main ticked to edit their plan.',
+    );
+  });
   it("shows another player's pull from their tab", async () => {
     const { page, fixture } = await renderPull();
 

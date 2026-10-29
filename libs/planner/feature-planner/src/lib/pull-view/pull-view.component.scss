@@ -99,5 +99,13 @@ cdt-planner-plan-view.shown {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  align-items: center;
   margin: 0.25rem 0 0.75rem;
+}
+
+// Why "Edit plan" waits: no plan with the player in it yet.
+.edit-note {
+  margin: 0;
+  color: var(--color-contrast-muted);
+  font-size: 0.85rem;
 }
