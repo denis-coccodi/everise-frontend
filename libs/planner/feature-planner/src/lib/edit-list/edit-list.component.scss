@@ -1,0 +1,37 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: block;
+}
+
+.edits {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border: var(--border-width) solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+}
+
+h4 {
+  margin: 0 0 0.5rem;
+  color: var(--color-label);
+  font-size: 0.8rem;
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The edit, then its Undo: side by side, or the button below on a phone.
+li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}

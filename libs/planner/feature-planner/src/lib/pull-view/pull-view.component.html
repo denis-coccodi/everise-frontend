@@ -56,6 +56,9 @@
                   </button>
                 }
               </div>
+              @if (editing() && editor.items().length) {
+                <cdt-planner-edit-list [items]="editor.items()" (undone)="editor.undo($event)" />
+              }
               <cdt-message tone="warning">{{ plans.editWarning() }}</cdt-message>
             }
             <cdt-planner-pull-compare

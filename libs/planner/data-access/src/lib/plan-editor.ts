@@ -1,6 +1,7 @@
 import { computed, type Signal } from '@angular/core';
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
 import { editChoices, editSlots } from '@everise/planner/scheduler';
+import type { EditItem } from './edit-list.model';
 import type { PlanUseEntry } from './plan-log.model';
 import type { PlanStore } from './plan.store';
 import type { PlannerStore } from './planner.store';
@@ -8,7 +9,7 @@ import type { PlannerStore } from './planner.store';
 // Editing the plan by hand, for the player whose tab is open: where a skill
 // can go near a moment and which fit there, and each change (a skill
 // added, on whoever the user picked when it goes on one; one taken out;
-// all undone), which plans the pull again.
+// one undone, or all of them), which plans the pull again.
 export function planEditor(
   store: InstanceType<typeof PlannerStore>,
   plans: InstanceType<typeof PlanStore>,
@@ -21,6 +22,27 @@ export function planEditor(
   };
   return {
     count: computed(() => plans.edits().added.length + plans.edits().removed.length),
+    // The open player's edits, in time order, named.
+    items: computed((): EditItem[] => {
+      const [p, { pull, catalog }] = [player(), store];
+      if (!p) return [];
+      const actions = new Map(catalog.hasValue() ? catalog.value().actions.map((a) => [a.id, a]) : []);
+      const names = new Map(pull.hasValue() ? pull.value().players.map((x) => [x.id, x.name]) : []);
+      const { added, removed } = plans.edits();
+      return [
+        ...added.map((edit) => ({ kind: 'added' as const, edit })),
+        ...removed.map((edit) => ({ kind: 'removed' as const, edit })),
+      ]
+        .filter(({ edit }) => edit.player === p.id)
+        .sort((a, b) => a.edit.at - b.edit.at)
+        .map(({ kind, edit }) => ({
+          kind,
+          edit,
+          action: actions.get(edit.action)?.name ?? 'Unknown',
+          icon: actions.get(edit.action)?.icon ?? null,
+          target: kind === 'added' ? (names.get(edit.target ?? -1) ?? null) : null,
+        }));
+    }),
     slotsFor: computed(() => {
       const [p, { pull, catalog }] = [player(), store];
       if (!p || !pull.hasValue() || !catalog.hasValue()) return () => [];
@@ -48,6 +70,9 @@ export function planEditor(
       if (!p || !entry.id) return;
       const use = { player: p.id, action: entry.id, at: entry.at, edited: entry.edited };
       edit((id, t, c) => plans.removeSkill(id, t, c, use));
+    },
+    undo(item: EditItem) {
+      edit((id, t, c) => plans.undoEdit(id, t, c, item.kind, item.edit));
     },
     reset() {
       edit((id, t, c) => plans.resetEdits(id, t, c));

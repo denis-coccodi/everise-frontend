@@ -1,0 +1,19 @@
+<section class="edits" aria-labelledby="planner-edits-title">
+  <h4 id="planner-edits-title">Your edits</h4>
+  <ul>
+    @for (item of items(); track $index) {
+      <li>
+        <span
+          >{{ item.kind === 'added' ? 'Added' : 'Removed' }}{{ ' '
+          }}<cdt-planner-action-name [name]="item.action" [icon]="item.icon" />{{ ' ' }}at {{ clock(item.edit.at)
+          }}{{ item.target ? ' on ' + item.target : '' }}</span
+        >
+        <button type="button" cdtButton="outline-secondary" size="sm" (click)="undone.emit(item)">
+          Undo<span class="visually-hidden">
+            {{ item.kind === 'added' ? 'adding' : 'removing' }} {{ item.action }} at {{ clock(item.edit.at) }}</span
+          >
+        </button>
+      </li>
+    }
+  </ul>
+</section>

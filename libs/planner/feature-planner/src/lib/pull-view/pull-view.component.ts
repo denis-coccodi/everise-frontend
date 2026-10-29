@@ -28,6 +28,7 @@ import {
   TabComponent,
   TabsComponent,
 } from '@everise/ui/components';
+import { EditListComponent } from '../edit-list/edit-list.component';
 import { HpChartComponent } from '../hp-chart/hp-chart.component';
 import { PlanFormComponent } from '../plan-form/plan-form.component';
 import { PlanViewComponent } from '../plan-view/plan-view.component';
@@ -45,6 +46,7 @@ import { PullCompareComponent } from '../pull-compare/pull-compare.component';
   imports: [
     ButtonComponent,
     CheckboxComponent,
+    EditListComponent,
     HpChartComponent,
     MessageComponent,
     PanelComponent,

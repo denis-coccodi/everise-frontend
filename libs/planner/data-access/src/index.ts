@@ -12,6 +12,7 @@ export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';
 export type { FailedMechanics, PlanPlayer } from './lib/plan.model';
 export type { PlanEntry, PlanGcdEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';
 export type { CompareRow } from './lib/compare-log.model';
+export type { EditItem } from './lib/edit-list.model';
 export type { EncounterPulls } from './lib/planner.model';
 export type { DeathEntry, HitEntry, LogEntry, UseEntry } from './lib/player-log.model';
 export type { ReportLink } from './lib/report-link.model';

@@ -175,8 +175,8 @@ export const PlanStore = signalStore(
       run,
       // A skill the user puts in the plan, or takes out (one they added
       // comes out of their edits; a planned one isn't planned there again),
-      // or all their edits undone; each plans the pull again, saying so when
-      // it leaves more hits short than before.
+      // or one of their edits or all of them undone; each plans the pull
+      // again, saying so when it leaves more hits short than before.
       async addSkill(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, added: PlanEdit) {
         await edited(pullId, timeline, catalog, (e) => ({ ...e, added: [...e.added, added] }));
       },
@@ -193,6 +193,15 @@ export const PlanStore = signalStore(
             ? { ...e, added: e.added.filter((a) => !same(a)) }
             : { ...e, removed: [...e.removed, { player, action, at }] },
         );
+      },
+      async undoEdit(
+        pullId: number,
+        timeline: PullTimeline,
+        catalog: ActionCatalog,
+        kind: keyof PlanEdits,
+        edit: PlanEdit,
+      ) {
+        await edited(pullId, timeline, catalog, (e) => ({ ...e, [kind]: e[kind].filter((x) => x !== edit) }));
       },
       async resetEdits(pullId: number, timeline: PullTimeline, catalog: ActionCatalog) {
         await edited(pullId, timeline, catalog, () => NO_EDITS);
