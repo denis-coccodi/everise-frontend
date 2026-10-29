@@ -14,12 +14,12 @@ import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
 import { Weaving, WEAVE_MS } from './weaving';
 import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
-import { AUTOMATIC, mitigationTools, withGrantedCovers } from './tools';
+import { mitigationTools, notAutomatic, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
 import { fairyPotency, fairyPower, scholarsFairy } from './fairy-heals';
 import { burstActions, burstUses, placeLightspeed } from './burst';
-import { addedUses, keptInvulnerabilities, notRemoved } from './edits';
+import { addedUses, keptInvulnerabilities, notRemoved, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
@@ -229,7 +229,7 @@ export class PlannerScheduler {
     );
     const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed, ...thinAir];
     const burst = [...lightspeed, ...burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken)];
-    const own = withGrantedCovers(best.uses).filter((u) => !AUTOMATIC.has(u.action));
+    const own = withAddedCovers(withGrantedCovers(best.uses), mechanics, catalog).filter(notAutomatic);
     const uses = [...own, ...drains, ...burst, ...rhizomata, ...thinAir].sort(
       (a, b) => a.at - b.at || a.player - b.player,
     );

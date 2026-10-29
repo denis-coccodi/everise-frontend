@@ -119,6 +119,7 @@ export function withGrantedCovers(uses: PlannedUse[]): PlannedUse[] {
 // What a pet casts on its own, never ordered (Seraphic Veil): the plan
 // works it out with the fairy's other healing (fairy-heals.ts).
 export const AUTOMATIC = new Set([SERAPHIC_VEIL]);
+export const notAutomatic = (u: { action: number }) => !AUTOMATIC.has(u.action);
 
 // Shields an action copies from another's to the whole party, by action:
 // Deployment Tactics, an Adloquium's Galvanize (for what's left of it; the

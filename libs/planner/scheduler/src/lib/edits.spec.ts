@@ -25,6 +25,16 @@ describe("the user's edits to a plan", () => {
     expect(paladin(p).filter(([name]) => name === 'Sentinel')).toHaveLength(1);
   });
 
+  it('says what an added skill covers, as the planner’s do', () => {
+    // Sentinel (15s) 10s before the buster at 60s covers it; at 20s, nothing.
+    const near = plan({ added: [{ player: 1, action: SENTINEL, at: 50_000 }], removed: [] });
+    const far = plan({ added: [{ player: 1, action: SENTINEL, at: 20_000 }], removed: [] });
+    const sentinel = (p: ReturnType<typeof plan>) => p.uses.find((u) => u.action === SENTINEL && u.edited);
+
+    expect(sentinel(near)?.covers.map((id) => near.mechanics.find((m) => m.id === id)?.name)).toEqual(['Buster']);
+    expect(sentinel(far)?.covers).toEqual([]);
+  });
+
   it("doesn't plan a removed skill where it was again, but may elsewhere", () => {
     const before = plan();
     const rampart = before.uses.find((u) => u.player === 1 && u.action === RAMPART);
