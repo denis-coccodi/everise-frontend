@@ -76,6 +76,12 @@ export function keptInvulnerabilities(
 export const notRemoved = (edits: PlanEdits | undefined) => (u: PlannedUse) =>
   !edits?.removed.some((r) => sameUse(u, r));
 
+// The edits of the players being replanned: a player planned as they
+// played keeps their log, so their edits wait until they're replanned again.
+export function ownEdits(edits: PlanEdits | undefined, replanned: (e: PlanEdit) => boolean): PlanEdits | undefined {
+  return edits && { added: edits.added.filter(replanned), removed: edits.removed.filter(replanned) };
+}
+
 // The user's added skills, as uses the plan keeps where they are.
 export function addedUses(edits: PlanEdits | undefined, catalog: ActionCatalog): PlannedUse[] {
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));

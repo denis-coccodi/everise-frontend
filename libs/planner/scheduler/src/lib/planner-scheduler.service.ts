@@ -19,7 +19,7 @@ import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
 import { fairyPotency, fairyPower, scholarsFairy } from './fairy-heals';
 import { burstActions, burstUses, placeLightspeed } from './burst';
-import { addedUses, keptInvulnerabilities, notRemoved, withAddedCovers } from './edits';
+import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
@@ -37,9 +37,8 @@ export class PlannerScheduler {
   // cooldowns allow. The mitigations are planned first as if every hit
   // landed at full HP; where a hit is still short, again around the HP the
   // heals leave it, then the heals again, as long as that makes the plan
-  // better. Only the players `asked` to replan are planned, the others as
-  // they played; the tanks' invulnerabilities go where `asked` says, or
-  // where the pull had them.
+  // better. Only the players `asked` to replan are planned, with their
+  // edits; the others as they played.
   plan(timeline: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     // The actions as the pull's level has them (its traits).
     const level = pullLevel(timeline);
@@ -47,6 +46,7 @@ export class PlannerScheduler {
     const maxHp = new Map<number, number>();
     for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player);
+    const edits = ownEdits(asked.edits, replanned);
     const power = healPower(timeline, catalog);
     // A replanned player starts with their opener (the standard one unless
     // asked otherwise): a scholar's says when their Aetherflow stacks come
@@ -57,7 +57,7 @@ export class PlannerScheduler {
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
     const { dissipations } = opening;
     const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
-    const opened = toolWindows(timeline, opening, asked.edits, mechanics);
+    const opened = toolWindows(timeline, opening, edits, mechanics);
     // A scholar's fairy orders wait for her while Dissipation has her away;
     // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
     const mitigation = opened(mitigationTools(timeline.players, catalog, power));
@@ -66,9 +66,9 @@ export class PlannerScheduler {
     // An opener's heals and mitigations (The Blackest Night) stay as it has them.
     const tools = new Set([...heals, ...mitigation.filter(replanned)].map((t) => t.player + ':' + t.action));
     // The user's added skills stay where they put them, as the opener's do.
-    const added = addedUses(asked.edits, catalog);
+    const added = addedUses(edits, catalog);
     const placed = [...placedSteps(opening, (u) => tools.has(u.player + ':' + u.action)), ...added].filter(
-      notRemoved(asked.edits),
+      notRemoved(edits),
     );
     const mitigates = new Set(mitigation.map((t) => t.player + ':' + t.action));
     const played = playedUses(
@@ -82,7 +82,7 @@ export class PlannerScheduler {
       invulnerabilities: keptInvulnerabilities(
         (asked.invulnerabilities ?? playedInvulnerabilities(timeline, mechanics, mitigation)).filter(replanned),
         mechanics,
-        asked.edits,
+        edits,
       ),
     };
     // The oGCDs that only pay with a GCD heal (Plenary Indulgence) are
