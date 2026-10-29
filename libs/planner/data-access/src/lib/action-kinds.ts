@@ -20,6 +20,10 @@ export function onlyDamage(id: number, action: CatalogAction | undefined): boole
   return !own.length && ATTACK.test(action.description ?? '');
 }
 
+// Whether an action is an attack first, whatever else it does (Confiteor
+// heals its user a little): its tooltip says it deals damage.
+export const dealsDamage = (action: CatalogAction | undefined) => ATTACK.test(action?.description ?? '');
+
 // What an action without heals or mitigations of its own does, in words:
 // an enabler's, or its tooltip's first line ("Increases damage dealt by
 // 25%.").

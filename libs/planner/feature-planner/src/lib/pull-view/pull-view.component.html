@@ -38,24 +38,25 @@
         </h3>
         <div id="planner-timeline">
           @if (open().timeline) {
-            @if (canEdit()) {
-              <!-- Editing the plan by hand: each change plans it again. -->
-              <div class="edit-bar">
-                <button
-                  type="button"
-                  cdtButton="outline-primary"
-                  size="sm"
-                  [attr.aria-pressed]="editing()"
-                  (click)="toggleEditing()"
-                >
-                  {{ editing() ? 'Done editing' : 'Edit plan' }}
+            <!-- Editing the plan by hand: each change plans it again. -->
+            <div class="edit-bar">
+              <button
+                type="button"
+                cdtButton="outline-primary"
+                size="sm"
+                [attr.aria-pressed]="editing() && canEdit()"
+                [disabled]="plans.planning()"
+                (click)="toggleEditing()"
+              >
+                {{ editing() && canEdit() ? 'Done editing' : plans.planning() ? 'Planning…' : 'Edit plan' }}
+              </button>
+              @if (canEdit() && editor.count()) {
+                <button type="button" cdtButton="outline-secondary" size="sm" (click)="editor.reset()">
+                  Reset my edits ({{ editor.count() }})
                 </button>
-                @if (editor.count()) {
-                  <button type="button" cdtButton="outline-secondary" size="sm" (click)="editor.reset()">
-                    Reset my edits ({{ editor.count() }})
-                  </button>
-                }
-              </div>
+              }
+            </div>
+            @if (canEdit()) {
               @if (editing() && editor.items().length) {
                 <cdt-planner-edit-list [items]="editor.items()" (undone)="editor.undo($event)" />
               }

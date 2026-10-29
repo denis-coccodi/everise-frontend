@@ -212,5 +212,10 @@ describe('PullCompareComponent', () => {
     fixture.detectChanges();
     press('Add Intervention on Heal Main');
     expect(added[1]).toEqual({ at: 58_000, action: 7382, target: 2 });
+
+    // Where none of their GCDs comes before (none in the ten seconds), no Add.
+    fixture.componentRef.setInput('slotsFor', () => []);
+    fixture.detectChanges();
+    expect(buttons().filter((b) => b.textContent?.includes('Add a skill'))).toEqual([]);
   });
 });

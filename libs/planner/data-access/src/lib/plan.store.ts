@@ -93,7 +93,7 @@ export const PlanStore = signalStore(
     };
     // Plans the pull with the options set.
     const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
-      patchState(store, { planning: true, error: '' });
+      patchState(store, { planning: true, error: '', editWarning: '' });
       try {
         const scheduler = await store._scheduler();
         const plan = scheduler.plan(timeline, catalog, {
