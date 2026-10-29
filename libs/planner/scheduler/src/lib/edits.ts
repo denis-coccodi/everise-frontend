@@ -17,6 +17,8 @@ const LOOK_AHEAD_MS = 180_000;
 const STEP_MS = 500;
 // How far before a moment the picker offers slots.
 const SLOTS_MS = 10_000;
+// What an added heal (no lasting effect) is for: the hits this soon after.
+const HEAL_COVERS_MS = 10_000;
 // How long after its use an invulnerability saves its user, at most.
 const SAVES_MS = 15_000;
 
@@ -86,6 +88,24 @@ export function addedUses(edits: PlanEdits | undefined, catalog: ActionCatalog):
     covers: [],
     edited: true,
   }));
+}
+
+// What the user's added skills cover, as the planner's say: the mechanics in
+// their effects' time (the next few seconds for a heal) that hit whoever they
+// protect: their target, their user, or anyone for a party-wide one.
+export function withAddedCovers(uses: PlannedUse[], mechanics: Mechanic[], catalog: ActionCatalog): PlannedUse[] {
+  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  return uses.map((u) => {
+    const action = byId.get(u.action);
+    if (!u.edited || u.covers.length || !action) return u;
+    const lasts = Math.max(HEAL_COVERS_MS, ...action.effects.map((e) => e.durationMs ?? 0));
+    const anyone = action.effects.some((e) => e.target === 'party' || e.target === 'enemies');
+    const who = action.effects.some((e) => e.target === 'target') ? (u.target ?? u.player) : u.player;
+    const covers = mechanics
+      .filter((m) => m.at >= u.at && m.at - u.at <= lasts && (anyone || m.hits.some((h) => h.player === who)))
+      .map((m) => m.id);
+    return { ...u, covers };
+  });
 }
 
 // What the user could add for `player` at `at`, in the plan as it stands:
