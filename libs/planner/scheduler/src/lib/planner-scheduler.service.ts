@@ -65,11 +65,11 @@ export class PlannerScheduler {
     const heals = opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned));
     // An opener's heals and mitigations (The Blackest Night) stay as it has them.
     const tools = new Set([...heals, ...mitigation.filter(replanned)].map((t) => t.player + ':' + t.action));
-    // The user's added skills stay where they put them, as the opener's do.
+    // The user's added skills stay where they put them, as the opener's do,
+    // even one by where they removed it.
     const added = addedUses(edits, catalog);
-    const placed = [...placedSteps(opening, (u) => tools.has(u.player + ':' + u.action)), ...added].filter(
-      notRemoved(edits),
-    );
+    const opener = placedSteps(opening, (u) => tools.has(u.player + ':' + u.action));
+    const placed = [...opener.filter(notRemoved(edits)), ...added];
     const mitigates = new Set(mitigation.map((t) => t.player + ':' + t.action));
     const played = playedUses(
       timeline,

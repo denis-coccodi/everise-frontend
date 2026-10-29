@@ -2,7 +2,7 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { Favour, InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
-import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits } from './plan-edits';
+import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import type { FailedMechanics, PlanPlayer } from './plan.model';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
@@ -192,7 +192,7 @@ export const PlanStore = signalStore(
       // or one of their edits or all of them undone; each plans the pull
       // again, saying so when it leaves more hits short than before.
       async addSkill(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, ...added: PlanEdit[]) {
-        await edited(pullId, timeline, catalog, (e) => ({ ...e, added: [...e.added, ...added] }));
+        await edited(pullId, timeline, catalog, (e) => withAdded(e, added));
       },
       async removeSkill(
         pullId: number,
