@@ -68,14 +68,45 @@ describe('planLog', () => {
     ]);
   });
 
-  it('shows the damage GCD of theirs a planned oGCD is woven after', () => {
-    // Their Fast Blade at 62s, as played, before the Reprisal at 64.5s.
+  it("shows a replanned player's attacks as played, so their whole rotation is there", () => {
+    // Their Fast Blade at 62s, before the Reprisal at 64.5s.
     const catalog = actionCatalog();
     for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
 
-    expect(planLog(plan, pullTimeline(), 1, catalog).slice(0, 2)).toEqual([
-      { kind: 'gcd', at: 62_000, prepull: false, castAt: null },
+    expect(planLog({ ...plan, replanned: [1] }, pullTimeline(), 1, catalog).slice(0, 2)).toEqual([
+      expect.objectContaining({
+        kind: 'use',
+        at: 62_000,
+        action: 'Fast Blade',
+        kept: 'Damage',
+        attack: true,
+        gcd: true,
+      }),
       expect.objectContaining({ kind: 'use', action: 'Reprisal' }),
+    ]);
+  });
+
+  it('gives their usual attack in the slot of a GCD heal the plan has no use for, and none where it has its own', () => {
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9 || a.name === 'Adloquium') a.gcd = true;
+    const timeline = pullTimeline();
+    // Adloquium (player 2's GCD heal) at 30s and 40s; Fast Blade, their attack, at 35s.
+    const adlo = timeline.playerCasts[3].action;
+    timeline.playerCasts = [30_000, 35_000, 40_000].map((at) => ({
+      at,
+      source: 2,
+      target: null,
+      action: at === 35_000 ? 9 : adlo,
+      castMs: null,
+    }));
+    const own = { ...plan.uses[0], player: 2, action: adlo, name: 'Adloquium', at: 40_000 };
+
+    const log = planLog({ ...plan, uses: [own], replanned: [2] }, timeline, 2, catalog);
+
+    expect(log.filter((e) => e.kind === 'use').map((e) => e.kind === 'use' && [e.at, e.action, e.instead])).toEqual([
+      [30_000, 'Fast Blade', 'Adloquium'],
+      [35_000, 'Fast Blade', undefined],
+      [40_000, 'Adloquium', undefined],
     ]);
   });
 
@@ -95,10 +126,12 @@ describe('planLog', () => {
     for (const a of catalog.actions) if (a.id === 9) a.castMs = 1_500;
 
     // Its 1.5s cast began 0.7s before the pull.
-    expect(planLog(plan, timeline, 1, catalog)[0]).toEqual({ kind: 'gcd', at: 800, prepull: true, castAt: -700 });
+    expect(planLog(plan, timeline, 1, catalog)[0]).toEqual(
+      expect.objectContaining({ at: 800, action: 'Fast Blade', attack: true, castAt: -700 }),
+    );
   });
 
-  it("keeps a replanned player's buffs and potions as played, not their attacks nor heals", () => {
+  it("keeps a replanned player's buffs, potions and attacks as played, not their heals", () => {
     const catalog = actionCatalog();
     catalog.actions.push({
       ...catalog.actions[0],
@@ -125,14 +158,23 @@ describe('planLog', () => {
     const kept = (replanned?: number[]) =>
       planLog({ ...plan, replanned }, timeline, 1, catalog).filter((e) => e.kind === 'use' && e.kept);
 
-    // Fast Blade (an attack), Rampart (the plan's own) and Eukrasia (before
-    // a Eukrasian spell) aren't kept.
-    expect(kept([1]).map((e) => [e.at, e.kind === 'use' && e.action, e.kind === 'use' && e.kept])).toEqual([
-      [20_000, 'Lucid Dreaming', 'Gradually restores MP.'],
-      [21_000, 'Grade 4 Gemdraught of Mind', 'An item (a potion, an ether)'],
+    // Rampart (the plan has its own) isn't kept, nor Eukrasia, not before an
+    // attack; Fast Blade is, as one.
+    expect(kept([1]).map((e) => e.kind === 'use' && [e.at, e.action, e.kept, !!e.attack])).toEqual([
+      [20_000, 'Lucid Dreaming', 'Gradually restores MP.', false],
+      [21_000, 'Grade 4 Gemdraught of Mind', 'An item (a potion, an ether)', false],
+      [62_000, 'Fast Blade', 'Damage', true],
     ]);
-    // Not replanned: their own column has none.
-    expect(kept([2])).toEqual([]);
+    // Not replanned: all of it, as they played, Rampart and their Reprisal
+    // at 61s too (the fixture's at 64.5s is another).
+    expect(kept([2]).map((e) => e.kind === 'use' && e.action)).toEqual([
+      'Lucid Dreaming',
+      'Grade 4 Gemdraught of Mind',
+      'Eukrasia',
+      'Rampart',
+      'Reprisal',
+      'Fast Blade',
+    ]);
   });
 
   it("keeps none of a replanned player's uses of what the plan schedules for them", () => {
@@ -148,7 +190,9 @@ describe('planLog', () => {
     timeline.playerCasts.push({ at: 50_000, source: 1, target: null, action: 3612, castMs: null });
 
     const kept = (scheduled: string[]) =>
-      planLog({ ...plan, replanned: [1], scheduled }, timeline, 1, catalog).filter((e) => e.kind === 'use' && e.kept);
+      planLog({ ...plan, replanned: [1], scheduled }, timeline, 1, catalog).filter(
+        (e) => e.kind === 'use' && e.kept && !e.attack,
+      );
 
     expect(kept([]).map((e) => e.at)).toEqual([50_000]);
     expect(kept(['1:3612'])).toEqual([]);
@@ -177,9 +221,8 @@ describe('planLog', () => {
 
     const log = planLog({ ...plan, uses: [chain], replanned: [1] }, timeline, 1, catalog);
 
-    expect(log.filter((e) => e.kind === 'use').map((e) => [e.at, e.kind === 'use' && (e.burst ?? e.kept)])).toEqual([
-      [130_000, true],
-    ]);
+    const notAttacks = log.filter((e) => e.kind === 'use' && !e.attack);
+    expect(notAttacks.map((e) => [e.at, e.kind === 'use' && (e.burst ?? e.kept)])).toEqual([[130_000, true]]);
   });
 
   it('names the target of a single-target use, themselves included', () => {

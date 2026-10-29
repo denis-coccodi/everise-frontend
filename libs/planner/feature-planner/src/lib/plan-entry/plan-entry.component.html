@@ -11,25 +11,31 @@
     <!-- A use for no hit: a heal on cooldown, a lily that would overcap. -->
     <p class="detail">
       {{
-        e.covers.length
-          ? 'For ' + e.covers.join(', ')
-          : e.damage
-            ? 'Damage: the Blood Lily is in full bloom'
-            : e.kept
-              ? 'As played: ' + e.kept
-              : e.opener
-                ? 'Part of the opener'
-                : e.burst
-                  ? 'On cooldown, for the burst windows'
-                  : e.again === 'kardia'
-                    ? 'Back where it was: Kardia stays until moved'
-                    : e.again === 'horoscope'
-                      ? 'Read again: Horoscope Helios heals now'
-                      : e.refill
-                        ? 'Addersgall is running low: one more for the heals after'
-                        : e.overcap
-                          ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
-                          : 'On cooldown, or before it would go to waste'
+        e.attack
+          ? e.instead
+            ? 'Damage, in place of ' + e.instead + ' as played'
+            : e.castAt !== null && e.castAt !== undefined
+              ? 'Damage, cast in the countdown'
+              : 'Damage, as played'
+          : e.covers.length
+            ? 'For ' + e.covers.join(', ')
+            : e.damage
+              ? 'Damage: the Blood Lily is in full bloom'
+              : e.kept
+                ? 'As played: ' + e.kept
+                : e.opener
+                  ? 'Part of the opener'
+                  : e.burst
+                    ? 'On cooldown, for the burst windows'
+                    : e.again === 'kardia'
+                      ? 'Back where it was: Kardia stays until moved'
+                      : e.again === 'horoscope'
+                        ? 'Read again: Horoscope Helios heals now'
+                        : e.refill
+                          ? 'Addersgall is running low: one more for the heals after'
+                          : e.overcap
+                            ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
+                            : 'On cooldown, or before it would go to waste'
       }}
     </p>
   }
@@ -40,10 +46,6 @@
     </p>
     <p class="detail">{{ detail(e) }}</p>
     <p class="detail">{{ covered(e) }}</p>
-  }
-  @case ('gcd') {
-    <!-- The damage GCD a planned oGCD is woven after. -->
-    <p class="line"><span class="label">GCD</span>{{ ' ' }}Damage{{ e.prepull ? ', cast in the countdown' : '' }}</p>
   }
   @default never(e);
 }

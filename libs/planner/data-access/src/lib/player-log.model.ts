@@ -33,6 +33,8 @@ export interface UseEntry {
   icon?: number | null;
   description?: string | null;
   effects: string;
+  // One of their attacks (only damage).
+  attack?: boolean;
   // When its cast began, for one begun in the countdown.
   castAt?: number | null;
 }

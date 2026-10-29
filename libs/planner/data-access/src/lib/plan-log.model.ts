@@ -59,19 +59,12 @@ export interface PlanUseEntry {
   kept?: string;
   // A GCD (a heal spell, Afflatus Misery): it comes first in its row.
   gcd?: boolean;
+  // One of their attacks, as played (`kept`), or their usual one in the
+  // slot of a GCD heal of theirs the plan has no use for (`instead`).
+  attack?: boolean;
+  instead?: string;
+  // When its cast began, for one begun in the countdown.
+  castAt?: number | null;
 }
 
-// One of the player's GCDs as played, which a planned oGCD is woven after:
-// a damage GCD, the plan placing only heals and mitigations (it stands in
-// for whichever they cast there). Their first, when they began casting it in
-// the countdown, shows either way.
-export interface PlanGcdEntry {
-  kind: 'gcd';
-  at: number;
-  // Cast in the countdown: `at` is when it lands, `castAt` when its cast
-  // began (null when that isn't known).
-  prepull: boolean;
-  castAt: number | null;
-}
-
-export type PlanEntry = PlanHitEntry | PlanUseEntry | PlanGcdEntry;
+export type PlanEntry = PlanHitEntry | PlanUseEntry;

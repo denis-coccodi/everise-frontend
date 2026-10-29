@@ -175,9 +175,28 @@ describe('PlanEntryComponent', () => {
     );
   });
 
-  it('shows a damage GCD a planned oGCD is woven after', () => {
-    expect(render({ kind: 'gcd', at: 62_000, prepull: false }).text).toBe('GCD Damage');
-    expect(render({ kind: 'gcd', at: 800, prepull: true }).text).toBe('GCD Damage, cast in the countdown');
+  it('shows an attack as played, quieter, and one in place of a GCD heal', () => {
+    const blade = {
+      kind: 'use' as const,
+      at: 62_000,
+      action: 'Fast Blade',
+      target: null,
+      covers: [],
+      damage: false,
+      overcap: false,
+      kept: 'Damage',
+      attack: true,
+    };
+
+    expect(render(blade).text).toBe('Use Fast Blade Damage, as played');
+    const fixture = TestBed.createComponent(PlanEntryComponent);
+    fixture.componentRef.setInput('entry', blade);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).classList).toContain('attack');
+    expect(render({ ...blade, castAt: -700 }).text).toBe('Use Fast Blade Damage, cast in the countdown');
+    expect(render({ ...blade, instead: 'Adloquium' }).text).toBe(
+      'Use Fast Blade Damage, in place of Adloquium as played',
+    );
   });
 
   it('says a damage action is there for the Blood Lily', () => {
