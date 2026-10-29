@@ -59,7 +59,8 @@
                 </button>
               }
             }
-            @if (editing()) {
+            <!-- Only where a skill can go: one of their GCDs in the seconds before. -->
+            @if (editing() && slotsFor()(row.at).length) {
               @if (picking() === row.at) {
                 <cdt-planner-edit-picker
                   [slots]="slotsFor()(row.at)"

@@ -1,6 +1,6 @@
 import { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
 import type { Plan, PlannedUse } from '@everise/planner/scheduler';
-import { onlyDamage, whatItDoes } from './action-kinds';
+import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
 import { countdownStart } from './pull-time';
@@ -56,9 +56,15 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   // The plan's opener has its own steps, attacks too: theirs give way.
   const openerEnd = Math.max(-Infinity, ...mine.filter((u) => u.opener).map((u) => u.at + SAME_GCD_MS));
   const out: PlanUseEntry[] = [];
+  const scheduled = new Set(plan.scheduled ?? []);
   casts.forEach((c, i) => {
     const action = byId.get(c.action);
-    const attack = onlyDamage(c.action, action) || (c.action === EUKRASIA && isAttack(casts[i + 1], byId));
+    // An attack that heals too stays as played (Confiteor), but for an oGCD
+    // the plan places itself (Assize).
+    const attack =
+      onlyDamage(c.action, action) ||
+      (c.action === EUKRASIA && isAttack(casts[i + 1], byId)) ||
+      (dealsDamage(action) && (!!action?.gcd || !scheduled.has(playerId + ':' + c.action)));
     const castAt = action ? countdownStart(c.at, c.castMs, action.castMs) : null;
     const begun = castAt !== null ? { castAt } : {};
     if (mine.some((u) => u.action === c.action && Math.abs(u.at - c.at) < SAME_CAST_MS)) return;
