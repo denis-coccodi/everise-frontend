@@ -30,3 +30,13 @@
   border-left: var(--border-width-strong) solid var(--color-primary);
   padding-left: 0.75rem;
 }
+
+// An attack: there for the whole rotation, quieter than a heal or
+// mitigation, its line in the border colour.
+:host(.attack) {
+  border-left-color: var(--color-border);
+
+  .line {
+    color: var(--color-contrast-muted);
+  }
+}

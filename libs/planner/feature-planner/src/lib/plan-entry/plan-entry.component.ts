@@ -12,11 +12,20 @@ const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionD
   imports: [ActionNameComponent],
   templateUrl: './plan-entry.component.html',
   styleUrls: ['../log-entries.scss', './plan-entry.component.scss'],
-  host: { '[class]': 'entry().kind', '[class.unsafe]': "entry().kind === 'hit' && !safe()" },
+  host: {
+    '[class]': 'entry().kind',
+    '[class.unsafe]': "entry().kind === 'hit' && !safe()",
+    '[class.attack]': 'attack()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlanEntryComponent {
   readonly entry = input.required<PlanEntry>();
+
+  protected attack() {
+    const entry = this.entry();
+    return entry.kind === 'use' && !!entry.attack;
+  }
 
   protected safe() {
     const entry = this.entry();

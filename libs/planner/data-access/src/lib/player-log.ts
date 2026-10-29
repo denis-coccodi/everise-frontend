@@ -6,9 +6,8 @@ import { countdownStart } from './pull-time';
 import type { HitEntry, UseEntry, DeathEntry, LogEntry } from './player-log.model';
 
 // One player's pull, in time order: the hits they took (not damage over
-// time ticks), the heals and mitigations they used and what made them
-// possible (Recitation, Aetherflow, Lightspeed: ENABLERS), what they began
-// casting in the countdown, and their deaths.
+// time ticks), everything they used (heals, mitigations, what made them
+// possible, buffs, attacks), and their deaths.
 export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId: number): LogEntry[] {
   // The actions as the pull's level has them, for what they did.
   const catalog = catalogAtLevel(full, pullLevel(timeline));
@@ -50,28 +49,25 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
       severity: severity(hit.action, hit.at),
     }));
 
-  // Everything they used but their attacks (heals, mitigations, enablers,
-  // buffs, potions), and whatever they began casting in the countdown (a
-  // damage spell too), so every tab starts where its player did.
-  const begun = (cast: PullTimeline['playerCasts'][number], action: CatalogAction | undefined) =>
-    !!action && countdownStart(cast.at, cast.castMs, action.castMs) !== null;
+  // Everything they used, attacks too, so the tab shows their whole
+  // rotation, as the plan's column does.
   const uses: UseEntry[] = timeline.playerCasts
-    .filter((cast) => {
-      const action = actions.get(cast.action);
-      return cast.source === playerId && (!onlyDamage(cast.action, action) || begun(cast, action));
-    })
+    .filter((cast) => cast.source === playerId)
     .map((cast): UseEntry => {
       const action = actions.get(cast.action);
-      // One the catalog doesn't have (Umbral Draw, a potion): the log's name.
+      const attack = onlyDamage(cast.action, action) ? { attack: true } : {};
+      // One the catalog doesn't have (Umbral Draw, a combo step, a potion): the log's name.
       if (!action) {
         return {
           kind: 'use',
           at: cast.at,
           action: actionName(cast.action),
           target: null,
-          effects: whatItDoes(cast.action, action),
+          effects: 'attack' in attack ? 'Damage' : whatItDoes(cast.action, action),
+          ...attack,
         };
       }
+      const castAt = countdownStart(cast.at, cast.castMs, action.castMs);
       // Who a single-target heal, shield or mitigation went on.
       const targeted = action.effects.some((effect) => effect.target === 'target');
       const target = targeted && cast.target !== null ? (playerName.get(cast.target) ?? null) : null;
@@ -84,10 +80,13 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
         target,
         effects: action.effects.length
           ? effectsText(action.effects)
-          : onlyDamage(action.id, action)
-            ? 'Begun in the countdown'
+          : 'attack' in attack
+            ? castAt === null
+              ? 'Damage'
+              : 'Damage, begun in the countdown'
             : whatItDoes(action.id, action),
-        castAt: countdownStart(cast.at, cast.castMs, action.castMs),
+        castAt,
+        ...attack,
       };
     });
 

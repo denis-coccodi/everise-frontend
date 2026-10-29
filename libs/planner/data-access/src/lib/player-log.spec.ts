@@ -2,14 +2,17 @@ import { actionCatalog, pullTimeline } from './planner-fixtures';
 import { playerLog } from './player-log';
 
 describe('playerLog', () => {
-  it("gives a player's heals and mitigations and the hits they took, in time order", () => {
+  it('gives everything a player used, attacks too, and the hits they took, in time order', () => {
     const log = playerLog(pullTimeline(), actionCatalog(), 1);
 
     expect(log.map((entry) => [entry.kind, entry.at])).toEqual([
       ['use', 60_000],
       ['use', 61_000],
+      ['use', 62_000],
       ['hit', 65_000],
     ]);
+    // Fast Blade: an attack.
+    expect(log[2]).toEqual(expect.objectContaining({ action: 'Fast Blade', effects: 'Damage', attack: true }));
     expect(log[0]).toEqual({
       kind: 'use',
       at: 60_000,
@@ -44,7 +47,7 @@ describe('playerLog', () => {
     ]);
   });
 
-  it('gives a damage spell begun in the countdown, which other casts leave out', () => {
+  it('says when a damage spell began in the countdown', () => {
     const timeline = pullTimeline();
     // Fast Blade (no effects) as a 1.5s cast landing at 0.3s.
     timeline.playerCasts.push({ at: 300, source: 1, target: null, action: 9, castMs: null });
@@ -53,9 +56,9 @@ describe('playerLog', () => {
 
     const log = playerLog(timeline, catalog, 1);
 
-    expect(log[0]).toEqual(expect.objectContaining({ at: 300, castAt: -1_200, effects: 'Begun in the countdown' }));
-    // Its cast at 62s, after the pull began, isn't listed.
-    expect(log.filter((e) => e.kind === 'use' && e.at === 62_000)).toEqual([]);
+    expect(log[0]).toEqual(
+      expect.objectContaining({ at: 300, castAt: -1_200, effects: 'Damage, begun in the countdown', attack: true }),
+    );
   });
 
   it('says when a heal that landed early in the pull began, in the countdown', () => {
