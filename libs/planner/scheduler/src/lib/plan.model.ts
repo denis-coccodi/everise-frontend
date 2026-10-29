@@ -42,6 +42,9 @@ export interface MechanicHit {
   // whether the plan takes it as avoided (asked to, or nothing saves them).
   failed?: boolean;
   avoidable: boolean;
+  // Its damage estimated: an invulnerability blocked it in the pull, so the
+  // log has none (`blockedHits`).
+  estimated?: boolean;
 }
 
 export type DamageType = 'physical' | 'magic' | 'unique';

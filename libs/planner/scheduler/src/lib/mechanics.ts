@@ -10,6 +10,9 @@ const FAILED_TIMES = 3;
 const UNSURVIVABLE = 3;
 // A death this soon after a hit is the hit's.
 const DEATH_MS = 2_000;
+// What lets a hit land for nothing: the tanks' invulnerabilities, and a
+// raise's Transcendent.
+const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking Dead', 'Superbolide', 'Transcendent']);
 
 // The pull's boss mechanics: its hits grouped by attack and moment, leaving
 // out damage over time ticks, auto-attacks ("Attack") and hits that did no
@@ -26,7 +29,9 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
   const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp]));
   const raidwideAt = Math.max(2, Math.ceil(timeline.players.length * 0.75));
-  const hits = timeline.damage.filter((hit) => isMechanicHit(hit, actionName));
+  const estimated = blockedHits(timeline, actionName);
+  const blocked = new Set(estimated.values());
+  const hits = timeline.damage.map((hit) => estimated.get(hit) ?? hit).filter((hit) => isMechanicHit(hit, actionName));
   // By the attack's name: the game gives some variants of one their own ids.
   const nameOf = (hit: TimelineHit) => actionName.get(hit.action) ?? String(hit.action);
   const usual = new Map<string, number>();
@@ -73,6 +78,7 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
           unmitigated: unmitigated(hit),
           asPlayed: hit.amount,
           ...(fails ? { failed: true } : {}),
+          ...(blocked.has(hit) ? { estimated: true } : {}),
           avoidable: fails && (ignore || unsaved),
         };
       }),
@@ -84,6 +90,33 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
 // auto-attack, or a hit that did no damage.
 export function isMechanicHit(hit: TimelineHit, actionName: Map<number, string>) {
   return !hit.tick && unmitigated(hit) > 0 && actionName.get(hit.action)?.toLowerCase() !== 'attack';
+}
+
+// The hits an invulnerability blocked (Hallowed Ground, Holmgang...), or a
+// raise's Transcendent (the plan keeps them alive, so they'd take it): the
+// log has nothing of them, neither damage nor what anything took off. Each
+// gets the attack's usual damage before mitigation in the pull (the median
+// of its other hits): on the same player, else their role's, else anyone's.
+// One the pull has no other hit of stays out, as does a hit of nothing with
+// none of these up (an attack that does nothing to some).
+function blockedHits(timeline: PullTimeline, actionName: Map<number, string>) {
+  const role = new Map(timeline.players.map((p) => [p.id, p.role]));
+  const blocking = new Set(timeline.statuses.filter((s) => BLOCKING.has(s.name)).map((s) => s.id));
+  const nameOf = (hit: TimelineHit) => actionName.get(hit.action) ?? String(hit.action);
+  const known = timeline.damage.filter((h) => !h.tick && unmitigated(h) > 0);
+  const out = new Map<TimelineHit, TimelineHit>();
+  for (const hit of timeline.damage) {
+    if (hit.tick || hit.unmitigated !== null || hit.amount || hit.mitigated || hit.absorbed) continue;
+    if (!hit.statuses.some((id) => blocking.has(id))) continue;
+    const same = known.filter((h) => nameOf(h) === nameOf(hit));
+    const pick = [
+      same.filter((h) => h.target === hit.target),
+      same.filter((h) => role.get(h.target) === role.get(hit.target)),
+      same,
+    ].find((group) => group.length);
+    if (pick) out.set(hit, { ...hit, unmitigated: median(pick.map(unmitigated)) });
+  }
+  return out;
 }
 
 function median(values: number[]) {
