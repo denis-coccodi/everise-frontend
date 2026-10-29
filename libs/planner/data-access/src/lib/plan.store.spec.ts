@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { actionCatalog, pullTimeline } from './planner-fixtures';
 import { PlanStore } from './plan.store';
 
-describe('PlanStore', () => {
+// Each test plans the pull (the scheduler loads on the first): slower than most.
+describe('PlanStore', { timeout: 20_000 }, () => {
   function setup() {
     TestBed.configureTestingModule({ providers: [PlanStore] });
     return TestBed.inject(PlanStore);

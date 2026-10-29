@@ -1,10 +1,25 @@
-import type { Plan, PlanEdits } from '@everise/planner/scheduler';
+import type { Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
 import { pullClock } from './pull-time';
 
 // The user's edits to a pull's plan, remembered in this browser by report
 // and pull: "planner.edits:<code>:<pull>", as JSON.
 export const editsKey = (code: string, pullId: number) => `planner.edits:${code}:${pullId}`;
 export const NO_EDITS: PlanEdits = { added: [], removed: [] };
+
+// A skill put back this close to where the user removed it undoes the
+// removal (the scheduler keeps a removed one this far from its place).
+const PUT_BACK_MS = 1_500;
+
+// The user's edits with `added`: one put back where they removed it undoes
+// that removal, as if neither had happened.
+export function withAdded(edits: PlanEdits, added: PlanEdit[]): PlanEdits {
+  const same = (a: PlanEdit, r: PlanEdit) =>
+    a.player === r.player && a.action === r.action && Math.abs(a.at - r.at) < PUT_BACK_MS;
+  return {
+    added: [...edits.added, ...added.filter((a) => !edits.removed.some((r) => same(a, r)))],
+    removed: edits.removed.filter((r) => !added.some((a) => same(a, r))),
+  };
+}
 
 export function storedEdits(key: string): PlanEdits {
   try {

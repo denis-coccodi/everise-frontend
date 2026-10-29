@@ -42,6 +42,18 @@ describe("the user's edits to a plan", () => {
     expect(sentinel(far)?.covers).toEqual([]);
   });
 
+  it('keeps a skill the user added by where they removed it', () => {
+    const rampart = plan().uses.find((u) => u.player === 1 && u.action === RAMPART);
+    const at = rampart!.at;
+
+    const p = plan({
+      added: [{ player: 1, action: RAMPART, at: at - 500 }],
+      removed: [{ player: 1, action: RAMPART, at }],
+    });
+
+    expect(paladin(p)).toContainEqual(['Rampart', at - 500, true]);
+  });
+
   it("doesn't plan a removed skill where it was again, but may elsewhere", () => {
     const before = plan();
     const rampart = before.uses.find((u) => u.player === 1 && u.action === RAMPART);
