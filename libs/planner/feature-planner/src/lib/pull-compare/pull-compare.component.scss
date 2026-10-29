@@ -165,7 +165,9 @@ tr.only-plan {
     overflow-y: auto;
   }
 
-  :host {
+  // Both sides whichever tab was last picked (edit mode picks the plan's).
+  :host,
+  :host(.show-plan) {
     th.played,
     td.played,
     th.plan,
