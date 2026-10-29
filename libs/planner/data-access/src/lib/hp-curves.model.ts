@@ -1,3 +1,5 @@
+import type { SeverityTier } from '@everise/planner/scheduler';
+
 // A point on a player's HP over the pull: when, and their HP after it as a
 // share of their max HP.
 export interface HpPoint {
@@ -11,8 +13,16 @@ export interface HpMark {
   at: number;
   share: number;
   kind: 'death' | 'short' | 'avoided';
-  // The attack, for the hits.
+  // The attack, for the hits, and how hard it hits.
   action: string | null;
+  tier?: SeverityTier | null;
+}
+
+// A boss attack on the player, and how hard it hits (`attackSeverity`).
+export interface HpHit {
+  at: number;
+  action: string;
+  tier: SeverityTier;
 }
 
 // One player's HP over the pull, as played and with the plan (null before
@@ -27,4 +37,5 @@ export interface HpCurve {
   // for the others, and before it's planned).
   mp: HpPoint[] | null;
   marks: HpMark[];
+  hits: HpHit[];
 }

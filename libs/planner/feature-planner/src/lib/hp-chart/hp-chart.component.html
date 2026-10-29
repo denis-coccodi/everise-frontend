@@ -19,6 +19,13 @@
       <span class="margin-key"><span class="key margin" aria-hidden="true"></span>{{ marginLabel() }}</span>
     }
   </fieldset>
+  <!-- The ticks under each plot: the boss attacks on them, by tier. -->
+  <p class="tier-key" aria-hidden="true">
+    Attacks:
+    @for (tier of TIERS; track tier) {
+      <span class="item"><span [class]="'tier ' + tier"></span>{{ TIER_NAMES[tier] }}</span>
+    }
+  </p>
   <fieldset class="members">
     <legend class="visually-hidden">Members shown</legend>
     @for (curve of curves(); track curve.id) {
@@ -73,6 +80,11 @@
               [attr.title]="markText(mark)"
             ></span>
           }
+        }
+      </div>
+      <div class="tiers" aria-hidden="true">
+        @for (hit of curve.hits; track $index) {
+          <span [class]="'tier ' + hit.tier" [style.left.%]="left(hit.at)" [attr.title]="hitText(hit)"></span>
         }
       </div>
       <ul class="visually-hidden">

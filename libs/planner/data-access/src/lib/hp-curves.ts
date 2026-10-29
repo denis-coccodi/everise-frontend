@@ -1,16 +1,19 @@
 import { PullTimeline } from '@everise/core/api-types';
-import type { Plan } from '@everise/planner/scheduler';
-import type { HpCurve, HpMark, HpPoint } from './hp-curves.model';
+import { attackSeverity, type Plan } from '@everise/planner/scheduler';
+import type { HpCurve, HpHit, HpMark, HpPoint } from './hp-curves.model';
 
 // Each player's HP over the pull, for those the log says the max HP of: as
 // played, and with the plan once there is one, with their deaths, the hits
-// the plan leaves short and the failed mechanics it takes as avoided.
+// the plan leaves short and the failed mechanics it takes as avoided, and
+// how hard each boss attack on them hits.
 //
 // As played, the log's HP after each hit sets it (a heal's snapshot isn't
 // reliable: heals landing together all carry the same), each heal adds what
 // it healed (overheal left out), and a death takes it to 0.
 export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
   const mechanicOf = new Map(plan?.mechanics.map((m) => [m.id, m]) ?? []);
+  const severity = attackSeverity(timeline);
+  const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const curves: HpCurve[] = [];
   for (const player of timeline.players) {
     const max = player.maxHp;
@@ -26,7 +29,8 @@ export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
       const m = mechanicOf.get(hit.mechanic);
       if (!m || (hit.safe && !hit.avoidable)) continue;
       const left = hit.avoidable ? (hit.hpBefore ?? max) : Math.max(0, (hit.hpBefore ?? max) - hit.planned);
-      marks.push({ at: m.at, share: share(left), kind: hit.avoidable ? 'avoided' : 'short', action: m.name });
+      const tier = severity(m.action, m.at)?.tier ?? null;
+      marks.push({ at: m.at, share: share(left), kind: hit.avoidable ? 'avoided' : 'short', action: m.name, tier });
     }
     curves.push({
       id: player.id,
@@ -36,9 +40,30 @@ export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
       planned: planned ? planned.points.map((p) => ({ at: p.at, share: share(p.hp) })) : null,
       mp: mp?.points.length && maxMp ? mp.points.map((p) => ({ at: p.at, share: Math.min(1, p.mp / maxMp) })) : null,
       marks: marks.sort((a, b) => a.at - b.at),
+      hits: hitsOn(timeline, player.id, severity, actionName),
     });
   }
   return curves;
+}
+
+// The boss attacks on a player that have a tier, once per attack and moment
+// (a multi-hit one's hits land together).
+const SAME_HIT_MS = 1_000;
+function hitsOn(
+  timeline: PullTimeline,
+  player: number,
+  severity: ReturnType<typeof attackSeverity>,
+  actionName: Map<number, string>,
+): HpHit[] {
+  const hits: HpHit[] = [];
+  for (const h of timeline.damage) {
+    if (h.target !== player || h.tick) continue;
+    const tier = severity(h.action, h.at)?.tier;
+    const last = hits.at(-1);
+    if (!tier || (last && last.action === actionName.get(h.action) && h.at - last.at < SAME_HIT_MS)) continue;
+    hits.push({ at: h.at, action: actionName.get(h.action) ?? 'Unknown', tier });
+  }
+  return hits;
 }
 
 function played(timeline: PullTimeline, player: number, max: number): HpPoint[] {

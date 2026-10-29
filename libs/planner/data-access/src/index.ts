@@ -12,6 +12,7 @@ export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';
 export type { FailedMechanics, PlanPlayer } from './lib/plan.model';
 export type { PlanEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';
 export type { CompareRow } from './lib/compare-log.model';
+export { DAMAGE_NAMES, KIND_NAMES, TIER_HINTS, TIER_NAMES } from './lib/severity-names';
 export type { EditItem, PickedSkill } from './lib/edit-list.model';
 export type { EncounterPulls } from './lib/planner.model';
 export type { DeathEntry, HitEntry, LogEntry, UseEntry } from './lib/player-log.model';
