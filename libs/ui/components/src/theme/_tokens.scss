@@ -63,15 +63,19 @@
   --palette-ember-500: #c95a28;
   --palette-ember-300: #f08a5d;
   --palette-ember-200: #f6b896;
-  /* Heat: the attack tiers' one-hue ramp, steps far enough apart to tell
-     five of them apart (checked light and dark). */
-  --palette-heat-100: #fdd7bd;
-  --palette-heat-200: #f7a877;
-  --palette-heat-300: #ee7d3f;
-  --palette-heat-500: #c85a22;
-  --palette-heat-700: #9a3d12;
-  --palette-heat-800: #6e2808;
-  --palette-heat-900: #4a1803;
+  /* Heat: the attack tiers, yellow to deep red, the redder the more
+     dangerous, with lightness steps far enough apart to tell five apart:
+     brighter for dark surfaces, deeper for light ones (checked both). */
+  --palette-heat-bright-1: #f5d04a;
+  --palette-heat-bright-2: #f59a38;
+  --palette-heat-bright-3: #ec5f2c;
+  --palette-heat-bright-4: #d9302f;
+  --palette-heat-bright-5: #a8142a;
+  --palette-heat-deep-1: #dbaa00;
+  --palette-heat-deep-2: #e27318;
+  --palette-heat-deep-3: #cc4419;
+  --palette-heat-deep-4: #a8191f;
+  --palette-heat-deep-5: #640b19;
   --palette-jade-600: #2b8a52;
   --palette-jade-400: #6fcf8f;
 }
@@ -143,13 +147,13 @@
   --color-chart-7: var(--palette-mist-300);
   --color-chart-8: var(--palette-haze-500);
 
-  /* How hard a boss attack hits (the planner): one hue, more contrast with
-     the surface the harder it hits: brighter here, darker in light mode. */
-  --color-severity-light: var(--palette-heat-700);
-  --color-severity-moderate: var(--palette-heat-500);
-  --color-severity-heavy: var(--palette-heat-300);
-  --color-severity-lethal: var(--palette-heat-200);
-  --color-severity-overkill: var(--palette-heat-100);
+  /* How hard a boss attack hits (the planner): yellow to deep red, the
+     redder the harder. */
+  --color-severity-light: var(--palette-heat-bright-1);
+  --color-severity-moderate: var(--palette-heat-bright-2);
+  --color-severity-heavy: var(--palette-heat-bright-3);
+  --color-severity-lethal: var(--palette-heat-bright-4);
+  --color-severity-overkill: var(--palette-heat-bright-5);
 
   /* The crystal motif (icons, the wheel hub): teal in both modes. */
   --color-crystal: var(--palette-crystal-500);
@@ -282,11 +286,11 @@ body.light {
   --color-chart-7: var(--palette-slate-600);
   --color-chart-8: var(--palette-haze-600);
 
-  --color-severity-light: var(--palette-heat-300);
-  --color-severity-moderate: var(--palette-heat-500);
-  --color-severity-heavy: var(--palette-heat-700);
-  --color-severity-lethal: var(--palette-heat-800);
-  --color-severity-overkill: var(--palette-heat-900);
+  --color-severity-light: var(--palette-heat-deep-1);
+  --color-severity-moderate: var(--palette-heat-deep-2);
+  --color-severity-heavy: var(--palette-heat-deep-3);
+  --color-severity-lethal: var(--palette-heat-deep-4);
+  --color-severity-overkill: var(--palette-heat-deep-5);
 
   --color-avatar: var(--palette-mist-200);
 
