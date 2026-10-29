@@ -9,6 +9,12 @@ describe('PlanStore', { timeout: 20_000 }, () => {
     return TestBed.inject(PlanStore);
   }
 
+  it('keeps edits made before the pull is planned (a reload), without planning it', async () => {
+    const store = setup();
+    await store.addSkill(1, pullTimeline(), actionCatalog(), { player: 1, action: 7531, at: 20_000 });
+    expect(store.edits().added).toHaveLength(1);
+    expect(store.plan()).toBeNull();
+  });
   it('adds a skill and what it needs first together, in one plan', async () => {
     const store = setup();
     const first = { player: 2, action: 185, at: 37_500, target: 1 };
@@ -43,6 +49,7 @@ describe('PlanStore', { timeout: 20_000 }, () => {
   it('undoes one edit, keeping the others, and plans the pull again', async () => {
     const store = setup();
     const [timeline, catalog] = [pullTimeline(), actionCatalog()];
+    await store.run(1, timeline, catalog);
     const first = { player: 1, action: 7531, at: 20_000 };
     const second = { player: 1, action: 7535, at: 40_000 };
     await store.addSkill(1, timeline, catalog, first);

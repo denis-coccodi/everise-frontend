@@ -50,7 +50,8 @@
               >
                 {{ editing() && canEdit() ? 'Done editing' : plans.planning() ? 'Planning…' : 'Edit plan' }}
               </button>
-              @if (canEdit() && editor.count()) {
+              <!-- Saved edits show before the pull is planned again (a reload). -->
+              @if (editor.count()) {
                 <button type="button" cdtButton="outline-secondary" size="sm" (click)="editor.reset()">
                   Reset my edits ({{ editor.count() }})
                 </button>

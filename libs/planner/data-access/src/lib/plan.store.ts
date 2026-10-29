@@ -137,6 +137,8 @@ export const PlanStore = signalStore(
       const edits = change(store.edits());
       saveEdits(store.editsKey(), edits);
       patchState(store, { edits });
+      // Not planned yet (a reload): kept for when it is.
+      if (store.pullId() !== pullId || !store.plan()) return;
       await run(pullId, timeline, catalog);
     };
     return {

@@ -14,6 +14,12 @@ describe('ReportFormComponent', () => {
     return rendered;
   }
 
+  it('shows the link of the report open, after a reload too', async () => {
+    const { page } = await renderPlanner(`/planner?report=${CODE}&pull=3`);
+    expect(page.querySelector<HTMLInputElement>('#planner-report')?.value).toBe(
+      `https://www.fflogs.com/reports/${CODE}`,
+    );
+  });
   it('labels the field and says what to paste', async () => {
     const { page } = await renderPlanner();
 

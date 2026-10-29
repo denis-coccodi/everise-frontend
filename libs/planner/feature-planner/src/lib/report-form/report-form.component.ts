@@ -25,7 +25,8 @@ const NOT_A_LINK = "That isn't an FFLogs report link. Copy it from the report's 
 })
 export class ReportFormComponent {
   private readonly store = inject(PlannerStore);
-  private readonly model = signal({ link: '' });
+  // The report open, after a reload too: its link.
+  private readonly model = signal({ link: reportLink(this.store.code()) });
   protected readonly form = form(
     this.model,
     (path) => {
@@ -40,3 +41,5 @@ export class ReportFormComponent {
     this.problem.set(this.store.open(this.model().link) ? '' : NOT_A_LINK);
   }
 }
+
+const reportLink = (code: string | undefined) => (code ? `https://www.fflogs.com/reports/${code}` : '');
