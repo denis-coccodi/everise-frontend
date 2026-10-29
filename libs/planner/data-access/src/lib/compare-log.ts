@@ -39,6 +39,6 @@ export function compareLog(played: LogEntry[], planned: PlanEntry[]): CompareRow
   return rows;
 }
 
-const isGcd = (entry: PlanEntry) => entry.kind === 'gcd' || (entry.kind === 'use' && !!entry.gcd);
+const isGcd = (entry: PlanEntry) => entry.kind === 'use' && !!entry.gcd;
 
 const castStart = (entry: LogEntry | PlanEntry) => ('castAt' in entry ? entry.castAt : null);

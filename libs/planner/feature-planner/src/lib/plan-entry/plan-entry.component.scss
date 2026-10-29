@@ -11,9 +11,3 @@
     color: var(--color-danger-strong);
   }
 }
-
-// A damage GCD the plan's oGCDs are woven after: there for the rhythm,
-// quieter than what the plan has the player use.
-:host(.gcd) .line {
-  color: var(--color-contrast-muted);
-}
