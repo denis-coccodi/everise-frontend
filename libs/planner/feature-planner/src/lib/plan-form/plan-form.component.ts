@@ -62,9 +62,19 @@ export class PlanFormComponent {
         ? ` ${failed} ${failed === 1 ? 'hit is a failed mechanic' : 'hits are failed mechanics'}, taken as avoided.`
         : '') +
       (covered ? ` ${covered} failed ${covered === 1 ? 'mechanic is' : 'mechanics are'} planned for anyway.` : '');
+    // Planned again with nothing changed: said, as the plan shown stays the same.
+    const again = this.plans.sameAsBefore()
+      ? 'Planned again: nothing changed, as each edit already updates the plan (the Plan column, and the Plan line on the HP chart). '
+      : '';
     if (!short)
-      return `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations, shields and heals.${avoided}`;
-    return `${short} ${short === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free.${avoided}`;
+      return (
+        again +
+        `Every hit leaves at least ${margin}% of max HP, with ${plan.uses.length} mitigations, shields and heals.${avoided}`
+      );
+    return (
+      again +
+      `${short} ${short === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free.${avoided}`
+    );
   });
 
   protected setFailedMechanics(value: string) {
