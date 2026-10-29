@@ -57,6 +57,44 @@ describe('PullCompareComponent', () => {
     expect(host.querySelector('caption')?.textContent?.trim()).toBe("Tank Main's pull and plan, in time order");
   });
 
+  it('says how hard each attack hits, with those right before or after, and keys the tiers', () => {
+    const hit: LogEntry = {
+      kind: 'hit',
+      at: 65_000,
+      action: 'Killer Voice',
+      source: 'Boss',
+      amount: 40_000,
+      unmitigated: 80_000,
+      mitigated: 0.5,
+      absorbed: 0,
+      overkill: 0,
+      hp: null,
+      hpShare: null,
+      covers: [],
+      severity: { tier: 'heavy', kind: 'raidwide', share: 0.75, damageType: 'magic', with: ['Echo'] },
+    };
+    const { host } = render([hit], null);
+    const time = host.querySelector('tbody th') as HTMLElement;
+
+    expect([...time.querySelectorAll('.severity, .kind')].map((e) => e.textContent?.trim())).toEqual([
+      'Heavy',
+      'Raidwide · Magic',
+      'with Echo',
+    ]);
+    expect(time.querySelector('.severity')?.getAttribute('title')).toBe(
+      'Heavy: about 75% of max HP before mitigation, with Echo. Party mitigation or a shield.',
+    );
+    // Three of the five bars filled.
+    expect(time.querySelectorAll('cdt-planner-tier-pips .on')).toHaveLength(3);
+    expect([...host.querySelectorAll('.tier-key li')].map((li) => li.textContent?.trim())).toEqual([
+      'Light: Healing covers it.',
+      'Moderate: Some mitigation, or a heal after.',
+      'Heavy: Party mitigation or a shield.',
+      'Lethal: Kills without mitigation: stack it.',
+      'Overkill: Stack everything, or an invulnerability.',
+    ]);
+  });
+
   it('marks which side the narrower screens show, and when there is no plan yet', () => {
     expect(render([used(60_000, 'Rampart')], null).host.className).toBe('no-plan');
     expect(render([used(60_000, 'Rampart')], [], 'plan').host.className).toBe('show-plan');

@@ -1,4 +1,14 @@
 @let plan = planned();
+@if (anySeverity()) {
+  <!-- What the tiers under the times mean. -->
+  <ul class="tier-key" aria-label="How hard attacks hit">
+    @for (t of TIERS; track t) {
+      <li [attr.title]="TIER_HINTS[t]">
+        <cdt-planner-tier-pips [tier]="t" />{{ TIER_NAMES[t] }}<span class="hint">: {{ TIER_HINTS[t] }}</span>
+      </li>
+    }
+  </ul>
+}
 <div class="scroller" tabindex="0" role="region" [attr.aria-label]="player() + '\'s timeline'">
   <table class="compare">
     <caption class="visually-hidden">
@@ -28,11 +38,15 @@
             @if (row.severity; as s) {
               <!-- How hard the row's attack hits: its name, a dot of its colour. -->
               <span class="severity" [attr.title]="severityHint(s)">
-                <span [class]="'dot ' + s.tier" aria-hidden="true"></span>{{ TIER_NAMES[s.tier] }}
+                <cdt-planner-tier-pips [tier]="s.tier" />{{ TIER_NAMES[s.tier] }}
               </span>
               <span class="kind"
                 >{{ KIND_NAMES[s.kind] }}{{ s.damageType ? ' · ' + DAMAGE_NAMES[s.damageType] : '' }}</span
               >
+              @if (s.with) {
+                <!-- Attacks right before or after, counted with it. -->
+                <span class="kind">with {{ s.with.join(', ') }}</span>
+              }
             }
           </th>
           <td class="played">

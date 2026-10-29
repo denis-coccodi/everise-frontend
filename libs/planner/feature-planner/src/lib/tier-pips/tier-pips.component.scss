@@ -1,0 +1,40 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+
+:host {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 0.75rem;
+  margin-right: 0.3rem;
+  vertical-align: -0.05rem;
+
+  --pip: var(--color-severity-light);
+}
+
+:host(.moderate) {
+  --pip: var(--color-severity-moderate);
+}
+
+:host(.heavy) {
+  --pip: var(--color-severity-heavy);
+}
+
+:host(.lethal) {
+  --pip: var(--color-severity-lethal);
+}
+
+:host(.overkill) {
+  --pip: var(--color-severity-overkill);
+}
+
+// An unfilled bar: an outline, so the five still show.
+.pip {
+  width: 0.2rem;
+  border: var(--border-width) solid var(--color-contrast-faint);
+  border-radius: 1px;
+}
+
+.on {
+  border-color: var(--pip);
+  background: var(--pip);
+}
