@@ -82,13 +82,14 @@ describe('fairyHeals', () => {
     expect(fairyPotency(100)).toBe(180);
   });
 
-  it("keeps the fairy's orders, Aetherpact and Seraphism out of Dissipation, and Seraphism's 20s before it", () => {
+  it("keeps the fairy's orders, Aetherpact, Seraphism and Seraph out of Dissipation, and the latter two before it", () => {
     const t = timeline();
     t.playerCasts = [{ at: 60_000, source: 2, target: null, action: 3587, castMs: null }];
     const tools = withFairyAway(t, [
       { player: 2, action: 16537 }, // Whispering Dawn
       { player: 2, action: 7437 }, // Aetherpact
       { player: 2, action: 37014 }, // Seraphism
+      { player: 2, action: 16545 }, // Summon Seraph
       { player: 2, action: 185 }, // Adloquium
     ]);
 
@@ -97,6 +98,11 @@ describe('fairyHeals', () => {
       [{ from: 60_000, to: 90_000 }],
       [
         { from: 40_000, to: 60_000 },
+        { from: 60_000, to: 90_000 },
+      ],
+      // Seraph sends the faerie away: not in the 22s before Dissipation either.
+      [
+        { from: 38_000, to: 60_000 },
         { from: 60_000, to: 90_000 },
       ],
       null,

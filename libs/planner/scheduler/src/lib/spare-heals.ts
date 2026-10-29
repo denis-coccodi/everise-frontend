@@ -9,6 +9,9 @@ import type { HpEvent } from './hp-track.model';
 // damage), Celestial Opposition (a strong heal on a short cooldown), Lux
 // Solaris (free, in each Refulgent Lux).
 const ON_COOLDOWN = new Set([3571, 16553, 36997]);
+// What another grants a few uses of, lost when the window ends: Seraph's
+// two Consolations, both used before she leaves.
+const SPEND_BEFORE_LOST = new Set([16546]);
 // How finely the pass looks for the next moment a use fits.
 const STEP_MS = 500;
 // Afflatus Misery, an instant GCD of damage the white mage casts when the
@@ -19,7 +22,8 @@ const BLOOM = 3;
 
 // What the healers use after the heals the hits need, as their guides have
 // them: each heal that goes on cooldown, as often as its recast allows, in
-// the weave slots left; a white mage's Afflatus Misery whenever the Blood
+// the weave slots left; what a grant gives that would be lost unused (both
+// of Seraph's Consolations); a white mage's Afflatus Misery whenever the Blood
 // Lily is in full bloom (at the pull, then three lilies later), before any
 // lily that would go to waste on it; and, for one favouring damage, the lily
 // that would overcap (Afflatus Rapture, or Solace on themselves), whenever
@@ -63,6 +67,29 @@ export function spareHeals(
         // From when the uses in its way have come back.
         const blocking = groupTimes(tool.group).filter((g) => Math.abs(g - at) < tool.recastMs);
         t = Math.max(at + STEP_MS, ...blocking.map((g) => g + tool.recastMs));
+      }
+    }
+  }
+
+  // The uses left of what a grant gives, before they're lost: in the first
+  // weave slots of the window, as their recast allows.
+  for (const tool of tools.filter((t) => SPEND_BEFORE_LOST.has(t.action) && t.grantedBy)) {
+    const grant = tool.grantedBy;
+    if (!grant) continue;
+    const mine = (action: number) =>
+      occupied(tool.player)
+        .filter((x) => x.action === action)
+        .map((x) => x.at);
+    for (const from of mine(grant.action)) {
+      const to = from + grant.withinMs;
+      let left = grant.uses - mine(tool.action).filter((at) => at >= from && at <= to).length;
+      for (let t = from; left > 0 && t <= to; t += STEP_MS) {
+        const at = weaving.ogcdAfter(tool.player, t, to, occupied(tool.player));
+        if (at === null) break;
+        t = at;
+        if (isAway(tool, at) || !fitsRecast(groupTimes(tool.group), at, tool.recastMs, tool.charges)) continue;
+        add(tool, at, null);
+        left--;
       }
     }
   }
