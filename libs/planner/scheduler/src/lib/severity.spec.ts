@@ -55,6 +55,32 @@ describe('how hard an attack hits', () => {
     expect(tier(mechanic('targeted', [[2, 130_000]]))).toBe('overkill');
   });
 
+  it('counts the attacks right before and after on the same players with it', () => {
+    const first = mechanic(
+      'raidwide',
+      [2, 3, 4, 5, 6, 7, 8].map((p) => [p, 45_000]),
+    );
+    const second = {
+      ...mechanic(
+        'raidwide',
+        [2, 3, 4, 5, 6, 7, 8].map((p) => [p, 30_000]),
+      ),
+      name: 'Second',
+    };
+    const buster = { ...mechanic('tankbuster', [[1, 100_000]]), name: 'Buster' };
+
+    // 45% then 30% two seconds later: 75% to plan for, heavy, not moderate.
+    expect(severityOf(first, maxHp, [first, second, buster])).toEqual({
+      tier: 'heavy',
+      kind: 'raidwide',
+      share: 0.75,
+      damageType: 'magic',
+      with: ['Second'],
+    });
+    // The buster on the tank alone isn't with the raidwides on the others.
+    expect(severityOf(buster, maxHp, [first, second, buster])?.with).toBeUndefined();
+  });
+
   it("leaves a failed mechanic's hits out, and says nothing without max HP", () => {
     const m = mechanic('targeted', [
       [2, 40_000],

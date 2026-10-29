@@ -66,8 +66,8 @@ tbody .time {
   font-variant-numeric: tabular-nums;
 }
 
-// The row's attack: how hard it hits (a dot of the tier's colour and its
-// name, in the text's colour) and what kind of attack it is.
+// The row's attack: how hard it hits (its bars and name, in the text's
+// colour), what kind of attack it is, and those counted with it.
 .severity,
 .kind {
   display: block;
@@ -85,33 +85,28 @@ tbody .time {
   color: var(--color-contrast-muted);
 }
 
-.dot {
-  display: inline-block;
-  width: 0.6rem;
-  height: 0.6rem;
-  margin-right: 0.3rem;
-  border-radius: 50%;
-  border: var(--border-width) solid var(--color-contrast-faint);
-  vertical-align: baseline;
+// The key to the tiers, above the table: each tier's bars and name, and
+// what it calls for (shown from laptops up; a tooltip below).
+.tier-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+  color: var(--color-contrast-soft);
+  font-size: 0.8rem;
 
-  &.light {
-    background: var(--color-severity-light);
+  .hint {
+    display: none;
   }
 
-  &.moderate {
-    background: var(--color-severity-moderate);
-  }
+  @media (min-width: 1024px) {
+    flex-direction: column;
 
-  &.heavy {
-    background: var(--color-severity-heavy);
-  }
-
-  &.lethal {
-    background: var(--color-severity-lethal);
-  }
-
-  &.overkill {
-    background: var(--color-severity-overkill);
+    .hint {
+      display: inline;
+    }
   }
 }
 

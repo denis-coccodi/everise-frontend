@@ -13,10 +13,11 @@ import {
 } from '@everise/planner/data-access';
 import { ButtonComponent } from '@everise/ui/components';
 import { EditPickerComponent } from '../edit-picker/edit-picker.component';
-import type { EditChoice, EditSlot, Severity } from '@everise/planner/scheduler';
+import type { EditChoice, EditSlot, Severity, SeverityTier } from '@everise/planner/scheduler';
 
 const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionDigits: 0 });
 import { PlanEntryComponent } from '../plan-entry/plan-entry.component';
+import { TierPipsComponent } from '../tier-pips/tier-pips.component';
 import { PlayedEntryComponent } from '../played-entry/played-entry.component';
 
 // A player's pull as played and as planned, on one timeline: a row per
@@ -29,7 +30,7 @@ import { PlayedEntryComponent } from '../played-entry/played-entry.component';
   selector: 'cdt-planner-pull-compare',
   templateUrl: './pull-compare.component.html',
   styleUrl: './pull-compare.component.scss',
-  imports: [ButtonComponent, EditPickerComponent, PlanEntryComponent, PlayedEntryComponent],
+  imports: [ButtonComponent, EditPickerComponent, PlanEntryComponent, PlayedEntryComponent, TierPipsComponent],
   host: { '[class.show-plan]': "shown() === 'plan'", '[class.no-plan]': 'planned() === null' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -63,8 +64,12 @@ export class PullCompareComponent {
   // What a tier means, for its tooltip.
   protected severityHint(s: Severity) {
     const share = percent.format(s.share);
-    return `${TIER_NAMES[s.tier]}: about ${share} of max HP before mitigation. ${TIER_HINTS[s.tier]}`;
+    const together = s.with ? `, with ${s.with.join(', ')}` : '';
+    return `${TIER_NAMES[s.tier]}: about ${share} of max HP before mitigation${together}. ${TIER_HINTS[s.tier]}`;
   }
+  protected readonly anySeverity = computed(() => this.rows().some((r) => r.severity));
+  protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
+  protected readonly TIER_HINTS = TIER_HINTS;
   protected readonly rows = computed(() => compareLog(this.played(), this.planned() ?? []));
   // The moment last opened from elsewhere (the HP chart), marked.
   protected readonly revealed = signal<number | null>(null);
