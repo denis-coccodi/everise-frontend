@@ -9,6 +9,14 @@ describe('PlanStore', { timeout: 20_000 }, () => {
     return TestBed.inject(PlanStore);
   }
 
+  it('says when planning again gave the same plan', async () => {
+    const store = setup();
+    const [timeline, catalog] = [pullTimeline(), actionCatalog()];
+    await store.run(1, timeline, catalog);
+    expect(store.sameAsBefore()).toBe(false);
+    await store.run(1, timeline, catalog);
+    expect(store.sameAsBefore()).toBe(true);
+  });
   it('keeps edits made before the pull is planned (a reload), without planning it', async () => {
     const store = setup();
     await store.addSkill(1, pullTimeline(), actionCatalog(), { player: 1, action: 7531, at: 20_000 });

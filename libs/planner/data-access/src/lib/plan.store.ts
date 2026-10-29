@@ -17,6 +17,11 @@ const REPLAN_KEY = 'planner.replan';
 
 const characterKey = (p: { name: string; server: string | null }) => `${p.name}@${p.server ?? ''}`;
 
+// Long enough for the browser to draw "Planning…" before the work starts.
+const PAINT_MS = 50;
+// Whether two plans have the same uses and hits.
+const samePlan = (a: Plan, b: Plan) => JSON.stringify([a.uses, a.hits]) === JSON.stringify([b.uses, b.hits]);
+
 const LOAD_ERROR = "The planner couldn't be loaded. Check your connection, then try again.";
 
 interface PlanState {
@@ -46,8 +51,10 @@ interface PlanState {
   // compare against (made again only when those change).
   basePlan: Plan | null;
   baseKey: string;
-  // The last plan, and the pull it's for.
+  // The last plan, and the pull it's for; whether planning again gave the
+  // same plan (nothing changed since: the edits are planned as they're made).
   plan: Plan | null;
+  sameAsBefore: boolean;
   pullId: number | null;
   planning: boolean;
   error: string;
@@ -74,6 +81,7 @@ export const PlanStore = signalStore(
     basePlan: null,
     baseKey: '',
     plan: null,
+    sameAsBefore: false,
     pullId: null,
     planning: false,
     error: '',
@@ -101,7 +109,9 @@ export const PlanStore = signalStore(
     // what they leave short that the plan without them doesn't: a move (out
     // of one place, into another) reads as one change, whatever the steps.
     const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
-      patchState(store, { planning: true, error: '', editWarning: '' });
+      patchState(store, { planning: true, error: '', editWarning: '', sameAsBefore: false });
+      // Planning holds the page for a few seconds: "Planning…" is drawn first.
+      await new Promise((drawn) => setTimeout(drawn, PAINT_MS));
       try {
         const scheduler = await store._scheduler();
         const options = {
@@ -122,7 +132,9 @@ export const PlanStore = signalStore(
             ? store.basePlan()
             : scheduler.plan(timeline, catalog, options);
         const editWarning = edited ? editWarningFor(basePlan, plan) : '';
-        patchState(store, { plan, pullId, planning: false, basePlan, baseKey, editWarning });
+        const before = store.pullId() === pullId ? store.plan() : null;
+        const sameAsBefore = !!before && samePlan(before, plan);
+        patchState(store, { plan, pullId, planning: false, basePlan, baseKey, editWarning, sameAsBefore });
       } catch {
         patchState(store, { planning: false, error: LOAD_ERROR });
       }
