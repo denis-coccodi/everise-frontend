@@ -142,6 +142,22 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
       })
       .map((u) => u.at);
   const gcds = timeline.playerCasts.filter((c) => c.source === player && byId.get(c.action)?.gcd);
+  // The latest moment in `withinMs` before `at` that an enabler fits: in
+  // place of one of their GCDs for a GCD, in the weave slot after one for
+  // an oGCD (with room there, and its recast).
+  const enablerAt = (enabler: CatalogAction, withinMs: number) => {
+    const group = timesOf((a) => a.cooldownGroup === enabler.cooldownGroup && !a.gcd);
+    const fits = (t: number) =>
+      enabler.gcd ||
+      (at - t >= WEAVE_MS &&
+        !used.some((u) => Math.abs(u.at - t) < WEAVE_MS) &&
+        fitsRecast(group, t, enabler.recastMs, enabler.charges));
+    const times = gcds
+      .filter((g) => g.at < at && at - g.at <= withinMs)
+      .map((g) => (enabler.gcd ? g.at : g.at + Math.max(g.castMs ?? 0, WEAVE_MS)))
+      .filter((t) => t < at && fits(t));
+    return times.length ? Math.max(...times) : null;
+  };
   const mpAt = (t: number) => {
     const points = plan.mp?.find((m) => m.player === player)?.points ?? [];
     return [...points].reverse().find((p) => p.at <= t)?.mp ?? null;
@@ -171,10 +187,15 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
         reasons.push(`No ${pool.name} until ${clock(nextFit(at, (t) => poolLevel(spent, t, pool) >= 1))}`);
       }
     }
-    // What it needs used first (Divine Caress after Temperance...).
+    // What it needs used first (Divine Caress after Temperance...): added
+    // with it where none is and it fits.
     const grant = GRANTED[action.id];
+    let first: EditChoice['first'] = null;
     if (grant && !used.some((u) => u.action === grant.action && u.at <= at && at - u.at <= grant.withinMs)) {
-      reasons.push(`Needs ${byId.get(grant.action)?.name ?? 'its enabler'} in the ${grant.withinMs / 1000}s before`);
+      const enabler = byId.get(grant.action);
+      const t = enabler ? enablerAt(enabler, grant.withinMs) : null;
+      if (enabler && t !== null) first = { action: enabler.id, name: enabler.name, icon: enabler.icon, at: t };
+      else reasons.push(`Needs ${enabler?.name ?? 'its enabler'} in the ${grant.withinMs / 1000}s before`);
     }
     // MP.
     const mp = mpAt(at);
@@ -196,6 +217,7 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
       icon: action.icon,
       description: action.description,
       replacesIcon: replaced ? (byId.get(replaced.action)?.icon ?? null) : null,
+      first,
     });
   }
   return choices.sort((a, b) => Number(b.ok) - Number(a.ok) || a.name.localeCompare(b.name));

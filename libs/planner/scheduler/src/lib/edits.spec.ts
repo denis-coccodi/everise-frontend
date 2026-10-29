@@ -1,6 +1,6 @@
 import { editChoices, keptInvulnerabilities, withBans } from './edits';
 import { PlannerScheduler } from './planner-scheduler.service';
-import { catalog, pull } from './scheduler-fixtures';
+import { action, catalog, pull } from './scheduler-fixtures';
 
 const SENTINEL = 17;
 // What replaces Sentinel at level 92: the one the picker offers.
@@ -62,6 +62,26 @@ describe("the user's edits to a plan", () => {
     expect(choices.filter((c) => c.ok).map((c) => c.name)).toContain('Divine Veil');
     // The fitting ones first.
     expect(choices.findIndex((c) => !c.ok)).toBeGreaterThan(choices.findIndex((c) => c.ok));
+  });
+
+  it('adds what a skill needs first with it, at the latest moment before it where that fits', () => {
+    const deployment = action(3585, 'Deployment Tactics', ['SCH'], 90, []);
+    const actions = { ...catalog(), actions: [...catalog().actions, deployment] };
+    const t = timeline();
+    // The scholar's Physicks (GCDs) every 2.5s from 30s.
+    t.playerCasts.push(
+      ...[30_000, 32_500, 35_000, 37_500].map((at) => ({ at, source: 2, target: 1, action: 190, castMs: 1_500 })),
+    );
+    const at = 37_500 + 1_500;
+    const choice = (p: ReturnType<typeof plan>) => editChoices(p, t, actions, 2, at).find((c) => c.action === 3585);
+
+    // No Adloquium before it: in place of the Physick at 37.5s, with it.
+    expect(choice(plan())).toMatchObject({ ok: true, first: { action: 185, name: 'Adloquium', at: 37_500 } });
+    // One already there: nothing to add.
+    const adlo = { player: 2, action: 185, name: 'Adloquium', at: 35_000, target: 1, covers: [], edited: true };
+    const p = plan();
+    p.uses.push(adlo);
+    expect(choice(p)).toMatchObject({ ok: true, first: null });
   });
 
   it("says when a skill's gauge is empty", () => {

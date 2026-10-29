@@ -8,6 +8,16 @@ describe('PlanStore', () => {
     return TestBed.inject(PlanStore);
   }
 
+  it('adds a skill and what it needs first together, in one plan', async () => {
+    const store = setup();
+    const first = { player: 2, action: 185, at: 37_500, target: 1 };
+    const skill = { player: 2, action: 3585, at: 39_000, target: 1 };
+
+    await store.addSkill(1, pullTimeline(), actionCatalog(), first, skill);
+
+    expect(store.edits().added).toEqual([first, skill]);
+  });
+
   it('undoes one edit, keeping the others, and plans the pull again', async () => {
     const store = setup();
     const [timeline, catalog] = [pullTimeline(), actionCatalog()];
