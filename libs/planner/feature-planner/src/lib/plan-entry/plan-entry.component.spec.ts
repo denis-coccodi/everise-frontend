@@ -220,6 +220,15 @@ describe('PlanEntryComponent', () => {
     });
   });
 
+  it("says where a blocked hit's damage was estimated from", () => {
+    expect(render(hit({ asPlayed: 0, estimated: 'pull' })).text).toContain(
+      'took 0 as played (estimated: an invulnerability blocked it).',
+    );
+    expect(render(hit({ asPlayed: 0, estimated: 'clears' })).text).toContain(
+      "took 0 as played (estimated from other groups' kills: an invulnerability blocked it every time).",
+    );
+  });
+
   it('marks a hit the plan leaves short of the margin', () => {
     const short = hit({
       at: 200_000,

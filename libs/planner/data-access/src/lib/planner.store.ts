@@ -4,6 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { signalStore, withComputed, withMethods, withProps } from '@ngrx/signals';
 import { ReportPull } from '@everise/core/api-types';
 import { errorMessageOf } from '@everise/core/data-access';
+import { missingAttacks, type ReferencedTimeline } from '@everise/planner/scheduler';
+import { concat, map, of, switchMap, type Observable } from 'rxjs';
 import { PlannerService } from './planner.service';
 import { readReportLink } from './report-link';
 import type { EncounterPulls } from './planner.model';
@@ -27,7 +29,19 @@ export const PlannerStore = signalStore(
         const id = pullId();
         return reportCode && id ? { code: reportCode, id } : undefined;
       }),
-      stream: ({ params }) => service.pull(params.code, params.id),
+      // Shown as soon as it's read; where an invulnerability blocked an attack
+      // every time, again once other groups' kills say what it does.
+      stream: ({ params }) =>
+        service.pull(params.code, params.id).pipe(
+          switchMap((timeline): Observable<ReferencedTimeline> => {
+            const missing = missingAttacks(timeline);
+            if (!missing.length) return of(timeline);
+            const referenced = service
+              .references(params.code, params.id, missing)
+              .pipe(map((references) => ({ ...timeline, references })));
+            return concat(of(timeline), referenced);
+          }),
+        ),
     });
     // Asked for once, when the first pull is opened.
     const catalog = rxResource({

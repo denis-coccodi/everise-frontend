@@ -23,3 +23,5 @@ export { attackSeverity, severityOf } from './lib/severity';
 export type { Severity, SeverityTier } from './lib/severity.model';
 export { editChoices, editSlots } from './lib/edits';
 export type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './lib/edits.model';
+export { missingAttacks, referenceDamage } from './lib/mechanics';
+export type { ReferenceDamage, ReferencedTimeline } from './lib/reference-damage.model';

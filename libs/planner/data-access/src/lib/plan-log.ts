@@ -38,7 +38,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
         avoidable: hit.avoidable,
         ...(m?.wipe ? { wipe: true } : {}),
         ...(m?.hits.find((h) => h.player === hit.player)?.failed ? { failed: true } : {}),
-        ...(m?.hits.find((h) => h.player === hit.player)?.estimated ? { estimated: true } : {}),
+        ...estimatedFrom(m?.hits.find((h) => h.player === hit.player)?.estimated),
         covers: hit.covers,
       };
     });
@@ -72,6 +72,9 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
   // A use comes before the hits it's for.
   return [...uses, ...asPlayed(plan, timeline, playerId, catalog), ...hits].sort((a, b) => a.at - b.at);
 }
+
+// Where a blocked hit's damage was estimated from, when it was.
+const estimatedFrom = (from: 'pull' | 'clears' | undefined) => (from ? { estimated: from } : {});
 
 // How many hits the plan leaves short of the margin.
 export function unsafeHits(plan: Plan, playerId?: number) {

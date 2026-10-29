@@ -7,6 +7,7 @@ import { API_URL } from '@everise/core/http-client';
 import { BehaviorSubject } from 'rxjs';
 import { actionCatalog, fightReport, pullTimeline } from './planner-fixtures';
 import { PlannerStore } from './planner.store';
+import type { ReferencedTimeline } from '@everise/planner/scheduler';
 
 describe('PlannerStore', () => {
   function setup(query: Record<string, string> = {}) {
@@ -74,6 +75,47 @@ describe('PlannerStore', () => {
     expect(store.picked()?.id).toBe(3);
     expect(store.pull.value()?.players.map((p) => p.name)).toEqual(['Tank Main', 'Heal Main']);
     expect(store.catalog.hasValue()).toBe(true);
+  });
+
+  it("reads what other groups' kills say of an attack blocked every time, skipping one that won't load", async () => {
+    const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '3' });
+    // Blackout at 100s, under Hallowed Ground: the log has nothing of it.
+    const timeline = pullTimeline();
+    timeline.actions.push({ id: 999, name: 'Blackout' });
+    timeline.statuses.push({ id: 82, name: 'Hallowed Ground' });
+    const blocked = { ...timeline.damage[0], at: 100_000, action: 999, amount: 0, unmitigated: null };
+    timeline.damage.push({ ...blocked, mitigated: 0, absorbed: 0, statuses: [82] });
+    // Another group's kill, where the tank took 250,000 from it.
+    const kill = pullTimeline();
+    kill.actions.push({ id: 999, name: 'Blackout' });
+    kill.damage.push({ ...kill.damage[0], at: 90_000, action: 999, unmitigated: 250_000 });
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/3').flush(timeline);
+    http.expectOne('/planner/catalog').flush(actionCatalog());
+    await settled();
+    // Shown at once, before the others' kills are read.
+    expect(store.pull.value()?.damage).toHaveLength(5);
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/3/clears').flush({
+      clears: [
+        { code: 'Other0000000000a', pullId: 7 },
+        { code: 'Other0000000000b', pullId: 2 },
+        { code: 'Other0000000000c', pullId: 4 },
+      ],
+    });
+    await settled();
+    http
+      .expectOne('/planner/reports/Other0000000000a/pulls/7')
+      .flush({ errors: { body: ['Private.'] } }, { status: 403, statusText: 'Forbidden' });
+    await settled();
+    http.expectOne('/planner/reports/Other0000000000b/pulls/2').flush(kill);
+    await settled();
+
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.references).toEqual({
+      Blackout: { byRole: { tank: 250_000 }, any: 250_000 },
+    });
+    // Found: the third isn't read.
+    http.expectNone('/planner/reports/Other0000000000c/pulls/4');
   });
 
   it("says why a report can't be read, in the backend's words", async () => {

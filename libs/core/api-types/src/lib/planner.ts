@@ -15,6 +15,7 @@ export type PlayerRole = NonNullable<ReportPlayer['role']>;
 
 // Everything that happened in one pull; times are ms from its start.
 export type PullTimeline = Schemas['PullTimelineResponse'];
+export type PlannerClears = Schemas['PlannerClearsResponse'];
 export type TimelinePlayer = PullTimeline['players'][number];
 export type TimelineEnemy = PullTimeline['enemies'][number];
 export type TimelineHit = PullTimeline['damage'][number];

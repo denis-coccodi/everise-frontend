@@ -44,7 +44,8 @@ export interface MechanicHit {
   avoidable: boolean;
   // Its damage estimated: an invulnerability blocked it in the pull, so the
   // log has none (`blockedHits`).
-  estimated?: boolean;
+  // From the pull's own hits of the attack, or other groups' kills.
+  estimated?: 'pull' | 'clears';
 }
 
 export type DamageType = 'physical' | 'magic' | 'unique';

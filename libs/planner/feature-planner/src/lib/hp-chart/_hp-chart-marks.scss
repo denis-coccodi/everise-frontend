@@ -49,7 +49,7 @@
 
 .tier {
   display: inline-block;
-  width: 2px;
+  width: 3px;
   height: calc(100% * var(--tier-share));
   background: var(--color-severity-light);
   --tier-share: 0.3;

@@ -63,19 +63,20 @@
   --palette-ember-500: #c95a28;
   --palette-ember-300: #f08a5d;
   --palette-ember-200: #f6b896;
-  /* Heat: the attack tiers, yellow to deep red, the redder the more
-     dangerous, with lightness steps far enough apart to tell five apart:
-     brighter for dark surfaces, deeper for light ones (checked both). */
-  --palette-heat-bright-1: #f5d04a;
-  --palette-heat-bright-2: #f59a38;
-  --palette-heat-bright-3: #ec5f2c;
-  --palette-heat-bright-4: #d9302f;
-  --palette-heat-bright-5: #a8142a;
-  --palette-heat-deep-1: #dbaa00;
-  --palette-heat-deep-2: #e27318;
-  --palette-heat-deep-3: #cc4419;
-  --palette-heat-deep-4: #a8191f;
-  --palette-heat-deep-5: #640b19;
+  /* Heat: the attack tiers, lighter to darker and yellow to crimson, the
+     redder the more dangerous: even lightness steps (OKLCH), as far apart as
+     five warm colours go while the faintest still shows on the surface
+     (checked with the dataviz validator, both modes). */
+  --palette-heat-bright-1: #fff200;
+  --palette-heat-bright-2: #ffaf00;
+  --palette-heat-bright-3: #ff7127;
+  --palette-heat-bright-4: #de3a56;
+  --palette-heat-bright-5: #a7016d;
+  --palette-heat-deep-1: #ddb227;
+  --palette-heat-deep-2: #d17d00;
+  --palette-heat-deep-3: #b74b21;
+  --palette-heat-deep-4: #911e35;
+  --palette-heat-deep-5: #63003d;
   --palette-jade-600: #2b8a52;
   --palette-jade-400: #6fcf8f;
 }
