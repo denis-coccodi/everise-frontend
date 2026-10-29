@@ -54,7 +54,7 @@ export function attackSeverity(timeline: PullTimeline): (action: number, at: num
     severity: severityOf(
       m,
       maxHp,
-      mechanics.filter((x) => Math.abs(x.at - m.at) <= TOGETHER_MS),
+      mechanics.filter((x) => !x.wipe && Math.abs(x.at - m.at) <= TOGETHER_MS),
     ),
   }));
   return (action, at) =>

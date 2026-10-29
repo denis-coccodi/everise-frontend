@@ -23,7 +23,8 @@ const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking
 // them (`UNSURVIVABLE` times their max HP): one they survived as played was
 // mitigated, and the plan must cover it too. A failed one is avoided when
 // `ignore` says so, or when nothing would save them; the plan covers the
-// rest like any other hit.
+// rest like any other hit. A raidwide every hit of which is unsurvivable is
+// a wipe (`wipe`): nothing saves anyone, so it's taken as avoided.
 export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] {
   const actionName = new Map(timeline.actions.map((action) => [action.id, action.name]));
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
@@ -62,6 +63,8 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
         : players.size <= 2 && [...players].every((p) => tanks.has(p))
           ? 'tankbuster'
           : 'targeted';
+    const unsurvivable = (hit: TimelineHit) => unmitigated(hit) >= UNSURVIVABLE * (maxHp.get(hit.target) ?? Infinity);
+    const wipe = kind === 'raidwide' && group.hits.every(unsurvivable);
     return {
       id,
       at: group.at,
@@ -71,7 +74,6 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
       // One attack: one damage type.
       damageType: group.hits[0].damageType,
       hits: group.hits.map((hit) => {
-        const unsaved = unmitigated(hit) >= UNSURVIVABLE * (maxHp.get(hit.target) ?? Infinity);
         const fails = failed(hit);
         return {
           player: hit.target,
@@ -79,9 +81,10 @@ export function mechanicsOf(timeline: PullTimeline, ignore = false): Mechanic[] 
           asPlayed: hit.amount,
           ...(fails ? { failed: true } : {}),
           ...(blocked.has(hit) ? { estimated: true } : {}),
-          avoidable: fails && (ignore || unsaved),
+          avoidable: wipe || (fails && (ignore || unsurvivable(hit))),
         };
       }),
+      ...(wipe ? { wipe: true } : {}),
     };
   });
 }

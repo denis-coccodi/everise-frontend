@@ -61,6 +61,9 @@ export interface Mechanic {
   // damage; null when the log doesn't say.
   damageType: DamageType | null;
   hits: MechanicHit[];
+  // A wipe: a raidwide nobody survives whatever is used (an enrage, a
+  // mechanic failed by all), taken as avoided and left out of the counts.
+  wipe?: boolean;
 }
 
 // A mitigation or shield a player can use: an action and what it lowers or

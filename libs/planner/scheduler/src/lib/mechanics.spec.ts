@@ -95,6 +95,26 @@ describe('mechanicsOf', () => {
     ]);
   });
 
+  it('takes a raidwide nobody survives as a wipe, avoided, and only that', () => {
+    // Ten million on each (max HP 100,000): an enrage. A raidwide one
+    // player survives (150,000 on one only) is still an attack to cover.
+    const mechanics = mechanicsOf(
+      pull([
+        [10, 'Enrage', 1, 10_000_000],
+        [10, 'Enrage', 2, 10_000_000],
+        [10, 'Enrage', 3, 10_000_000],
+        [40, 'Big Wave', 1, 150_000],
+        [40, 'Big Wave', 2, 400_000],
+        [40, 'Big Wave', 3, 400_000],
+      ]),
+    );
+
+    expect(mechanics.map((m) => [m.name, !!m.wipe, m.hits.every((h) => h.avoidable)])).toEqual([
+      ['Enrage', true, true],
+      ['Big Wave', false, false],
+    ]);
+  });
+
   it('counts a big hit the player survived as a hit to cover, and one that killed them as failed', () => {
     // The scholar took 150,000 from a tower, five times the others' 30,000
     // and more than their 100,000 HP: survived as played, it's no failure.

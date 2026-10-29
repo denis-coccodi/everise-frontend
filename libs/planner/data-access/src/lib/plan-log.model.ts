@@ -18,6 +18,8 @@ export interface PlanHitEntry {
   // A failed mechanic (`failed`), and whether the plan takes it as avoided.
   failed?: boolean;
   avoidable: boolean;
+  // A wipe: nobody survives it whatever is used.
+  wipe?: boolean;
   // Its damage estimated: an invulnerability blocked it in the pull.
   estimated?: boolean;
   covers: string[];

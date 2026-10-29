@@ -12,7 +12,7 @@ export interface HpPoint {
 export interface HpMark {
   at: number;
   share: number;
-  kind: 'death' | 'short' | 'avoided';
+  kind: 'death' | 'short' | 'avoided' | 'wipe';
   // The attack, for the hits, and how hard it hits.
   action: string | null;
   tier?: SeverityTier | null;

@@ -30,7 +30,8 @@ export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
       if (!m || (hit.safe && !hit.avoidable)) continue;
       const left = hit.avoidable ? (hit.hpBefore ?? max) : Math.max(0, (hit.hpBefore ?? max) - hit.planned);
       const tier = severity(m.action, m.at)?.tier ?? null;
-      marks.push({ at: m.at, share: share(left), kind: hit.avoidable ? 'avoided' : 'short', action: m.name, tier });
+      const kind = m.wipe ? 'wipe' : hit.avoidable ? 'avoided' : 'short';
+      marks.push({ at: m.at, share: share(left), kind, action: m.name, tier });
     }
     curves.push({
       id: player.id,
