@@ -17,11 +17,11 @@ export const EMBRACE = 802;
 const DISSIPATION = 3587;
 const DISSIPATION_MS = 30_000;
 const CAST_EVERY_MS = 3200;
-// The fairy's orders, and Seraphism (which needs her out too): Whispering
-// Dawn, Fey Illumination, Fey Blessing, Aetherpact.
+// The fairy's orders, and Seraphism and Summon Seraph (which need her out
+// too): Whispering Dawn, Fey Illumination, Fey Blessing, Aetherpact.
 const SERAPHISM = 37014;
 const SERAPHISM_MS = 20_000;
-const NEEDS_FAIRY = new Set([16537, 16538, 16543, AETHERPACT, SERAPHISM]);
+const NEEDS_FAIRY = new Set([16537, 16538, 16543, AETHERPACT, SERAPHISM, SUMMON_SERAPH]);
 
 // A Fey Union ends when the scholar orders the fairy anything else, or
 // sends her off for Seraph: the plan puts none of these in a union it has,
@@ -48,7 +48,8 @@ const dissipations = (timeline: PullTimeline, scholar: number, given?: number[])
 
 // The tools with the spans their player's fairy is away in, for those that
 // need her: none of them while Dissipation has her away. Nor Seraphism in
-// the 20s before one: Dissipation can't be used while it's up.
+// the 20s before one, nor Summon Seraph in the 22s before (Dissipation can't
+// be used while either is up: Seraph sends the faerie away).
 export function withFairyAway<T extends { player: number; action: number }>(
   timeline: PullTimeline,
   tools: T[],
@@ -57,7 +58,8 @@ export function withFairyAway<T extends { player: number; action: number }>(
   return tools.map((t) => {
     if (!NEEDS_FAIRY.has(t.action)) return t;
     const away = dissipations(timeline, t.player, given.get(t.player));
-    const before = t.action === SERAPHISM ? away.map((s) => ({ from: s.from - SERAPHISM_MS, to: s.from })) : [];
+    const lead = t.action === SERAPHISM ? SERAPHISM_MS : t.action === SUMMON_SERAPH ? SERAPH_MS : 0;
+    const before = lead ? away.map((s) => ({ from: s.from - lead, to: s.from })) : [];
     return { ...t, away: [...before, ...away] };
   });
 }
