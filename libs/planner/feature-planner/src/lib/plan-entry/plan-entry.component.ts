@@ -44,6 +44,8 @@ export class PlanEntryComponent {
       hit.before === null || hit.after === null
         ? ''
         : `; at ${percent.format(hit.before)} HP, leaves ${percent.format(hit.after)}`;
-    return `${taken}${hp}; took ${number.format(hit.asPlayed)} as played.`;
+    // Blocked by an invulnerability as played: the attack's usual damage.
+    const estimated = hit.estimated ? ' (estimated: an invulnerability blocked it)' : '';
+    return `${taken}${hp}; took ${number.format(hit.asPlayed)} as played${estimated}.`;
   }
 }
