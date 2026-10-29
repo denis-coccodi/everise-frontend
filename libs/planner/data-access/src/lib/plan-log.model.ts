@@ -18,6 +18,8 @@ export interface PlanHitEntry {
   // A failed mechanic (`failed`), and whether the plan takes it as avoided.
   failed?: boolean;
   avoidable: boolean;
+  // Its damage estimated: an invulnerability blocked it in the pull.
+  estimated?: boolean;
   covers: string[];
   // How hard the attack hits (null: no max HP to tell).
   severity: Severity | null;

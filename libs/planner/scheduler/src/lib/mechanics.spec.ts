@@ -44,6 +44,39 @@ describe('mechanicsOf', () => {
     expect(mechanicsOf(timeline).map((m) => m.name)).toEqual(['Raidwide']);
   });
 
+  it("gives a hit an invulnerability blocked the attack's usual damage, on that player", () => {
+    const timeline = pull([
+      [20, 'Buster', 1, 120_000],
+      [60, 'Buster', 1, 0],
+      [100, 'Buster', 1, 130_000],
+      [100, 'Buster', 2, 60_000],
+    ]);
+    // Hallowed Ground at 60s: the log has nothing of it, not even what it would have done.
+    timeline.damage[1].unmitigated = null;
+    timeline.damage[1].statuses = [82];
+    timeline.statuses = [{ id: 82, name: 'Hallowed Ground' }];
+    // An attack the pull has no other hit of stays out, as does a hit of
+    // nothing with no invulnerability up (an attack doing nothing to some).
+    const lone = pull([[60, 'Lone Buster', 1, 0]]);
+    lone.damage[0].unmitigated = null;
+    lone.damage[0].statuses = [82];
+    lone.statuses = [{ id: 82, name: 'Hallowed Ground' }];
+    const nothing = pull([
+      [20, 'Bondage', 1, 50_000],
+      [60, 'Bondage', 2, 0],
+    ]);
+    nothing.damage[1].unmitigated = null;
+
+    const blocked = mechanicsOf(timeline).find((m) => m.at === 60_000);
+
+    // The median of the tank's own (120,000, 130,000), not the healer's.
+    expect(blocked?.hits).toEqual([
+      { player: 1, unmitigated: 130_000, asPlayed: 0, avoidable: false, estimated: true },
+    ]);
+    expect(mechanicsOf(lone)).toEqual([]);
+    expect(mechanicsOf(nothing).map((m) => m.at)).toEqual([20_000]);
+  });
+
   it('marks a failed mechanic: many times what the attack does to others, and more than their HP', () => {
     // The bard missed a tower: 2.8M where the others took 90,000. The
     // paladin's 300,000 buster, alone of its kind, is no failure.
