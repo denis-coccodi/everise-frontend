@@ -173,12 +173,12 @@ export const PlanStore = signalStore(
         patchState(store, { openers: { ...store.openers(), [player]: opener } });
       },
       run,
-      // A skill the user puts in the plan, or takes out (one they added
+      // A skill the user puts in the plan (with what it needs first), or takes out (one they added
       // comes out of their edits; a planned one isn't planned there again),
       // or one of their edits or all of them undone; each plans the pull
       // again, saying so when it leaves more hits short than before.
-      async addSkill(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, added: PlanEdit) {
-        await edited(pullId, timeline, catalog, (e) => ({ ...e, added: [...e.added, added] }));
+      async addSkill(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, ...added: PlanEdit[]) {
+        await edited(pullId, timeline, catalog, (e) => ({ ...e, added: [...e.added, ...added] }));
       },
       async removeSkill(
         pullId: number,

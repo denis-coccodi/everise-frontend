@@ -1,7 +1,7 @@
 import { computed, type Signal } from '@angular/core';
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
 import { editChoices, editSlots } from '@everise/planner/scheduler';
-import type { EditItem } from './edit-list.model';
+import type { EditItem, PickedSkill } from './edit-list.model';
 import type { PlanUseEntry } from './plan-log.model';
 import type { PlanStore } from './plan.store';
 import type { PlannerStore } from './planner.store';
@@ -29,6 +29,8 @@ export function planEditor(
       const actions = new Map(catalog.hasValue() ? catalog.value().actions.map((a) => [a.id, a]) : []);
       const names = new Map(pull.hasValue() ? pull.value().players.map((x) => [x.id, x.name]) : []);
       const { added, removed } = plans.edits();
+      // Named only for a skill that goes on one party member.
+      const targeted = (id: number) => !!actions.get(id)?.effects.some((e) => e.target === 'target');
       return [
         ...added.map((edit) => ({ kind: 'added' as const, edit })),
         ...removed.map((edit) => ({ kind: 'removed' as const, edit })),
@@ -40,7 +42,7 @@ export function planEditor(
           edit,
           action: actions.get(edit.action)?.name ?? 'Unknown',
           icon: actions.get(edit.action)?.icon ?? null,
-          target: kind === 'added' ? (names.get(edit.target ?? -1) ?? null) : null,
+          target: targeted(edit.action) ? (names.get(edit.target ?? -1) ?? null) : null,
         }));
     }),
     slotsFor: computed(() => {
@@ -61,9 +63,12 @@ export function planEditor(
       const players = store.pull.hasValue() ? store.pull.value().players : [];
       return players.find((x) => x.role === 'tank')?.id ?? player()?.id ?? null;
     }),
-    add(skill: { at: number; action: number; target: number | null }) {
+    add({ first, ...skill }: PickedSkill) {
       const p = player();
-      if (p) edit((id, t, c) => plans.addSkill(id, t, c, { ...skill, player: p.id, target: skill.target ?? p.id }));
+      if (!p) return;
+      const target = skill.target ?? p.id;
+      const added = [...(first ? [{ ...first, player: p.id, target }] : []), { ...skill, player: p.id, target }];
+      edit((id, t, c) => plans.addSkill(id, t, c, ...added));
     },
     remove(entry: PlanUseEntry) {
       const p = player();

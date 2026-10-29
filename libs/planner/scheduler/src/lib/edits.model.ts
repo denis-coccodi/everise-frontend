@@ -32,6 +32,9 @@ export interface EditChoice {
   icon: number | null;
   description: string | null;
   replacesIcon: number | null;
+  // What it needs used first, added with it where none is (Temperance
+  // before Divine Caress): at the latest moment before it where that fits.
+  first: { action: number; name: string; icon: number | null; at: number } | null;
 }
 
 // A moment the user can put a skill at, and where it is in the player's

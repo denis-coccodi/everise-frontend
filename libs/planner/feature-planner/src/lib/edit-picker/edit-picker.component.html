@@ -31,6 +31,12 @@
                 >in place of <cdt-planner-action-name [name]="c.replaces" [icon]="c.replacesIcon"
               /></span>
             }
+            @if (c.first; as f) {
+              <!-- What it needs first, added with it. -->
+              <span class="note"
+                >with <cdt-planner-action-name [name]="f.name" [icon]="f.icon" /> at {{ clock(f.at) }} first</span
+              >
+            }
           } @else {
             <cdt-planner-action-name
               class="unavailable"
