@@ -70,7 +70,7 @@
           }
           <line class="margin" x1="0" x2="1000" [attr.y1]="marginTop()" [attr.y2]="marginTop()" />
           @if (showPlayed()) {
-            <path class="played" [attr.d]="path(curve.played)" />
+            <path class="played" [attr.d]="path(curve.played, completedFrom() ?? durationMs())" />
           }
           @if (showPlanned() && curve.planned) {
             <path class="planned" [attr.d]="path(curve.planned)" />

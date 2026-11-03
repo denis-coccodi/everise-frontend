@@ -98,9 +98,11 @@ export class HpChartComponent {
 
   // A line through the HP's lowest in each slice of the pull: the dips that
   // matter, without each tick's jitter.
-  protected path(points: HpPoint[]) {
+  // `end`: where the line stops, sooner than the chart's end (HP as played
+  // in a completed wipe, at its wipe point).
+  protected path(points: HpPoint[], end = this.durationMs()) {
     const duration = this.durationMs();
-    const drawn = lowestPerBucket(points, duration, Math.max(1000, duration / SLICES));
+    const drawn = lowestPerBucket(points, duration, Math.max(1000, duration / SLICES), Math.min(end, duration));
     const x = (at: number) => ((at / duration) * WIDTH).toFixed(1);
     const y = (share: number) => ((1 - share) * HEIGHT).toFixed(1);
     return drawn.map((p, i) => `${i ? 'L' : 'M'}${x(p.at)} ${y(p.share)}`).join(' ');
@@ -121,6 +123,8 @@ export class HpChartComponent {
     ];
     for (const [name, points, show] of lines) {
       if (!points || !show) continue;
+      // Nothing was played past a completed wipe's wipe point.
+      if (at !== null && name === 'played' && at > (this.completedFrom() ?? Infinity)) continue;
       if (at !== null) parts.push(`${name} ${percent.format(shareAt(points, at))}`);
       else {
         const low = lowest(points);

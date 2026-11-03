@@ -71,6 +71,20 @@ describe('HpChartComponent', () => {
     expect(host.querySelector('.completed-key')?.textContent?.trim()).toBe('Past the log: replanned from 1:30');
     // A line where the log ends, on every plot.
     expect([...host.querySelectorAll('line.completed-edge')].map((l) => l.getAttribute('x1'))).toEqual(['500', '500']);
+    // HP as played stops there, the plan goes on to the end.
+    const lastX = (path: Element) => path.getAttribute('d')?.split(/[ML]/).at(-1)?.trim().split(' ')[0];
+    expect([...host.querySelectorAll('path.played')].map(lastX)).toEqual(['500.0', '500.0']);
+    expect([...host.querySelectorAll('path.planned')].map(lastX)).toEqual(['1000.0', '1000.0']);
+  });
+
+  it("says nothing of HP as played at a moment past a completed wipe's wipe point", () => {
+    const { fixture, host, readouts } = render();
+    fixture.componentRef.setInput('completedFrom', 90_000);
+    const slider = host.querySelector('[role=slider]') as HTMLElement;
+    slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
+    fixture.detectChanges();
+
+    expect(readouts()).toEqual(['3:00: plan 50%', '3:00: plan 5%, MP 30%']);
   });
 
   it('gives each member a panel that says their lowest HP, as played and with the plan', () => {

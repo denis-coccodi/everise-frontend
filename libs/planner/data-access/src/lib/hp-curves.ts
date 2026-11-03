@@ -107,11 +107,11 @@ export function lowest(points: HpPoint[]): HpPoint | null {
 
 // A curve to draw: its lowest HP in each `bucketMs` from the start, so the
 // dips that matter stay and a tick's jitter goes.
-export function lowestPerBucket(points: HpPoint[], durationMs: number, bucketMs: number): HpPoint[] {
+export function lowestPerBucket(points: HpPoint[], durationMs: number, bucketMs: number, end = durationMs): HpPoint[] {
   const drawn: HpPoint[] = [];
   let i = 0;
   let share = points[0]?.share ?? 1;
-  for (let from = 0; from < durationMs; from += bucketMs) {
+  for (let from = 0; from < end; from += bucketMs) {
     let low = share;
     for (; i < points.length && points[i].at < from + bucketMs; i++) {
       share = points[i].share;
@@ -119,6 +119,6 @@ export function lowestPerBucket(points: HpPoint[], durationMs: number, bucketMs:
     }
     drawn.push({ at: from, share: low });
   }
-  drawn.push({ at: durationMs, share });
+  drawn.push({ at: end, share });
   return drawn;
 }
