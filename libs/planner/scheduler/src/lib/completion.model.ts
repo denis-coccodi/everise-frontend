@@ -14,6 +14,13 @@ export interface Alignment {
   matched: number;
 }
 
+// How many of the fight's mechanics (`total`, as a kill has them) a wipe
+// got through before its wipe point.
+export interface Progress {
+  reached: number;
+  total: number;
+}
+
 // Another group's kill's players by id, each to this group's player in
 // their place (`player`), and whether that one plays the same job.
 export type StandIns = Record<number, { player: number; sameJob: boolean }>;

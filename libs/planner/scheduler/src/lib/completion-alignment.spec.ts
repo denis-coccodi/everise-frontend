@@ -1,5 +1,5 @@
 import type { PullTimeline } from '@everise/core/api-types';
-import { alignment, coverage } from './completion-alignment';
+import { alignment } from './completion-alignment';
 import { pull } from './scheduler-fixtures';
 
 // A log of the boss's casts ([time in s, name]), lasting `seconds`.
@@ -30,19 +30,6 @@ const SCRIPT: [number, string][] = [
   [200, 'Finale Fatale'],
 ];
 
-describe('coverage', () => {
-  it("is the wipe's length against the kills' median", () => {
-    const kills = [fight([], 500), fight([], 540), fight([], 600)];
-
-    expect(coverage(fight([], 270), kills)).toBe(0.5);
-    expect(coverage(fight([], 600), kills)).toBe(1);
-  });
-
-  it('is unknown without a kill', () => {
-    expect(coverage(fight([], 270), [])).toBeNull();
-  });
-});
-
 describe('alignment', () => {
   it('lines the wipe up with a kill on the latest cast both share, the kill shifted to continue it', () => {
     // The wipe reaches Sadistic Screech 5 s later than the kill.
@@ -70,6 +57,31 @@ describe('alignment', () => {
     const kill = fight([...SCRIPT, [230, 'Killer Voice']], 250);
 
     expect(alignment(wipe, [kill])).toMatchObject({ name: 'Killer Voice', clearAt: 110_000, offset: 0 });
+  });
+
+  it("doesn't stretch over the kill's repeats to pair more casts, minutes apart", () => {
+    // The kill has the wipe's last 3 casts again 150 s later: pairing them
+    // there would share 7 casts against 4, but 80 s or more apart.
+    const repeat: [number, string][] = [
+      [10, 'Killer Voice'],
+      [30, 'Hardcore'],
+      [55, 'Vamp Stomp'],
+    ];
+    const wipe = fight(
+      [...repeat, [70, 'Brutal Rain'], [80, 'Killer Voice'], [90, 'Hardcore'], [100, 'Vamp Stomp']],
+      110,
+    );
+    const kill = fight(
+      [
+        ...repeat,
+        [70, 'Brutal Rain'],
+        [80, 'Sadistic Screech'],
+        ...repeat.map(([at, name]): [number, string] => [at + 150, name]),
+      ],
+      220,
+    );
+
+    expect(alignment(wipe, [kill])).toMatchObject({ name: 'Brutal Rain', offset: 0 });
   });
 
   it('lines up across a phase the other group pushed sooner', () => {
