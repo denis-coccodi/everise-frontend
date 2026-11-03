@@ -1,9 +1,13 @@
 import {
+  actionCatalog,
   click,
+  CODE,
+  fightReport,
   formButton,
   openPlan,
   planEveryone,
   pullTimeline,
+  renderPlanner,
   renderPull,
   replanTick,
 } from '../planner-page-testing';
@@ -29,7 +33,8 @@ describe('PlanFormComponent', () => {
 
   const submit = (page: HTMLElement) =>
     page.querySelector<HTMLButtonElement>('cdt-planner-plan-form button[type=submit]');
-  const summary = (page: HTMLElement) => page.querySelector('cdt-planner-plan-form cdt-message')?.textContent?.trim();
+  const summary = (page: HTMLElement) =>
+    page.querySelector('cdt-planner-plan-form cdt-message:not(.completion)')?.textContent?.trim();
   const warning = (page: HTMLElement) =>
     page.querySelector('cdt-planner-plan-form cdt-message[data-tone=warning]')?.textContent?.trim();
   // What the plan's side of the timeline has.
@@ -137,5 +142,57 @@ describe('PlanFormComponent', () => {
     rendered.fixture.detectChanges();
 
     expect(select.value).toBe('ignore');
+  });
+
+  describe("a wipe's rest of the fight", () => {
+    // The boss's Killer Voice every 10s from 10s, in the wipe and in kills.
+    const withCasts = (durationMs: number) => ({
+      ...pullTimeline(),
+      durationMs,
+      enemyCasts: [10, 20, 30, 40].map((s) => ({
+        at: s * 1000,
+        source: 13,
+        target: null,
+        action: 45956,
+        castMs: 3000,
+      })),
+    });
+    const note = (page: HTMLElement) => page.querySelector('cdt-planner-plan-form .completion')?.textContent?.trim();
+    // The wipe (pull 2) open, and the kills FFLogs ranks for it.
+    async function wipeWith(clears: { code: string; pullId: number }[]) {
+      const rendered = await renderPlanner(`/planner?report=${CODE}&pull=2`);
+      rendered.http.expectOne(`/planner/reports/${CODE}`).flush(fightReport());
+      rendered.http.expectOne(`/planner/reports/${CODE}/pulls/2`).flush(withCasts(303_000));
+      rendered.http.expectOne('/planner/catalog').flush(actionCatalog());
+      await rendered.settle();
+      expect(note(rendered.page)).toBe("Reading other groups' kills of this fight…");
+      rendered.http.expectOne(`/planner/reports/${CODE}/pulls/2/clears`).flush({ clears });
+      await rendered.settle();
+      return rendered;
+    }
+
+    it('offers it completed from a kill, for a wipe that got halfway', async () => {
+      const rendered = await wipeWith([{ code: 'Other0000000000a', pullId: 7 }]);
+      rendered.http.expectOne('/planner/reports/Other0000000000a/pulls/7').flush(withCasts(500_000));
+      await rendered.settle();
+      const { page } = rendered;
+
+      expect(page.querySelector('label[for=planner-rest]')?.textContent).toContain('Rest of the fight');
+      expect(page.querySelector('cdt-planner-plan-form')?.textContent).toContain(
+        'This wipe lasted 5:03 of about 8:20.',
+      );
+      const select = page.querySelector<HTMLSelectElement>('#planner-rest');
+      expect(select?.value).toBe('whole');
+      expect(note(page)).toBeUndefined();
+    });
+
+    it('plans only what was logged, and says why, when no kill can be read', async () => {
+      const { page } = await wipeWith([]);
+
+      expect(page.querySelector('#planner-rest')).toBeNull();
+      expect(note(page)).toBe(
+        "Only what was logged is planned: no other group's kill of this fight could be read. FFLogs has none, or has archived them.",
+      );
+    });
   });
 });

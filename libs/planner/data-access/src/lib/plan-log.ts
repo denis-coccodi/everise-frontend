@@ -73,8 +73,8 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
   return [...uses, ...asPlayed(plan, timeline, playerId, catalog), ...hits].sort((a, b) => a.at - b.at);
 }
 
-// Where a blocked hit's damage was estimated from, when it was.
-const estimatedFrom = (from: 'pull' | 'clears' | undefined) => (from ? { estimated: from } : {});
+// Where a hit's damage was estimated from, when it was.
+const estimatedFrom = (from: 'pull' | 'clears' | 'completion' | undefined) => (from ? { estimated: from } : {});
 
 // How many hits the plan leaves short of the margin.
 export function unsafeHits(plan: Plan, playerId?: number) {

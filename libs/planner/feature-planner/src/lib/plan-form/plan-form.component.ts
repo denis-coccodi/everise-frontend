@@ -22,7 +22,7 @@ import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } fro
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlanFormComponent {
-  private readonly store = inject(PlannerStore);
+  protected readonly store = inject(PlannerStore);
   protected readonly plans = inject(PlanStore);
 
   private readonly model = signal({ margin: this.plans.margin() });
@@ -77,8 +77,44 @@ export class PlanFormComponent {
     );
   });
 
+  // For a wipe: whether its plan can cover the whole fight, in words.
+  protected readonly completion = this.store.completion;
+  protected readonly completionHint = computed(() => {
+    const c = this.completion();
+    if (c?.state !== 'offered') return '';
+    return (
+      `This wipe lasted ${pullClock(c.lasted)} of about ${pullClock(c.usual)}. Completed, the rest of the fight is ` +
+      "taken from another group's kill, lined up on the boss's casts. Players with nobody of their job in that " +
+      'kill are planned from the wipe on.'
+    );
+  });
+  protected readonly completionNote = computed(() => {
+    const c = this.completion();
+    switch (c?.state) {
+      case 'reading':
+        return "Reading other groups' kills of this fight…";
+      case 'none':
+        return "Only what was logged is planned: no other group's kill of this fight could be read. FFLogs has none, or has archived them.";
+      case 'unaligned':
+        return "Only what was logged is planned: no other group's kill lines up with this wipe's boss casts.";
+      case 'short':
+        return (
+          `Only what was logged is planned. This wipe lasted ${pullClock(c.lasted)} of about ${pullClock(c.usual)}, ` +
+          `and the rest of the fight is only completed for a wipe that got at least halfway (${pullClock(c.usual / 2)}).`
+        );
+      case 'nothing-left':
+        return `Only what was logged is planned: this wipe lasted ${pullClock(c.lasted)}, as long as other groups' kills (about ${pullClock(c.usual)}), so they have nothing left to add.`;
+      default:
+        return '';
+    }
+  });
+
   protected setFailedMechanics(value: string) {
     this.plans.setFailedMechanics(value === 'ignore' ? 'ignore' : 'cover');
+  }
+
+  protected setCompleteWipe(value: string) {
+    this.store.setCompleteWipe(value === 'whole');
   }
 
   protected replanEveryone() {
@@ -86,10 +122,10 @@ export class PlanFormComponent {
   }
 
   private async run() {
-    const { pull, catalog, pullId } = this.store;
-    const id = pullId();
-    if (!id || !pull.hasValue() || !catalog.hasValue() || !this.plans.replan().length) return;
+    const { planned, catalog, pullId } = this.store;
+    const [id, timeline] = [pullId(), planned()];
+    if (!id || !timeline || !catalog.hasValue() || !this.plans.replan().length) return;
     this.plans.setMargin(this.model().margin);
-    await this.plans.run(id, pull.value(), catalog.value());
+    await this.plans.run(id, timeline, catalog.value());
   }
 }

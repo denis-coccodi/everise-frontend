@@ -1,11 +1,12 @@
 import { computed, inject } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { signalStore, withComputed, withMethods, withProps } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withMethods, withProps, withState } from '@ngrx/signals';
 import { PullTimeline, ReportPull } from '@everise/core/api-types';
 import { errorMessageOf } from '@everise/core/data-access';
 import { missingAttacks, referenceDamage, type ReferencedTimeline } from '@everise/planner/scheduler';
 import { concat, EMPTY, filter, last, map, of, switchMap, take, type Observable } from 'rxjs';
+import { wipeCompletion } from './plan-completion';
 import { PlannerService } from './planner.service';
 import { readReportLink } from './report-link';
 import type { EncounterPulls } from './planner.model';
@@ -88,7 +89,27 @@ export const PlannerStore = signalStore(
     pullError: computed(() => errorMessageOf(pull)),
     catalogError: computed(() => errorMessageOf(catalog)),
   })),
-  withMethods((_, router = inject(Router), route = inject(ActivatedRoute)) => ({
+  // Whether a wipe's plan covers the whole fight, completed from another
+  // group's kill (when it's offered and asked for), and the pull to plan:
+  // completed so, or as logged.
+  withState({ completeWipe: true }),
+  withComputed(({ pull, catalog, picked, completeWipe }) => {
+    const completion = computed(() =>
+      pull.hasValue() && catalog.hasValue()
+        ? wipeCompletion(pull.value(), picked()?.kill === false, catalog.value())
+        : null,
+    );
+    const planned = computed((): ReferencedTimeline | null => {
+      const c = completion();
+      if (c?.state === 'offered' && completeWipe()) return c.timeline;
+      return pull.hasValue() ? pull.value() : null;
+    });
+    return { completion, planned };
+  }),
+  withMethods((store, router = inject(Router), route = inject(ActivatedRoute)) => ({
+    setCompleteWipe(completeWipe: boolean) {
+      patchState(store, { completeWipe });
+    },
     // Opens the report (and pull) a pasted link or code names; false when
     // it names none.
     open(link: string) {

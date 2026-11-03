@@ -18,10 +18,21 @@
       <option value="ignore" [selected]="plans.failedMechanics() === 'ignore'">Ignore them</option>
     </select>
   </cdt-field>
+  @if (completion()?.state === 'offered') {
+    <cdt-field label="Rest of the fight" for="planner-rest" [hint]="completionHint()">
+      <select #rest id="planner-rest" cdtInput (change)="setCompleteWipe(rest.value)">
+        <option value="whole" [selected]="store.completeWipe()">Complete it</option>
+        <option value="logged" [selected]="!store.completeWipe()">Only what was logged</option>
+      </select>
+    </cdt-field>
+  }
   <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning() || !plans.replan().length">
     {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
   </button>
 </form>
+@if (completionNote(); as note) {
+  <cdt-message class="completion">{{ note }}</cdt-message>
+}
 <div class="shortcuts">
   <span class="label">Replan</span>
   <button cdtButton="chip" type="button" (click)="replanEveryone()">Everyone</button>

@@ -25,8 +25,11 @@ const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking
 // mitigated, and the plan must cover it too. A failed one is avoided when
 // `ignore` says so, or when nothing would save them; the plan covers the
 // rest like any other hit. A raidwide every hit of which is unsurvivable is
-// a wipe (`wipe`): nothing saves anyone, so it's taken as avoided.
+// a wipe (`wipe`): nothing saves anyone, so it's taken as avoided. A wipe
+// completed from another group's kill has its hits after the wipe point
+// estimated from that kill (`completion`).
 export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mechanic[] {
+  const completedAfter = timeline.completion?.from ?? Infinity;
   const actionName = new Map(timeline.actions.map((action) => [action.id, action.name]));
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
   const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp]));
@@ -81,7 +84,11 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
           unmitigated: unmitigated(hit),
           asPlayed: hit.amount,
           ...(fails ? { failed: true } : {}),
-          ...(blocked.has(hit) ? { estimated: fromClears.has(hit) ? ('clears' as const) : ('pull' as const) } : {}),
+          ...(blocked.has(hit)
+            ? { estimated: fromClears.has(hit) ? ('clears' as const) : ('pull' as const) }
+            : hit.at > completedAfter
+              ? { estimated: 'completion' as const }
+              : {}),
           avoidable: wipe || (fails && (ignore || unsurvivable(hit))),
         };
       }),

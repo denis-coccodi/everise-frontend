@@ -18,3 +18,4 @@ export type { EncounterPulls } from './lib/planner.model';
 export type { DeathEntry, HitEntry, LogEntry, UseEntry } from './lib/player-log.model';
 export type { ReportLink } from './lib/report-link.model';
 export { planEditor } from './lib/plan-editor';
+export type { WipeCompletion } from './lib/plan-completion.model';
