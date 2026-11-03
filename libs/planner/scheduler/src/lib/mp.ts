@@ -4,7 +4,7 @@ import type { Plan } from './plan.model';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 
 // The game's MP tick, and the natural one when the log can't tell.
-const TICK_MS = 3_000;
+export const TICK_MS = 3_000;
 const DEFAULT_TICK = 200;
 // A Dark Knight's MP spenders the plan may drop for The Blackest Night's
 // MP: Edge and Flood of Shadow. One Dark Arts paid for (the log's MP
@@ -263,7 +263,7 @@ function paid(readings: Change[], edge: Change) {
 
 // The player's natural tick: the commonest small gain between readings
 // (Lucid's 550 and the like left out).
-function tickOf(readings: Change[]) {
+export function tickOf(readings: Change[]) {
   const counts = new Map<number, number>();
   for (let i = 1; i < readings.length; i++) {
     const gain = readings[i].mp - readings[i - 1].mp;
