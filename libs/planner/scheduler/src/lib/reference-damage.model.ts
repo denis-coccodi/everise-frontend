@@ -5,5 +5,8 @@ import type { PullTimeline } from '@everise/core/api-types';
 // anyone. For an attack an invulnerability blocked every time in the pull.
 export type ReferenceDamage = Record<string, { byRole: Record<string, number>; any: number }>;
 
-// A pull with what other groups' kills add to it, once read.
-export type ReferencedTimeline = PullTimeline & { references?: ReferenceDamage };
+// A pull with what other groups' kills add to it, once read: what they say
+// of its blocked attacks, and for a wipe the kills themselves (up to three
+// that could be read, none when FFLogs has none), to complete the part of
+// the fight it never reached.
+export type ReferencedTimeline = PullTimeline & { references?: ReferenceDamage; clears?: PullTimeline[] };
