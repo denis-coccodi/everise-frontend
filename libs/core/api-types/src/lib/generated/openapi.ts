@@ -2784,7 +2784,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** A pull's fight's mechanics, from cactbot's timeline */
+    /** A pull's fight's mechanics, from a community fight timeline */
     get: {
       parameters: {
         query?: never;
@@ -2879,7 +2879,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Read cactbot's latest timelines now, a few files a call (needs x-refresh-key) */
+    /** Read the latest community fight timelines now, a few files a call (needs x-refresh-key) */
     post: {
       parameters: {
         query?: never;
