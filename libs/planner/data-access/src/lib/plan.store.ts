@@ -2,6 +2,7 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { Favour, InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
+import type { ReferencedTimeline } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import type { FailedMechanics, PlanPlayer } from './plan.model';
 
@@ -51,9 +52,9 @@ interface PlanState {
   // compare against (made again only when those change).
   basePlan: Plan | null;
   baseKey: string;
-  // The last plan, and the pull it's for; whether planning again gave the
-  // same plan (nothing changed since: the edits are planned as they're made).
+  // The last plan, the pull and timeline it's for, and whether planning again changed nothing.
   plan: Plan | null;
+  timeline: ReferencedTimeline | null;
   sameAsBefore: boolean;
   pullId: number | null;
   planning: boolean;
@@ -81,6 +82,7 @@ export const PlanStore = signalStore(
     basePlan: null,
     baseKey: '',
     plan: null,
+    timeline: null,
     sameAsBefore: false,
     pullId: null,
     planning: false,
@@ -134,7 +136,7 @@ export const PlanStore = signalStore(
         const editWarning = edited ? editWarningFor(basePlan, plan) : '';
         const before = store.pullId() === pullId ? store.plan() : null;
         const sameAsBefore = !!before && samePlan(before, plan);
-        patchState(store, { plan, pullId, planning: false, basePlan, baseKey, editWarning, sameAsBefore });
+        patchState(store, { plan, timeline, pullId, planning: false, basePlan, baseKey, editWarning, sameAsBefore });
       } catch {
         patchState(store, { planning: false, error: LOAD_ERROR });
       }
