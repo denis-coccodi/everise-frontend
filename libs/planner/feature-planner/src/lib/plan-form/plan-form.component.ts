@@ -83,12 +83,19 @@ export class PlanFormComponent {
     const c = this.completion();
     if (c?.state !== 'offered') return '';
     const reached = `This wipe got through ${c.reached} of ${mechanics(c)}. Completed, the rest of the fight is `;
+    // Where its enrages (left out of the plan) are told from.
+    const enrages = c.timeline.script
+      ? " Enrages come from the fight's cactbot timeline."
+      : c.source === 'report'
+        ? ' There is no cactbot timeline of this fight yet: an enrage is only guessed from how hard it hit.'
+        : " There is no cactbot timeline of this fight yet: enrages are told from what the kills don't have.";
     if (c.source === 'report')
-      return `${reached}taken from pull ${c.timeline.completion?.clear.pullId} of this report, which got further, lined up on the boss's casts.`;
+      return `${reached}taken from pull ${c.timeline.completion?.clear.pullId} of this report, which got further, lined up on the boss's casts.${enrages}`;
+    const read = c.timeline.clears?.length ?? 1;
     return (
       reached +
-      "taken from another group's kill, lined up on the boss's casts. Players with nobody of their job in that " +
-      'kill are planned from the wipe on.'
+      `taken from another group's kill (of ${read} read), lined up on the boss's casts, and so is its damage. ` +
+      `Players with nobody of their job in that kill are planned from the wipe on.${enrages}`
     );
   });
   protected readonly completionNote = computed(() => {

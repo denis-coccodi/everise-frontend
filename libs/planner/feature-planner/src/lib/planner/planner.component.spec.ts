@@ -18,13 +18,20 @@ describe('PlannerComponent', () => {
     expect(page.querySelector('.guest-note')).toBeNull();
   });
 
-  it.each([true, false])('thanks FFLogs and XIVAPI, for everyone (signed in: %s)', async (signedIn) => {
-    const { page } = await renderPlanner('/planner', { signedIn });
+  it.each([true, false])(
+    "thanks FFLogs, XIVAPI and cactbot's authors, with its license, for everyone (signed in: %s)",
+    async (signedIn) => {
+      const { page } = await renderPlanner('/planner', { signedIn });
 
-    const credits = page.querySelector('.credits');
-    expect([...(credits?.querySelectorAll('a') ?? [])].map((a) => a.getAttribute('href'))).toEqual([
-      'https://www.fflogs.com',
-      'https://v2.xivapi.com',
-    ]);
-  });
+      const credits = page.querySelector('.credits');
+      expect([...(credits?.querySelectorAll('a') ?? [])].map((a) => a.getAttribute('href'))).toEqual([
+        'https://www.fflogs.com',
+        'https://v2.xivapi.com',
+        'https://github.com/OverlayPlugin/cactbot',
+        'https://github.com/OverlayPlugin/cactbot/blob/main/LICENSE',
+      ]);
+      // What is read from it, and what isn't.
+      expect(credits?.textContent).toContain('Nothing reads from or runs in the game.');
+    },
+  );
 });
