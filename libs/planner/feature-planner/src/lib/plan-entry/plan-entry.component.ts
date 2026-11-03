@@ -57,6 +57,8 @@ export class PlanEntryComponent {
       hit.before === null || hit.after === null
         ? ''
         : `; at ${percent.format(hit.before)} HP, leaves ${percent.format(hit.after)}`;
+    // Past the wipe's end: another group's hit, which nobody here took.
+    if (hit.estimated === 'completion') return `${taken}${hp}; estimated from another group's kill.`;
     // Blocked by an invulnerability as played: the attack's usual damage.
     const estimated =
       hit.estimated === 'clears'

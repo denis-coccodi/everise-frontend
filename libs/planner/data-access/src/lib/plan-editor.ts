@@ -16,9 +16,9 @@ export function planEditor(
   player: Signal<TimelinePlayer | null>,
 ) {
   const edit = (change: (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => Promise<void>) => {
-    const { pull, catalog, pullId } = store;
-    const id = pullId();
-    if (id && pull.hasValue() && catalog.hasValue()) void change(id, pull.value(), catalog.value());
+    const { planned, catalog, pullId } = store;
+    const [id, timeline] = [pullId(), planned()];
+    if (id && timeline && catalog.hasValue()) void change(id, timeline, catalog.value());
   };
   return {
     count: computed(() => plans.edits().added.length + plans.edits().removed.length),
@@ -46,15 +46,15 @@ export function planEditor(
         }));
     }),
     slotsFor: computed(() => {
-      const [p, { pull, catalog }] = [player(), store];
-      if (!p || !pull.hasValue() || !catalog.hasValue()) return () => [];
-      const [timeline, actions] = [pull.value(), catalog.value()];
+      const [p, timeline, { catalog }] = [player(), store.planned(), store];
+      if (!p || !timeline || !catalog.hasValue()) return () => [];
+      const actions = catalog.value();
       return (at: number) => editSlots(timeline, actions, p.id, at);
     }),
     choicesFor: computed(() => {
-      const [p, plan, { pull, catalog }] = [player(), plans.plan(), store];
-      if (!p || !plan || !pull.hasValue() || !catalog.hasValue()) return () => [];
-      const [timeline, actions] = [pull.value(), catalog.value()];
+      const [p, plan, timeline, { catalog }] = [player(), plans.plan(), store.planned(), store];
+      if (!p || !plan || !timeline || !catalog.hasValue()) return () => [];
+      const actions = catalog.value();
       return (at: number) => editChoices(plan, timeline, actions, p.id, at);
     }),
     // Who a single-target skill goes on until the user picks: the first

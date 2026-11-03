@@ -29,14 +29,21 @@
   color: var(--color-contrast-muted);
 }
 
-// Wider: the button beside the field.
+// Wider: the fields in a row, the button after them (a wipe's "Rest of the
+// fight" makes three), wrapping where the row runs out.
 @include bp.up(sm) {
   .plan-form {
-    grid-template-columns: minmax(0, 14rem) minmax(0, 14rem) auto;
-    // The button keeps its own width rather than the rest of the row.
-    justify-content: start;
-    align-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem 1rem;
 
+    cdt-field {
+      flex: 0 1 14rem;
+      min-width: 0;
+    }
+
+    // The button keeps its own width, level with the fields' inputs.
     button {
       margin-top: 1.75rem;
     }
