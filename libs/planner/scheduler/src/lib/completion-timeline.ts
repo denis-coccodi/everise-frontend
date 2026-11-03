@@ -2,9 +2,9 @@ import type { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { dropUnready } from './completion-cooldowns';
 import { standIns } from './completion-players';
 import type { Alignment } from './completion.model';
-import { mechanicsOf } from './mechanics';
 import type { ReferencedTimeline } from './reference-damage.model';
 import { catalogAtLevel, pullLevel } from './trait-levels';
+import { wipePoint } from './wipe-point';
 
 // A kill's enemies that the wipe has none of by name get ids past any
 // report's own.
@@ -16,8 +16,8 @@ const ADDED_ENEMY = 1_000_000;
 // hits, shifted to continue the wipe and retargeted to the players
 // standing in. Of the kill's players, those of their stand-in's job also
 // bring what they did (casts, heals, shields, statuses), but a skill still
-// on cooldown from the player's own uses. The wipe point is the first
-// wipe (a raidwide nobody survives) or the end of the log. Null when the
+// on cooldown from the player's own uses. The wipe point (`wipePoint`) is
+// just before the mechanic that started the final deaths. Null when the
 // kill ends before it: nothing is left to add.
 export function completedTimeline(
   wipe: ReferencedTimeline,
@@ -25,8 +25,7 @@ export function completedTimeline(
   aligned: Alignment,
   catalog: ActionCatalog,
 ): ReferencedTimeline | null {
-  const wiped = mechanicsOf(wipe).find((m) => m.wipe);
-  const from = wiped ? wiped.at - 1 : wipe.durationMs;
+  const from = wipePoint(wipe);
   if (aligned.endsAt <= from) return null;
   const stand = standIns(wipe, clear);
   const enemies = enemyIds(wipe, clear);
