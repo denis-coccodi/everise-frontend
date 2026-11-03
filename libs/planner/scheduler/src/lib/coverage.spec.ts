@@ -207,6 +207,19 @@ describe('fitsPool', () => {
   });
 });
 
+describe('a pool earned at set moments', () => {
+  // A Fey Union's worth of Faerie Gauge at 30s and at 50s.
+  const pool = { name: 'Faerie Gauge', gainMs: 75_000, max: 2, earned: [30_000, 50_000] };
+
+  it('starts empty, and fills only when earned', () => {
+    expect(fitsPool([], 1_000, pool)).toBe(false);
+    expect(fitsPool([], 30_000, pool)).toBe(true);
+    expect(fitsPool([30_000], 40_000, pool)).toBe(false);
+    expect(fitsPool([30_000], 50_000, pool)).toBe(true);
+    expect(poolLevel([30_000], 200_000, pool)).toBe(1);
+  });
+});
+
 describe('a pool refilled at set moments', () => {
   // Aetherflow at 2s and Dissipation at 15s: 3 stacks each, never more than 3.
   const pool = { name: 'Aetherflow', gainMs: 60_000, max: 3, refills: [2_000, 15_000] };

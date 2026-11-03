@@ -116,8 +116,8 @@ function shieldHp(size: ShieldSize, player: number, facts: PullFacts) {
 
 // Whether one more use at `at` leaves the pool enough for every use: it
 // starts full and fills one every `gainMs`, and one more at each `bonus`
-// (Rhizomata), up to `max`; or, with `refills`, starts empty and fills
-// to `max` at each.
+// (Rhizomata), up to `max`; with `earned`, starts empty and fills one at
+// each only; or, with `refills`, starts empty and fills to `max` at each.
 export function fitsPool(times: number[], at: number, pool: ToolPool) {
   if (pool.refills) return fitsRefills([...times, at], pool);
   return gained(pool, [...times, at], Infinity).fits;
@@ -127,14 +127,15 @@ export function fitsPool(times: number[], at: number, pool: ToolPool) {
 // at `end`.
 function gained(pool: ToolPool, uses: number[], end: number) {
   const events = [
-    ...(pool.bonus ?? []).filter((t) => t < end).map((t) => ({ t, gain: true })),
+    ...[...(pool.bonus ?? []), ...(pool.earned ?? [])].filter((t) => t < end).map((t) => ({ t, gain: true })),
     ...uses.map((t) => ({ t, gain: false })),
   ].sort((a, b) => a.t - b.t || Number(b.gain) - Number(a.gain));
-  let level = pool.max;
+  const rate = pool.earned ? 0 : 1 / pool.gainMs;
+  let level = pool.earned ? 0 : pool.max;
   let last = 0;
   let fits = true;
   for (const e of events) {
-    level = Math.min(pool.max, level + (e.t - last) / pool.gainMs);
+    level = Math.min(pool.max, level + (e.t - last) * rate);
     last = e.t;
     if (e.gain) {
       level = Math.min(pool.max, level + 1);
@@ -143,7 +144,7 @@ function gained(pool: ToolPool, uses: number[], end: number) {
     if (level < 1) fits = false;
     level -= 1;
   }
-  return { fits, level: Math.min(pool.max, level + (end - last) / pool.gainMs) };
+  return { fits, level: Math.min(pool.max, level + (end - last) * rate) };
 }
 
 // Whether the pool is full at `at`, with the uses at `times`: a use then

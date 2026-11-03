@@ -3,6 +3,8 @@ import type { InvulnerabilityChoice } from './invulnerabilities.model';
 export type { InvulnerabilityChoice, InvulnerabilityOptions } from './invulnerabilities.model';
 import type { MpShort, PlannedMp } from './mp.model';
 import type { OpenerId } from './openers.model';
+import type { ToolPool } from './tool-pool.model';
+export type { ToolPool } from './tool-pool.model';
 // What the scheduler plans from and answers. Times are ms from the pull's start.
 export interface PlanOptions {
   // The HP each hit must leave, as a share of max HP (0.1: 10%).
@@ -97,21 +99,6 @@ export interface MitigationTool {
   // Its effects as a critical heal (Adloquium after Recitation: a bigger
   // Galvanize, and Catalyze), and Deployment Tactics spreading that.
   whenCritical?: MitigationEffect[];
-}
-
-// A player's resource some actions spend one of: it fills one every
-// `gainMs`, up to `max`, and starts full (a white mage's lilies too, since
-// 7.4).
-export interface ToolPool {
-  name: string;
-  gainMs: number;
-  max: number;
-  // A pool that fills only at these moments, to `max` (Aetherflow and
-  // Dissipation's stacks), from empty: `gainMs` is then how often it comes.
-  refills?: number[];
-  // One more at each of these moments, up to `max` (Rhizomata's
-  // Addersgall).
-  bonus?: number[];
 }
 
 // An action another grants: usable only after a use of that one, up to
