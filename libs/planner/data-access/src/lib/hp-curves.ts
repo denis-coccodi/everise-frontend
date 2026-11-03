@@ -9,11 +9,10 @@ import type { HpCurve, HpHit, HpMark, HpPoint } from './hp-curves.model';
 //
 // As played, the log's HP after each hit sets it (a heal's snapshot isn't
 // reliable: heals landing together all carry the same), each heal adds what
-// it healed (overheal left out), and a death takes it to 0. A wipe
-// completed from another pull is played only up to its wipe point: the
-// rest is that pull's, which nobody here played.
-export function hpCurves(timeline: ReferencedTimeline, plan: Plan | null): HpCurve[] {
-  const playedUntil = timeline.completion?.from ?? Infinity;
+// it healed (overheal left out), and a death takes it to 0. For a wipe
+// completed from another pull, HP as played and its deaths come from the
+// log as it was (`logged`), its wipe included; the rest is that pull's.
+export function hpCurves(timeline: ReferencedTimeline, plan: Plan | null, logged: PullTimeline = timeline): HpCurve[] {
   const mechanicOf = new Map(plan?.mechanics.map((m) => [m.id, m]) ?? []);
   const severity = attackSeverity(timeline);
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
@@ -25,7 +24,7 @@ export function hpCurves(timeline: ReferencedTimeline, plan: Plan | null): HpCur
     const mp = plan?.mp?.find((m) => m.player === player.id);
     const maxMp = player.maxMp ?? 0;
     const share = (hp: number) => Math.min(1, Math.max(0, hp / max));
-    const marks: HpMark[] = timeline.deaths
+    const marks: HpMark[] = logged.deaths
       .filter((d) => d.player === player.id)
       .map((d) => ({ at: d.at, share: 0, kind: 'death', action: null }));
     for (const hit of plan?.hits.filter((h) => h.player === player.id) ?? []) {
@@ -40,7 +39,7 @@ export function hpCurves(timeline: ReferencedTimeline, plan: Plan | null): HpCur
       id: player.id,
       name: player.name,
       job: player.job,
-      played: played(timeline, player.id, max).filter((p) => p.at <= playedUntil),
+      played: played(logged, player.id, max),
       planned: planned ? planned.points.map((p) => ({ at: p.at, share: share(p.hp) })) : null,
       mp: mp?.points.length && maxMp ? mp.points.map((p) => ({ at: p.at, share: Math.min(1, p.mp / maxMp) })) : null,
       marks: marks.sort((a, b) => a.at - b.at),
