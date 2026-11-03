@@ -2,7 +2,7 @@ import { HttpContext } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { ActionCatalog, FightReport, PlannerAvailable, PlannerClears, PullTimeline } from '@everise/core/api-types';
 import { referenceDamage, type ReferenceDamage } from '@everise/planner/scheduler';
-import { catchError, concatMap, EMPTY, from, last, map, of, scan, switchMap, takeWhile, type Observable } from 'rxjs';
+import { catchError, concatMap, EMPTY, from, last, map, scan, switchMap, takeWhile, type Observable } from 'rxjs';
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
 
@@ -30,20 +30,27 @@ export class PlannerService {
     );
   }
 
-  // What other groups' kills of the pull's fight say `attacks` do (those an
-  // invulnerability blocked every time in the pull): read in turn, one that
-  // won't load (gone private) skipped, until each is found or none is left.
-  // Empty when FFLogs ranks none, or can't be reached.
-  references(code: string, pullId: number, attacks: string[]): Observable<ReferenceDamage> {
+  // Other groups' kills of the pull's fight, as they're read: in turn, one
+  // that won't load (archived, gone private) skipped, until `enough` says
+  // so or none is left. Nothing when FFLogs ranks none, or can't be reached.
+  kills(code: string, pullId: number, enough: (read: PullTimeline[]) => boolean = () => false) {
     const clears = this.api.get<PlannerClears>(`/planner/reports/${encodeURIComponent(code)}/pulls/${pullId}/clears`);
     return clears.pipe(
       switchMap(({ clears }) => from(clears)),
       concatMap((c) => this.pull(c.code, c.pullId).pipe(catchError(() => EMPTY))),
       scan((read: PullTimeline[], timeline) => [...read, timeline], []),
+      takeWhile((read) => !enough(read), true),
+      catchError(() => EMPTY),
+    );
+  }
+
+  // What those kills say `attacks` do (those an invulnerability blocked
+  // every time in the pull): read until each is found or none is left.
+  // Empty when none is.
+  references(code: string, pullId: number, attacks: string[]): Observable<ReferenceDamage> {
+    return this.kills(code, pullId, (read) => allFound(referenceDamage(read, attacks), attacks)).pipe(
       map((read) => referenceDamage(read, attacks)),
-      takeWhile((found) => attacks.some((a) => !found[a]), true),
       last(undefined, {} as ReferenceDamage),
-      catchError(() => of({} as ReferenceDamage)),
     );
   }
 
@@ -51,6 +58,10 @@ export class PlannerService {
   catalog() {
     return this.api.get<ActionCatalog>('/planner/catalog');
   }
+}
+
+function allFound(references: ReferenceDamage, attacks: string[]) {
+  return attacks.every((a) => references[a]);
 }
 
 function notFoundIsThePages() {

@@ -118,6 +118,63 @@ describe('PlannerStore', () => {
     http.expectNone('/planner/reports/Other0000000000c/pulls/4');
   });
 
+  it("reads every other group's kill that loads for a wipe, archived ones skipped", async () => {
+    const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
+    const kill = (durationMs: number) => ({ ...pullTimeline(), durationMs });
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2').flush(pullTimeline());
+    http.expectOne('/planner/catalog').flush(actionCatalog());
+    await settled();
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.clears).toBeUndefined();
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/clears').flush({
+      clears: [
+        { code: 'Other0000000000a', pullId: 7 },
+        { code: 'Other0000000000b', pullId: 2 },
+        { code: 'Other0000000000c', pullId: 4 },
+      ],
+    });
+    await settled();
+    http.expectOne('/planner/reports/Other0000000000a/pulls/7').flush(kill(540_000));
+    await settled();
+    http
+      .expectOne('/planner/reports/Other0000000000b/pulls/2')
+      .flush({ errors: { body: ['Archived.'] } }, { status: 404, statusText: 'Not Found' });
+    await settled();
+    http.expectOne('/planner/reports/Other0000000000c/pulls/4').flush(kill(570_000));
+    await settled();
+
+    const clears = (store.pull.value() as ReferencedTimeline | undefined)?.clears;
+    expect(clears?.map((c) => c.durationMs)).toEqual([540_000, 570_000]);
+    // Nothing was blocked every time: nothing to look up.
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.references).toBeUndefined();
+  });
+
+  it("keeps a wipe's timeline, with no kills, when FFLogs ranks none", async () => {
+    const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2').flush(pullTimeline());
+    http.expectOne('/planner/catalog').flush(actionCatalog());
+    await settled();
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/clears').flush({ clears: [] });
+    await settled();
+
+    expect(store.pull.value()?.players).toHaveLength(2);
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.clears).toEqual([]);
+  });
+
+  it("reads no other group's kill for a kill with nothing blocked", async () => {
+    const { http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '3' });
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/3').flush(pullTimeline());
+    http.expectOne('/planner/catalog').flush(actionCatalog());
+    await settled();
+
+    http.expectNone('/planner/reports/aBcD1234eFgH5678/pulls/3/clears');
+  });
+
   it("says why a report can't be read, in the backend's words", async () => {
     const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678' });
 

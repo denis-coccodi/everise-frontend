@@ -1,11 +1,11 @@
 import { computed, inject } from '@angular/core';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { signalStore, withComputed, withMethods, withProps } from '@ngrx/signals';
-import { ReportPull } from '@everise/core/api-types';
+import { PullTimeline, ReportPull } from '@everise/core/api-types';
 import { errorMessageOf } from '@everise/core/data-access';
-import { missingAttacks, type ReferencedTimeline } from '@everise/planner/scheduler';
-import { concat, map, of, switchMap, type Observable } from 'rxjs';
+import { missingAttacks, referenceDamage, type ReferencedTimeline } from '@everise/planner/scheduler';
+import { concat, EMPTY, filter, last, map, of, switchMap, take, type Observable } from 'rxjs';
 import { PlannerService } from './planner.service';
 import { readReportLink } from './report-link';
 import type { EncounterPulls } from './planner.model';
@@ -23,22 +23,45 @@ export const PlannerStore = signalStore(
       return Number.isInteger(pull) && pull > 0 ? pull : undefined;
     });
     const report = rxResource({ params: code, stream: ({ params }) => service.report(params) });
+    // Whether the pull picked is a wipe, once the report says (a pull it
+    // doesn't list counts as a kill).
+    const wiped = toObservable(
+      computed(() => (report.hasValue() ? report.value().pulls.find((p) => p.id === pullId())?.kill === false : null)),
+    ).pipe(
+      filter((w) => w !== null),
+      take(1),
+    );
     const pull = rxResource({
       params: computed(() => {
         const reportCode = code();
         const id = pullId();
         return reportCode && id ? { code: reportCode, id } : undefined;
       }),
-      // Shown as soon as it's read; where an invulnerability blocked an attack
-      // every time, again once other groups' kills say what it does.
+      // Shown as soon as it's read, then again with what other groups' kills
+      // add: for a wipe, the kills themselves (and what they say of its
+      // blocked attacks); for a kill, what an attack an invulnerability
+      // blocked every time does, read only until it's found.
       stream: ({ params }) =>
         service.pull(params.code, params.id).pipe(
           switchMap((timeline): Observable<ReferencedTimeline> => {
             const missing = missingAttacks(timeline);
-            if (!missing.length) return of(timeline);
-            const referenced = service
-              .references(params.code, params.id, missing)
-              .pipe(map((references) => ({ ...timeline, references })));
+            const referenced = wiped.pipe(
+              switchMap((wipe): Observable<ReferencedTimeline> => {
+                if (wipe)
+                  return service.kills(params.code, params.id).pipe(
+                    last(undefined, [] as PullTimeline[]),
+                    map((clears) => ({
+                      ...timeline,
+                      clears,
+                      ...(missing.length ? { references: referenceDamage(clears, missing) } : {}),
+                    })),
+                  );
+                if (!missing.length) return EMPTY;
+                return service
+                  .references(params.code, params.id, missing)
+                  .pipe(map((references) => ({ ...timeline, references })));
+              }),
+            );
             return concat(of(timeline), referenced);
           }),
         ),
