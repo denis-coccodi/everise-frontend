@@ -38,6 +38,23 @@ describe('PullCompareComponent', () => {
     };
   }
 
+  it("starts a completed wipe's rest of the fight with a heading row, and shades it", () => {
+    const fixture = TestBed.createComponent(PullCompareComponent);
+    fixture.componentRef.setInput('player', 'Tank Main');
+    fixture.componentRef.setInput('played', [used(60_000, 'Rampart')]);
+    fixture.componentRef.setInput('planned', [plannedUse(60_000, 'Rampart'), plannedUse(120_000, 'Reprisal')]);
+    fixture.componentRef.setInput('completed', { from: 90_000, source: "another group's kill" });
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    const rows = [...host.querySelectorAll('tbody tr')];
+    expect(rows.map((r) => r.className.includes('completed-start'))).toEqual([false, true, false]);
+    expect(rows[1].textContent?.trim()).toBe(
+      "From 1:30.0, the plan is the rest of the fight as another group's kill had it; as played, the wipe.",
+    );
+    expect(rows.map((r) => r.classList.contains('completed'))).toEqual([false, false, true]);
+  });
+
   it('lines up what happened and what the plan has, moment by moment', () => {
     const { host, rows } = render(
       [used(60_000, 'Rampart'), used(65_400, 'Vengeance')],

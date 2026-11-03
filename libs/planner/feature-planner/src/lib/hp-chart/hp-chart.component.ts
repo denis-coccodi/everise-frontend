@@ -50,6 +50,13 @@ export class HpChartComponent {
   readonly picked = output<number>();
   // The member whose tab is open.
   readonly focused = input<number | null>(null);
+  // A completed wipe: where the rest of the fight (another pull's) starts,
+  // shaded on each plot from there, in its 1000-wide drawing.
+  readonly completedFrom = input<number | null>(null);
+  protected readonly completedX = computed(() => {
+    const from = this.completedFrom();
+    return from === null ? null : (Math.min(from, this.durationMs()) / this.durationMs()) * WIDTH;
+  });
   protected readonly everyone = signal(false);
   protected readonly focusedName = computed(() => this.curves().find((c) => c.id === this.focused())?.name ?? null);
 

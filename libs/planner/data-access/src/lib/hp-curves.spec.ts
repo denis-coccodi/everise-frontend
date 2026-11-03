@@ -61,6 +61,16 @@ describe('hpCurves', () => {
     expect(healer?.marks).toEqual([{ at: 200_000, share: 0, kind: 'death', action: null }]);
   });
 
+  it("stops HP as played at a completed wipe's wipe point: nobody here played the rest", () => {
+    const completed = {
+      ...timeline(),
+      completion: { from: 90_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [] },
+    };
+    const healer = hpCurves(completed, null).find((c) => c.name === 'Heal Main');
+
+    expect(healer?.played.map((p) => p.at)).toEqual([0, 65_000, 70_000]);
+  });
+
   it('adds the plan, and marks the hits it leaves short', () => {
     const healer = hpCurves(timeline(), plan).find((c) => c.name === 'Heal Main');
 

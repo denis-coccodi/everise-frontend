@@ -78,6 +78,7 @@
               [player]="p.name"
               [played]="log()"
               [planned]="planned()"
+              [completed]="completed()"
               [shown]="view()"
               [editing]="editing() && canEdit()"
               [slotsFor]="editor.slotsFor()"
@@ -106,7 +107,8 @@
           @if (open().hp) {
             <cdt-planner-hp-chart
               [curves]="curves()"
-              [durationMs]="store.pull.value().durationMs"
+              [durationMs]="durationMs()"
+              [completedFrom]="completed()?.from ?? null"
               [margin]="chartMargin()"
               [focused]="p.id"
               (picked)="reveal($event)"

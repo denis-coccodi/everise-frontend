@@ -35,6 +35,21 @@ tbody tr {
   scroll-margin-top: 2.5rem;
 }
 
+// A completed wipe's rest of the fight: another pull's, shaded, with a
+// heading row where it starts.
+tr.completed > * {
+  background: var(--color-shade);
+}
+
+tr.completed-start th {
+  padding: 0.6rem 0.75rem;
+  border-top: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-shade);
+  color: var(--color-label);
+  font-weight: 600;
+  text-align: left;
+}
+
 // The moment opened from the chart.
 tr.revealed > * {
   background: var(--color-surface-strong);

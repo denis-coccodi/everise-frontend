@@ -108,10 +108,21 @@ export class PullViewComponent {
     return playerLog(pull.value(), catalog.value(), player.id);
   });
   // The player's part of the plan, once the pull open is planned.
-  // Everyone's HP over the pull, as played and with the plan once there's one.
+  // Everyone's HP over the pull, as played and with the plan once there's
+  // one: over the whole fight when a wipe's rest is completed.
   protected readonly curves = computed(() => {
     const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
-    return this.store.pull.hasValue() ? hpCurves(this.store.pull.value(), plan) : [];
+    const timeline = this.store.planned();
+    return timeline ? hpCurves(timeline, plan) : [];
+  });
+  protected readonly durationMs = computed(() => this.store.planned()?.durationMs ?? 0);
+  // Where a completed wipe's rest of the fight starts, and whose it is.
+  protected readonly completed = computed(() => {
+    const from = this.store.planned()?.completion?.from;
+    const c = this.store.completion();
+    if (from === undefined || c?.state !== 'offered') return null;
+    const pullId = c.timeline.completion?.clear.pullId;
+    return { from, source: c.source === 'report' ? `pull ${pullId} of this report` : "another group's kill" };
   });
   protected readonly chartMargin = computed(() =>
     this.plans.pullId() === this.store.pullId() && this.plans.plan() ? this.plans.margin() / 100 : 0,
@@ -119,10 +130,10 @@ export class PullViewComponent {
   protected readonly planned = computed(() => {
     const player = this.player();
     const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
-    const { pull } = this.store;
+    const timeline = this.store.planned();
     const { catalog } = this.store;
-    return player && plan && pull.hasValue()
-      ? planLog(plan, pull.value(), player.id, catalog.hasValue() ? catalog.value() : undefined)
+    return player && plan && timeline
+      ? planLog(plan, timeline, player.id, catalog.hasValue() ? catalog.value() : undefined)
       : null;
   });
   // Editing the plan by hand: a player the plan replanned. Asked for
