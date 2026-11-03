@@ -60,7 +60,9 @@ describe('HpChartComponent', () => {
     const { fixture, host } = render();
     expect(host.querySelector('rect.completed')).toBeNull();
 
+    // Replanned from 1:30; the log, its wipe, went on to 2:15.
     fixture.componentRef.setInput('completedFrom', 90_000);
+    fixture.componentRef.setInput('playedUntil', 135_000);
     fixture.detectChanges();
 
     const shaded = [...host.querySelectorAll('rect.completed')];
@@ -71,15 +73,16 @@ describe('HpChartComponent', () => {
     expect(host.querySelector('.completed-key')?.textContent?.trim()).toBe('Past the log: replanned from 1:30');
     // A line where the log ends, on every plot.
     expect([...host.querySelectorAll('line.completed-edge')].map((l) => l.getAttribute('x1'))).toEqual(['500', '500']);
-    // HP as played stops there, the plan goes on to the end.
+    // HP as played goes on to the log's end, its wipe shown; the plan to the end.
     const lastX = (path: Element) => path.getAttribute('d')?.split(/[ML]/).at(-1)?.trim().split(' ')[0];
-    expect([...host.querySelectorAll('path.played')].map(lastX)).toEqual(['500.0', '500.0']);
+    expect([...host.querySelectorAll('path.played')].map(lastX)).toEqual(['750.0', '750.0']);
     expect([...host.querySelectorAll('path.planned')].map(lastX)).toEqual(['1000.0', '1000.0']);
   });
 
-  it("says nothing of HP as played at a moment past a completed wipe's wipe point", () => {
+  it("says nothing of HP as played at a moment past a completed wipe's log", () => {
     const { fixture, host, readouts } = render();
     fixture.componentRef.setInput('completedFrom', 90_000);
+    fixture.componentRef.setInput('playedUntil', 135_000);
     const slider = host.querySelector('[role=slider]') as HTMLElement;
     slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
     fixture.detectChanges();

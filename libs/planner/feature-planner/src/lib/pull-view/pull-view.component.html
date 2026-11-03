@@ -109,6 +109,7 @@
               [curves]="curves()"
               [durationMs]="durationMs()"
               [completedFrom]="completed()?.from ?? null"
+              [playedUntil]="completed() ? store.pull.value().durationMs : null"
               [margin]="chartMargin()"
               [focused]="p.id"
               (picked)="reveal($event)"

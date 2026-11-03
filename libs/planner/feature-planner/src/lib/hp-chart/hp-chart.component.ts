@@ -53,6 +53,8 @@ export class HpChartComponent {
   // A completed wipe: where the rest of the fight (another pull's) starts,
   // shaded on each plot from there, in its 1000-wide drawing.
   readonly completedFrom = input<number | null>(null);
+  // Where the log ends, when the chart goes on past it: HP as played stops.
+  readonly playedUntil = input<number | null>(null);
   protected readonly completedX = computed(() => {
     const from = this.completedFrom();
     return from === null ? null : (Math.min(from, this.durationMs()) / this.durationMs()) * WIDTH;
@@ -99,7 +101,7 @@ export class HpChartComponent {
   // A line through the HP's lowest in each slice of the pull: the dips that
   // matter, without each tick's jitter.
   // `end`: where the line stops, sooner than the chart's end (HP as played
-  // in a completed wipe, at its wipe point).
+  // in a completed wipe, at the log's end).
   protected path(points: HpPoint[], end = this.durationMs()) {
     const duration = this.durationMs();
     const drawn = lowestPerBucket(points, duration, Math.max(1000, duration / SLICES), Math.min(end, duration));
@@ -123,8 +125,8 @@ export class HpChartComponent {
     ];
     for (const [name, points, show] of lines) {
       if (!points || !show) continue;
-      // Nothing was played past a completed wipe's wipe point.
-      if (at !== null && name === 'played' && at > (this.completedFrom() ?? Infinity)) continue;
+      // Nothing was played past the log's end.
+      if (at !== null && name === 'played' && at > (this.playedUntil() ?? Infinity)) continue;
       if (at !== null) parts.push(`${name} ${percent.format(shareAt(points, at))}`);
       else {
         const low = lowest(points);

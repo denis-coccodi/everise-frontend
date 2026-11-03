@@ -112,8 +112,8 @@ export class PullViewComponent {
   // one: over the whole fight when a wipe's rest is completed.
   protected readonly curves = computed(() => {
     const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
-    const timeline = this.store.planned();
-    return timeline ? hpCurves(timeline, plan) : [];
+    const [timeline, { pull }] = [this.store.planned(), this.store];
+    return timeline ? hpCurves(timeline, plan, pull.hasValue() ? pull.value() : timeline) : [];
   });
   protected readonly durationMs = computed(() => this.store.planned()?.durationMs ?? 0);
   // Where a completed wipe's rest of the fight starts, and whose it is.
