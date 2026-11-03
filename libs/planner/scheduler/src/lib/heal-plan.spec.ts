@@ -456,6 +456,12 @@ describe('planHeals', () => {
     const fromWipe = planHeals(mitigated, timeline, [], late, maxHp, options).uses;
     expect(fromWipe.length).toBeGreaterThan(0);
     expect(fromWipe.every((u) => u.at >= 100_000)).toBe(true);
+    // With their Misery at 90s as played, the next waits for three lilies.
+    const played = { player: 2, action: 16535, name: 'Afflatus Misery', at: 90_000, target: null, covers: [] };
+    const after = planHeals({ ...mitigated, uses: [played] }, timeline, [], late, maxHp, options).uses;
+    const solaces = after.filter((u) => u.name === 'Afflatus Solace').map((u) => u.at);
+    const next = after.find((u) => u.name === 'Afflatus Misery' && u.at > 90_000)?.at ?? Infinity;
+    expect(solaces.filter((s) => s < next)).toHaveLength(3);
   });
 
   describe('Earthly Star', () => {

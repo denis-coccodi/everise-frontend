@@ -2,6 +2,7 @@ import type { PullTimeline } from '@everise/core/api-types';
 import type { PlanOptions, PlannedUse } from './plan.model';
 import { playedUses } from './played-uses';
 import type { ReferencedTimeline } from './reference-damage.model';
+import { MISERY } from './spare-heals';
 
 // The players a completed wipe has planned from its wipe point on, by id,
 // that moment: those with no stand-in of their job in the kill, who did
@@ -26,16 +27,24 @@ export function startingAt<T extends { player: number; away?: { from: number; to
 }
 
 // What late-starting players used of `tools` before their start, as played:
-// kept where it was, as a user's added skill is.
+// kept where it was, as a user's added skill is. A white mage's Afflatus
+// Miseries too, so the Blood Lily blooms again only once three lilies
+// have gone since their last.
 export function earlyUses(
   timeline: PullTimeline,
   tools: Parameters<typeof playedUses>[1],
   late: Map<number, number>,
 ): PlannedUse[] {
-  return playedUses(
-    timeline,
-    tools.filter((t) => late.has(t.player)),
-  )
-    .filter((u) => u.at <= (late.get(u.player) ?? -Infinity))
-    .map((u) => ({ ...u, played: true }));
+  const before = (player: number, at: number) => at <= (late.get(player) ?? -Infinity);
+  const miseries = timeline.playerCasts
+    .map((c) => ({ ...c, at: c.at + (c.castMs ?? 0) }))
+    .filter((c) => c.action === MISERY.action && before(c.source, c.at))
+    .map((c) => ({ player: c.source, ...MISERY, at: c.at, target: null, covers: [], damage: true }));
+  return [
+    ...playedUses(
+      timeline,
+      tools.filter((t) => late.has(t.player)),
+    ).filter((u) => before(u.player, u.at)),
+    ...miseries,
+  ].map((u) => ({ ...u, played: true }));
 }
