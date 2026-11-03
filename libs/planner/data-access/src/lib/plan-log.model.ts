@@ -18,8 +18,9 @@ export interface PlanHitEntry {
   // A failed mechanic (`failed`), and whether the plan takes it as avoided.
   failed?: boolean;
   avoidable: boolean;
-  // A wipe: nobody survives it whatever is used.
-  wipe?: boolean;
+  // A wipe: nobody survives it whatever is used. An enrage, or a hit many
+  // times anyone's HP that may be one.
+  wipe?: 'enrage' | 'maybe';
   // Its damage estimated (an invulnerability blocked it in the pull): from
   // the pull's own hits of the attack, or other groups' kills. Or past a
   // wipe's end, from the kill completing it.

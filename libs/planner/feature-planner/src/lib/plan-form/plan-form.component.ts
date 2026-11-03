@@ -52,11 +52,11 @@ export class PlanFormComponent {
     const covered = plan.mechanics.flatMap((m) => m.hits).filter((h) => h.failed && !h.avoidable).length;
     const wiped = plan.mechanics
       .filter((m) => m.wipe)
-      .map((m) => `${m.name} at ${pullClock(m.at)}`)
+      .map((m) => `${m.name} at ${pullClock(m.at)}${m.wipe === 'maybe' ? ' (may be an enrage)' : ''}`)
       .filter((x, i, all) => all.indexOf(x) === i);
     const avoided =
       (wiped.length
-        ? ` Left out, as nothing saves anyone from ${wiped.length === 1 ? 'it' : 'them'}: ${wiped.join(', ')}.`
+        ? ` Left out as ${wiped.length === 1 ? 'an enrage' : 'enrages'}, nothing saves anyone from ${wiped.length === 1 ? 'it' : 'them'}: ${wiped.join(', ')}.`
         : '') +
       (failed
         ? ` ${failed} ${failed === 1 ? 'hit is a failed mechanic' : 'hits are failed mechanics'}, taken as avoided.`
