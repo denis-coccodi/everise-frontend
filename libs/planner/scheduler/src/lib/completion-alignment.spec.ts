@@ -84,6 +84,15 @@ describe('alignment', () => {
     expect(alignment(wipe, [kill])).toMatchObject({ name: 'Brutal Rain', offset: 0 });
   });
 
+  it("doesn't let one stray pair at the end set the offset", () => {
+    // In step up to Killer Voice at 110 s; then the wipe's Sadistic
+    // Screech at 120 s pairs with the kill's at 140 s.
+    const wipe = fight([...SCRIPT.slice(0, 5), [120, 'Sadistic Screech']], 125);
+    const kill = fight(SCRIPT, 220);
+
+    expect(alignment(wipe, [kill])).toMatchObject({ name: 'Sadistic Screech', wipeAt: 120_000, offset: 0 });
+  });
+
   it('lines up across a phase the other group pushed sooner', () => {
     // The kill skips most of Brutal Rain's phase: everything after it comes 20 s sooner.
     const wipe = fight(SCRIPT.slice(0, 7), 175);

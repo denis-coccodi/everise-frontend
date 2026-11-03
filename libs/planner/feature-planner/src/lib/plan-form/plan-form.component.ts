@@ -103,11 +103,6 @@ export class PlanFormComponent {
         );
       case 'unaligned':
         return "Only what was logged is planned: no other group's kill, or further pull of this report, lines up with this wipe's boss casts.";
-      case 'short':
-        return (
-          `Only what was logged is planned. This wipe got through ${c.reached} of ${mechanics(c)}, ` +
-          'and the rest of the fight is only completed for a wipe that got through at least half of them.'
-        );
       case 'nothing-left':
         return c.source === 'report'
           ? "Only what was logged is planned: no pull of this report got further, and FFLogs has no other group's kill of this fight."

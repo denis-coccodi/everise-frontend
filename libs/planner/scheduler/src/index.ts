@@ -26,7 +26,7 @@ export type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './lib/edits.mode
 export { missingAttacks, referenceDamage } from './lib/mechanics';
 export type { ReferenceDamage, ReferencedTimeline } from './lib/reference-damage.model';
 export { alignment } from './lib/completion-alignment';
-export { MIN_PROGRESS, progress } from './lib/completion-progress';
+export { progress } from './lib/completion-progress';
 export { upToWipePoint, wipePoint } from './lib/wipe-point';
 export { standIns } from './lib/completion-players';
 export { completedTimeline } from './lib/completion-timeline';
