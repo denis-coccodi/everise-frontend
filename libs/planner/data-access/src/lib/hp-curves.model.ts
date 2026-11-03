@@ -32,6 +32,9 @@ export interface HpCurve {
   name: string;
   job: string | null;
   played: HpPoint[];
+  // Replanned from the start of the fight, rather than from a completed
+  // wipe's wipe point (or not at all).
+  fromStart?: boolean;
   planned: HpPoint[] | null;
   // A replanned player's MP with the plan, as a share of their max MP (null
   // for the others, and before it's planned).

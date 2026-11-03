@@ -74,6 +74,24 @@ describe('hpCurves', () => {
     expect(healer?.marks).toEqual([{ at: 200_000, share: 0, kind: 'death', action: null }]);
   });
 
+  it('says who the plan replans from the start, not from a completed wipe point', () => {
+    const fromStart = (p: Plan | null) => hpCurves(timeline(), p).map((c) => [c.name, c.fromStart]);
+
+    // The tank replanned from the start; the healer only from the wipe point.
+    expect(fromStart({ ...plan, replanned: [1, 2], late: [2] })).toEqual([
+      ['Tank Main', true],
+      ['Heal Main', false],
+    ]);
+    expect(fromStart({ ...plan, replanned: [1] })).toEqual([
+      ['Tank Main', true],
+      ['Heal Main', false],
+    ]);
+    expect(fromStart(null)).toEqual([
+      ['Tank Main', false],
+      ['Heal Main', false],
+    ]);
+  });
+
   it('adds the plan, and marks the hits it leaves short', () => {
     const healer = hpCurves(timeline(), plan).find((c) => c.name === 'Heal Main');
 

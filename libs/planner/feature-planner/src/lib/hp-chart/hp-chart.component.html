@@ -20,8 +20,8 @@
     }
     @if (completedX() !== null) {
       <span class="completed-key"
-        ><span class="key completed" aria-hidden="true"></span>Past the log: replanned from
-        {{ clock(completedFrom() ?? 0) }}</span
+        ><span class="key completed" aria-hidden="true"></span>Rest of the fight, from
+        {{ clock(completedFrom() ?? 0) }} (dashed: where those not replanned from the start pick up)</span
       >
     }
   </fieldset>
@@ -65,8 +65,10 @@
           <line class="grid" x1="0" x2="1000" y1="50" y2="50" />
           @if (completedX(); as x) {
             <rect class="completed" [attr.x]="x" y="0" [attr.width]="1000 - x" height="100" />
-            <!-- Where the log ends and the rest is replanned, for everyone. -->
-            <line class="completed-edge" [attr.x1]="x" [attr.x2]="x" y1="0" y2="100" />
+            <!-- Where the rest is replanned, for those not replanned from the start. -->
+            @if (!curve.fromStart) {
+              <line class="completed-edge" [attr.x1]="x" [attr.x2]="x" y1="0" y2="100" />
+            }
           }
           <line class="margin" x1="0" x2="1000" [attr.y1]="marginTop()" [attr.y2]="marginTop()" />
           @if (showPlayed()) {

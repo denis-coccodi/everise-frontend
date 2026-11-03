@@ -40,6 +40,8 @@ export function hpCurves(timeline: ReferencedTimeline, plan: Plan | null, logged
       name: player.name,
       job: player.job,
       played: played(logged, player.id, max),
+      // Replanned from 0:00, not from a completed wipe's wipe point.
+      fromStart: !!plan && (!plan.replanned || plan.replanned.includes(player.id)) && !plan.late?.includes(player.id),
       planned: planned ? planned.points.map((p) => ({ at: p.at, share: share(p.hp) })) : null,
       mp: mp?.points.length && maxMp ? mp.points.map((p) => ({ at: p.at, share: Math.min(1, p.mp / maxMp) })) : null,
       marks: marks.sort((a, b) => a.at - b.at),

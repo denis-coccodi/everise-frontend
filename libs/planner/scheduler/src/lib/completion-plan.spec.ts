@@ -1,4 +1,4 @@
-import { earlyUses, lateStarts, startingAt } from './completion-plan';
+import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
 import type { ReferencedTimeline } from './reference-damage.model';
 import { catalog, pull } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
@@ -22,6 +22,14 @@ describe('late starts', () => {
   it('starts nobody late when everyone is replanned, or the pull is no completed wipe', () => {
     expect(lateStarts(completed(), { margin: 0.1 }).size).toBe(0);
     expect(lateStarts(pull([]), { margin: 0.1, replan: [2] }).size).toBe(0);
+  });
+
+  it('stops the GCDs as played at the wipe point of everyone without a stand-in, replanned from the start or not', () => {
+    expect([...castsStopAt(completed())]).toEqual([
+      [1, 50_000],
+      [3, 50_000],
+    ]);
+    expect(castsStopAt(pull([])).size).toBe(0);
   });
 
   it("keeps a late player's tools away until their start, and their uses before it as played", () => {

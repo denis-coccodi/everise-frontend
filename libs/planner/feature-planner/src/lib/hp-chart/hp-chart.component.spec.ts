@@ -70,9 +70,17 @@ describe('HpChartComponent', () => {
       ['500', '500'],
       ['500', '500'],
     ]);
-    expect(host.querySelector('.completed-key')?.textContent?.trim()).toBe('Past the log: replanned from 1:30');
-    // A line where the log ends, on every plot.
+    expect(host.querySelector('.completed-key')?.textContent?.trim()).toBe(
+      'Rest of the fight, from 1:30 (dashed: where those not replanned from the start pick up)',
+    );
+    // A line where the rest is replanned, on every plot of a player not
+    // replanned from the start.
     expect([...host.querySelectorAll('line.completed-edge')].map((l) => l.getAttribute('x1'))).toEqual(['500', '500']);
+    fixture.componentRef.setInput('curves', [{ ...curves[0], fromStart: true }, curves[1]]);
+    fixture.detectChanges();
+    expect([...host.querySelectorAll('.panel')].map((p) => p.querySelectorAll('line.completed-edge').length)).toEqual([
+      0, 1,
+    ]);
     // HP as played goes on to the log's end, its wipe shown; the plan to the end.
     const lastX = (path: Element) => path.getAttribute('d')?.split(/[ML]/).at(-1)?.trim().split(' ')[0];
     expect([...host.querySelectorAll('path.played')].map(lastX)).toEqual(['750.0', '750.0']);
