@@ -17,6 +17,13 @@ describe('PlanStore', { timeout: 20_000 }, () => {
     await store.run(1, timeline, catalog);
     expect(store.sameAsBefore()).toBe(true);
   });
+  it('keeps the timeline it planned, a completed wipe or as logged, for the view to show', async () => {
+    const store = setup();
+    const [timeline, catalog] = [pullTimeline(), actionCatalog()];
+    expect(store.timeline()).toBeNull();
+    await store.run(1, timeline, catalog);
+    expect(store.timeline()).toBe(timeline);
+  });
   it('keeps edits made before the pull is planned (a reload), without planning it', async () => {
     const store = setup();
     await store.addSkill(1, pullTimeline(), actionCatalog(), { player: 1, action: 7531, at: 20_000 });

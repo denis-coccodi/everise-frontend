@@ -107,31 +107,34 @@ export class PullViewComponent {
     if (!player || !pull.hasValue() || !catalog.hasValue()) return [];
     return playerLog(pull.value(), catalog.value(), player.id);
   });
-  // The player's part of the plan, once the pull open is planned.
-  // Everyone's HP over the pull, as played and with the plan once there's
-  // one: over the whole fight when a wipe's rest is completed.
-  protected readonly curves = computed(() => {
-    const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
-    const [timeline, { pull }] = [this.store.planned(), this.store];
-    return timeline ? hpCurves(timeline, plan, pull.hasValue() ? pull.value() : timeline) : [];
+  // The plan for the pull open, and the pull as it has it (a wipe completed
+  // once planned so), else as logged.
+  private readonly plan = computed(() => (this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null));
+  private readonly shown = computed(() => {
+    const planned = this.plans.pullId() === this.store.pullId() ? this.plans.timeline() : null;
+    return planned ?? (this.store.pull.hasValue() ? this.store.pull.value() : null);
   });
-  protected readonly durationMs = computed(() => this.store.planned()?.durationMs ?? 0);
+  protected readonly curves = computed(() => {
+    const [timeline, { pull }] = [this.shown(), this.store];
+    return timeline ? hpCurves(timeline, this.plan(), pull.hasValue() ? pull.value() : timeline) : [];
+  });
+  protected readonly durationMs = computed(() =>
+    Math.max(this.store.planned()?.durationMs ?? 0, this.shown()?.durationMs ?? 0),
+  );
   // Where a completed wipe's rest of the fight starts, and whose it is.
   protected readonly completed = computed(() => {
-    const from = this.store.planned()?.completion?.from;
+    const from = this.shown()?.completion?.from;
     const c = this.store.completion();
     if (from === undefined || c?.state !== 'offered') return null;
     const pullId = c.timeline.completion?.clear.pullId;
     return { from, source: c.source === 'report' ? `pull ${pullId} of this report` : "another group's kill" };
   });
-  protected readonly chartMargin = computed(() =>
-    this.plans.pullId() === this.store.pullId() && this.plans.plan() ? this.plans.margin() / 100 : 0,
-  );
+  protected readonly chartMargin = computed(() => (this.plan() ? this.plans.margin() / 100 : 0));
   protected readonly planned = computed(() => {
     const player = this.player();
-    const plan = this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null;
-    const timeline = this.store.planned();
+    const timeline = this.shown();
     const { catalog } = this.store;
+    const plan = this.plan();
     return player && plan && timeline
       ? planLog(plan, timeline, player.id, catalog.hasValue() ? catalog.value() : undefined)
       : null;
