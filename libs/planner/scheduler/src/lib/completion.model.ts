@@ -13,3 +13,7 @@ export interface Alignment {
   // How many boss casts the two share in order, up to the anchor.
   matched: number;
 }
+
+// Another group's kill's players by id, each to this group's player in
+// their place (`player`), and whether that one plays the same job.
+export type StandIns = Record<number, { player: number; sameJob: boolean }>;
