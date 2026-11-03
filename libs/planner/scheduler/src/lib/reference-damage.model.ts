@@ -1,4 +1,4 @@
-import type { PullTimeline } from '@everise/core/api-types';
+import type { FightScript, PullTimeline } from '@everise/core/api-types';
 import type { Completion } from './completion.model';
 
 // What other groups' kills of the fight say each attack does before any
@@ -9,9 +9,12 @@ export type ReferenceDamage = Record<string, { byRole: Record<string, number>; a
 // A pull with what other groups' kills add to it, once read: what they say
 // of its blocked attacks, and for a wipe the kills themselves (up to three
 // that could be read, none when FFLogs has none), to complete the part of
-// the fight it never reached. Once completed from one, what was added.
+// the fight it never reached, and its fight's script (cactbot's timeline;
+// null when there's none, or it isn't the fight the log shows). Once
+// completed from one, what was added.
 export type ReferencedTimeline = PullTimeline & {
   references?: ReferenceDamage;
   clears?: PullTimeline[];
+  script?: FightScript | null;
   completion?: Completion;
 };

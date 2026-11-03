@@ -1,8 +1,16 @@
 import { HttpContext } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { ActionCatalog, FightReport, PlannerAvailable, PlannerClears, PullTimeline } from '@everise/core/api-types';
+import {
+  ActionCatalog,
+  FightReport,
+  FightScript,
+  FightScriptResponse,
+  PlannerAvailable,
+  PlannerClears,
+  PullTimeline,
+} from '@everise/core/api-types';
 import { referenceDamage, type ReferenceDamage } from '@everise/planner/scheduler';
-import { catchError, concatMap, EMPTY, from, last, map, scan, switchMap, takeWhile, type Observable } from 'rxjs';
+import { catchError, concatMap, EMPTY, from, last, map, of, scan, switchMap, takeWhile, type Observable } from 'rxjs';
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
 
@@ -52,6 +60,17 @@ export class PlannerService {
       map((read) => referenceDamage(read, attacks)),
       last(undefined, {} as ReferenceDamage),
     );
+  }
+
+  // The pull's fight's script (cactbot's timeline). Null when cactbot has
+  // none for it yet, or it can't be read: the plan does without.
+  script(code: string, pullId: number): Observable<FightScript | null> {
+    return this.api
+      .get<FightScriptResponse>(`/planner/reports/${encodeURIComponent(code)}/pulls/${pullId}/script`)
+      .pipe(
+        map(({ script }) => script),
+        catchError(() => of(null)),
+      );
   }
 
   // The jobs' actions, with their heals and mitigations.

@@ -158,7 +158,8 @@ describe('PlanFormComponent', () => {
       })),
     });
     const note = (page: HTMLElement) => page.querySelector('cdt-planner-plan-form .completion')?.textContent?.trim();
-    // The wipe (pull 2) open, and the kills FFLogs ranks for it.
+    // The wipe (pull 2) open, and the kills FFLogs ranks for it (cactbot
+    // has no script of its fight).
     async function wipeWith(clears: { code: string; pullId: number }[]) {
       const rendered = await renderPlanner(`/planner?report=${CODE}&pull=2`);
       rendered.http.expectOne(`/planner/reports/${CODE}`).flush(fightReport());
@@ -167,6 +168,7 @@ describe('PlanFormComponent', () => {
       await rendered.settle();
       expect(note(rendered.page)).toBe("Reading other groups' kills of this fight…");
       rendered.http.expectOne(`/planner/reports/${CODE}/pulls/2/clears`).flush({ clears });
+      rendered.http.expectOne(`/planner/reports/${CODE}/pulls/2/script`).flush({ script: null });
       await rendered.settle();
       return rendered;
     }
