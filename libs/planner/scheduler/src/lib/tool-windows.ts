@@ -10,7 +10,8 @@ import type { HealTool, Mechanic, MitigationTool } from './plan.model';
 
 // The tools as the pull and the opener allow them: a scholar's fairy
 // orders wait for her while Dissipation has her away; Aetherflow comes
-// with its refills, an astrologian's cards with their draws; Lux Solaris
+// with its refills and the Faerie Gauge as it's spent, an astrologian's
+// cards with their draws; Lux Solaris
 // waits for the burst that grants it; and the user's removed skills aren't
 // planned where they were.
 export function toolWindows(

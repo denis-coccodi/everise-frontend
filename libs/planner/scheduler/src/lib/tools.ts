@@ -52,8 +52,9 @@ const card = (name: string): ToolPool => ({ name, gainMs: 110_000, max: 1 });
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
 const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 120_000, max: 1 };
-// The Faerie Gauge: 10 for each Aetherflow action (about 4 a minute), up to
-// 100; a Fey Union as the plan has it (FEY_UNION_TICKS) takes 50.
+// The Faerie Gauge: empty at the pull, 10 for each Aetherflow stack spent
+// (about 4 a minute; aetherflow.ts has them as played), up to 100; a Fey
+// Union as the plan has it (FEY_UNION_TICKS) takes 50.
 const FAERIE_GAUGE: ToolPool = { name: 'Faerie Gauge', gainMs: 75_000, max: 2 };
 export const POOLS: Record<number, ToolPool> = {
   25789: IMPROVISATION, // Improvised Finish
