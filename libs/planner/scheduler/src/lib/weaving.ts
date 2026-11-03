@@ -45,12 +45,16 @@ export class Weaving {
   // Players' casts, the GCDs among their actions, and which the plan
   // schedules; with none, everyone acts freely. `castOf` gives each
   // action's cast time, `auras` the statuses on players (Lightspeed).
+  // `freeFrom` has the players whose GCDs as played stop at a moment (a
+  // wipe completed from another group's kill): from then on they act
+  // freely, a GCD from the others planned, as one with none in the pull.
   constructor(
     casts: PullTimeline['playerCasts'] = [],
     gcdOf = new Map<number, boolean>(),
     planned: (player: number, action: number) => boolean = () => true,
     castOf = new Map<number, number>(),
     auras: TimelineAura[] = [],
+    private readonly freeFrom = new Map<number, number>(),
   ) {
     const lightspeed = auras.filter((a) => a.status === LIGHTSPEED && a.target === a.source);
     // A Eukrasia and the GCD it augments are one GCD slot, at the Eukrasia.
@@ -82,13 +86,19 @@ export class Weaving {
     }
   }
 
-  static of(timeline: PullTimeline, catalog: ActionCatalog, planned: (player: number, action: number) => boolean) {
+  static of(
+    timeline: PullTimeline,
+    catalog: ActionCatalog,
+    planned: (player: number, action: number) => boolean,
+    freeFrom?: Map<number, number>,
+  ) {
     return new Weaving(
       timeline.playerCasts,
       new Map(catalog.actions.map((a) => [a.id, a.gcd])),
       planned,
       new Map(catalog.actions.map((a) => [a.id, a.castMs])),
       timeline.auras,
+      freeFrom,
     );
   }
 
@@ -98,7 +108,6 @@ export class Weaving {
   keep(uses: ({ player: number } & Occupied)[]) {
     for (const { player, ...use } of uses) push(this.fixed, player, use);
   }
-
   // A player's Lightspeeds as the plan has them, in place of their own: a
   // spell begun in one is 2.5s shorter (instant, for most), its cast's weave
   // room free; one only shorter by theirs as played is cast again.
@@ -186,18 +195,15 @@ export class Weaving {
     const lock = (t: number) => Math.max(this.castAt(player, t, castMs), INSTANT_LOCK_MS);
     const { ogcds } = this.busy(player, occupied);
     const clear = (t: number) => !ogcds.some((b) => b.from < t + lock(t) && b.to > t);
-    const played = this.gcds.get(player);
-    if (played?.length) {
-      const taken = new Set(occupied.filter((o) => o.gcd).map((o) => o.at));
-      return (
-        played
-          .filter((g) => !g.landed)
-          .map((g) => g.at)
-          .filter((t) => within(t) && !taken.has(t) && clear(t))
-          .sort(order)[0] ?? null
-      );
-    }
-    const gcds = occupied.filter((o) => o.gcd).map((o) => o.at);
+    const free = this.freeFrom.get(player);
+    const played = this.gcds.get(player) ?? [];
+    const taken = new Set(occupied.filter((o) => o.gcd).map((o) => o.at));
+    const theirs = played
+      .filter((g) => !g.landed && (free === undefined || g.at < free))
+      .map((g) => g.at)
+      .filter((t) => within(t) && !taken.has(t) && clear(t));
+    if (played.length && free === undefined) return theirs.sort(order)[0] ?? null;
+    const gcds = [...occupied.filter((o) => o.gcd).map((o) => o.at), ...played.map((g) => g.at)];
     const apart = (t: number) => gcds.every((g) => Math.abs(g - t) >= GCD_MS);
     // Where asked, a GCD from the others, or just after or before an oGCD.
     const candidates = [
@@ -205,7 +211,8 @@ export class Weaving {
       ...gcds.flatMap((g) => [g - GCD_MS, g + GCD_MS]),
       ...ogcds.flatMap((b) => [b.to, b.from - Math.max(castMs, INSTANT_LOCK_MS)]),
     ];
-    return candidates.filter((t) => within(t) && apart(t) && clear(t)).sort(order)[0] ?? null;
+    const freely = candidates.filter((t) => within(t) && apart(t) && clear(t) && t >= (free ?? -Infinity));
+    return [...theirs, ...freely].sort(order)[0] ?? null;
   }
 
   // What already takes the player's time: their GCDs (the plan's in place

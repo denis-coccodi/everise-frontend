@@ -118,6 +118,8 @@ export function spareHeals(
       return used().filter((u) => u > last && u <= t).length >= BLOOM;
     };
     for (let t = 0; t < durationMs; t += STEP_MS) {
+      // Not while their lilies are away (a white mage planned from a wipe point).
+      if (isAway(tool, t)) continue;
       if (bloomed(t)) {
         const at = weaving.gcdAfter(player, t, t + pool.gainMs, MISERY_CAST_MS, occupied(player));
         if (at === null) continue;

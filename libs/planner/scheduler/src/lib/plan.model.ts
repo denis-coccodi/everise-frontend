@@ -4,7 +4,6 @@ export type { InvulnerabilityChoice, InvulnerabilityOptions } from './invulnerab
 import type { MpShort, PlannedMp } from './mp.model';
 import type { OpenerId } from './openers.model';
 // What the scheduler plans from and answers. Times are ms from the pull's start.
-
 export interface PlanOptions {
   // The HP each hit must leave, as a share of max HP (0.1: 10%).
   margin: number;
@@ -299,6 +298,8 @@ export interface PlannedUse {
   refill?: boolean;
   // Put there by the user's edit (`PlanOptions.edits`).
   edited?: boolean;
+  // As played, before the start of a player planned from a wipe point on.
+  played?: boolean;
 }
 
 // A hit as the plan leaves it.

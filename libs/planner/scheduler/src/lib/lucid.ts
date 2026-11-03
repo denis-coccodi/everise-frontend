@@ -1,6 +1,7 @@
-import type { CatalogAction } from '@everise/core/api-types';
+import type { CatalogAction, PullTimeline } from '@everise/core/api-types';
 import type { MpModel } from './mp';
 import type { PlannedUse } from './plan.model';
+import { THIN_AIR } from './thin-air';
 import type { Weaving } from './weaving';
 
 export const LUCID_DREAMING = 7562;
@@ -8,6 +9,18 @@ const LUCID_MS = 60_000;
 // The guides use it once MP drops below about 8,000: lower, and its 3,850
 // MP would come too late; higher, and some of it would overcap.
 const BELOW = 8_000;
+
+// Of the replanned players, the healers (their Lucid Dreaming) and white
+// mages (their Thin Air), and those tools, which the plan schedules.
+export function mpTools(players: PullTimeline['players']) {
+  const healers = players.filter((p) => p.role === 'healer').map((p) => p.id);
+  const whms = players.filter((p) => p.job === 'WHM').map((p) => p.id);
+  const tools = [
+    ...healers.map((player) => ({ player, action: LUCID_DREAMING })),
+    ...whms.map((player) => ({ player, action: THIN_AIR })),
+  ];
+  return { healers, whms, tools };
+}
 
 // Where a replanned healer uses Lucid Dreaming in a plan: whenever their MP
 // with the plan's `uses` drops below 8,000, as soon as its recast allows, in

@@ -1,4 +1,5 @@
 import { Plan, PlanOptions } from './plan.model';
+import type { ReferencedTimeline } from './reference-damage.model';
 import { PlannerScheduler } from './planner-scheduler.service';
 import { action, catalog, heal, pull } from './scheduler-fixtures';
 
@@ -470,6 +471,30 @@ describe('PlannerScheduler', () => {
 
       expect(p.uses.every((u) => u.player === 1)).toBe(true);
       expect(usesBy(p, 1)).not.toContainEqual(['Rampart', 58_000]);
+    });
+
+    it("plans a completed wipe's player with no stand-in of their job from its wipe point only", () => {
+      // The pull is completed from 50s; the paladin's Rampart at 20s stays,
+      // and a buster at 30s gets nothing new from them. Only the bard is
+      // asked for, so the buster at 60s is the paladin's to cover.
+      const timeline: ReferencedTimeline = {
+        ...pull(
+          [
+            [30, 'Buster', 1, 95_000],
+            [60, 'Buster', 1, 95_000],
+          ],
+          healed,
+        ),
+        playerCasts: [{ at: 20_000, source: 1, target: 1, action: 7531, castMs: null }],
+        completion: { from: 50_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [1] },
+      };
+      const p = new PlannerScheduler().plan(timeline, catalog(), { margin: 0.1, replan: [3] });
+      const paladin = p.uses.filter((u) => u.player === 1);
+
+      expect(p.replanned).toEqual([3, 1]);
+      expect(paladin.filter((u) => u.played).map((u) => [u.name, u.at])).toEqual([['Rampart', 20_000]]);
+      expect(paladin.some((u) => !u.played)).toBe(true);
+      expect(paladin.filter((u) => !u.played).every((u) => u.at >= 50_000)).toBe(true);
     });
   });
 
