@@ -25,3 +25,5 @@ export { editChoices, editSlots } from './lib/edits';
 export type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './lib/edits.model';
 export { missingAttacks, referenceDamage } from './lib/mechanics';
 export type { ReferenceDamage, ReferencedTimeline } from './lib/reference-damage.model';
+export { alignment, coverage, MIN_COVERAGE } from './lib/completion-alignment';
+export type { Alignment } from './lib/completion.model';
