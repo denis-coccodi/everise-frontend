@@ -15,6 +15,15 @@ export function lateStarts(timeline: ReferencedTimeline, asked: PlanOptions): Ma
   return new Map(completion.plannedFrom.filter((p) => !replan.includes(p)).map((p) => [p, completion.from]));
 }
 
+// Where each player's GCDs as played stop in a completed wipe, by id: at
+// its wipe point for those with no stand-in of their job in the kill, who
+// did nothing there, replanned from the pull's start or from there. Past
+// it, their GCD heals need slots of their own (`Weaving`'s `freeFrom`).
+export function castsStopAt(timeline: ReferencedTimeline): Map<number, number> {
+  const { completion } = timeline;
+  return new Map(completion?.plannedFrom.map((p) => [p, completion.from]) ?? []);
+}
+
 // The tools, a late-starting player's away until their start.
 export function startingAt<T extends { player: number; away?: { from: number; to: number }[] }>(
   tools: T[],

@@ -328,6 +328,8 @@ export interface Plan {
   // them ("player:action"): their own uses of those aren't kept as played.
   replanned?: number[];
   scheduled?: string[];
+  // Of those, the ones replanned only from a completed wipe's wipe point.
+  late?: number[];
 }
 
 // A player's HP with the plan: what it is after each change, in time order.

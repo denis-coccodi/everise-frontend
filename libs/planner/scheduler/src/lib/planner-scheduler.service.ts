@@ -23,7 +23,7 @@ import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers
 import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
-import { earlyUses, lateStarts, startingAt } from './completion-plan';
+import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -46,7 +46,7 @@ export class PlannerScheduler {
     const catalog = catalogAtLevel(full, level);
     const maxHp = new Map<number, number>();
     for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
-    const late = lateStarts(timeline, asked);
+    const [late, stops] = [lateStarts(timeline, asked), castsStopAt(timeline)];
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player) || late.has(t.player);
     const edits = ownEdits(asked.edits, replanned);
     const power = healPower(timeline, catalog);
@@ -109,7 +109,7 @@ export class PlannerScheduler {
     ];
     const { healers, whms, tools: lucids } = mpTools(replannedPlayers);
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts, ...lucids].map(key));
-    const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`), late);
+    const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`), stops);
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
     weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));
@@ -236,6 +236,7 @@ export class PlannerScheduler {
     return {
       ...best,
       replanned: [...ids, ...late.keys()],
+      late: [...late.keys()],
       scheduled: [...current()],
       uses,
       mp: finalMp.plannedMp(ids, uses),
