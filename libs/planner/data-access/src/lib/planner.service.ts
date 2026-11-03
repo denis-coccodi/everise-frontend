@@ -10,7 +10,20 @@ import {
   PullTimeline,
 } from '@everise/core/api-types';
 import { referenceDamage, type ReferenceDamage } from '@everise/planner/scheduler';
-import { catchError, concatMap, EMPTY, from, last, map, of, scan, switchMap, takeWhile, type Observable } from 'rxjs';
+import {
+  catchError,
+  concatMap,
+  EMPTY,
+  from,
+  last,
+  map,
+  of,
+  scan,
+  switchMap,
+  takeWhile,
+  toArray,
+  type Observable,
+} from 'rxjs';
 import { SKIP_NOT_FOUND_REDIRECT } from '@everise/core/error-handler';
 import { ApiService } from '@everise/core/http-client';
 
@@ -35,6 +48,14 @@ export class PlannerService {
       `/planner/reports/${encodeURIComponent(code)}/pulls/${pullId}`,
       undefined,
       notFoundIsThePages(),
+    );
+  }
+
+  // Several of a report's pulls, read in turn, one that won't load skipped.
+  pulls(code: string, pullIds: number[]): Observable<PullTimeline[]> {
+    return from(pullIds).pipe(
+      concatMap((id) => this.pull(code, id).pipe(catchError(() => EMPTY))),
+      toArray(),
     );
   }
 

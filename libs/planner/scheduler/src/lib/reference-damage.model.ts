@@ -10,11 +10,14 @@ export type ReferenceDamage = Record<string, { byRole: Record<string, number>; a
 // of its blocked attacks, and for a wipe the kills themselves (up to three
 // that could be read, none when FFLogs has none), to complete the part of
 // the fight it never reached, and its fight's script (cactbot's timeline;
-// null when there's none, or it isn't the fight the log shows). Once
+// null when there's none, or it isn't the fight the log shows). Without
+// other groups' kills, `clears` are the report's own pulls of the fight
+// that got further (`clearsFrom`), each up to its wipe point. Once
 // completed from one, what was added.
 export type ReferencedTimeline = PullTimeline & {
   references?: ReferenceDamage;
   clears?: PullTimeline[];
+  clearsFrom?: 'kills' | 'report';
   script?: FightScript | null;
   completion?: Completion;
 };

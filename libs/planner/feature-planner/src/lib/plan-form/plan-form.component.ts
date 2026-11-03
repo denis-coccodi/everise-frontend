@@ -82,8 +82,11 @@ export class PlanFormComponent {
   protected readonly completionHint = computed(() => {
     const c = this.completion();
     if (c?.state !== 'offered') return '';
+    const reached = `This wipe got through ${c.reached} of ${mechanics(c)}. Completed, the rest of the fight is `;
+    if (c.source === 'report')
+      return `${reached}taken from pull ${c.timeline.completion?.clear.pullId} of this report, which got further, lined up on the boss's casts.`;
     return (
-      `This wipe got through ${c.reached} of the fight's ${c.total} mechanics. Completed, the rest of the fight is ` +
+      reached +
       "taken from another group's kill, lined up on the boss's casts. Players with nobody of their job in that " +
       'kill are planned from the wipe on.'
     );
@@ -94,16 +97,21 @@ export class PlanFormComponent {
       case 'reading':
         return "Reading other groups' kills of this fight…";
       case 'none':
-        return "Only what was logged is planned: no other group's kill of this fight could be read. FFLogs has none, or has archived them.";
+        return (
+          "Only what was logged is planned: no other group's kill of this fight could be read (FFLogs has none, " +
+          'or has archived them), and no pull of this report got further.'
+        );
       case 'unaligned':
-        return "Only what was logged is planned: no other group's kill lines up with this wipe's boss casts.";
+        return "Only what was logged is planned: no other group's kill, or further pull of this report, lines up with this wipe's boss casts.";
       case 'short':
         return (
-          `Only what was logged is planned. This wipe got through ${c.reached} of the fight's ${c.total} mechanics, ` +
+          `Only what was logged is planned. This wipe got through ${c.reached} of ${mechanics(c)}, ` +
           'and the rest of the fight is only completed for a wipe that got through at least half of them.'
         );
       case 'nothing-left':
-        return "Only what was logged is planned: this wipe got through every mechanic other groups' kills have, so they have nothing left to add.";
+        return c.source === 'report'
+          ? "Only what was logged is planned: no pull of this report got further, and FFLogs has no other group's kill of this fight."
+          : "Only what was logged is planned: this wipe got through every mechanic other groups' kills have, so they have nothing left to add.";
       default:
         return '';
     }
@@ -128,4 +136,11 @@ export class PlanFormComponent {
     this.plans.setMargin(this.model().margin);
     await this.plans.run(id, timeline, catalog.value());
   }
+}
+
+// "the fight's 38 mechanics", or as far as the report's furthest pull got.
+function mechanics(c: { source: 'kills' | 'report'; total: number }) {
+  return c.source === 'report'
+    ? `the ${c.total} mechanics this report's furthest pull reached`
+    : `the fight's ${c.total} mechanics`;
 }

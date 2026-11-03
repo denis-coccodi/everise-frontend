@@ -1,6 +1,6 @@
 import type { PullTimeline } from '@everise/core/api-types';
 import { pull } from './scheduler-fixtures';
-import { wipePoint } from './wipe-point';
+import { upToWipePoint, wipePoint } from './wipe-point';
 
 type Hit = [number, string, number, number];
 const death = (seconds: number, player: number) => ({ at: seconds * 1000, player, action: null, source: null });
@@ -145,5 +145,22 @@ describe('wipePoint', () => {
         ]),
       ),
     ).toBe(98_999);
+  });
+});
+
+describe('upToWipePoint', () => {
+  it('keeps a wipe up to its wipe point, leaving out its deaths', () => {
+    const hits: Hit[] = [...raidwides(30, 60), ...everyone(100, 'Finale')];
+    const cut = upToWipePoint(
+      wipe(hits, [
+        [101, 1],
+        [101, 2],
+        [101, 3],
+      ]),
+    );
+
+    expect(cut.durationMs).toBe(99_999);
+    expect(cut.damage.map((h) => h.at)).toEqual([30_000, 30_000, 60_000, 60_000]);
+    expect(cut.deaths).toEqual([]);
   });
 });

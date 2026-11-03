@@ -19,7 +19,8 @@ export function enrages(timeline: ReferencedTimeline) {
   const names = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp]));
   const enrageIds = timeline.script ? new Set(timeline.script.enrageIds) : null;
-  const clears = timeline.clears?.length ? timeline.clears : null;
+  // The report's own further pulls aren't kills: they say nothing of it.
+  const clears = timeline.clears?.length && timeline.clearsFrom !== 'report' ? timeline.clears : null;
   const inKills = new Set(clears?.flatMap((c) => c.actions.map((a) => a.name)));
   const killed = (hit: TimelineHit) =>
     hit.overkill > 0 ||

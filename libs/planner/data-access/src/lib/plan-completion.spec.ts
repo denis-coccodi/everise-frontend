@@ -49,6 +49,7 @@ describe('wipeCompletion', () => {
     // Lost to the cast at 179 s: 5 of the kill nearest the usual length's 17 mechanics.
     expect(wipeCompletion(wipe(200, [fight(500), fight(540), fight(520)]), true, catalog)).toEqual({
       state: 'short',
+      source: 'kills',
       reached: 5,
       total: 17,
     });
