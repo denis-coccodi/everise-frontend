@@ -181,7 +181,7 @@ describe('PlanFormComponent', () => {
 
       expect(page.querySelector('label[for=planner-rest]')?.textContent).toContain('Rest of the fight');
       expect(page.querySelector('cdt-planner-plan-form')?.textContent).toContain(
-        'This wipe lasted 5:03 of about 8:20.',
+        "This wipe got through 1 of the fight's 2 mechanics.",
       );
       const select = page.querySelector<HTMLSelectElement>('#planner-rest');
       expect(select?.value).toBe('whole');

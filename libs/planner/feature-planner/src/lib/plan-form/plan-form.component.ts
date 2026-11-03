@@ -83,7 +83,7 @@ export class PlanFormComponent {
     const c = this.completion();
     if (c?.state !== 'offered') return '';
     return (
-      `This wipe lasted ${pullClock(c.lasted)} of about ${pullClock(c.usual)}. Completed, the rest of the fight is ` +
+      `This wipe got through ${c.reached} of the fight's ${c.total} mechanics. Completed, the rest of the fight is ` +
       "taken from another group's kill, lined up on the boss's casts. Players with nobody of their job in that " +
       'kill are planned from the wipe on.'
     );
@@ -99,11 +99,11 @@ export class PlanFormComponent {
         return "Only what was logged is planned: no other group's kill lines up with this wipe's boss casts.";
       case 'short':
         return (
-          `Only what was logged is planned. This wipe lasted ${pullClock(c.lasted)} of about ${pullClock(c.usual)}, ` +
-          `and the rest of the fight is only completed for a wipe that got at least halfway (${pullClock(c.usual / 2)}).`
+          `Only what was logged is planned. This wipe got through ${c.reached} of the fight's ${c.total} mechanics, ` +
+          'and the rest of the fight is only completed for a wipe that got through at least half of them.'
         );
       case 'nothing-left':
-        return `Only what was logged is planned: this wipe lasted ${pullClock(c.lasted)}, as long as other groups' kills (about ${pullClock(c.usual)}), so they have nothing left to add.`;
+        return "Only what was logged is planned: this wipe got through every mechanic other groups' kills have, so they have nothing left to add.";
       default:
         return '';
     }
