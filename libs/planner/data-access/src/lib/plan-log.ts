@@ -36,7 +36,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
             : null,
         safe: hit.safe,
         avoidable: hit.avoidable,
-        ...(m?.wipe ? { wipe: true } : {}),
+        ...(m?.wipe ? { wipe: m.wipe } : {}),
         ...(m?.hits.find((h) => h.player === hit.player)?.failed ? { failed: true } : {}),
         ...estimatedFrom(m?.hits.find((h) => h.player === hit.player)?.estimated),
         covers: hit.covers,

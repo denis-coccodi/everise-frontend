@@ -1,4 +1,5 @@
 import { PullTimeline, TimelineHit } from '@everise/core/api-types';
+import { enrages } from './enrages';
 import { Mechanic } from './plan.model';
 import type { ReferenceDamage, ReferencedTimeline } from './reference-damage.model';
 
@@ -24,8 +25,8 @@ const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking
 // them (`UNSURVIVABLE` times their max HP): one they survived as played was
 // mitigated, and the plan must cover it too. A failed one is avoided when
 // `ignore` says so, or when nothing would save them; the plan covers the
-// rest like any other hit. A raidwide every hit of which is unsurvivable is
-// a wipe (`wipe`): nothing saves anyone, so it's taken as avoided. A wipe
+// rest like any other hit. An enrage (`enrages`), or a raidwide that may be
+// one, is a wipe (`wipe`): nothing saves anyone, so it's taken as avoided. A wipe
 // completed from another group's kill has its hits after the wipe point
 // estimated from that kill (`completion`).
 export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mechanic[] {
@@ -34,6 +35,7 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
   const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
   const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp]));
   const raidwideAt = Math.max(2, Math.ceil(timeline.players.length * 0.75));
+  const enrage = enrages(timeline);
   const { estimated, fromClears } = blockedHits(timeline, actionName);
   const blocked = new Set(estimated.values());
   const hits = timeline.damage.map((hit) => estimated.get(hit) ?? hit).filter((hit) => isMechanicHit(hit, actionName));
@@ -68,7 +70,7 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
           ? 'tankbuster'
           : 'targeted';
     const unsurvivable = (hit: TimelineHit) => unmitigated(hit) >= UNSURVIVABLE * (maxHp.get(hit.target) ?? Infinity);
-    const wipe = kind === 'raidwide' && group.hits.every(unsurvivable);
+    const wipe = enrage(kind, group.hits, unmitigated);
     return {
       id,
       at: group.at,
@@ -89,10 +91,10 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
             : hit.at > completedAfter
               ? { estimated: 'completion' as const }
               : {}),
-          avoidable: wipe || (fails && (ignore || unsurvivable(hit))),
+          avoidable: !!wipe || (fails && (ignore || unsurvivable(hit))),
         };
       }),
-      ...(wipe ? { wipe: true } : {}),
+      ...(wipe ? { wipe } : {}),
     };
   });
 }
