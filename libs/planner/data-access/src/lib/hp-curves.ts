@@ -1,5 +1,5 @@
 import { PullTimeline } from '@everise/core/api-types';
-import { attackSeverity, type Plan } from '@everise/planner/scheduler';
+import { attackSeverity, type Plan, type ReferencedTimeline } from '@everise/planner/scheduler';
 import type { HpCurve, HpHit, HpMark, HpPoint } from './hp-curves.model';
 
 // Each player's HP over the pull, for those the log says the max HP of: as
@@ -9,8 +9,11 @@ import type { HpCurve, HpHit, HpMark, HpPoint } from './hp-curves.model';
 //
 // As played, the log's HP after each hit sets it (a heal's snapshot isn't
 // reliable: heals landing together all carry the same), each heal adds what
-// it healed (overheal left out), and a death takes it to 0.
-export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
+// it healed (overheal left out), and a death takes it to 0. A wipe
+// completed from another pull is played only up to its wipe point: the
+// rest is that pull's, which nobody here played.
+export function hpCurves(timeline: ReferencedTimeline, plan: Plan | null): HpCurve[] {
+  const playedUntil = timeline.completion?.from ?? Infinity;
   const mechanicOf = new Map(plan?.mechanics.map((m) => [m.id, m]) ?? []);
   const severity = attackSeverity(timeline);
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
@@ -37,7 +40,7 @@ export function hpCurves(timeline: PullTimeline, plan: Plan | null): HpCurve[] {
       id: player.id,
       name: player.name,
       job: player.job,
-      played: played(timeline, player.id, max),
+      played: played(timeline, player.id, max).filter((p) => p.at <= playedUntil),
       planned: planned ? planned.points.map((p) => ({ at: p.at, share: share(p.hp) })) : null,
       mp: mp?.points.length && maxMp ? mp.points.map((p) => ({ at: p.at, share: Math.min(1, p.mp / maxMp) })) : null,
       marks: marks.sort((a, b) => a.at - b.at),

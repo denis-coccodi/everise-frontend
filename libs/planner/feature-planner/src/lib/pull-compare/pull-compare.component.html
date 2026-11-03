@@ -27,7 +27,16 @@
     </thead>
     <tbody>
       @for (row of rows(); track row.at) {
+        @if (row.at === firstCompleted() && completed(); as c) {
+          <!-- Past the wipe point: the plan is another pull's; as played, the wipe. -->
+          <tr class="completed-start">
+            <th scope="colgroup" colspan="3">
+              From {{ clock(c.from) }}, the plan is the rest of the fight as {{ c.source }} had it; as played, the wipe.
+            </th>
+          </tr>
+        }
         <tr
+          [class.completed]="completed() !== null && row.at > (completed()?.from ?? 0)"
           [attr.data-at]="row.at"
           [class.only-played]="!row.planned.length"
           [class.only-plan]="!row.played.length"

@@ -40,6 +40,8 @@ export class PullCompareComponent {
   // Null before the pull is planned.
   readonly planned = input.required<PlanEntry[] | null>();
   readonly shown = input<'played' | 'plan'>('played');
+  // A completed wipe: where the rest of the fight starts, and whose it is.
+  readonly completed = input<{ from: number; source: string } | null>(null);
   // Editing the plan by hand: a skill removed, or one added at a slot near
   // a row (`slotsFor` it, and `choicesFor` each slot).
   readonly editing = input(false);
@@ -71,6 +73,11 @@ export class PullCompareComponent {
   protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
   protected readonly TIER_HINTS = TIER_HINTS;
   protected readonly rows = computed(() => compareLog(this.played(), this.planned() ?? []));
+  // The first row of the completed part, which a heading row starts.
+  protected readonly firstCompleted = computed(() => {
+    const from = this.completed()?.from;
+    return from === undefined ? null : (this.rows().find((r) => r.at > from)?.at ?? null);
+  });
   // The moment last opened from elsewhere (the HP chart), marked.
   protected readonly revealed = signal<number | null>(null);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

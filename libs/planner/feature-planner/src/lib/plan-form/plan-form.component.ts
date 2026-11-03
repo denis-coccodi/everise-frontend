@@ -61,7 +61,8 @@ export class PlanFormComponent {
       (failed
         ? ` ${failed} ${failed === 1 ? 'hit is a failed mechanic' : 'hits are failed mechanics'}, taken as avoided.`
         : '') +
-      (covered ? ` ${covered} failed ${covered === 1 ? 'mechanic is' : 'mechanics are'} planned for anyway.` : '');
+      (covered ? ` ${covered} failed ${covered === 1 ? 'mechanic is' : 'mechanics are'} planned for anyway.` : '') +
+      this.restOfFight();
     // Planned again with nothing changed: said, as the plan shown stays the same.
     const again = this.plans.sameAsBefore()
       ? 'Planned again: nothing changed, as each edit already updates the plan (the Plan column, and the Plan line on the HP chart). '
@@ -76,6 +77,16 @@ export class PlanFormComponent {
       `${short} ${short === 1 ? 'hit leaves' : 'hits leave'} less than ${margin}% of max HP, even with everything those replanned have free.${avoided}`
     );
   });
+
+  // A completed wipe's plan: where the part nobody here played starts.
+  private restOfFight() {
+    const from = this.store.planned()?.completion?.from;
+    const c = this.completion();
+    if (from === undefined || c?.state !== 'offered') return '';
+    const whose =
+      c.source === 'report' ? `pull ${c.timeline.completion?.clear.pullId} of this report` : "another group's kill";
+    return ` From ${pullClock(from)} on, it's the rest of the fight as ${whose} had it (shaded in the timeline and on the HP chart).`;
+  }
 
   // For a wipe: whether its plan can cover the whole fight, in words.
   protected readonly completion = this.store.completion;

@@ -3,6 +3,7 @@
 // (--color-chart-8); gridlines are recessive hairlines.
 @use '../../../../../ui/components/src/theme/breakpoints' as bp;
 @use 'hp-chart-marks';
+@use 'hp-chart-completed';
 
 :host {
   display: block;
@@ -55,7 +56,8 @@
   }
 }
 
-.margin-key {
+.margin-key,
+.completed-key {
   color: var(--color-contrast-muted);
   font-size: 0.9rem;
 }

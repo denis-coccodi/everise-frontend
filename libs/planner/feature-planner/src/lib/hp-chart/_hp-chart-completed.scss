@@ -1,0 +1,21 @@
+// A completed wipe's rest of the fight on the chart: a shaded block from a
+// dashed line where the log ends, on each plot and in the key. Uses the
+// theme's role tokens only (libs/ui/components/src/theme).
+
+.key.completed {
+  height: 0.8rem;
+  border: var(--border-width) solid var(--color-border);
+  border-left: 2px dashed var(--color-contrast-soft);
+  background: var(--color-shade);
+}
+
+rect.completed {
+  fill: var(--color-shade);
+}
+
+.completed-edge {
+  stroke: var(--color-contrast-soft);
+  stroke-width: 2px;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}

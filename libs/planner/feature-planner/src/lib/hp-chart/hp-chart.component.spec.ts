@@ -56,6 +56,23 @@ describe('HpChartComponent', () => {
     return { fixture, host, readouts };
   }
 
+  it("marks where a completed wipe's log ends on each plot, and shades the replanned rest", () => {
+    const { fixture, host } = render();
+    expect(host.querySelector('rect.completed')).toBeNull();
+
+    fixture.componentRef.setInput('completedFrom', 90_000);
+    fixture.detectChanges();
+
+    const shaded = [...host.querySelectorAll('rect.completed')];
+    expect(shaded.map((r) => [r.getAttribute('x'), r.getAttribute('width')])).toEqual([
+      ['500', '500'],
+      ['500', '500'],
+    ]);
+    expect(host.querySelector('.completed-key')?.textContent?.trim()).toBe('Past the log: replanned from 1:30');
+    // A line where the log ends, on every plot.
+    expect([...host.querySelectorAll('line.completed-edge')].map((l) => l.getAttribute('x1'))).toEqual(['500', '500']);
+  });
+
   it('gives each member a panel that says their lowest HP, as played and with the plan', () => {
     const { host, readouts } = render();
 
