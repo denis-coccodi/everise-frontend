@@ -33,4 +33,16 @@ describe('late starts', () => {
     expect(tools.find((t) => t.player === 2)?.away).toBeUndefined();
     expect(earlyUses(timeline, tools, late).map((u) => [u.name, u.at, u.played])).toEqual([['Rampart', 20_000, true]]);
   });
+
+  it("keeps a late white mage's Afflatus Miseries before their start, for the Blood Lily", () => {
+    const timeline = completed();
+    timeline.playerCasts.push(
+      { at: 30_000, source: 2, target: 13, action: 16535, castMs: null },
+      { at: 60_000, source: 2, target: 13, action: 16535, castMs: null },
+    );
+
+    expect(earlyUses(timeline, [], new Map([[2, 50_000]]))).toEqual([
+      expect.objectContaining({ player: 2, name: 'Afflatus Misery', at: 30_000, damage: true, played: true }),
+    ]);
+  });
 });
