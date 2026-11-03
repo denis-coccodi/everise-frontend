@@ -1,4 +1,5 @@
 import { ActionEffect } from '@everise/core/api-types';
+import { startingAt } from './completion-plan';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
 import { healPairings, healTools } from './heal-tools';
@@ -448,6 +449,13 @@ describe('planHeals', () => {
       const since = Math.max(...[first, ...miseries].filter((m) => m < misery));
       expect(lilies.filter((l) => l > since && l < misery)).toHaveLength(3);
     }
+    // Planned only from a wipe point at 100s: no lily nor Misery before it.
+    const options = { margin: 0.1, favour: { 2: 'dps' as const } };
+    const late = startingAt(heals, new Map([[2, 100_000]]));
+    const mitigated = planMitigation(mechanicsOf(timeline), [], maxHp, options);
+    const fromWipe = planHeals(mitigated, timeline, [], late, maxHp, options).uses;
+    expect(fromWipe.length).toBeGreaterThan(0);
+    expect(fromWipe.every((u) => u.at >= 100_000)).toBe(true);
   });
 
   describe('Earthly Star', () => {

@@ -7,8 +7,8 @@ import { healPower } from './heal-power';
 import { healPairings, healTools } from './heal-tools';
 import { HealingBuffs, healingBuffsOf } from './healing-buffs';
 import { invulnerabilityOptions, playedInvulnerabilities } from './invulnerabilities';
-import { LUCID_DREAMING, lucidTimes, lucidUse } from './lucid';
-import { THIN_AIR, thinAirTimes, thinAirUse } from './thin-air';
+import { LUCID_DREAMING, lucidTimes, lucidUse, mpTools } from './lucid';
+import { thinAirTimes, thinAirUse } from './thin-air';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
@@ -23,6 +23,7 @@ import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers
 import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
+import { earlyUses, lateStarts, startingAt } from './completion-plan';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -45,31 +46,32 @@ export class PlannerScheduler {
     const catalog = catalogAtLevel(full, level);
     const maxHp = new Map<number, number>();
     for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
-    const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player);
+    const late = lateStarts(timeline, asked);
+    const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player) || late.has(t.player);
     const edits = ownEdits(asked.edits, replanned);
     const power = healPower(timeline, catalog);
     // A replanned player starts with their opener (the standard one unless
     // asked otherwise): a scholar's says when their Aetherflow stacks come
     // and their fairy goes away for Dissipation, an astrologian's when their
     // cards come; its heals are planned where it has them.
-    const scholars = timeline.players.filter((p) => p.job === 'SCH' && replanned({ player: p.id }));
-    const replannedPlayers = timeline.players.filter((p) => replanned({ player: p.id }));
+    const replannedPlayers = timeline.players.filter((p) => replanned({ player: p.id }) && !late.has(p.id));
+    const scholars = replannedPlayers.filter((p) => p.job === 'SCH');
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
-    const { dissipations } = opening;
     const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
     const opened = toolWindows(timeline, opening, edits, mechanics);
     // A scholar's fairy orders wait for her while Dissipation has her away;
     // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
-    const mitigation = opened(mitigationTools(timeline.players, catalog, power));
+    const mitigation = startingAt(opened(mitigationTools(timeline.players, catalog, power)), late);
     // The others' heals stay in the pull's healing, as played.
-    const heals = opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned));
+    const heals = startingAt(opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned)), late);
     // An opener's heals and mitigations (The Blackest Night) stay as it has them.
     const tools = new Set([...heals, ...mitigation.filter(replanned)].map((t) => t.player + ':' + t.action));
     // The user's added skills stay where they put them, as the opener's do,
-    // even one by where they removed it.
-    const added = addedUses(edits, catalog);
+    // even one by where they removed it; so do the late players' early ones.
+    const added = [...addedUses(edits, catalog), ...earlyUses(timeline, [...mitigation, ...heals], late)];
     const opener = placedSteps(opening, (u) => tools.has(u.player + ':' + u.action));
     const placed = [...opener.filter(notRemoved(edits)), ...added];
+    const notPlaced = (u: PlannedUse) => !u.opener && !u.edited && !u.played;
     const mitigates = new Set(mitigation.map((t) => t.player + ':' + t.action));
     const played = playedUses(
       timeline,
@@ -79,6 +81,7 @@ export class PlannerScheduler {
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
       ...asked,
+      replan: asked.replan && [...asked.replan, ...late.keys()],
       invulnerabilities: keptInvulnerabilities(
         (asked.invulnerabilities ?? playedInvulnerabilities(timeline, mechanics, mitigation)).filter(replanned),
         mechanics,
@@ -87,7 +90,7 @@ export class PlannerScheduler {
     };
     // The oGCDs that only pay with a GCD heal (Plenary Indulgence) are
     // planned with one, by the heals, never on their own.
-    const pairings = healPairings(timeline.players, catalog, power).filter(replanned);
+    const pairings = startingAt(healPairings(timeline.players, catalog, power).filter(replanned), late);
     const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
     const paired = new Set(pairings.map(key));
     // A tool without effects of its own goes with what it makes better or
@@ -104,14 +107,9 @@ export class PlannerScheduler {
       ...replannedPlayers.flatMap((p) => burstActions(p.job ?? '').map((action) => ({ player: p.id, action }))),
       ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),
     ];
-    const healers = replannedPlayers.filter((p) => p.role === 'healer').map((p) => p.id);
-    const whms = replannedPlayers.filter((p) => p.job === 'WHM').map((p) => p.id);
-    const lucids = [
-      ...healers.map((player) => ({ player, action: LUCID_DREAMING })),
-      ...whms.map((player) => ({ player, action: THIN_AIR })),
-    ];
+    const { healers, whms, tools: lucids } = mpTools(replannedPlayers);
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts, ...lucids].map(key));
-    const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`));
+    const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`), late);
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
     weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));
@@ -136,7 +134,8 @@ export class PlannerScheduler {
       new Map([...fairyPowers].filter((e): e is [number, number] => e[1] !== null)),
       true,
     );
-    const fairy = (from?: Plan) => scholarsFairy(timeline, scholars, fairyPowers, maxHp, fairyHeal, dissipations, from);
+    const fairy = (from?: Plan) =>
+      scholarsFairy(timeline, scholars, fairyPowers, maxHp, fairyHeal, opening.dissipations, from);
     // A sage's Addersgall with their Rhizomata's stacks, once planned (below).
     const bonus = new Map<number, number[]>();
     let lucid: PlannedUse[] = [];
@@ -162,7 +161,7 @@ export class PlannerScheduler {
         mp,
       );
       const planned = planHeals(
-        { ...mitigated, uses: [...mitigated.uses.filter((u) => !u.opener && !u.edited), ...placed, ...lucid] },
+        { ...mitigated, uses: [...mitigated.uses.filter(notPlaced), ...placed, ...lucid] },
         timeline,
         [...withRhizomata(mitigation, bonus), ...veils],
         withRhizomata(heals, bonus),
@@ -236,7 +235,7 @@ export class PlannerScheduler {
     const finalMp = mpModel(best);
     return {
       ...best,
-      replanned: ids,
+      replanned: [...ids, ...late.keys()],
       scheduled: [...current()],
       uses,
       mp: finalMp.plannedMp(ids, uses),

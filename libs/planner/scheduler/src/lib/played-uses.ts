@@ -1,10 +1,13 @@
 import { PullTimeline } from '@everise/core/api-types';
 import { MitigationTool, PlannedUse } from './plan.model';
 
+// A mitigation or heal tool: whose, which action, and whom it goes on.
+type PlayedTool = Pick<MitigationTool, 'player' | 'action' | 'name'> & { effects: { target: string }[] };
+
 // The uses of these tools as the pull has them, from when each landed (a
 // cast bar's end), on the member it was used on: the actions of those the
 // plan leaves as they played.
-export function playedUses(timeline: PullTimeline, tools: MitigationTool[]): PlannedUse[] {
+export function playedUses(timeline: PullTimeline, tools: PlayedTool[]): PlannedUse[] {
   const uses: PlannedUse[] = [];
   for (const cast of timeline.playerCasts) {
     const tool = tools.find((t) => t.player === cast.source && t.action === cast.action);

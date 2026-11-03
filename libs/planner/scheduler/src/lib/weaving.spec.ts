@@ -155,4 +155,16 @@ describe('Weaving', () => {
     // After its lock, the opener's oGCD to 11.3s: the next slot then.
     expect(opened.ogcdAfter(1, 10_000, 12_500, [])).toBe(11_300);
   });
+
+  it("places GCDs freely after a player's GCDs as played stop, where asked", () => {
+    // Nothing played after 20s: no GCD slot there, but from 22.5s once free.
+    const casts = [cast(10_000, 9), cast(12_500, 9), cast(20_000, 9)];
+    const stopped = new Weaving(casts, gcdOf, () => false, undefined, undefined, new Map([[1, 22_500]]));
+
+    expect(new Weaving(casts, gcdOf, () => false).gcdAfter(1, 30_000, 40_000, 1500, [])).toBeNull();
+    expect(stopped.gcdAfter(1, 30_000, 40_000, 1500, [])).toBe(30_000);
+    expect(stopped.gcdAfter(1, 30_000, 40_000, 1500, [{ at: 30_000, gcd: true, castMs: 1500 }])).toBe(32_500);
+    // Before then, their own GCDs as played still.
+    expect(stopped.gcdAfter(1, 11_000, 20_000, 1500, [])).toBe(12_500);
+  });
 });
