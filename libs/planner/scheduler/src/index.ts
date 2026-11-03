@@ -27,4 +27,5 @@ export { missingAttacks, referenceDamage } from './lib/mechanics';
 export type { ReferenceDamage, ReferencedTimeline } from './lib/reference-damage.model';
 export { alignment, coverage, MIN_COVERAGE } from './lib/completion-alignment';
 export { standIns } from './lib/completion-players';
-export type { Alignment, StandIns } from './lib/completion.model';
+export { completedTimeline } from './lib/completion-timeline';
+export type { Alignment, Completion, StandIns } from './lib/completion.model';
