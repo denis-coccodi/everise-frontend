@@ -170,7 +170,7 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
 
     const noDuty = page.querySelector('cdt-switch button') as HTMLButtonElement;
-    expect(noDuty.textContent?.trim()).toBe('Show listings without a duty');
+    expect(noDuty.textContent?.trim()).toBe('Show listings without a duty (“None”: events, roleplay, anything else)');
     noDuty.click();
     await change('pf-world', '');
 

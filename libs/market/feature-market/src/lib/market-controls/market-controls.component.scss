@@ -38,3 +38,20 @@
   flex-wrap: wrap;
   gap: 0.4rem;
 }
+
+// An option with its "what is this for" note beside it.
+.with-about {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+// The note's icon: a 24 px target at least.
+.about {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  color: var(--color-contrast-soft);
+}

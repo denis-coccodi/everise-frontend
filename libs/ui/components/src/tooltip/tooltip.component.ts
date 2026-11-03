@@ -20,6 +20,7 @@ const EDGE_PX = 8;
 // hides it. Screen readers get the text as the content's description.
 // `focusable` makes the content a tab stop (for content that isn't one
 // already); `tabIndex` lets a parent manage which one is (a roving tab stop).
+// A control inside (a checkbox) opens it too as it takes the focus.
 // Line breaks in the text stay. Centred on its content, it moves sideways
 // as it opens where it would leave the viewport.
 @Component({
@@ -29,8 +30,8 @@ const EDGE_PX = 8;
       class="trigger"
       [attr.tabindex]="focusable() ? tabIndex() : null"
       [attr.aria-describedby]="id"
-      (focus)="show()"
-      (blur)="open.set(false)"
+      (focusin)="show()"
+      (focusout)="open.set(false)"
     >
       <ng-content />
     </span>

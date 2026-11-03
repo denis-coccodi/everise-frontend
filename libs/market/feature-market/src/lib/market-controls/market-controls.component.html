@@ -62,7 +62,14 @@
       Oceania's worlds too (any world can visit them)
     </cdt-checkbox>
   }
-  <cdt-checkbox [checked]="store.scale() === 'log'" (checkedChange)="store.setScale($event ? 'log' : 'linear')">
-    Logarithmic price scale
-  </cdt-checkbox>
+  <span class="with-about">
+    <cdt-checkbox [checked]="store.scale() === 'log'" (checkedChange)="store.setScale($event ? 'log' : 'linear')">
+      Logarithmic price scale
+    </cdt-checkbox>
+    <cdt-tooltip [focusable]="true" [text]="logScaleAbout">
+      <span class="about"
+        ><cdt-icon name="info" /><span class="visually-hidden">What the logarithmic price scale is for</span></span
+      >
+    </cdt-tooltip>
+  </span>
 </div>

@@ -82,7 +82,7 @@
 
   <div class="switches">
     <cdt-switch [checked]="store.filters().showNoDuty" (checkedChange)="store.setFilters({ showNoDuty: $event })">
-      Show listings without a duty
+      Show listings without a duty (“None”: events, roleplay, anything else)
     </cdt-switch>
     <cdt-switch [checked]="store.filters().beginnersOnly" (checkedChange)="store.setFilters({ beginnersOnly: $event })">
       Beginners welcome only
