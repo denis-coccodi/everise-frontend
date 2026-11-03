@@ -44,18 +44,21 @@ describe('wipeCompletion', () => {
     expect(wipeCompletion(wipe(200), true, catalog)).toEqual({ state: 'reading' });
   });
 
-  it("plans only what was logged when no kill could be read, or the wipe got through under half the kill's mechanics", () => {
+  it('plans only what was logged when no kill could be read', () => {
     expect(wipeCompletion(wipe(200, []), true, catalog)).toEqual({ state: 'none' });
+  });
+
+  it('offers a wipe that got through under half the fight completed too, as reliably', () => {
     // Lost to the cast at 179 s: 5 of the kill nearest the usual length's 17 mechanics.
-    expect(wipeCompletion(wipe(200, [fight(500), fight(540), fight(520)]), true, catalog)).toEqual({
-      state: 'short',
+    expect(wipeCompletion(wipe(200, [fight(500), fight(540), fight(520)]), true, catalog)).toMatchObject({
+      state: 'offered',
       source: 'kills',
       reached: 5,
       total: 17,
     });
   });
 
-  it('offers the wipe completed from a kill once it got through half its mechanics', () => {
+  it('offers the wipe completed from a kill it lines up with', () => {
     const done = wipeCompletion(wipe(300, [fight(500)]), true, catalog);
 
     expect(done).toMatchObject({ state: 'offered', reached: 9, total: 16 });

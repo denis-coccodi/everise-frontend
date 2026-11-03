@@ -12,12 +12,14 @@ const SAME_ANCHOR_MS = 2500;
 // later add up over a fight. Real Savage wipes were within 6 s of a kill;
 // 90 s let one line up on a cast the fight repeats 90 s later.
 const MAX_DRIFT_MS = 60_000;
+// The latest pairs whose median gap is the offset.
+const OFFSET_PAIRS = 5;
 const AUTO_ATTACK = /^attack$/i;
 
 // Where the wipe and one of the kills line up best: groups push phases at
 // different times, so each kill is matched against the wipe by the order
-// of the boss's casts (the longest sequence both share), anchored on the
-// latest cast they share. The kill whose anchor comes latest in the wipe
+// of the boss's casts (the sequence both share, closest in time), anchored
+// on the latest cast they share. The kill whose anchor comes latest in the wipe
 // wins; between anchors a GCD apart, the kill nearest the kills' median
 // length, so one slow group's longer fight doesn't set the rest. Null when
 // none shares enough. A wipe that outlasted the kill gets an `endsAt`
@@ -62,31 +64,52 @@ function castsOf(timeline: PullTimeline): Cast[] {
   return out;
 }
 
-// The pair that can end a longest shared sequence of `wipe` and `clear`:
-// the latest in the wipe, and the earliest in the kill for it (so a cast
-// the kill repeats later in the fight isn't taken for this one). Only
-// casts within `MAX_DRIFT_MS` of each other pair up: otherwise a sequence
-// can stretch over a fight's repeats and line a wipe's third minute up
-// with a kill's seventh.
+// The latest pair of the sequence of casts `wipe` and `clear` share in
+// order that lines them up best: each pair is worth more the closer in
+// time its two casts are (1 at the same moment, 0 at `MAX_DRIFT_MS`), so
+// where a fight repeats its casts the copy in step wins over one a pattern
+// later. On real kills cut short, every alignment over 8 s off was such a
+// wrong copy, completing almost none of the fight right.
 function anchor(wipe: Cast[], clear: Cast[]) {
   const n = wipe.length;
   const m = clear.length;
   const width = m + 1;
-  const same = (a: Cast, b: Cast) => a.name === b.name && Math.abs(a.at - b.at) <= MAX_DRIFT_MS;
-  // shared[i * width + j]: the longest shared sequence of wipe[..i) and clear[..j).
-  const shared = new Int32Array((n + 1) * width);
+  const worth = (a: Cast, b: Cast) =>
+    a.name === b.name && Math.abs(a.at - b.at) < MAX_DRIFT_MS ? 1 - Math.abs(a.at - b.at) / MAX_DRIFT_MS : 0;
+  // best[i * width + j]: the best worth of wipe[..i) and clear[..j), with
+  // how many pairs (count) and the step taken there (0: a pair; 1: past a
+  // wipe cast; 2: past a kill cast).
+  const best = new Float64Array((n + 1) * width);
+  const count = new Int32Array((n + 1) * width);
+  const step = new Uint8Array((n + 1) * width);
   for (let i = 1; i <= n; i++)
-    for (let j = 1; j <= m; j++)
-      shared[i * width + j] = same(wipe[i - 1], clear[j - 1])
-        ? shared[(i - 1) * width + j - 1] + 1
-        : Math.max(shared[(i - 1) * width + j], shared[i * width + j - 1]);
-  const matched = shared[n * width + m];
+    for (let j = 1; j <= m; j++) {
+      const k = i * width + j;
+      const w = worth(wipe[i - 1], clear[j - 1]);
+      const [paired, up, left] = [w ? best[k - width - 1] + w : -1, best[k - width], best[k - 1]];
+      if (paired >= up && paired >= left) [best[k], count[k], step[k]] = [paired, count[k - width - 1] + 1, 0];
+      else if (up >= left) [best[k], count[k], step[k]] = [up, count[k - width], 1];
+      else [best[k], count[k], step[k]] = [left, count[k - 1], 2];
+    }
+  const matched = count[n * width + m];
   if (matched < MIN_MATCHED) return null;
-  for (let i = n; i >= 1; i--)
-    for (let j = 1; j <= m; j++)
-      if (same(wipe[i - 1], clear[j - 1]) && shared[(i - 1) * width + j - 1] + 1 === matched)
-        return { name: wipe[i - 1].name, wipeAt: wipe[i - 1].at, clearAt: clear[j - 1].at, matched };
-  return null;
+  // Back from the end over the last pairs taken: the latest is the anchor,
+  // their median gap the offset, so one stray pair at the end can't set it.
+  const gaps: number[] = [];
+  let last: { name: string; wipeAt: number } | null = null;
+  let [i, j] = [n, m];
+  while (i > 0 && j > 0 && gaps.length < OFFSET_PAIRS) {
+    const k = i * width + j;
+    if (step[k] === 0) {
+      last ??= { name: wipe[i - 1].name, wipeAt: wipe[i - 1].at };
+      gaps.push(wipe[i - 1].at - clear[j - 1].at);
+      i--;
+      j--;
+    } else if (step[k] === 1) i--;
+    else j--;
+  }
+  if (!last) return null;
+  return { ...last, clearAt: last.wipeAt - median(gaps), matched };
 }
 
 function median(values: number[]) {
