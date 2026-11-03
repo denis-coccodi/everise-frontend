@@ -172,10 +172,13 @@ describe('PlannerStore', () => {
     expect((store.pull.value() as ReferencedTimeline | undefined)?.references).toBeUndefined();
   });
 
-  it("keeps a wipe's timeline, with no kills, when FFLogs ranks none", async () => {
+  it("keeps a wipe's timeline, with no kills, when FFLogs ranks none and the report got no further", async () => {
     const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
+    // The report's only pull of the fight.
+    const report = fightReport();
+    report.pulls = report.pulls.filter((p) => p.id !== 3);
 
-    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(report);
     http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2').flush(pullTimeline());
     http.expectOne('/planner/catalog').flush(actionCatalog());
     await settled();
@@ -188,6 +191,25 @@ describe('PlannerStore', () => {
     expect((store.pull.value() as ReferencedTimeline | undefined)?.script).toBeNull();
   });
 
+  it("completes a wipe from the report's own pulls of the fight that got further, without kills", async () => {
+    const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2').flush(pullTimeline());
+    http.expectOne('/planner/catalog').flush(actionCatalog());
+    await settled();
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/clears').flush({ clears: [] });
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/script').flush({ script: null });
+    await settled();
+    // Pull 3: the report's kill of it.
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/3').flush({ ...pullTimeline(), pullId: 3 });
+    await settled();
+
+    const timeline = store.pull.value() as ReferencedTimeline | undefined;
+    expect(timeline?.clearsFrom).toBe('report');
+    expect(timeline?.clears?.map((c) => c.pullId)).toEqual([3]);
+  });
+
   it("drops a wipe's script that isn't the fight its log shows, or can't be read", async () => {
     for (const flush of [
       (r: TestRequest) => r.flush({ script: fightScript(1, 2, 3) }),
@@ -195,8 +217,10 @@ describe('PlannerStore', () => {
     ]) {
       TestBed.resetTestingModule();
       const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
+      const report = fightReport();
+      report.pulls = report.pulls.filter((p) => p.id !== 3);
 
-      http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+      http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(report);
       http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2').flush(pullTimeline());
       http.expectOne('/planner/catalog').flush(actionCatalog());
       await settled();

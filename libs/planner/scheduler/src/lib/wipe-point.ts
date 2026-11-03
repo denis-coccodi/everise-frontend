@@ -89,3 +89,22 @@ function cause(timeline: PullTimeline, death: TimelineDeath, mechanics: Mechanic
   while (k > 0 && names.get(casts[k - 1].action) === name && casts[k].at - casts[k - 1].at <= SAME_CAST_MS) k--;
   return casts[k].at;
 }
+
+// A wipe up to its wipe point: what came after is its deaths, not the
+// fight (for completing another pull of it from this one).
+export function upToWipePoint(timeline: PullTimeline): PullTimeline {
+  const end = wipePoint(timeline);
+  const upTo = <T extends { at: number }>(list: T[]) => list.filter((e) => e.at <= end);
+  return {
+    ...timeline,
+    durationMs: end,
+    players: timeline.players.map((p) => ({ ...p, mp: upTo(p.mp) })),
+    damage: upTo(timeline.damage),
+    heals: upTo(timeline.heals),
+    absorbs: upTo(timeline.absorbs),
+    playerCasts: upTo(timeline.playerCasts),
+    enemyCasts: upTo(timeline.enemyCasts),
+    auras: timeline.auras.filter((a) => a.from <= end),
+    deaths: upTo(timeline.deaths),
+  };
+}

@@ -13,7 +13,8 @@ import type { WipeCompletion } from './plan-completion.model';
 // complete; a wipe waits for other groups' kills to be read, then is
 // offered completed from the one that lines up with it (shares enough of
 // the boss's casts in order), when it got through at least half of that
-// kill's mechanics and not all of them; else only what was logged is
+// kill's mechanics and not all of them (the report's own further pulls
+// stand in for kills when FFLogs has none); else only what was logged is
 // planned, and why is said.
 export function wipeCompletion(timeline: ReferencedTimeline, wiped: boolean, catalog: ActionCatalog): WipeCompletion {
   if (!wiped) return { state: 'kill' };
@@ -24,8 +25,9 @@ export function wipeCompletion(timeline: ReferencedTimeline, wiped: boolean, cat
   if (!aligned) return { state: 'unaligned' };
   const clear = clears[aligned.clear];
   const got = progress(clear, aligned, wipePoint(timeline));
-  if (got.reached < MIN_PROGRESS * got.total) return { state: 'short', ...got };
+  const source = timeline.clearsFrom ?? 'kills';
+  if (got.reached < MIN_PROGRESS * got.total) return { state: 'short', source, ...got };
   const completed = got.reached < got.total ? completedTimeline(timeline, clear, aligned, catalog) : null;
-  if (!completed) return { state: 'nothing-left', ...got };
-  return { state: 'offered', ...got, timeline: completed };
+  if (!completed) return { state: 'nothing-left', source, ...got };
+  return { state: 'offered', source, ...got, timeline: completed };
 }

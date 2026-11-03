@@ -189,11 +189,18 @@ describe('PlanFormComponent', () => {
     });
 
     it('plans only what was logged, and says why, when no kill can be read', async () => {
-      const { page } = await wipeWith([]);
+      const rendered = await wipeWith([]);
+      // The report's own kill of the fight won't load either.
+      rendered.http
+        .expectOne(`/planner/reports/${CODE}/pulls/3`)
+        .flush({ errors: { body: ['Archived.'] } }, { status: 404, statusText: 'Not Found' });
+      await rendered.settle();
+      const { page } = rendered;
 
       expect(page.querySelector('#planner-rest')).toBeNull();
       expect(note(page)).toBe(
-        "Only what was logged is planned: no other group's kill of this fight could be read. FFLogs has none, or has archived them.",
+        "Only what was logged is planned: no other group's kill of this fight could be read (FFLogs has none, " +
+          'or has archived them), and no pull of this report got further.',
       );
     });
   });

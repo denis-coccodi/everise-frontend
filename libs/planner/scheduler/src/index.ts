@@ -27,7 +27,7 @@ export { missingAttacks, referenceDamage } from './lib/mechanics';
 export type { ReferenceDamage, ReferencedTimeline } from './lib/reference-damage.model';
 export { alignment } from './lib/completion-alignment';
 export { MIN_PROGRESS, progress } from './lib/completion-progress';
-export { wipePoint } from './lib/wipe-point';
+export { upToWipePoint, wipePoint } from './lib/wipe-point';
 export { standIns } from './lib/completion-players';
 export { completedTimeline } from './lib/completion-timeline';
 export { scriptMatches } from './lib/script-match';
