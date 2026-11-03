@@ -17,3 +17,13 @@ export interface Alignment {
 // Another group's kill's players by id, each to this group's player in
 // their place (`player`), and whether that one plays the same job.
 export type StandIns = Record<number, { player: number; sameJob: boolean }>;
+
+// A wipe completed from another group's kill: from `from` on, the fight is
+// the kill's (`clear`), shifted to continue the wipe. Its players of the
+// same job as their stand-in do what that one did; the others
+// (`plannedFrom`) did nothing there, so they're planned from `from` on.
+export interface Completion {
+  from: number;
+  clear: { code: string; pullId: number };
+  plannedFrom: number[];
+}
