@@ -24,10 +24,12 @@ function fight(seconds: number): PullTimeline {
   };
 }
 
-const wipe = (seconds: number, clears?: PullTimeline[]): ReferencedTimeline => ({
-  ...fight(seconds),
-  ...(clears ? { clears } : {}),
-});
+// The same, ending with everyone dead to the boss's last cast.
+function wipe(seconds: number, clears?: PullTimeline[]): ReferencedTimeline {
+  const log = fight(seconds);
+  const ended = log.players.map((p) => ({ at: seconds * 1000, player: p.id, action: null, source: null }));
+  return { ...log, deaths: [...log.deaths, ...ended], ...(clears ? { clears } : {}) };
+}
 
 describe('wipeCompletion', () => {
   const catalog = actionCatalog();
@@ -51,10 +53,11 @@ describe('wipeCompletion', () => {
 
     expect(done).toMatchObject({ state: 'offered', lasted: 300_000, usual: 500_000 });
     expect(done.state === 'offered' && done.timeline.durationMs).toBe(500_000);
-    expect(done.state === 'offered' && done.timeline.completion?.from).toBe(300_000);
+    // Just before the cast that killed everyone, at 299 s.
+    expect(done.state === 'offered' && done.timeline.completion?.from).toBe(298_999);
   });
 
   it('says when the kills have nothing left to add', () => {
-    expect(wipeCompletion(wipe(500, [fight(480)]), true, catalog)).toMatchObject({ state: 'nothing-left' });
+    expect(wipeCompletion(wipe(500, [fight(450)]), true, catalog)).toMatchObject({ state: 'nothing-left' });
   });
 });
