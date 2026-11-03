@@ -31,3 +31,9 @@ export type ActionCatalog = Schemas['ActionCatalogResponse'];
 export type CatalogAction = ActionCatalog['actions'][number];
 export type ActionEffect = CatalogAction['effects'][number];
 export type EffectKind = ActionEffect['kind'];
+
+// A fight's script (cactbot's timeline): its mechanics in order, and the
+// ability ids of its enrages and of what it leaves out.
+export type FightScriptResponse = Schemas['FightScriptResponse'];
+export type FightScript = NonNullable<FightScriptResponse['script']>;
+export type ScriptMechanic = FightScript['mechanics'][number];

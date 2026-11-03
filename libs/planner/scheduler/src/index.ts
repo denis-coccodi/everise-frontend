@@ -28,4 +28,5 @@ export type { ReferenceDamage, ReferencedTimeline } from './lib/reference-damage
 export { alignment, coverage, MIN_COVERAGE } from './lib/completion-alignment';
 export { standIns } from './lib/completion-players';
 export { completedTimeline } from './lib/completion-timeline';
+export { scriptMatches } from './lib/script-match';
 export type { Alignment, Completion, StandIns } from './lib/completion.model';

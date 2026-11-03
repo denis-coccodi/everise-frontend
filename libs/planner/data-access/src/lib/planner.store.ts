@@ -4,8 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { patchState, signalStore, withComputed, withMethods, withProps, withState } from '@ngrx/signals';
 import { PullTimeline, ReportPull } from '@everise/core/api-types';
 import { errorMessageOf } from '@everise/core/data-access';
-import { missingAttacks, referenceDamage, type ReferencedTimeline } from '@everise/planner/scheduler';
-import { concat, EMPTY, filter, last, map, of, switchMap, take, type Observable } from 'rxjs';
+import { missingAttacks, referenceDamage, scriptMatches, type ReferencedTimeline } from '@everise/planner/scheduler';
+import { concat, EMPTY, filter, forkJoin, last, map, of, switchMap, take, type Observable } from 'rxjs';
 import { wipeCompletion } from './plan-completion';
 import { PlannerService } from './planner.service';
 import { readReportLink } from './report-link';
@@ -40,7 +40,8 @@ export const PlannerStore = signalStore(
       }),
       // Shown as soon as it's read, then again with what other groups' kills
       // add: for a wipe, the kills themselves (and what they say of its
-      // blocked attacks); for a kill, what an attack an invulnerability
+      // blocked attacks) and its fight's script, kept only if it's the
+      // fight the log shows; for a kill, what an attack an invulnerability
       // blocked every time does, read only until it's found.
       stream: ({ params }) =>
         service.pull(params.code, params.id).pipe(
@@ -49,11 +50,14 @@ export const PlannerStore = signalStore(
             const referenced = wiped.pipe(
               switchMap((wipe): Observable<ReferencedTimeline> => {
                 if (wipe)
-                  return service.kills(params.code, params.id).pipe(
-                    last(undefined, [] as PullTimeline[]),
-                    map((clears) => ({
+                  return forkJoin([
+                    service.kills(params.code, params.id).pipe(last(undefined, [] as PullTimeline[])),
+                    service.script(params.code, params.id),
+                  ]).pipe(
+                    map(([clears, script]) => ({
                       ...timeline,
                       clears,
+                      script: script && scriptMatches(timeline, script) ? script : null,
                       ...(missing.length ? { references: referenceDamage(clears, missing) } : {}),
                     })),
                   );

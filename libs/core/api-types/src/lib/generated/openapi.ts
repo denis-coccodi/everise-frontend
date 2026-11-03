@@ -2777,6 +2777,144 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/planner/reports/{code}/pulls/{pullId}/script': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** A pull's fight's mechanics, from cactbot's timeline */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          code: string;
+          pullId: number;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The script, or none. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['FightScriptResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/planner/scripts/check': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Which fights have no script yet (needs x-refresh-key) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The scripts kept. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ScriptsCheckResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/planner/scripts/sync': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Read cactbot's latest timelines now, a few files a call (needs x-refresh-key) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Where the copy stands. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ScriptsSyncResponse'];
+          };
+        };
+        /** @description An error; `errors.body` says what went wrong. */
+        default: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            'application/json': components['schemas']['ErrorResponse'];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/profile-images/{id}': {
     parameters: {
       query?: never;
@@ -4741,6 +4879,26 @@ export interface components {
       expansion: string | null;
       outdated: boolean;
     };
+    FightScriptResponse: {
+      script: {
+        zone: number;
+        title: string;
+        mechanics: {
+          at: number;
+          name: string;
+          ids: number[];
+          phase: string | null;
+          block: string | null;
+          enrage: boolean;
+        }[];
+        enrageIds: number[];
+        ignoredIds: number[];
+        source: {
+          commit: string;
+          path: string;
+        };
+      } | null;
+    };
     FrontlineDay: {
       map: string;
       dutyId: number | null;
@@ -5450,6 +5608,21 @@ export interface components {
         maxPresent: number;
         maxLineLength: number;
       };
+    };
+    ScriptsCheckResponse: {
+      scriptCount: number;
+      newestZone: number | null;
+      missing: {
+        zone: number;
+        /** @enum {string} */
+        kind: 'extreme' | 'savage' | 'ultimate';
+      }[];
+    };
+    ScriptsSyncResponse: {
+      busy: boolean;
+      commit: string | null;
+      pending: number;
+      kept: number[];
     };
     SitemapResponse: {
       articles: {

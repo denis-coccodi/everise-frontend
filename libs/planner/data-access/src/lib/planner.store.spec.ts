@@ -1,5 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting, type TestRequest } from '@angular/common/http/testing';
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
@@ -8,6 +8,24 @@ import { BehaviorSubject } from 'rxjs';
 import { actionCatalog, fightReport, pullTimeline } from './planner-fixtures';
 import { PlannerStore } from './planner.store';
 import type { ReferencedTimeline } from '@everise/planner/scheduler';
+import type { FightScript } from '@everise/core/api-types';
+
+// A fight's script, one mechanic a cast of `ids`.
+const fightScript = (...ids: number[]): FightScript => ({
+  zone: 1257,
+  title: 'AAC Light-heavyweight M1',
+  mechanics: ids.map((id, i) => ({
+    at: i * 10_000,
+    name: `Mechanic ${id}`,
+    ids: [id],
+    phase: null,
+    block: null,
+    enrage: false,
+  })),
+  enrageIds: [],
+  ignoredIds: [],
+  source: { commit: 'abc', path: 'ui/raidboss/data/07-dt/raid/r9s.txt' },
+});
 
 describe('PlannerStore', () => {
   function setup(query: Record<string, string> = {}) {
@@ -143,9 +161,13 @@ describe('PlannerStore', () => {
     await settled();
     http.expectOne('/planner/reports/Other0000000000c/pulls/4').flush(kill(570_000));
     await settled();
+    // The fight's script knows the boss's Killer Voice: it's this fight's.
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/script').flush({ script: fightScript(45956) });
+    await settled();
 
     const clears = (store.pull.value() as ReferencedTimeline | undefined)?.clears;
     expect(clears?.map((c) => c.durationMs)).toEqual([540_000, 570_000]);
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.script?.title).toBe('AAC Light-heavyweight M1');
     // Nothing was blocked every time: nothing to look up.
     expect((store.pull.value() as ReferencedTimeline | undefined)?.references).toBeUndefined();
   });
@@ -158,10 +180,32 @@ describe('PlannerStore', () => {
     http.expectOne('/planner/catalog').flush(actionCatalog());
     await settled();
     http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/clears').flush({ clears: [] });
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/script').flush({ script: null });
     await settled();
 
     expect(store.pull.value()?.players).toHaveLength(2);
     expect((store.pull.value() as ReferencedTimeline | undefined)?.clears).toEqual([]);
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.script).toBeNull();
+  });
+
+  it("drops a wipe's script that isn't the fight its log shows, or can't be read", async () => {
+    for (const flush of [
+      (r: TestRequest) => r.flush({ script: fightScript(1, 2, 3) }),
+      (r: TestRequest) => r.flush({ errors: { body: ['Down.'] } }, { status: 500, statusText: 'Server Error' }),
+    ]) {
+      TestBed.resetTestingModule();
+      const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
+
+      http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+      http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2').flush(pullTimeline());
+      http.expectOne('/planner/catalog').flush(actionCatalog());
+      await settled();
+      http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/clears').flush({ clears: [] });
+      flush(http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/2/script'));
+      await settled();
+
+      expect((store.pull.value() as ReferencedTimeline | undefined)?.script).toBeNull();
+    }
   });
 
   it("reads no other group's kill for a kill with nothing blocked", async () => {
