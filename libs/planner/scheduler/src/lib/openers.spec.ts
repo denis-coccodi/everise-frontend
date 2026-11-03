@@ -19,7 +19,7 @@ const cat = () => {
   c.actions.push(action(9, 'Broil IV', ['SCH', 'AST', 'WHM', 'SGE'], 2.5, [], { gcd: true }));
   return c;
 };
-const steps = (job: string, opener?: 'standard' | 'dissipation-first' | 'double-misery' | 'pneuma' | 'none') =>
+const steps = (job: string, opener?: 'standard' | 'dissipation-first' | 'double-misery' | 'none') =>
   openingOf(timeline(job), cat(), timeline(job).players, opener ? { 2: opener } : {});
 
 describe('openingOf', () => {
@@ -108,12 +108,8 @@ describe('openingOf', () => {
     ]);
   });
 
-  it("has a sage's Pneuma precast in the Pneuma opener only", () => {
+  it("has no Pneuma in a sage's opener: Psyche after the first Phlegma", () => {
     expect(steps('SGE').uses.map((u) => u.action)).toEqual([37033]);
-    expect(steps('SGE', 'pneuma').uses.map((u) => [u.action, u.at])).toEqual([
-      [24318, 500],
-      [37033, 13_700],
-    ]);
   });
 });
 

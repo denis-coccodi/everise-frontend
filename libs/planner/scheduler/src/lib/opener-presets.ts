@@ -91,24 +91,16 @@ export const OPENERS: Record<string, OpenerPreset[]> = {
     },
     NONE,
   ],
-  // Sage: Eukrasia in the countdown, precast Toxikon II (or Pneuma),
-  // Eukrasian Dosis III, three Dosis III, both Phlegma III with Psyche
-  // after the first.
+  // Sage: Eukrasia in the countdown, precast Toxikon II (or Dosis III,
+  // the same here), Eukrasian Dosis III, three Dosis III, both Phlegma III
+  // with Psyche after the first. No Pneuma: neither guide opens with it,
+  // and real sages first use it 14 s in or later, as a heal.
   SGE: [
     {
       id: 'standard',
       name: 'Standard: Toxikon',
-      source: 'Icy Veins (7.55), The Balance (7.0)',
+      source: 'Icy Veins (7.55), The Balance (7.3)',
       steps: [{ action: 37033, afterGcd: 5 }], // Psyche
-    },
-    {
-      id: 'pneuma',
-      name: 'Pneuma',
-      source: 'The Balance (7.0)',
-      steps: [
-        { action: 24318, gcd: 0 }, // Pneuma, precast
-        { action: 37033, afterGcd: 5 },
-      ],
     },
     NONE,
   ],
