@@ -27,6 +27,7 @@ import {
   PanelComponent,
   TabComponent,
   TabsComponent,
+  TooltipComponent,
 } from '@everise/ui/components';
 import { EditListComponent } from '../edit-list/edit-list.component';
 import { HpChartComponent } from '../hp-chart/hp-chart.component';
@@ -55,6 +56,7 @@ import { PullCompareComponent } from '../pull-compare/pull-compare.component';
     PullCompareComponent,
     TabComponent,
     TabsComponent,
+    TooltipComponent,
   ],
   // Focused when a pull is picked, so it takes its heading as its name.
   // A named group, not a landmark: the panel inside is already a region of

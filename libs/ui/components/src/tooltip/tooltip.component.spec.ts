@@ -8,6 +8,12 @@ import { TooltipComponent } from './tooltip.component';
 })
 class HostComponent {}
 
+@Component({
+  imports: [TooltipComponent],
+  template: `<cdt-tooltip text="Plan their heals"><input type="checkbox" aria-label="Replan" /></cdt-tooltip>`,
+})
+class ControlHostComponent {}
+
 async function render() {
   await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
   const fixture = TestBed.createComponent(HostComponent);
@@ -37,13 +43,31 @@ describe('TooltipComponent', () => {
     expect(tip.classList).toContain('open');
 
     host.dispatchEvent(new MouseEvent('mouseleave'));
-    trigger.dispatchEvent(new FocusEvent('focus'));
+    trigger.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
     await fixture.whenStable();
     expect(tip.classList).toContain('open');
+
+    trigger.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    await fixture.whenStable();
+    expect(tip.classList).not.toContain('open');
+    trigger.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    await fixture.whenStable();
 
     host.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     await fixture.whenStable();
     expect(tip.classList).not.toContain('open');
+  });
+
+  it('opens when a control inside it takes the focus', async () => {
+    await TestBed.configureTestingModule({ imports: [ControlHostComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(ControlHostComponent);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+
+    (root.querySelector('input') as HTMLInputElement).focus();
+    await fixture.whenStable();
+
+    expect(root.querySelector('[role=tooltip]')?.classList).toContain('open');
   });
 
   it('moves sideways as it opens where it would leave the viewport', async () => {

@@ -1,7 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MarketQuality } from '@everise/core/api-types';
 import { DEFAULT_DAYS, MarketStore, daysBefore } from '@everise/market/data-access';
-import { ButtonComponent, CheckboxComponent, FieldComponent, InputComponent } from '@everise/ui/components';
+import {
+  ButtonComponent,
+  CheckboxComponent,
+  FieldComponent,
+  IconComponent,
+  InputComponent,
+  TooltipComponent,
+} from '@everise/ui/components';
 
 // The quick ranges, in days back from today (0: the whole history). A
 // longer range reads more of the history the first time.
@@ -20,11 +27,16 @@ const PRESETS = [
   selector: 'cdt-market-controls',
   templateUrl: './market-controls.component.html',
   styleUrl: './market-controls.component.scss',
-  imports: [ButtonComponent, CheckboxComponent, FieldComponent, InputComponent],
+  imports: [ButtonComponent, CheckboxComponent, FieldComponent, IconComponent, InputComponent, TooltipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketControlsComponent {
   protected readonly store = inject(MarketStore);
+
+  protected readonly logScaleAbout =
+    'For when a few very dear sales squash the rest flat at the bottom of the chart. ' +
+    'Each step up the price axis is then the price times ten (100, 1,000, 10,000 gil), not plus the same amount, ' +
+    'so a rise from 1,000 to 2,000 gil looks as big as one from 100,000 to 200,000.';
 
   protected readonly qualities: { value: MarketQuality; name: string }[] = [
     { value: 'all', name: 'All sales' },

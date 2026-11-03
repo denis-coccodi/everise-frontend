@@ -73,4 +73,14 @@ describe('MarketControlsComponent', () => {
     await fixture.whenStable();
     expect(query()['scale']).toBe('log');
   });
+
+  it('says what the log scale is for, in a note beside it that the keyboard reaches', async () => {
+    const { page } = await shown();
+
+    const about = page.querySelector('.with-about cdt-tooltip .trigger') as HTMLElement;
+    const tip = page.querySelector(`#${about.getAttribute('aria-describedby')}`);
+    expect(about.getAttribute('tabindex')).toBe('0');
+    expect(about.textContent?.trim()).toBe('What the logarithmic price scale is for');
+    expect(tip?.textContent).toContain('a few very dear sales squash the rest flat');
+  });
 });
