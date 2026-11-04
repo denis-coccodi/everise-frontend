@@ -210,7 +210,8 @@ export class PlannerScheduler {
         u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
     );
     // A replanned healer's Lucid Dreaming where the plan runs their MP low;
-    // the heals are planned again with it, unless that comes out worse.
+    // the heals are planned again with it, unless that comes out worse: then
+    // they stay, and the Lucids (in slots they leave free, MP only) are added.
     const low = MpModel.of(timeline, catalog, ids, scheduled, aliveIn(best));
     const withLucid = [...best.uses, ...rhizomata];
     lucid = healers.flatMap((h) =>
@@ -219,8 +220,7 @@ export class PlannerScheduler {
     if (lucid.length) {
       weaving.keep(lucid.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
       const next = once(best);
-      if (better(best, next, maxHp, options)) lucid = [];
-      else best = next;
+      best = better(best, next, maxHp, options) ? { ...best, uses: [...best.uses, ...lucid] } : next;
     }
     // A replanned white mage's Thin Air: a charge for each raise, the rest on costly spells.
     const thinAir = whms.flatMap((w) =>

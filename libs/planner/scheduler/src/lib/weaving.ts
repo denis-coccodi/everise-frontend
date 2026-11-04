@@ -135,6 +135,12 @@ export class Weaving {
     return (this.gcds.get(player) ?? []).filter((g) => g.at >= from && g.at <= to).map((g) => g.at);
   }
 
+  // Whether the player's GCDs as played have stopped by `at` (`freeFrom`):
+  // past a completed wipe's wipe point, with nobody of their job in the kill.
+  freeAt(player: number, at: number) {
+    return (this.freeFrom.get(player) ?? Infinity) <= at;
+  }
+
   // The latest moment from `from` to `at` the player can use an oGCD;
   // null when there's none.
   ogcdBefore(player: number, at: number, from: number, occupied: Occupied[]) {

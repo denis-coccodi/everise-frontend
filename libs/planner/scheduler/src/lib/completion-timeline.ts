@@ -75,7 +75,8 @@ export function completedTimeline(
   const players = wipe.players.map((p) => {
     const theirs = copied.find(([, s]) => s.player === p.id)?.[0];
     // Their stand-in's MP; without one, their own from the wipe point on.
-    if (theirs === undefined) return { ...p, mp: [...before(p.mp), ...mpPastWipePoint(wipe, p, from, aligned.endsAt)] };
+    if (theirs === undefined)
+      return { ...p, mp: [...before(p.mp), ...mpPastWipePoint(wipe, p, from, aligned.endsAt, catalog)] };
     const mp = clear.players.find((c) => String(c.id) === theirs)?.mp ?? [];
     return { ...p, mp: [...before(p.mp), ...after(mp)] };
   });
