@@ -1,0 +1,17 @@
+// Uses the theme's role tokens only (libs/ui/components/src/theme).
+:host {
+  display: block;
+}
+
+.export {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+  margin-block: 0.75rem;
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-contrast-muted);
+}

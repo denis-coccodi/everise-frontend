@@ -1,0 +1,11 @@
+@if (shown()) {
+  <div class="export">
+    <button type="button" cdtButton="outline-primary" size="sm" [disabled]="busy()" (click)="download()">
+      {{ busy() ? 'Making the spreadsheet…' : 'Download as a spreadsheet (.xlsx)' }}
+    </button>
+    <p class="hint">
+      A row per attack, each player's skills in dropdowns. Their icons show in Excel 365 and Google Sheets.
+    </p>
+  </div>
+  <cdt-message tone="error">{{ error() }}</cdt-message>
+}

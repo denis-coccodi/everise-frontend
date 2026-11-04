@@ -19,3 +19,6 @@ export type { DeathEntry, HitEntry, LogEntry, UseEntry } from './lib/player-log.
 export type { ReportLink } from './lib/report-link.model';
 export { planEditor } from './lib/plan-editor';
 export type { WipeCompletion } from './lib/plan-completion.model';
+export { planSheet } from './lib/plan-sheet';
+export { iconUrl, planWorkbook } from './lib/plan-workbook';
+export type { PlanSheet, SheetPlayer, SheetRow, SheetSkill } from './lib/plan-sheet.model';
