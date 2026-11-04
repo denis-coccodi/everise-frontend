@@ -26,16 +26,17 @@ const scholarOpener = (first: number, second: number): OpenerStep[] => [
   { action: ENERGY_DRAIN, afterGcd: 10 },
 ];
 
-// White Mage (Icy Veins' 7.4 opener): precast Glare III, Dia, two Glare
-// III with Presence of Mind after the second, Afflatus Misery with Assize
-// after it, then Glare IV and Glare III to the Dia refresh. (The Balance,
-// still at 7.3, has a Glare IV in Misery's place.) The Double Misery
-// opener spends the three lilies (Afflatus Rapture) for a second Misery.
-const WHITE_MAGE_SOURCE = 'Icy Veins (7.4 opener)';
+// White Mage (The Balance's 7.4 Early DoT Refresh opener): precast Glare
+// III, Dia, two Glare III with Presence of Mind after the second, Glare IV
+// with Assize after it, Afflatus Misery, then Glare IV and Glare III to the
+// Dia refresh. (Icy Veins' 7.4 one has Misery a GCD sooner, Assize after
+// it; most real white mages do as The Balance.) The Double Misery opener
+// spends the three lilies (Afflatus Rapture) for a second Misery.
+const WHITE_MAGE_SOURCE = 'The Balance (7.4), Icy Veins (7.4)';
 const whiteMageOpener: OpenerStep[] = [
   { action: 136, afterGcd: 3 }, // Presence of Mind
   { action: 3571, afterGcd: 4 }, // Assize
-  { action: AFFLATUS_MISERY, gcd: 4 },
+  { action: AFFLATUS_MISERY, gcd: 5 },
 ];
 
 export const OPENERS: Record<string, OpenerPreset[]> = {
