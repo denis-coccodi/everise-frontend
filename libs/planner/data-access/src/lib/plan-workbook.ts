@@ -11,7 +11,8 @@ const ROLE_FILLS: Record<SheetRole, { head: string; cell: string }> = {
 };
 const HEAD_TEXT = 'FFFFFFFF';
 const COMPLETED_TEXT = 'FF666666';
-// The columns before the players': time, attack, type, damage type, damage.
+// A player's columns: an icon, then its skill, for each skill they use at
+// once. The columns before the players': time, attack, type, damage type, damage.
 const FIXED = ['Time', 'Mechanic', 'Type', 'Damage type', 'Unmitigated'];
 const FIXED_WIDTHS = [7, 24, 12, 12, 12];
 const SKILL_WIDTH = 20;
@@ -49,8 +50,8 @@ export async function planWorkbook(sheet: PlanSheet, title: string): Promise<Arr
     starts.push(next);
     const fill = ROLE_FILLS[p.role];
     for (let s = 0; s < p.slots; s++) {
-      plan.getColumn(next + 2 * s).width = SKILL_WIDTH;
-      plan.getColumn(next + 2 * s + 1).width = ICON_WIDTH;
+      plan.getColumn(next + 2 * s).width = ICON_WIDTH;
+      plan.getColumn(next + 2 * s + 1).width = SKILL_WIDTH;
     }
     const last = next + 2 * p.slots - 1;
     if (last > next) plan.mergeCells(1, next, 1, last);
@@ -99,11 +100,11 @@ function writeRow(
   sheet.players.forEach((p, i) => {
     const fill = ROLE_FILLS[p.role].cell;
     for (let s = 0; s < p.slots; s++) {
-      const skill = line.getCell(starts[i] + 2 * s);
-      const icon = line.getCell(starts[i] + 2 * s + 1);
+      const icon = line.getCell(starts[i] + 2 * s);
+      const skill = line.getCell(starts[i] + 2 * s + 1);
       style(skill, row.cells[i][s]?.name ?? '', { fill });
       // A line between players.
-      if (s === 0) skill.border = { left: { style: 'thin', color: { argb: ROLE_FILLS[p.role].head } } };
+      if (s === 0) icon.border = { left: { style: 'thin', color: { argb: ROLE_FILLS[p.role].head } } };
       skill.dataValidation = { type: 'list', allowBlank: true, formulae: [listOf(i)] };
       // The icon of whatever the cell holds: picked from the list, it follows.
       icon.value = {
@@ -142,6 +143,7 @@ interface Look {
 function style(cell: Cell, value: string | number | null, look: Look) {
   if (value !== null) cell.value = value;
   cell.font = { bold: !!look.bold, italic: !!look.italic, ...(look.color ? { color: { argb: look.color } } : {}) };
-  if (look.fill) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: look.fill } };
+  if (look.fill)
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: look.fill }, bgColor: { argb: look.fill } };
   cell.alignment = { vertical: 'middle' };
 }

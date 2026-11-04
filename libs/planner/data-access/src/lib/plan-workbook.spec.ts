@@ -55,7 +55,7 @@ describe('iconUrl', () => {
 });
 
 describe('planWorkbook', () => {
-  it('has a row per attack and a column pair per skill slot: the skill, then its icon', async () => {
+  it('has a row per attack and a column pair per skill slot: the icon, then its skill', async () => {
     const plan = (await opened()).getWorksheet('Plan')!;
 
     expect(plan.getRow(1).values).toEqual([
@@ -72,7 +72,7 @@ describe('planWorkbook', () => {
       'SCH Heal Main',
       'SCH Heal Main',
     ]);
-    expect(['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'J2'].map((a) => plan.getCell(a).value)).toEqual([
+    expect(['A2', 'B2', 'C2', 'D2', 'E2', 'G2', 'K2'].map((a) => plan.getCell(a).value)).toEqual([
       '1:05',
       'Killer Voice',
       'Raidwide',
@@ -81,15 +81,15 @@ describe('planWorkbook', () => {
       'Rampart',
       'Adloquium',
     ]);
-    expect(plan.getCell('G2').formula).toBe('IFERROR(_xlfn.IMAGE(VLOOKUP(F2,Skills!$A:$B,2,FALSE)),"")');
+    expect(plan.getCell('F2').formula).toBe('IFERROR(_xlfn.IMAGE(VLOOKUP(G2,Skills!$A:$B,2,FALSE)),"")');
   });
 
   it('offers each player’s skills in a dropdown, from a hidden sheet with their icons', async () => {
     const book = await opened();
     const [plan, lists] = [book.getWorksheet('Plan')!, book.getWorksheet('Skills')!];
 
-    expect(plan.getCell('H2').dataValidation).toMatchObject({ type: 'list', formulae: ['Skills!$D$1:$D$2'] });
-    expect(plan.getCell('J2').dataValidation).toMatchObject({ type: 'list', formulae: ['Skills!$E$1:$E$1'] });
+    expect(plan.getCell('I2').dataValidation).toMatchObject({ type: 'list', formulae: ['Skills!$D$1:$D$2'] });
+    expect(plan.getCell('K2').dataValidation).toMatchObject({ type: 'list', formulae: ['Skills!$E$1:$E$1'] });
     expect(lists.state).toBe('hidden');
     expect([lists.getCell('A1').value, lists.getCell('B1').value]).toEqual(['Rampart', iconUrl(2573)]);
   });
@@ -98,7 +98,7 @@ describe('planWorkbook', () => {
     const plan = (await opened()).getWorksheet('Plan')!;
 
     expect(plan.getCell('F1').fill).toMatchObject({ fgColor: { argb: 'FF3C78D8' } });
-    expect(plan.getCell('J2').fill).toMatchObject({ fgColor: { argb: 'FFD9EAD3' } });
+    expect(plan.getCell('K2').fill).toMatchObject({ fgColor: { argb: 'FFD9EAD3' }, bgColor: { argb: 'FFD9EAD3' } });
     expect(plan.getCell('A3').value).toBe('From 1:40: the rest of the fight, from a kill.');
     expect(plan.getCell('B4').font).toMatchObject({ italic: true });
   });
