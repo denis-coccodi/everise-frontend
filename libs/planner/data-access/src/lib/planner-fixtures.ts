@@ -178,5 +178,6 @@ export function pullTimeline(): PullTimeline {
       { status: 1191, source: 1, target: 1, from: 60_000, to: 80_000, stacks: null, shield: null },
     ],
     deaths: [{ at: 200_000, player: 2, action: 45956, source: 13 }],
+    phases: [],
   };
 }

@@ -5468,6 +5468,11 @@ export interface components {
         action: number | null;
         source: number | null;
       }[];
+      phases: {
+        at: number;
+        name: string;
+        intermission: boolean;
+      }[];
     };
     RegistrationResponse: components['schemas']['UserResponse'] | components['schemas']['ConfirmationResponse'];
     RelayEmbed: {

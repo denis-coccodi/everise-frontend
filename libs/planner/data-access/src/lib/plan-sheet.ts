@@ -108,7 +108,8 @@ export function planSheet(plan: Plan, timeline: ReferencedTimeline, catalog: Act
       choices: choices.sort((a, b) => a.name.localeCompare(b.name)),
     };
   });
-  return { players, rows, completedFrom };
+  const phases = timeline.phases.map((phase) => ({ at: phase.at, name: phase.name }));
+  return { players, rows, completedFrom, phases };
 }
 
 // A mitigation, shield, heal or invulnerability: what a sheet plans. Not a

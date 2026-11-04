@@ -28,6 +28,7 @@ const sheet: PlanSheet = {
   ],
   rows: [],
   completedFrom: null,
+  phases: [],
 };
 
 describe('sheetIcons', () => {

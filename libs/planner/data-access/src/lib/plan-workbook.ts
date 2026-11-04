@@ -16,6 +16,8 @@ const BLACK = 'FF000000';
 // The job icons' row, and the time and attack of a row past a wipe's log.
 const ICON_ROW = 'FF666666';
 const COMPLETED = 'FF666666';
+// An Ultimate's phase headings.
+const PHASE = 'FF434343';
 // A player's columns: an icon, then its skill, for each skill they use at
 // once. The columns before the players': time, attack, type, damage type, damage.
 const FIXED = ['Time', 'Mechanic', 'Type', 'Damage type', 'Unmitigated'];
@@ -101,19 +103,20 @@ export async function planWorkbook(
   plan.getRow(2).height = JOB_ROW_HEIGHT;
 
   let r = 3;
-  for (const row of sheet.rows) {
-    if (row.completed && sheet.completedFrom !== null && !sheet.rows[sheet.rows.indexOf(row) - 1]?.completed) {
-      plan.mergeCells(r, 1, r, next - 1);
-      style(plan.getCell(r, 1), `From ${pullClock(sheet.completedFrom)}: the rest of the fight, from a kill.`, {
-        bold: true,
-        fill: COMPLETED,
-        color: WHITE,
-      });
-      r++;
-    }
-    writeRow(plan, r, row, sheet, starts, listOf, count);
-    r++;
-  }
+  // A row across the sheet: an Ultimate's phase beginning, or where a
+  // completed wipe's log ends.
+  const heading = (text: string, fill: string) => {
+    plan.mergeCells(r, 1, r, next - 1);
+    style(plan.getCell(r, 1), text, { bold: true, fill, color: WHITE });
+    plan.getRow(r++).height = ROW_HEIGHT;
+  };
+  const phases = [...sheet.phases];
+  sheet.rows.forEach((row, i) => {
+    while (phases.length && phases[0].at <= row.at) heading(phases.shift()?.name ?? '', PHASE);
+    if (row.completed && sheet.completedFrom !== null && !sheet.rows[i - 1]?.completed)
+      heading(`From ${pullClock(sheet.completedFrom)}: the rest of the fight, from a kill.`, COMPLETED);
+    writeRow(plan, r++, row, sheet, starts, listOf, count);
+  });
   book.title = title;
   book.calcProperties.fullCalcOnLoad = true;
   const xlsx = (await book.xlsx.writeBuffer()) as ArrayBuffer;
