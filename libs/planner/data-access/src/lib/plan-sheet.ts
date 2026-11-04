@@ -32,8 +32,11 @@ export function planSheet(plan: Plan, timeline: ReferencedTimeline, catalog: Act
     if (cell && !cell.some((c) => c.name === s.name)) cell.push(s);
   };
   ordered.forEach((player, column) => {
-    const uses = plan.uses.filter((u) => u.player === player.id && u.covers.length);
-    for (const use of uses) {
+    // The plan's uses for an attack. Not those it lists for none (the casts
+    // of a player taken from a kill, kept as they were): their casts below
+    // place them, so only these count as the plan's.
+    const mine = plan.uses.filter((u) => u.player === player.id && mechanics.some((m) => u.covers.includes(m.id)));
+    for (const use of mine) {
       const covered = mechanics.filter((m) => use.covers.includes(m.id));
       put(covered.find((m) => m.at >= use.at - LATE_MS) ?? covered[0], column, skill(use.action, use.name));
     }
@@ -42,7 +45,6 @@ export function planSheet(plan: Plan, timeline: ReferencedTimeline, catalog: Act
     const replanned = !plan.replanned || plan.replanned.includes(player.id);
     const late = plan.late?.includes(player.id) && timeline.completion;
     const playedUntil = late ? late.from : replanned ? -Infinity : Infinity;
-    const mine = plan.uses.filter((u) => u.player === player.id);
     for (const cast of timeline.playerCasts.filter((c) => c.source === player.id && c.at < playedUntil)) {
       if (!protective(cast.action, byId.get(cast.action))) continue;
       if (mine.some((u) => u.action === cast.action && Math.abs(u.at - cast.at) < SAME_CAST_MS)) continue;
