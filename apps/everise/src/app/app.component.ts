@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { AuthStore } from '@everise/auth/data-access';
+import { AuthStore, checkSessionOnReturn } from '@everise/auth/data-access';
 import { SettingsStore } from '@everise/settings/data-access';
 import { filter } from 'rxjs';
 import { FooterComponent } from './layout/footer/footer.component';
@@ -36,6 +36,7 @@ export class AppComponent {
 
   constructor() {
     this.authStore.getUser();
+    inject(DestroyRef).onDestroy(checkSessionOnReturn(this.authStore));
 
     // A signed-in user's saved colour mode wins over this browser's copy.
     effect(() => {
