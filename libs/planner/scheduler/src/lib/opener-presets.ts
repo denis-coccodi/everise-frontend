@@ -26,15 +26,16 @@ const scholarOpener = (first: number, second: number): OpenerStep[] => [
   { action: ENERGY_DRAIN, afterGcd: 10 },
 ];
 
-// White Mage: precast Glare III, Dia, two Glare III, Presence of Mind,
-// Glare IV and Assize, Afflatus Misery, then Glare IV and Glare III to the
-// Dia refresh; the Double Misery opener spends the three lilies (Afflatus
-// Rapture) for a second Misery.
-const WHITE_MAGE_SOURCE = 'Icy Veins (7.55), The Balance (7.4)';
+// White Mage (Icy Veins' 7.4 opener): precast Glare III, Dia, two Glare
+// III with Presence of Mind after the second, Afflatus Misery with Assize
+// after it, then Glare IV and Glare III to the Dia refresh. (The Balance,
+// still at 7.3, has a Glare IV in Misery's place.) The Double Misery
+// opener spends the three lilies (Afflatus Rapture) for a second Misery.
+const WHITE_MAGE_SOURCE = 'Icy Veins (7.4 opener)';
 const whiteMageOpener: OpenerStep[] = [
   { action: 136, afterGcd: 3 }, // Presence of Mind
   { action: 3571, afterGcd: 4 }, // Assize
-  { action: AFFLATUS_MISERY, gcd: 5 },
+  { action: AFFLATUS_MISERY, gcd: 4 },
 ];
 
 export const OPENERS: Record<string, OpenerPreset[]> = {
@@ -56,12 +57,14 @@ export const OPENERS: Record<string, OpenerPreset[]> = {
   // Astrologian: Earthly Star in the countdown, precast Fall Malefic,
   // Combust III, Lightspeed, Divination with the Balance (from the Astral
   // Draw before the pull), Lord of Crowns and Umbral Draw, the Spear and
-  // Oracle.
+  // Oracle. Lightspeed goes anywhere from the precast to the GCD before
+  // Divination (The Balance); Icy Veins has it after GCD 2, and real
+  // astrologians split between 1 and 2.
   AST: [
     {
       id: 'standard',
       name: 'Standard',
-      source: 'Icy Veins (7.55), The Balance (7.01)',
+      source: 'Icy Veins (7.55), The Balance (7.3)',
       steps: [
         { action: 7439, at: -4_000 }, // Earthly Star
         { action: 3606, afterGcd: 1 }, // Lightspeed
@@ -135,7 +138,7 @@ export const OPENERS: Record<string, OpenerPreset[]> = {
     {
       id: 'standard',
       name: 'Standard',
-      source: 'Icy Veins (7.4)',
+      source: 'Icy Veins (7.55)',
       steps: [
         { action: 7393, at: -3_000 }, // The Blackest Night
         { action: 7390, afterGcd: 3 }, // Delirium
