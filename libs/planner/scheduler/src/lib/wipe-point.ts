@@ -106,5 +106,6 @@ export function upToWipePoint(timeline: PullTimeline): PullTimeline {
     enemyCasts: upTo(timeline.enemyCasts),
     auras: timeline.auras.filter((a) => a.from <= end),
     deaths: upTo(timeline.deaths),
+    phases: upTo(timeline.phases),
   };
 }

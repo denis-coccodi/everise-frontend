@@ -172,5 +172,6 @@ export function pull(
     enemyCasts: [],
     auras: [],
     deaths: [],
+    phases: [],
   };
 }

@@ -99,6 +99,8 @@ export function completedTimeline(
     enemyCasts: [...before(wipe.enemyCasts), ...enemyCasts],
     auras: [...wipe.auras.filter((a) => a.from <= from), ...auras],
     deaths: before(wipe.deaths),
+    // An Ultimate's phases: the wipe's, then the kill's it never reached.
+    phases: [...before(wipe.phases), ...after(clear.phases)],
     completion: {
       from,
       clear: { code: clear.code, pullId: clear.pullId },

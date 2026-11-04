@@ -50,6 +50,7 @@ const sheet: PlanSheet = {
     },
   ],
   completedFrom: 100_000,
+  phases: [],
 };
 
 async function opened() {
@@ -127,6 +128,27 @@ describe('planWorkbook', () => {
     expect(lists.state).toBe('hidden');
     expect([lists.getCell('A1').value, lists.getCell('B1').value]).toEqual(['Rampart', iconUrl(2573)]);
     expect([lists.getCell('A4').value, lists.getCell('B4').value]).toEqual(['Job: PLD', iconUrl(62119)]);
+  });
+
+  it("heads an Ultimate's phases where they begin, across the sheet", async () => {
+    const book = new ExcelJS.Workbook();
+    const phases = [
+      { at: 0, name: 'P1: Fatebreaker' },
+      { at: 100_000, name: 'P2: Usurper of Frost' },
+    ];
+    await book.xlsx.load(await planWorkbook({ ...sheet, phases }, 'FRU, pull 1'));
+    const plan = book.getWorksheet('Plan')!;
+
+    // P1, its attack at 1:05, then P2 and where the log ends (both at 1:40).
+    expect(['A3', 'A4', 'A5', 'A6', 'A7'].map((a) => plan.getCell(a).value)).toEqual([
+      'P1: Fatebreaker',
+      '1:05',
+      'P2: Usurper of Frost',
+      'From 1:40: the rest of the fight, from a kill.',
+      '2:30',
+    ]);
+    expect(plan.getCell('A3').fill).toMatchObject({ fgColor: { argb: 'FF434343' } });
+    expect(plan.getCell('K3').isMerged).toBe(true);
   });
 
   it('colours the header by role, time and attack white on black, and heads the rows past a wipe’s log', async () => {

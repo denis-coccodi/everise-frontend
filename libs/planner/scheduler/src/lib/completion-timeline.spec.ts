@@ -130,6 +130,22 @@ describe('completedTimeline', () => {
     });
   });
 
+  it("keeps an Ultimate's phases up to the wipe point, then the kill's it never reached, shifted", () => {
+    const phase = (at: number, name: string) => ({ at, name, intermission: false });
+    const done = completedTimeline(
+      { ...wipe(), phases: [phase(0, 'P1'), phase(60_000, 'P2')] },
+      { ...kill(), phases: [phase(0, 'P1'), phase(50_000, 'P2'), phase(110_000, 'P3')] },
+      aligned,
+      catalog(),
+    );
+
+    expect(done?.phases.map((p) => [p.at, p.name])).toEqual([
+      [0, 'P1'],
+      [60_000, 'P2'],
+      [115_000, 'P3'],
+    ]);
+  });
+
   it("brings what the players of their stand-in's job did, not the others'", () => {
     const done = completedTimeline(wipe(), kill(), aligned, catalog());
 

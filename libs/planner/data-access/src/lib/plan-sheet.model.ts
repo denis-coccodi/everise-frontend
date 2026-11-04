@@ -44,4 +44,12 @@ export interface PlanSheet {
   rows: SheetRow[];
   // Where a completed wipe's log ends (its rows after are completed).
   completedFrom: number | null;
+  // Where an Ultimate's phases begin, as FFLogs names them ("P2: Usurper
+  // of Frost"); none for other fights.
+  phases: SheetPhase[];
+}
+
+export interface SheetPhase {
+  at: number;
+  name: string;
 }
