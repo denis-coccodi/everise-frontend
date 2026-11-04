@@ -3370,7 +3370,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** The signed-in user */
+    /** The signed-in user, with the session renewed */
     get: {
       parameters: {
         query?: never;
