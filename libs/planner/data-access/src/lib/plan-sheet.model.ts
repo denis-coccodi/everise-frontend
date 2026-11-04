@@ -13,6 +13,8 @@ export interface SheetPlayer {
   id: number;
   name: string;
   job: string | null;
+  // Their job's icon (the game's id), for the sheet's header.
+  jobIcon: number | null;
   role: SheetRole;
   // How many skills a row of theirs can hold (the most they use for one
   // attack), at least 1.

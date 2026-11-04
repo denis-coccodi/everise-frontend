@@ -11,6 +11,32 @@ const SAME_CAST_MS = 2_500;
 // A use the plan times just after an attack's first hit is still for it.
 const LATE_MS = 1_000;
 const ROLE_ORDER: SheetRole[] = ['tank', 'healer', 'dps'];
+// The jobs' numbers in the game: a job's framed icon is 62100 plus its number.
+const JOB_NUMBERS: Record<string, number> = {
+  PLD: 19,
+  MNK: 20,
+  WAR: 21,
+  DRG: 22,
+  BRD: 23,
+  WHM: 24,
+  BLM: 25,
+  SMN: 27,
+  SCH: 28,
+  NIN: 30,
+  MCH: 31,
+  DRK: 32,
+  AST: 33,
+  SAM: 34,
+  RDM: 35,
+  BLU: 36,
+  GNB: 37,
+  DNC: 38,
+  RPR: 39,
+  SGE: 40,
+  VPR: 41,
+  PCT: 42,
+};
+const JOB_ICONS_FROM = 62100;
 
 // The plan as a raid group's mitigation sheet: a row per boss attack, in
 // time order, and for each player what they use for it. Players the plan
@@ -76,6 +102,7 @@ export function planSheet(plan: Plan, timeline: ReferencedTimeline, catalog: Act
       id: p.id,
       name: p.name,
       job: p.job,
+      jobIcon: p.job && p.job in JOB_NUMBERS ? JOB_ICONS_FROM + JOB_NUMBERS[p.job] : null,
       role: roleOf(p),
       slots: Math.max(1, ...rows.map((r) => r.cells[column].length)),
       choices: choices.sort((a, b) => a.name.localeCompare(b.name)),

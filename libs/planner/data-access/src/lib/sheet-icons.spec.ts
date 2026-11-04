@@ -7,6 +7,7 @@ const sheet: PlanSheet = {
       id: 1,
       name: 'Tank Main',
       job: 'PLD',
+      jobIcon: 62119,
       role: 'tank',
       slots: 1,
       choices: [
@@ -15,14 +16,22 @@ const sheet: PlanSheet = {
         { name: 'Sprint', icon: null },
       ],
     },
-    { id: 2, name: 'Heal Main', job: 'SCH', role: 'healer', slots: 1, choices: [{ name: 'Rampart', icon: 2573 }] },
+    {
+      id: 2,
+      name: 'Heal Main',
+      job: 'SCH',
+      jobIcon: 62128,
+      role: 'healer',
+      slots: 1,
+      choices: [{ name: 'Rampart', icon: 2573 }],
+    },
   ],
   rows: [],
   completedFrom: null,
 };
 
 describe('sheetIcons', () => {
-  it('fetches each icon once from the API, leaving out the ones that fail', async () => {
+  it('fetches each job’s and skill’s icon once from the API, leaving out the ones that fail', async () => {
     const asked: string[] = [];
     const get = (async (url: string) => {
       asked.push(url);
@@ -31,8 +40,13 @@ describe('sheetIcons', () => {
 
     const icons = await sheetIcons('/api', sheet, get);
 
-    expect(asked).toEqual(['/api/market/icons/2573', '/api/market/icons/806']);
-    expect([...icons.keys()]).toEqual([2573]);
+    expect(asked).toEqual([
+      '/api/market/icons/62119',
+      '/api/market/icons/2573',
+      '/api/market/icons/806',
+      '/api/market/icons/62128',
+    ]);
+    expect([...icons.keys()]).toEqual([62119, 2573, 62128]);
     expect(icons.get(2573)).toEqual(new Uint8Array([1, 2]));
   });
 
