@@ -2,7 +2,7 @@ import type { PlannedUse } from './plan.model';
 
 // An opener a replanned player can start the pull with (see OPENERS):
 // "none" has no opener, the plan placing what it needs.
-export type OpenerId = 'standard' | 'dissipation-first' | 'double-misery' | 'none';
+export type OpenerId = 'standard' | 'dissipation-first' | 'double-misery' | 'pneuma' | 'none';
 
 // A step of an opener: an oGCD woven after the player's GCD `afterGcd`
 // (counted from 0, the spell begun in the countdown), that GCD itself

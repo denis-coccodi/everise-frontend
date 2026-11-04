@@ -97,14 +97,24 @@ export const OPENERS: Record<string, OpenerPreset[]> = {
   ],
   // Sage: Eukrasia in the countdown, precast Toxikon II (or Dosis III,
   // the same here), Eukrasian Dosis III, three Dosis III, both Phlegma III
-  // with Psyche after the first. No Pneuma: neither guide opens with it,
-  // and real sages first use it 14 s in or later, as a heal.
+  // with Psyche after the first. The Balance's openers page (7.3) also has
+  // a Pneuma opener (its image 7.0): Pneuma precast at -1.5s, the rest the
+  // same. Never the default: real sages first use Pneuma 14s in or later.
   SGE: [
     {
       id: 'standard',
       name: 'Standard: Toxikon',
       source: 'Icy Veins (7.55), The Balance (7.3)',
       steps: [{ action: 37033, afterGcd: 5 }], // Psyche
+    },
+    {
+      id: 'pneuma',
+      name: 'Pneuma precast (The Balance)',
+      source: 'The Balance (7.3 openers page, 7.0 opener)',
+      steps: [
+        { action: 24318, gcd: 0 }, // Pneuma, precast
+        { action: 37033, afterGcd: 5 },
+      ],
     },
     NONE,
   ],
