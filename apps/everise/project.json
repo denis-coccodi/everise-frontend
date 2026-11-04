@@ -15,6 +15,7 @@
       "executor": "@angular-devkit/build-angular:browser-esbuild",
       "options": {
         "outputPath": "dist/apps/everise",
+        "allowedCommonJsDependencies": ["exceljs"],
         "index": "apps/everise/src/index.html",
         "main": "apps/everise/src/main.ts",
         "tsConfig": "apps/everise/tsconfig.app.json",

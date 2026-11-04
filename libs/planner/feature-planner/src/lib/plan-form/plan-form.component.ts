@@ -3,6 +3,7 @@ import { FormField, FormRoot, form, max, min, required } from '@angular/forms/si
 import { InputErrorsComponent } from '@everise/core/forms';
 import { MARGIN_RANGE, PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
 import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
+import { PlanExportComponent } from '../plan-export/plan-export.component';
 
 // Planning the pull open, for everyone: the HP margin to keep, who to
 // replan (each player's tick is on their tab), and how the plan went.
@@ -18,6 +19,7 @@ import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } fro
     InputComponent,
     InputErrorsComponent,
     MessageComponent,
+    PlanExportComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

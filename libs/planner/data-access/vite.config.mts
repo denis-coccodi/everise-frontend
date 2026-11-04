@@ -8,6 +8,9 @@ export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../../node_modules/.vite/libs/planner/data-access',
   plugins: [angular(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+  // The browser build of exceljs, as the app bundles it (its Node build
+  // needs packages that don't load here).
+  resolve: { alias: { exceljs: 'exceljs/dist/exceljs.min.js' } },
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [ nxViteTsPaths() ],
