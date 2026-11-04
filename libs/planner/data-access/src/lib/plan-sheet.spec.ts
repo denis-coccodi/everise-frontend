@@ -42,6 +42,18 @@ describe('planSheet', () => {
     expect(sheet.rows[1].cells).toEqual([[], []]);
   });
 
+  it('shows the casts of a player taken from a kill, which the plan lists for no attack', () => {
+    // The tank's Rampart, as the plan keeps it: no attack it covers.
+    const kept: Plan = {
+      ...plan(),
+      uses: [...plan().uses, { player: 1, action: 7531, name: 'Rampart', at: 60_000, target: null, covers: [] }],
+    };
+
+    const [first] = planSheet(kept, pullTimeline(), actionCatalog()).rows;
+
+    expect(first.cells[0].map((s) => s.name)).toEqual(['Rampart', 'Reprisal']);
+  });
+
   it('lists the players by role, with room for the most they use at once and what they could pick', () => {
     const [tank, healer] = planSheet(plan(), pullTimeline(), actionCatalog()).players;
 
