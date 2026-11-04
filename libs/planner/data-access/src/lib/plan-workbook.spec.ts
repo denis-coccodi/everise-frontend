@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import JSZip from 'jszip';
 import type { PlanSheet } from './plan-sheet.model';
 import { iconUrl, planWorkbook } from './plan-workbook';
 
@@ -81,7 +82,29 @@ describe('planWorkbook', () => {
       'Rampart',
       'Adloquium',
     ]);
-    expect(plan.getCell('F2').formula).toBe('IFERROR(_xlfn.IMAGE(VLOOKUP(G2,Skills!$A:$B,2,FALSE)),"")');
+    // The picture beside the skill on the lists sheet, else XIVAPI's.
+    expect(plan.getCell('F2').formula).toBe(
+      'IF(G2="","",IFERROR(_xlfn.XLOOKUP(G2,Skills!$A$1:$A$3,Skills!$C$1:$C$3),' +
+        'IFERROR(_xlfn.IMAGE(VLOOKUP(G2,Skills!$A$1:$B$3,2,FALSE)),"")))',
+    );
+  });
+
+  it('places the icons it has as pictures in the lists sheet’s cells, #N/A for the others', async () => {
+    const png = new Uint8Array([137, 80, 78, 71]);
+    const data = await planWorkbook(sheet, 'M9S, pull 3', new Map([[2573, png]]));
+    const zip = await JSZip.loadAsync(data);
+    const text = (path: string) => zip.file(path)?.async('string') ?? Promise.resolve('');
+
+    // Rampart (C1) placed; Reprisal and Adloquium without one.
+    const lists = await text('xl/worksheets/sheet2.xml');
+    expect(lists).toContain('<c r="C1" t="e" vm="1"><v>#VALUE!</v></c>');
+    expect(lists).toMatch(/<c r="C2"[^>]*><f>NA\(\)<\/f>/);
+    expect(await zip.file('xl/media/cell-picture-1.png')?.async('uint8array')).toEqual(png);
+    expect(await text('xl/richData/_rels/richValueRel.xml.rels')).toContain('Target="../media/cell-picture-1.png"');
+    expect(await text('xl/metadata.xml')).toContain('<valueMetadata count="1"><bk><rc t="1" v="0"/></bk>');
+    expect(await text('[Content_Types].xml')).toContain('PartName="/xl/richData/rdrichvalue.xml"');
+    expect(await text('xl/_rels/workbook.xml.rels')).toContain('Target="richData/richValueRel.xml"');
+    expect(await text('xl/workbook.xml')).toContain('fullCalcOnLoad="1"');
   });
 
   it('offers each player’s skills in a dropdown, from a hidden sheet with their icons', async () => {

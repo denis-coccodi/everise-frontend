@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { PlanStore, PlannerStore, planSheet, planWorkbook } from '@everise/planner/data-access';
+import { API_URL } from '@everise/core/http-client';
+import { PlanStore, PlannerStore, planSheet, planWorkbook, sheetIcons } from '@everise/planner/data-access';
 import { ButtonComponent, MessageComponent } from '@everise/ui/components';
 
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -17,6 +18,7 @@ const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 export class PlanExportComponent {
   private readonly store = inject(PlannerStore);
   private readonly plans = inject(PlanStore);
+  private readonly apiUrl = inject(API_URL);
 
   protected readonly busy = signal(false);
   protected readonly error = signal('');
@@ -38,7 +40,9 @@ export class PlanExportComponent {
     try {
       const picked = this.store.picked();
       const title = `${picked?.name ?? 'Fight'}, pull ${ready.timeline.pullId}`;
-      const data = await planWorkbook(planSheet(ready.plan, ready.timeline, ready.catalog), title);
+      const sheet = planSheet(ready.plan, ready.timeline, ready.catalog);
+      // The icons go in the file, so they show offline with nothing to allow.
+      const data = await planWorkbook(sheet, title, await sheetIcons(this.apiUrl, sheet));
       const link = document.createElement('a');
       link.href = URL.createObjectURL(new Blob([data], { type: XLSX }));
       link.download = `${fileName(title)}.xlsx`;
