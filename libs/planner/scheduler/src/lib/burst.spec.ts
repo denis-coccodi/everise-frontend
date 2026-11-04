@@ -48,6 +48,29 @@ describe('burstUses', () => {
     expect(burst('SCH')).toEqual([['Chain Stratagem', 136_100]]);
   });
 
+  it("goes on past a completed wipe's wipe point, where they have no GCDs as played", () => {
+    // Their casts stop at 100s; Chain Stratagem is due again at 126.2s and 246.2s.
+    const t = timeline('SCH');
+    t.playerCasts = t.playerCasts.filter((cast) => cast.at < 100_000);
+    const c = cat();
+    const opening = openingOf(t, c, t.players, { 2: 'standard' });
+    const placed = (free?: Map<number, number>) =>
+      burstUses(
+        t,
+        c,
+        t.players,
+        opening,
+        Weaving.of(t, c, () => true, free),
+        opening.uses,
+      ).map((u) => [u.name, u.at]);
+
+    expect(placed()).toEqual([]);
+    expect(placed(new Map([[2, 100_000]]))).toEqual([
+      ['Chain Stratagem', 126_200],
+      ['Chain Stratagem', 246_200],
+    ]);
+  });
+
   it('starts it at the first GCD without an opener', () => {
     expect(burst('SCH', 'none')).toEqual([
       ['Chain Stratagem', 1_100],
