@@ -169,6 +169,24 @@ export const AuthStore = signalStore(
           ),
         ),
       ),
+      // Asks the server again whether this tab is still signed in (back to
+      // it after a while, or a request answered as a guest's): the session
+      // may have expired or been signed out elsewhere. Quiet: the page stays
+      // as it is until the answer, and a network error changes nothing.
+      checkSession: rxMethod<void>(
+        pipe(
+          exhaustMap(() =>
+            authService.user().pipe(
+              tapResponse({
+                next: ({ user }) => patchState(store, { user, loggedIn: true }),
+                error: (response: HttpErrorResponse) => {
+                  if (response.status === 401) patchState(store, { user: initialUserValue, loggedIn: false });
+                },
+              }),
+            ),
+          ),
+        ),
+      ),
       // A password reset signed every device out, this one too.
       signedOut() {
         patchState(store, { user: initialUserValue, loggedIn: false });
