@@ -21,4 +21,5 @@ export { planEditor } from './lib/plan-editor';
 export type { WipeCompletion } from './lib/plan-completion.model';
 export { planSheet } from './lib/plan-sheet';
 export { iconUrl, planWorkbook } from './lib/plan-workbook';
+export { sheetIcons } from './lib/sheet-icons';
 export type { PlanSheet, SheetPlayer, SheetRow, SheetSkill } from './lib/plan-sheet.model';
