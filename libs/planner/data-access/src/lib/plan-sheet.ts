@@ -16,7 +16,8 @@ const ROLE_ORDER: SheetRole[] = ['tank', 'healer', 'dps'];
 // time order, and for each player what they use for it. Players the plan
 // replans: its uses, on the row of the first attack each covers. Players it
 // leaves as played: their mitigations, shields and heals as they cast them,
-// on the row of the next attack (and, past a wipe point, the plan's).
+// on the row of the next attack. Players a completed wipe plans only from
+// its wipe point: as played up to it, the plan's after.
 export function planSheet(plan: Plan, timeline: ReferencedTimeline, catalog: ActionCatalog): PlanSheet {
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const mechanics = [...plan.mechanics].sort((a, b) => a.at - b.at);
@@ -36,9 +37,13 @@ export function planSheet(plan: Plan, timeline: ReferencedTimeline, catalog: Act
       const covered = mechanics.filter((m) => use.covers.includes(m.id));
       put(covered.find((m) => m.at >= use.at - LATE_MS) ?? covered[0], column, skill(use.action, use.name));
     }
-    if (!plan.replanned || plan.replanned.includes(player.id)) return;
+    // As played: all through for those the plan leaves so, up to the wipe
+    // point for those it plans only from there (`late`), else not at all.
+    const replanned = !plan.replanned || plan.replanned.includes(player.id);
+    const late = plan.late?.includes(player.id) && timeline.completion;
+    const playedUntil = late ? late.from : replanned ? -Infinity : Infinity;
     const mine = plan.uses.filter((u) => u.player === player.id);
-    for (const cast of timeline.playerCasts.filter((c) => c.source === player.id)) {
+    for (const cast of timeline.playerCasts.filter((c) => c.source === player.id && c.at < playedUntil)) {
       if (!protective(cast.action, byId.get(cast.action))) continue;
       if (mine.some((u) => u.action === cast.action && Math.abs(u.at - cast.at) < SAME_CAST_MS)) continue;
       const next = mechanics.find(

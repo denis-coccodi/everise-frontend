@@ -63,4 +63,23 @@ describe('planSheet', () => {
     expect(sheet.completedFrom).toBe(100_000);
     expect(sheet.rows.map((r) => r.completed)).toEqual([false, true]);
   });
+
+  it('shows a player planned only from the wipe point as played before it, and the plan’s after', () => {
+    const timeline: ReferencedTimeline = {
+      ...pullTimeline(),
+      completion: { from: 100_000, clear: { code: 'x', pullId: 1 }, plannedFrom: [1] },
+    };
+    // The tank isn't ticked, but has nobody of their job in the kill.
+    const late: Plan = {
+      ...plan(),
+      uses: [...plan().uses, { player: 1, action: 7535, name: 'Reprisal', at: 148_000, target: null, covers: [2] }],
+      replanned: [2, 1],
+      late: [1],
+    };
+
+    const [first, second] = planSheet(late, timeline, actionCatalog()).rows;
+
+    expect(first.cells[0].map((s) => s.name)).toEqual(['Rampart', 'Reprisal']);
+    expect(second.cells[0].map((s) => s.name)).toEqual(['Reprisal']);
+  });
 });
