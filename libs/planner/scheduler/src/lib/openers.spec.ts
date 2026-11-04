@@ -78,11 +78,11 @@ describe('openingOf', () => {
     expect(steps('WHM').uses.map((u) => [u.action, u.at])).toEqual([
       [136, 8_700],
       [3571, 11_200],
-      [16535, 10_500],
+      [16535, 13_000],
     ]);
     const double = steps('WHM', 'double-misery').uses;
     expect(double.filter((u) => u.action === 16534).map((u) => u.at)).toEqual([20_500, 23_000, 25_500]);
-    expect(double.filter((u) => u.action === 16535).map((u) => u.at)).toEqual([10_500, 28_000]);
+    expect(double.filter((u) => u.action === 16535).map((u) => u.at)).toEqual([13_000, 28_000]);
   });
 
   it("has the tanks' buffs and enablers at their GCDs, a dark knight's The Blackest Night in the countdown", () => {
