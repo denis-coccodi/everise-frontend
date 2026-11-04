@@ -129,11 +129,16 @@ describe('planWorkbook', () => {
     expect([lists.getCell('A4').value, lists.getCell('B4').value]).toEqual(['Job: PLD', iconUrl(62119)]);
   });
 
-  it('colours by role, time and attack white on black, and heads the rows past a wipe’s log', async () => {
+  it('colours the header by role, time and attack white on black, and heads the rows past a wipe’s log', async () => {
     const plan = (await opened()).getWorksheet('Plan')!;
 
     expect(plan.getCell('F1').fill).toMatchObject({ fgColor: { argb: 'FF3C78D8' } });
-    expect(plan.getCell('K3').fill).toMatchObject({ fgColor: { argb: 'FFD9EAD3' }, bgColor: { argb: 'FFD9EAD3' } });
+    expect(plan.getCell('J1').fill).toMatchObject({ fgColor: { argb: 'FF38761D' }, bgColor: { argb: 'FF38761D' } });
+    // The body white with a light grid, a line in the role's colour between players.
+    expect(plan.getCell('K3').fill).toMatchObject({ pattern: 'none' });
+    expect(plan.getCell('K3').border).toMatchObject({ top: { style: 'thin', color: { argb: 'FFD9D9D9' } } });
+    expect(plan.getCell('J3').border).toMatchObject({ left: { style: 'medium', color: { argb: 'FF38761D' } } });
+    expect(plan.getCell('K5').fill).toMatchObject({ fgColor: { argb: 'FFF3F3F3' } });
     expect(plan.getCell('B3').fill).toMatchObject({ fgColor: { argb: 'FF000000' } });
     expect(plan.getCell('B3').font).toMatchObject({ bold: true, color: { argb: 'FFFFFFFF' } });
     expect(plan.getCell('A4').value).toBe('From 1:40: the rest of the fight, from a kill.');
