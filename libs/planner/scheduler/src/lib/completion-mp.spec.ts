@@ -22,7 +22,7 @@ const paladin = (t: PullTimeline) => t.players[0];
 describe('mpPastWipePoint', () => {
   it('goes on from where their MP stood at the wipe point, back to the max at their tick', () => {
     const t = wipe();
-    const readings = mpPastWipePoint(t, paladin(t), 40_000, 200_000, catalog());
+    const readings = mpPastWipePoint(t, paladin(t), 40_000, 200_000, catalog()).mp;
 
     expect(readings[0]).toEqual({ at: 40_001, mp: 4_000 });
     expect(readings[1]).toEqual({ at: 43_000, mp: 4_200 });
@@ -34,7 +34,7 @@ describe('mpPastWipePoint', () => {
     const t = wipe([35]);
     t.players[0].mp.push({ at: 35_000, mp: 0 });
 
-    expect(mpPastWipePoint(t, paladin(t), 40_000, 200_000, catalog()).slice(0, 2)).toEqual([
+    expect(mpPastWipePoint(t, paladin(t), 40_000, 200_000, catalog()).mp.slice(0, 2)).toEqual([
       { at: 40_001, mp: 4_000 },
       { at: 43_000, mp: 4_200 },
     ]);
@@ -43,7 +43,7 @@ describe('mpPastWipePoint', () => {
   it('goes on from their MP for one raised before the wipe point', () => {
     const t = wipe([20], [25]);
 
-    expect(mpPastWipePoint(t, paladin(t), 40_000, 200_000, catalog())[0]).toEqual({ at: 40_001, mp: 4_000 });
+    expect(mpPastWipePoint(t, paladin(t), 40_000, 200_000, catalog()).mp[0]).toEqual({ at: 40_001, mp: 4_000 });
   });
 
   it('spends what their damage spells cost at their own pace, from their GCDs before the wipe point', () => {
@@ -61,7 +61,7 @@ describe('mpPastWipePoint', () => {
       action: 9001,
       castMs: null,
     }));
-    const readings = mpPastWipePoint(t, paladin(t), 40_000, 50_000, withSpell);
+    const readings = mpPastWipePoint(t, paladin(t), 40_000, 50_000, withSpell).mp;
 
     expect(readings.slice(0, 5)).toEqual([
       { at: 40_001, mp: 4_000 },
@@ -70,5 +70,29 @@ describe('mpPastWipePoint', () => {
       { at: 45_000, mp: 3_400 },
       { at: 46_000, mp: 3_600 },
     ]);
+  });
+
+  it("spends a dark knight's paid Edges of Shadow as played, as often as they did, droppable for The Blackest Night", () => {
+    // Edge of Shadow (3,000 MP, an oGCD attack) paid for at 5 and 30 s: one
+    // every 25 s. The one at 18 s cost nothing (Dark Arts'): not counted.
+    const edge = { ...catalog().actions[0], id: 16470, name: 'Edge of Shadow', gcd: false, mpCost: 3_000, effects: [] };
+    const withEdge = { ...catalog(), actions: [...catalog().actions, { ...edge, description: 'Delivers an attack.' }] };
+    const t = wipe();
+    t.players[0].mp = [
+      { at: 0, mp: 10_000 },
+      { at: 5_500, mp: 7_000 },
+      { at: 29_000, mp: 9_000 },
+      { at: 30_500, mp: 6_000 },
+    ];
+    t.playerCasts = [5, 18, 30].map((s) => ({ at: s * 1_000, source: 1, target: null, action: 16470, castMs: null }));
+    const { mp, casts } = mpPastWipePoint(t, paladin(t), 40_000, 100_000, withEdge);
+
+    expect(casts.map((c) => [c.action, c.at])).toEqual([
+      [16470, 65_000],
+      [16470, 90_000],
+    ]);
+    // 3,000 off just after each.
+    const before = [...mp].reverse().find((r) => r.at <= 65_000)?.mp ?? 0;
+    expect(mp.find((r) => r.at === 65_100)?.mp).toBe(before - 3_000);
   });
 });

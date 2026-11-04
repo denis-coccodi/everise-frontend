@@ -1,5 +1,6 @@
 import { PullTimeline } from '@everise/core/api-types';
 import type { ToolPool } from './plan.model';
+import type { ReferencedTimeline } from './reference-damage.model';
 
 // A scholar's Aetherflow stacks, as the game has them: none at the pull,
 // 3 from each Aetherflow (every 60s) and each Dissipation (every 180s, the
@@ -26,10 +27,16 @@ const RECITATION = 16542;
 const RECITED = new Set([185, 37013, 3583, 7434]);
 // The Faerie Gauge a stack spent gives, of the 50 a Fey Union takes.
 const STACKS_A_UNION = 5;
+// Past a completed wipe's wipe point, with nobody of their job in the
+// kill, their stacks (3 a minute) all go within the minute: a Fey Union's
+// worth every 100 seconds.
+const UNION_EVERY_MS = 100_000;
 
 // When a scholar's Faerie Gauge, empty at the pull, has another Fey
-// Union's worth: each fifth stack they spent, as played.
-export function faerieGaugeOf(timeline: PullTimeline, scholar: number): number[] {
+// Union's worth: each fifth stack they spent, as played, and past a
+// completed wipe's wipe point (where nobody of their job in the kill
+// played) every 100 seconds.
+export function faerieGaugeOf(timeline: ReferencedTimeline, scholar: number): number[] {
   const casts = timeline.playerCasts.filter((c) => c.source === scholar).sort((a, b) => a.at - b.at);
   const spent: number[] = [];
   let recited = false;
@@ -38,7 +45,11 @@ export function faerieGaugeOf(timeline: PullTimeline, scholar: number): number[]
     else if (recited && RECITED.has(cast.action)) recited = false;
     else if (SPENDS.has(cast.action)) spent.push(cast.at);
   }
-  return spent.filter((_, i) => (i + 1) % STACKS_A_UNION === 0);
+  const earned = spent.filter((_, i) => (i + 1) % STACKS_A_UNION === 0);
+  const { completion } = timeline;
+  if (completion?.plannedFrom.includes(scholar))
+    for (let at = completion.from + UNION_EVERY_MS; at <= timeline.durationMs; at += UNION_EVERY_MS) earned.push(at);
+  return earned;
 }
 
 // The tools with their player's Aetherflow stacks as the pull refills

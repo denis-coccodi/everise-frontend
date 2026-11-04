@@ -72,11 +72,16 @@ export function completedTimeline(
     },
   );
   const copied = Object.entries(stand).filter(([, s]) => s.sameJob);
+  // Without a stand-in, their own MP spenders as played past the wipe point (Edge of Shadow).
+  const spenders: PullTimeline['playerCasts'] = [];
   const players = wipe.players.map((p) => {
     const theirs = copied.find(([, s]) => s.player === p.id)?.[0];
     // Their stand-in's MP; without one, their own from the wipe point on.
-    if (theirs === undefined)
-      return { ...p, mp: [...before(p.mp), ...mpPastWipePoint(wipe, p, from, aligned.endsAt, catalog)] };
+    if (theirs === undefined) {
+      const own = mpPastWipePoint(wipe, p, from, aligned.endsAt, catalog);
+      spenders.push(...own.casts);
+      return { ...p, mp: [...before(p.mp), ...own.mp] };
+    }
     const mp = clear.players.find((c) => String(c.id) === theirs)?.mp ?? [];
     return { ...p, mp: [...before(p.mp), ...after(mp)] };
   });
@@ -90,7 +95,7 @@ export function completedTimeline(
     damage: [...before(wipe.damage), ...damage],
     heals: [...before(wipe.heals), ...heals],
     absorbs: [...before(wipe.absorbs), ...absorbs],
-    playerCasts: [...before(wipe.playerCasts), ...playerCasts],
+    playerCasts: [...before(wipe.playerCasts), ...playerCasts, ...spenders].sort((a, b) => a.at - b.at),
     enemyCasts: [...before(wipe.enemyCasts), ...enemyCasts],
     auras: [...wipe.auras.filter((a) => a.from <= from), ...auras],
     deaths: before(wipe.deaths),

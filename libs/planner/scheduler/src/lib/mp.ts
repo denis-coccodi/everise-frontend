@@ -71,7 +71,11 @@ export class MpModel {
       const max = players.get(player)?.max ?? 10_000;
       const gain = a.effects
         .filter((e) => e.kind === 'mp')
-        .reduce((sum, e) => sum + (e.percent !== null ? (e.percent / 100) * max : (e.potency ?? 0)), 0);
+        // Delirium's 600 comes with each of its three stacks.
+        .reduce(
+          (sum, e) => sum + (e.percent !== null ? (e.percent / 100) * max : (e.potency ?? 0) * (e.stacks ?? 1)),
+          0,
+        );
       const ticks = a.effects
         .filter((e) => e.kind === 'mpRegen')
         .flatMap((e) =>

@@ -30,6 +30,18 @@ describe('faerieGaugeOf', () => {
     expect(faerieGaugeOf(timeline, 2)).toEqual([13_000]);
   });
 
+  it("fills a Fey Union's worth every 100 s past a completed wipe's wipe point, with no stand-in", () => {
+    const completed = {
+      ...casting([]),
+      durationMs: 400_000,
+      completion: { from: 150_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [2] },
+    };
+
+    expect(faerieGaugeOf(completed, 2)).toEqual([250_000, 350_000]);
+    // One with a stand-in spends as that player did.
+    expect(faerieGaugeOf({ ...completed, completion: { ...completed.completion, plannedFrom: [] } }, 2)).toEqual([]);
+  });
+
   it("doesn't count an Excogitation Recitation made free", () => {
     const timeline = casting([
       [2, ENERGY_DRAIN],

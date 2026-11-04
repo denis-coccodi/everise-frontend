@@ -24,6 +24,7 @@ import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
+import { withUpkeep } from './completion-upkeep';
 
 // Plans of the pull, at most: the first, and replans around the HP its
 // heals leave.
@@ -40,13 +41,12 @@ export class PlannerScheduler {
   // heals leave it, then the heals again, as long as that makes the plan
   // better. Only the players `asked` to replan are planned, with their
   // edits; the others as they played.
-  plan(timeline: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+  plan(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     // The actions as the pull's level has them (its traits).
-    const level = pullLevel(timeline);
-    const catalog = catalogAtLevel(full, level);
-    const maxHp = new Map<number, number>();
-    for (const player of timeline.players) if (player.maxHp) maxHp.set(player.id, player.maxHp);
-    const [late, stops] = [lateStarts(timeline, asked), castsStopAt(timeline)];
+    const catalog = catalogAtLevel(full, pullLevel(given));
+    const [late, stops] = [lateStarts(given, asked), castsStopAt(given)];
+    const timeline = withUpkeep(given, late, catalog);
+    const maxHp = new Map(timeline.players.flatMap((p) => (p.maxHp ? [[p.id, p.maxHp] as const] : [])));
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player) || late.has(t.player);
     const edits = ownEdits(asked.edits, replanned);
     const power = healPower(timeline, catalog);
@@ -122,7 +122,7 @@ export class PlannerScheduler {
     const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
     // A replanned scholar's fairy heals on her own, as the HP the round
     // before leaves calls for (as played in the first round).
-    const fairyHeal = fairyPotency(level);
+    const fairyHeal = fairyPotency(pullLevel(timeline));
     const fairyPowers = new Map(
       scholars.map((s) => [s.id, fairyPower(timeline, s.id, power.get(s.id) ?? null, fairyHeal)]),
     );
