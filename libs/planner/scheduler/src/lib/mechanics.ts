@@ -58,6 +58,13 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
     if (!max || damage <= max || damage <= FAILED_TIMES * (usual.get(nameOf(hit)) ?? Infinity)) return false;
     return damage >= UNSURVIVABLE * max || died(hit);
   };
+  // What the attack usually does to their role (else to anyone), but for failed hits.
+  const role = new Map(timeline.players.map((p) => [p.id, p.role]));
+  const usualFor = (hit: TimelineHit) => {
+    const fine = hits.filter((h) => nameOf(h) === nameOf(hit) && !failed(h));
+    const theirs = fine.filter((h) => role.get(h.target) === role.get(hit.target));
+    return (theirs.length ? theirs : fine).length ? median((theirs.length ? theirs : fine).map(unmitigated)) : 0;
+  };
 
   const groups: { action: number; at: number; hits: TimelineHit[] }[] = [];
   for (const hit of [...hits].sort((a, b) => a.at - b.at)) {
@@ -86,10 +93,14 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
       damageType: group.hits[0].damageType,
       hits: group.hits.map((hit) => {
         const leavesOneHp = spared(hit);
-        const fails = !leavesOneHp && failed(hit);
+        // Past a completed wipe's end, nobody of theirs played it: never
+        // failed. One the other group failed lands as the attack usually
+        // does instead, as if done right.
+        const completed = hit.at > completedAfter && !blocked.has(hit);
+        const fails = !completed && !leavesOneHp && failed(hit);
         return {
           player: hit.target,
-          unmitigated: unmitigated(hit),
+          unmitigated: completed && failed(hit) ? usualFor(hit) : unmitigated(hit),
           asPlayed: hit.amount,
           ...(fails ? { failed: true } : {}),
           ...(leavesOneHp ? { leavesOneHp: true as const } : {}),

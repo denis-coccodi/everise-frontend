@@ -193,4 +193,31 @@ describe('mechanicsOf', () => {
       [3, false],
     ]);
   });
+
+  it("never takes a hit past a completed wipe's end as failed: one the other group failed lands as usual", () => {
+    // The wipe ends at 60s; the rest is another group's kill. The scholar
+    // failed the 30s tower themselves (ten times the rest); the kill's bard
+    // failed the one at 90s.
+    const t = {
+      ...pull([
+        [30, 'Tower', 1, 30_000],
+        [30, 'Tower', 2, 400_000],
+        [30, 'Tower', 3, 30_000],
+        [90, 'Tower', 1, 30_000],
+        [90, 'Tower', 2, 30_000],
+        [90, 'Tower', 3, 400_000],
+      ]),
+      completion: { from: 60_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [1, 2, 3] },
+    };
+
+    const [played, completed] = mechanicsOf(t);
+
+    expect(played.hits.find((h) => h.player === 2)).toMatchObject({ failed: true, avoidable: true });
+    expect(completed.hits.find((h) => h.player === 3)).toMatchObject({
+      unmitigated: 30_000,
+      avoidable: false,
+      estimated: 'completion',
+    });
+    expect(completed.hits.some((h) => h.failed)).toBe(false);
+  });
 });
