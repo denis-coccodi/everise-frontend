@@ -36,6 +36,25 @@ const WORTH: Record<Favour, Record<HealCost, number>> = {
   healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8 },
 };
 const FULL_WORTH = 1.05;
+// A heal this long to come back is a big cooldown (Seraphism, Temperance,
+// Liturgy of the Bell): it waits for a stretch taking the party this many
+// times as much within its recast, while anything else can heal.
+const LONG_RECAST_MS = 90_000;
+const BIGGER_NEED = 1.5;
+
+// Whether `tool` waits for a bigger need than `m`'s ahead (`needOf`: what a
+// mechanic takes of the party, in shares of HP), as the log's healers keep
+// their big cooldowns for the heaviest stretch.
+export function waitsForBiggerNeed(
+  tool: HealTool,
+  m: Mechanic,
+  mechanics: Mechanic[],
+  needOf: (m: Mechanic) => number,
+) {
+  if (tool.recastMs < LONG_RECAST_MS) return false;
+  const here = needOf(m);
+  return mechanics.some((o) => o.at > m.at && o.at - m.at < tool.recastMs && needOf(o) > BIGGER_NEED * here);
+}
 
 // The most a use of `tool` can make up of the deficits before `m`, at the
 // earliest moment it can heal after the anchor or as late as it can (a
