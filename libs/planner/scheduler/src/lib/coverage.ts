@@ -12,11 +12,19 @@ import {
 } from './plan.model';
 import type { PullFacts } from './coverage.model';
 
+// What a hit the fight doesn't let kill shows among what was up for it.
+export const LEAVES_ONE_HP = 'Leaves 1 HP';
+
+// A hit counts what was up when the attack took its snapshot, before its
+// damage shows in the log: in 34 ultimate kills, a hit showed a status
+// that had ended up to 0.8s before it (9 in 10 of those).
+const SNAPSHOT_MS = 1_000;
+
 // A use's effects reach a hit: on the party, from the enemy, on its user,
-// or on the member it was given to; while they last.
+// or on the member it was given to; while they last at its snapshot.
 export function reaches(tool: MitigationTool, use: PlannedUse, mechanic: Mechanic, hit: MechanicHit) {
   return tool.effects.filter((effect) => {
-    if (mechanic.at < use.at || mechanic.at > use.at + effect.durationMs) return false;
+    if (mechanic.at < use.at || mechanic.at > use.at + effect.durationMs + SNAPSHOT_MS) return false;
     if (effect.target === 'self') return hit.player === use.player;
     if (effect.target === 'target') return hit.player === use.target;
     return true;
@@ -72,8 +80,10 @@ export function projected(
       ...[...strongest.values()].map((e) => e.status),
       ...[...shields.values()].map((s) => s.status),
       ...(invulnerable ? [invulnerable.status] : []),
+      ...(hit.leavesOneHp ? [LEAVES_ONE_HP] : []),
     ],
-    invulnerable: !!invulnerable,
+    // One the fight doesn't let kill lands, but can't take the last HP.
+    invulnerable: !!invulnerable || !!hit.leavesOneHp,
   };
 }
 

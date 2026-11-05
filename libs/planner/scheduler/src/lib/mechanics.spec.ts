@@ -119,22 +119,28 @@ describe('mechanicsOf', () => {
   });
 
   it('takes a raidwide nobody survives as a wipe, avoided, and only that', () => {
-    // Ten million on each (max HP 100,000): an enrage. A raidwide one
-    // player survives (150,000 on one only) is still an attack to cover.
-    const mechanics = mechanicsOf(
-      pull([
-        [10, 'Enrage', 1, 10_000_000],
-        [10, 'Enrage', 2, 10_000_000],
-        [10, 'Enrage', 3, 10_000_000],
-        [40, 'Big Wave', 1, 150_000],
-        [40, 'Big Wave', 2, 400_000],
-        [40, 'Big Wave', 3, 400_000],
-      ]),
-    );
+    // Ten million on each (max HP 100,000), killing them: an enrage. A
+    // raidwide one player survives (150,000 on one only) is still an attack
+    // to cover, and so is one as big that everyone survived (a tank Limit
+    // Break was up).
+    const t = pull([
+      [10, 'Enrage', 1, 10_000_000],
+      [10, 'Enrage', 2, 10_000_000],
+      [10, 'Enrage', 3, 10_000_000],
+      [40, 'Big Wave', 1, 150_000],
+      [40, 'Big Wave', 2, 400_000],
+      [40, 'Big Wave', 3, 400_000],
+      [70, 'Cosmic Wave', 1, 2_000_000],
+      [70, 'Cosmic Wave', 2, 2_000_000],
+      [70, 'Cosmic Wave', 3, 2_000_000],
+    ]);
+    t.damage = t.damage.map((h) => (h.at === 10_000 ? { ...h, overkill: 9_900_000 } : h));
+    const mechanics = mechanicsOf(t);
 
     expect(mechanics.map((m) => [m.name, !!m.wipe, m.hits.every((h) => h.avoidable)])).toEqual([
       ['Enrage', true, true],
       ['Big Wave', false, false],
+      ['Cosmic Wave', false, false],
     ]);
   });
 
@@ -166,5 +172,25 @@ describe('mechanicsOf', () => {
     expect(marked(false, 'failed')).toEqual([[40_000, 3]]);
     expect(marked(false, 'avoidable')).toEqual([]);
     expect(marked(true, 'avoidable')).toEqual([[40_000, 3]]);
+  });
+
+  it("marks a hit the log has them at no HP after, yet alive, as one that can't kill", () => {
+    // Dancing Mad's Black Antilight: their whole HP and more, and they're
+    // healed after. The bard's killed them: they died.
+    const t = pull([
+      [10, 'Black Antilight', 1, 300_000],
+      [10, 'Black Antilight', 2, 300_000],
+      [10, 'Black Antilight', 3, 300_000],
+    ]);
+    t.damage = t.damage.map((h) => ({ ...h, amount: 100_000, overkill: 200_000, hp: 0 }));
+    t.deaths = [{ at: 10_500, player: 3, action: 0, source: null }];
+
+    const [m] = mechanicsOf(t);
+
+    expect(m.hits.map((h) => [h.player, !!h.leavesOneHp])).toEqual([
+      [1, true],
+      [2, true],
+      [3, false],
+    ]);
   });
 });

@@ -47,6 +47,11 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
   }
   const died = (hit: TimelineHit) =>
     timeline.deaths.some((d) => d.player === hit.target && d.at >= hit.at && d.at - hit.at <= DEATH_MS);
+  // At no HP after it, alive, and no invulnerability of theirs up: the
+  // fight doesn't let it kill.
+  const blocking = new Set(timeline.statuses.filter((s) => BLOCKING.has(s.name)).map((s) => s.id));
+  const spared = (hit: TimelineHit) =>
+    hit.hp === 0 && hit.overkill > 0 && !died(hit) && !hit.statuses.some((id) => blocking.has(id));
   const failed = (hit: TimelineHit) => {
     const max = maxHp.get(hit.target);
     const damage = unmitigated(hit);
@@ -80,12 +85,14 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
       // One attack: one damage type.
       damageType: group.hits[0].damageType,
       hits: group.hits.map((hit) => {
-        const fails = failed(hit);
+        const leavesOneHp = spared(hit);
+        const fails = !leavesOneHp && failed(hit);
         return {
           player: hit.target,
           unmitigated: unmitigated(hit),
           asPlayed: hit.amount,
           ...(fails ? { failed: true } : {}),
+          ...(leavesOneHp ? { leavesOneHp: true as const } : {}),
           ...(blocked.has(hit)
             ? { estimated: fromClears.has(hit) ? ('clears' as const) : ('pull' as const) }
             : hit.at > completedAfter
