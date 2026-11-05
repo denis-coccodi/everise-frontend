@@ -1,5 +1,5 @@
 import { action, catalog, pull } from './scheduler-fixtures';
-import { Weaving } from './weaving';
+import { Weaving, withoutFollowUps } from './weaving';
 
 describe('Weaving', () => {
   // Player 1 used GCDs every 2.5s from 10s: instant ones, then at 15s a
@@ -188,5 +188,21 @@ describe('Weaving', () => {
 
     expect(ticked).toEqual([12_500, 15_000, 17_500, 20_000, 22_500]);
     expect(unticked).toEqual([]);
+  });
+});
+
+describe('withoutFollowUps', () => {
+  it("drops what the log has of a GCD's follow-up, under its name: nobody pressed it", () => {
+    const cat = catalog();
+    cat.actions.push(
+      action(24318, 'Pneuma', ['SGE'], 120, [], { gcd: true, castMs: 1500 }),
+      action(27524, 'Pneuma', ['SGE'], 0, []),
+      action(24298, 'Kerachole', ['SGE'], 30, []),
+    );
+    const cast = (at: number, a: number) => ({ at, source: 2, target: null, action: a, castMs: null });
+
+    const kept = withoutFollowUps([cast(1_000, 24318), cast(1_580, 27524), cast(1_700, 24298)], cat);
+
+    expect(kept.map((c) => c.action)).toEqual([24318, 24298]);
   });
 });

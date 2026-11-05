@@ -4,7 +4,7 @@ import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
-import { best, better, kardiaBack } from './heal-candidates';
+import { best, better, kardiaBack, waitsForBiggerNeed } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { walkingDeads } from './walking-dead';
@@ -145,6 +145,10 @@ export function planHeals(
   const deads = walkingDeads(plan, (u) => mitigationOf.get(key(u)), maxHp, options.margin, weaving);
   for (const dead of deads) track.add(dead.selfHeals);
   const mechanics = [...plan.mechanics, ...deads.map((d) => d.check)].sort((a, b) => a.at - b.at);
+  // What each mechanic takes of the party, in shares of HP, mitigated.
+  const need = new Map<number, number>();
+  for (const h of plan.hits) if (!h.avoidable) need.set(h.mechanic, (need.get(h.mechanic) ?? 0) + (h.share ?? 0));
+  const needOf = (m: Mechanic) => need.get(m.id) ?? 0;
 
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
@@ -190,8 +194,7 @@ export function planHeals(
     for (let n = 0; n < HEALS_PER_MECHANIC; n++) {
       const short = deficits();
       if (![...short.values()].some((d) => d > 0)) break;
-      let pick: Candidate | null = null;
-      for (const tool of planned) {
+      const candidateOf = (tool: HealTool) => {
         const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
         const pairWith = (use: PlannedUse, events: HpEvent[]) =>
           pairingsFor(
@@ -211,21 +214,12 @@ export function planHeals(
           );
         const own = spent.filter((s) => s.player === tool.player);
         const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
-        const candidate = best(
-          tool,
-          m,
-          anchor,
-          short,
-          spent,
-          eventsOf,
-          deficits,
-          weaving,
-          pairWith,
-          favourOf,
-          affordable,
-        );
-        if (candidate && (!pick || better(candidate, pick))) pick = candidate;
-      }
+        return best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf, affordable);
+      };
+      const among = (tools: HealTool[]) =>
+        tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
+      // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
+      const pick = among(planned.filter((t) => !waitsForBiggerNeed(t, m, mechanics, needOf))) ?? among(planned);
       if (!pick) break;
       track.add(pick.events);
       uses.push(pick.use);

@@ -2,6 +2,7 @@ import { ActionCatalog, PullTimeline, TimelineAura } from '@everise/core/api-typ
 import { EUKRASIA, EUKRASIA_MS } from './tools';
 import type { GcdCast, Occupied } from './weaving.model';
 import { withRhythm } from './weaving-rhythm';
+import { RELEASED } from './heal-tools';
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
 // round trip to the server. Two fit after an instant GCD of 2.5s, one after
@@ -21,6 +22,8 @@ const LIGHTSPEED_CUT_MS = 2_500;
 // How much later than Eukrasia's recast its GCD may come and still be the
 // one it augments (latency, a late press).
 const EUKRASIA_SLACK_MS = 500;
+// A GCD's follow-up shows in the log this soon after it, under its name.
+const FOLLOW_UP_MS = 1_500;
 
 // A stretch of a player's time an action takes.
 interface Busy {
@@ -102,9 +105,10 @@ export class Weaving {
     keptAlive: number[] = [],
   ) {
     return new Weaving(
-      timeline.playerCasts,
+      withoutFollowUps(timeline.playerCasts, catalog),
       new Map(catalog.actions.map((a) => [a.id, a.gcd])),
-      planned,
+      // A release (Stellar Detonation) goes with the heal it sets off.
+      (player, action) => planned(player, RELEASED.get(action) ?? action),
       new Map(catalog.actions.map((a) => [a.id, a.castMs])),
       timeline.auras,
       freeFrom,
@@ -265,6 +269,22 @@ export class Weaving {
     const { gcds, ogcds } = this.busy(player, occupied);
     return [...gcds, ...ogcds];
   }
+}
+
+// A player's casts without the follow-ups the log has of a GCD: a non-GCD
+// of the same name, by its own id, soon after (Pneuma's heal, Star Prism's,
+// Technical Finish's). Nobody pressed them, so they take no weave slot.
+export function withoutFollowUps(casts: PullTimeline['playerCasts'], catalog: ActionCatalog) {
+  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  const lastGcd = new Map<number, { at: number; name: string }>();
+  return [...casts]
+    .sort((a, b) => a.at - b.at)
+    .filter((cast) => {
+      const action = byId.get(cast.action);
+      if (action?.gcd) lastGcd.set(cast.source, { at: cast.at, name: action.name });
+      const last = lastGcd.get(cast.source);
+      return !(action && !action.gcd && last?.name === action.name && cast.at - last.at <= FOLLOW_UP_MS);
+    });
 }
 
 // Which of a player's GCDs as played (in time order) only landed then: an

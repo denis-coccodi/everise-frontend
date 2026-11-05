@@ -47,6 +47,9 @@ export const KARDIA_HEAL = 2604;
 const DELAYED: Record<number, { delaysMs: number[]; release: number; loggedAs: string }> = {
   7439: { delaysMs: [20_000, 10_000], release: 8324, loggedAs: 'Stellar Explosion' },
 };
+// What each release sets off (Stellar Detonation, Earthly Star's): planned
+// with it, so one as played goes with the played heal.
+export const RELEASED = new Map(Object.entries(DELAYED).map(([action, d]) => [d.release, Number(action)]));
 
 // The catalog's heals that wait (its delayedHeal effects), by their
 // condition; their log names the heal by its status:
