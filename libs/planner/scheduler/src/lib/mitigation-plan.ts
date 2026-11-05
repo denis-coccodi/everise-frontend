@@ -82,9 +82,9 @@ export function planMitigation(
     uses.push(candidate.use);
     toolOf.set(candidate.use, candidate.tool);
   };
-  const plannable = tools.filter(
-    (t) => !AUTOMATIC.has(t.action) && (!options.replan || options.replan.includes(t.player)),
-  );
+  // A Limit Break is the group's call: kept where they used it, never planned.
+  const ours = (t: MitigationTool) => !options.replan || options.replan.includes(t.player);
+  const plannable = tools.filter((t) => !AUTOMATIC.has(t.action) && !t.limitBreak && ours(t));
   // An earlier plan's mitigations stay: taking one away would leave its hits
   // bigger, and the HP after them lower than the plan was made for. (It has
   // the fixed ones already.)

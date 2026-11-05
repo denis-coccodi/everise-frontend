@@ -224,6 +224,7 @@ export function mitigationTools(
         effects,
         ...(recitation ? { critical: criticalTimes(player) } : {}),
         ...(recited ? { whenCritical: [...others, ...shields(criticalTimes(player))] } : {}),
+        ...(action.limitBreak ? { limitBreak: true as const } : {}),
       });
     }
   }

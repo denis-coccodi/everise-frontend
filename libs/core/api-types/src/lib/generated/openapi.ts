@@ -4595,6 +4595,8 @@ export interface components {
             condition: string | null;
           }[];
         }[];
+        /** @constant */
+        limitBreak?: true;
       }[];
       traits: {
         id: number;

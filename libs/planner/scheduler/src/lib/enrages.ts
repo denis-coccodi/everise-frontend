@@ -11,8 +11,8 @@ const DEATH_MS = 3_000;
 // that is (`Mechanic['wipe']`). With the fight's script (cactbot's), its
 // enrages (DPS checks too); else, with other groups' kills read, a
 // raidwide that killed everyone it hit and that none of them has; else a
-// raidwide every hit of which is `UNSURVIVABLE` times the player's HP,
-// which may be an enrage. Any other mechanic is planned for, even one that
+// raidwide that killed everyone, every hit `UNSURVIVABLE` times the
+// player's HP, which may be an enrage. Any other mechanic is planned for, even one that
 // killed everyone: a mitigation mistake, maybe after another group's kill
 // time.
 export function enrages(timeline: ReferencedTimeline) {
@@ -36,6 +36,7 @@ export function enrages(timeline: ReferencedTimeline) {
       const name = names.get(hits[0].action);
       return hits.every(killed) && name !== undefined && !inKills.has(name) ? ('enrage' as const) : undefined;
     }
-    return hits.every((h) => unsurvivable(h, unmitigated(h))) ? ('maybe' as const) : undefined;
+    // One they survived in the pull (a tank Limit Break) is no enrage.
+    return hits.every((h) => unsurvivable(h, unmitigated(h)) && killed(h)) ? ('maybe' as const) : undefined;
   };
 }

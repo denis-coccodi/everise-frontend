@@ -14,7 +14,7 @@ import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { playedUses } from './played-uses';
 import { Weaving, WEAVE_MS } from './weaving';
-import { InvulnerabilityOptions, Plan, PlanOptions, PlannedUse } from './plan.model';
+import { InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { mitigationTools, notAutomatic, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
@@ -27,8 +27,7 @@ import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
 import { withUpkeep } from './completion-upkeep';
 
-// Plans of the pull, at most: the first, and replans around the HP its
-// heals leave.
+// Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
 
 // Plans a pull in the browser. The planner page loads it only when it's
@@ -74,10 +73,9 @@ export class PlannerScheduler {
     const placed = [...opener.filter(notRemoved(edits)), ...added];
     const notPlaced = (u: PlannedUse) => !u.opener && !u.edited && !u.played;
     const mitigates = new Set(mitigation.map((t) => t.player + ':' + t.action));
-    const played = playedUses(
-      timeline,
-      mitigation.filter((t) => !replanned(t)),
-    );
+    // A Limit Break stays where the group used it, replanned or not.
+    const asPlayed = (t: MitigationTool) => !replanned(t) || !!t.limitBreak;
+    const played = playedUses(timeline, mitigation.filter(asPlayed));
     const fixed = [...played, ...placed.filter((u) => mitigates.has(u.player + ':' + u.action))];
     const buffs = healingBuffsOf(catalog);
     const options: PlanOptions = {
@@ -108,7 +106,9 @@ export class PlannerScheduler {
       ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),
     ];
     const { healers, whms, tools: lucids } = mpTools(replannedPlayers);
-    const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts, ...lucids].map(key));
+    const scheduled = new Set(
+      [...mitigation.filter((t) => !asPlayed(t)), ...heals, ...pairings, ...bursts, ...lucids].map(key),
+    );
     // Replanned from the start: their MP below; kept alive, a death leaves no gap.
     const ids = replannedPlayers.map((p) => p.id);
     const weaving = Weaving.of(timeline, catalog, (p, a) => scheduled.has(`${p}:${a}`), stops, ids);
