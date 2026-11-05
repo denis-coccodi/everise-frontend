@@ -59,25 +59,29 @@ describe('compareLog', () => {
     ]);
   });
 
-  it("keeps the plan's oGCDs in their GCD's row, in the order they're pressed", () => {
-    const gcd = (at: number): PlanEntry => ({ kind: 'gcd', at, prepull: false, castAt: null });
+  it("puts each of the plan's oGCDs in the row of its GCD before it, wherever the played side splits", () => {
+    const gcd = (at: number, action: string): PlanEntry => ({ ...plannedUse(at, action), gcd: true });
     const rows = compareLog(
-      [],
+      // What they played at 10.6 s, past the Misery's row, opens one, which the
+      // Glare at 11 s joins; the Benison at 10.8 s still goes with the Misery.
+      [used(10_600, 'Sprint')],
       [
+        gcd(6_000, 'Glare III'),
         plannedUse(8_000, 'Assize'),
-        { ...plannedUse(8_500, 'Afflatus Misery'), gcd: true },
+        gcd(8_500, 'Afflatus Misery'),
         plannedUse(9_200, 'Aquaveil'),
-        plannedUse(9_900, 'Divine Benison'),
-        gcd(11_000),
+        plannedUse(10_800, 'Divine Benison'),
+        gcd(11_000, 'Glare III'),
         plannedUse(11_700, 'Temperance'),
       ],
     );
 
-    expect(rows.map((row) => row.planned.map((e) => (e.kind === 'gcd' ? 'GCD' : e.action)))).toEqual([
-      // Assize woven before the Misery; the rest up to 2s after it, though
-      // more than 1s after the row began.
-      ['Assize', 'Afflatus Misery', 'Aquaveil', 'Divine Benison'],
-      ['GCD', 'Temperance'],
+    expect(rows.map((row) => row.planned.map((e) => (e.kind === 'use' ? e.action : e.kind)))).toEqual([
+      // Assize woven after the Glare before the Misery, not before the Misery.
+      ['Glare III', 'Assize'],
+      ['Afflatus Misery', 'Aquaveil', 'Divine Benison'],
+      ['Glare III', 'Temperance'],
     ]);
+    expect(rows[2].played.map((e) => e.action)).toEqual(['Sprint']);
   });
 });

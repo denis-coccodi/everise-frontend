@@ -1,6 +1,7 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { pressedFirst, attackSeverity, type Plan } from '@everise/planner/scheduler';
-import { asPlayed } from './plan-as-played';
+import { asPlayed, usualAttack } from './plan-as-played';
+import { withStandInGcds } from './plan-gcds';
 import type { PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 
 // One player's part of the plan, in time order: what to use when, and how
@@ -69,8 +70,11 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       ...(use.again ? { again: use.again } : {}),
       ...(catalogAction.get(use.action)?.gcd ? { gcd: true } : {}),
     }));
-  // A use comes before the hits it's for.
-  return [...uses, ...asPlayed(plan, timeline, playerId, catalog), ...hits].sort((a, b) => a.at - b.at);
+  // A use comes before the hits it's for; every oGCD after a GCD.
+  const entries = [...uses, ...asPlayed(plan, timeline, playerId, catalog), ...hits];
+  if (!catalog) return entries.sort((a, b) => a.at - b.at);
+  const casts = timeline.playerCasts.filter((c) => c.source === playerId);
+  return withStandInGcds(entries, usualAttack(casts, catalogAction));
 }
 
 // Where a hit's damage was estimated from, when it was.

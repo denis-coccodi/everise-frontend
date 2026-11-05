@@ -1,5 +1,5 @@
 import { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
-import type { Plan, PlannedUse } from '@everise/planner/scheduler';
+import { gcdCasts, type Plan, type PlannedUse } from '@everise/planner/scheduler';
 import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
@@ -40,6 +40,7 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const plannedGcds = mine.filter((u) => byId.get(u.action)?.gcd).map((u) => u.at);
   const slotTaken = (at: number) => plannedGcds.some((t) => Math.abs(t - at) < SAME_GCD_MS);
   const filler = usualAttack(casts, byId);
+  const gcd = gcdCasts(casts, byId);
   const entry = (c: (typeof casts)[number], action: CatalogAction | undefined, kept: string): PlanUseEntry => ({
     kind: 'use',
     at: c.at,
@@ -51,9 +52,9 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
     damage: false,
     overcap: false,
     kept,
-    ...(action?.gcd ? { gcd: true } : {}),
+    ...(gcd(c) ? { gcd: true } : {}),
   });
-  // The plan's opener has its own steps, attacks too: theirs give way.
+  // The plan's opener has its own oGCD steps: their oGCD attacks give way.
   const openerEnd = Math.max(-Infinity, ...mine.filter((u) => u.opener).map((u) => u.at + SAME_GCD_MS));
   const out: PlanUseEntry[] = [];
   const scheduled = new Set(plan.scheduled ?? []);
@@ -76,7 +77,9 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
           : whatItDoes(c.action, action);
       out.push({ ...entry(c, action, does), ...(attack ? { attack: true } : {}), ...begun });
     } else if (attack) {
-      if (c.at <= openerEnd || (action?.gcd && slotTaken(c.at))) return;
+      // The opener's steps are oGCDs: in it their oGCD attacks give way, not
+      // their GCDs.
+      if (gcd(c) ? slotTaken(c.at) : c.at <= openerEnd) return;
       out.push({ ...entry(c, action, 'Damage'), attack: true, ...begun });
     } else if (action?.gcd && action.effects.length) {
       // A GCD heal of theirs the plan has no use for: damage there instead.
@@ -102,7 +105,7 @@ const isAttack = (cast: { action: number } | undefined, byId: Map<number, Catalo
   !!cast && onlyDamage(cast.action, byId.get(cast.action));
 
 // The damage GCD they cast most: what they'd cast in a slot the plan frees.
-function usualAttack(casts: { action: number }[], byId: Map<number, CatalogAction>) {
+export function usualAttack(casts: { action: number }[], byId: Map<number, CatalogAction>) {
   const counts = new Map<number, number>();
   for (const c of casts) {
     const action = byId.get(c.action);
