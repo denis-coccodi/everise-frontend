@@ -121,7 +121,8 @@ describe('PlanViewComponent', () => {
     );
     expect(messages(rendered.page)[0]).toBe('1 hit on Heal Main leaves less than 10% of their max HP.');
     const log = [...rendered.page.querySelectorAll('cdt-planner-pull-compare td.plan')].map((td) => td.textContent);
-    expect(log.join(' ')).toContain('Short');
+    // The hit that kills them.
+    expect(log.join(' ')).toContain('Death');
     expect(log.join(' ')).toContain('took 210,000 as played');
   });
 });

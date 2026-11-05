@@ -6,6 +6,7 @@ export { PlannerService } from './lib/planner.service';
 export { readReportLink } from './lib/report-link';
 export { pullClock, pullClockTenths } from './lib/pull-time';
 export { planLog, unsafeHits } from './lib/plan-log';
+export { deathsText } from './lib/plan-deaths-text';
 export { hpCurves, lowest, lowestPerBucket, shareAt } from './lib/hp-curves';
 export type { HpCurve, HpMark, HpPoint } from './lib/hp-curves.model';
 export { DEFAULT_MARGIN, MARGIN_RANGE, PlanStore } from './lib/plan.store';

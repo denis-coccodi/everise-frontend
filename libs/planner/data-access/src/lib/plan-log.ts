@@ -38,6 +38,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
         safe: hit.safe,
         avoidable: hit.avoidable,
         ...(m?.wipe ? { wipe: m.wipe } : {}),
+        ...(hit.fatal ? { fatal: true } : {}),
         ...(m?.hits.find((h) => h.player === hit.player)?.failed ? { failed: true } : {}),
         ...estimatedFrom(m?.hits.find((h) => h.player === hit.player)?.estimated),
         covers: hit.covers,
@@ -68,6 +69,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       ...(use.burst ? { burst: true } : {}),
       ...(use.refill ? { refill: true } : {}),
       ...(use.again ? { again: use.again } : {}),
+      ...(use.raise ? { raise: true } : {}),
       ...(catalogAction.get(use.action)?.gcd ? { gcd: true } : {}),
     }));
   // A use comes before the hits it's for; every oGCD after a GCD.

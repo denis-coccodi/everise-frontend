@@ -10,6 +10,7 @@ export type {
   PlannedHp,
   PlanOptions,
   PlannedHit,
+  PlannedDeath,
   PlannedUse,
 } from './lib/plan.model';
 export { PlannerScheduler } from './lib/planner-scheduler.service';

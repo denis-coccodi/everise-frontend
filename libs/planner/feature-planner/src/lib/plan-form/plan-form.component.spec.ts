@@ -95,9 +95,13 @@ describe('PlanFormComponent', () => {
     await planEveryone(rendered);
 
     // The scholar's 300,000 hit is more than any mitigation can bring
-    // within 90% of their 200,000 HP.
+    // within 90% of their 200,000 HP: it kills them, and with no other
+    // raiser in the party, nobody can raise them.
     expect(summary(rendered.page)).toBe(
-      '1 hit leaves less than 10% of max HP, even with everything those replanned have free.',
+      '1 hit leaves less than 10% of max HP, even with everything those replanned have free.' +
+        ' One player still dies, which nothing the plan has can prevent: Heal Main (SCH) to Killer Voice at 3:20,' +
+        ' and nobody can raise them. A death costs most of that player’s damage until they’re back, and 25% of it' +
+        ' for about 100 s after (Weakness): a DPS check likely fails.',
     );
     expect(planSide(rendered.page)).toContain('Use Reprisal');
     expect(submit(rendered.page)?.textContent?.trim()).toBe('Plan again');

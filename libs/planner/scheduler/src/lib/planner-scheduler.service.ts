@@ -1,4 +1,5 @@
 import { Service } from '@angular/core';
+import { withDeaths } from './plan-deaths';
 import { better } from './plan-score';
 import { aliveIn, MpModel, mpShortOf } from './mp';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
@@ -88,8 +89,7 @@ export class PlannerScheduler {
         edits,
       ),
     };
-    // The oGCDs that only pay with a GCD heal (Plenary Indulgence) are
-    // planned with one, by the heals, never on their own.
+    // oGCDs that only pay with a GCD heal (Plenary) are planned with one, never alone.
     const pairings = startingAt(healPairings(timeline.players, catalog, power).filter(replanned), late);
     const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
     const paired = new Set(pairings.map(key));
@@ -232,15 +232,15 @@ export class PlannerScheduler {
     const uses = [...own, ...drains, ...burst, ...rhizomata, ...thinAir].sort(
       (a, b) => a.at - b.at || a.player - b.player,
     );
-    const finalMp = mpModel(best);
-    return {
+    const plan: Plan = {
       ...best,
       replanned: [...ids, ...late.keys()],
       late: [...late.keys()],
       scheduled: [...current()],
       uses,
-      mp: finalMp.plannedMp(ids, uses),
+      mp: mpModel(best).plannedMp(ids, uses),
     };
+    return withDeaths(plan, timeline, catalog);
   }
 
   // What the plan's options offer for the tanks' invulnerabilities.

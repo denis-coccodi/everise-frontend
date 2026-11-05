@@ -28,6 +28,8 @@ export interface PlanHitEntry {
   covers: string[];
   // How hard the attack hits (null: no max HP to tell).
   severity: Severity | null;
+  // It kills them: nothing in the plan saves them (`Plan.deaths`).
+  fatal?: boolean;
 }
 
 // A mitigation, shield or heal the plan has the player use.
@@ -73,6 +75,8 @@ export interface PlanUseEntry {
   // A GCD the plan adds so the oGCD after it is woven after one, as every
   // oGCD is: the player's usual damage GCD (`withStandInGcds`).
   standIn?: boolean;
+  // A raise for a death the plan couldn't prevent, or its Swiftcast.
+  raise?: boolean;
 }
 
 export type PlanEntry = PlanHitEntry | PlanUseEntry;

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
 import { InputErrorsComponent } from '@everise/core/forms';
-import { MARGIN_RANGE, PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
+import { MARGIN_RANGE, PlanStore, PlannerStore, deathsText, pullClock, unsafeHits } from '@everise/planner/data-access';
 import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 import { PlanExportComponent } from '../plan-export/plan-export.component';
 
@@ -64,6 +64,7 @@ export class PlanFormComponent {
         ? ` ${failed} ${failed === 1 ? 'hit is a failed mechanic' : 'hits are failed mechanics'}, taken as avoided.`
         : '') +
       (covered ? ` ${covered} failed ${covered === 1 ? 'mechanic is' : 'mechanics are'} planned for anyway.` : '') +
+      deathsText(plan, this.store.pull.hasValue() ? this.store.pull.value().players : []) +
       this.restOfFight();
     // Planned again with nothing changed: said, as the plan shown stays the same.
     const again = this.plans.sameAsBefore()
