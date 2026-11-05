@@ -87,6 +87,7 @@ export function catalog(): ActionCatalog {
     dataVersion: 'test',
     builtAt: '2026-10-21T12:00:00.000Z',
     changed: [],
+    traits: [],
     actions: [
       action(17, 'Sentinel', ['PLD'], 120, [mitigation('self', 'Sentinel', 30, 15)], { level: 38 }),
       action(36920, 'Guardian', ['PLD'], 120, [mitigation('self', 'Guardian', 40, 15)], { level: 92 }),

@@ -82,6 +82,7 @@ export function actionCatalog(): ActionCatalog {
     dataVersion: 'test',
     builtAt: '2026-10-21T12:00:00.000Z',
     changed: [],
+    traits: [],
     actions: [
       action(9, 'Fast Blade', []),
       action(7531, 'Rampart', [

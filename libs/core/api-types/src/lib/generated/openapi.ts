@@ -4596,6 +4596,14 @@ export interface components {
           }[];
         }[];
       }[];
+      traits: {
+        id: number;
+        name: string;
+        level: number;
+        icon: number | null;
+        jobs: string[];
+        description: string | null;
+      }[];
       changed: {
         id: number;
         name: string;
