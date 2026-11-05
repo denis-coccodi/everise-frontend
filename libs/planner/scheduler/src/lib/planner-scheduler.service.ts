@@ -109,7 +109,9 @@ export class PlannerScheduler {
     ];
     const { healers, whms, tools: lucids } = mpTools(replannedPlayers);
     const scheduled = new Set([...mitigation.filter(replanned), ...heals, ...pairings, ...bursts, ...lucids].map(key));
-    const weaving = Weaving.of(timeline, catalog, (player, action) => scheduled.has(`${player}:${action}`), stops);
+    // Replanned from the start: their MP below; kept alive, a death leaves no gap.
+    const ids = replannedPlayers.map((p) => p.id);
+    const weaving = Weaving.of(timeline, catalog, (p, a) => scheduled.has(`${p}:${a}`), stops, ids);
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
     weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));
@@ -139,8 +141,6 @@ export class PlannerScheduler {
     // A sage's Addersgall with their Rhizomata's stacks, once planned (below).
     const bonus = new Map<number, number[]>();
     let lucid: PlannedUse[] = [];
-    // The replanned players' MP, which a heal must be affordable with.
-    const ids = replannedPlayers.map((p) => p.id);
     // Until the plan places its own Lucid Dreaming, their Lucids as played stay.
     const lucidKeys = new Set(healers.map((h) => key({ player: h, action: LUCID_DREAMING })));
     const current = () => (lucid.length ? scheduled : new Set([...scheduled].filter((k) => !lucidKeys.has(k))));

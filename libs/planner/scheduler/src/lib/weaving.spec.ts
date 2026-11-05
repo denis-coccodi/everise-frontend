@@ -1,3 +1,4 @@
+import { action, catalog, pull } from './scheduler-fixtures';
 import { Weaving } from './weaving';
 
 describe('Weaving', () => {
@@ -166,5 +167,26 @@ describe('Weaving', () => {
     expect(stopped.gcdAfter(1, 30_000, 40_000, 1500, [{ at: 30_000, gcd: true, castMs: 1500 }])).toBe(32_500);
     // Before then, their own GCDs as played still.
     expect(stopped.gcdAfter(1, 11_000, 20_000, 1500, [])).toBe(12_500);
+  });
+
+  it("keeps up a ticked player's GCDs through a death of theirs in the log, not an unticked one's", () => {
+    // Player 1, GCDs every 2.5 s to 10 s, dead at 12 s, back at 25 s.
+    const t = pull([]);
+    t.playerCasts = [0, 2_500, 5_000, 7_500, 10_000, 25_000, 27_500].map((at) => ({
+      at,
+      source: 1,
+      target: null,
+      action: 9,
+      castMs: null,
+    }));
+    t.deaths = [{ at: 12_000, player: 1, action: null, source: 13 }];
+    const c = catalog();
+    c.actions.push(action(9, 'Fast Blade', ['PLD'], 2.5, [], { gcd: true }));
+
+    const ticked = Weaving.of(t, c, () => true, undefined, [1]).gcdsBetween(1, 11_000, 24_000);
+    const unticked = Weaving.of(t, c, () => true).gcdsBetween(1, 11_000, 24_000);
+
+    expect(ticked).toEqual([12_500, 15_000, 17_500, 20_000, 22_500]);
+    expect(unticked).toEqual([]);
   });
 });
