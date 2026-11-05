@@ -10,8 +10,10 @@ const SAME_ROW_MS = 1000;
 const WEAVE_ROOM_MS = 2000;
 
 // A player's pull as played and as planned, side by side: a row per moment,
-// in time order, each side in its own order but for the plan's GCD, which
-// comes first in its row, with the oGCDs woven after it.
+// in time order, each side in time order too, as in the game: an oGCD woven
+// before the plan's GCD comes before it (Psyche, then Eukrasia; Horoscope,
+// then Macrocosmos), and the GCD first only at the same moment. A GCD's row
+// holds what's woven after it.
 export function compareLog(played: LogEntry[], planned: PlanEntry[]): CompareRow[] {
   const entries = [
     ...played.map((entry) => ({ at: entry.at, played: entry })),
@@ -35,7 +37,7 @@ export function compareLog(played: LogEntry[], planned: PlanEntry[]): CompareRow
     const hit = 'played' in entry ? entry.played : entry.planned;
     if (hit.kind === 'hit' && !row.severity) row.severity = hit.severity;
   }
-  for (const row of rows) row.planned.sort((a, b) => Number(isGcd(b)) - Number(isGcd(a)));
+  for (const row of rows) row.planned.sort((a, b) => a.at - b.at || Number(isGcd(b)) - Number(isGcd(a)));
   return rows;
 }
 
