@@ -10,8 +10,9 @@ const SAME_MECHANIC_MS = 1000;
 const FAILED_TIMES = 3;
 // More than this many times a player's max HP, no mitigation saves them.
 const UNSURVIVABLE = 3;
-// A death this soon after a hit is the hit's.
-const DEATH_MS = 2_000;
+// A death this soon after a hit is the hit's: logs have it about 2s after
+// (141 deaths in 34 ultimate kills and 29 pulls: 99 in 100 within 2.05s).
+const DEATH_MS = 3_000;
 // What lets a hit land for nothing: the tanks' invulnerabilities, and a
 // raise's Transcendent.
 const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking Dead', 'Superbolide', 'Transcendent']);
@@ -20,7 +21,8 @@ const BLOCKING = new Set(['Hallowed Ground', 'Holmgang', 'Living Dead', 'Walking
 // out damage over time ticks, auto-attacks ("Attack") and hits that did no
 // damage. A mechanic on most of the party is a raidwide; one on a tank or
 // two alone is a tank buster. A hit many times what the attack usually does
-// to a player (the median of its hits in the pull), and more than their max
+// to a player (the median of its hits in the pull, or less in other groups'
+// kills: to their role, nothing where it never hits there), and more than their max
 // HP, is a failed mechanic when it killed them or no mitigation would save
 // them (`UNSURVIVABLE` times their max HP): one they survived as played was
 // mitigated, and the plan must cover it too. A failed one is avoided when
@@ -52,14 +54,24 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
   const blocking = new Set(timeline.statuses.filter((s) => BLOCKING.has(s.name)).map((s) => s.id));
   const spared = (hit: TimelineHit) =>
     hit.hp === 0 && hit.overkill > 0 && !died(hit) && !hit.statuses.some((id) => blocking.has(id));
+  // What other groups' kills say an attack does to each role, done right:
+  // nothing to a role it never hits there.
+  const role = new Map(timeline.players.map((p) => [p.id, p.role]));
+  const kills = timeline.clearsFrom === 'kills' ? (timeline.clears ?? []) : [];
+  const inKills = referenceDamage(kills, [...usual.keys()]);
+  const usualOf = (hit: TimelineHit) => {
+    const own = usual.get(nameOf(hit)) ?? Infinity;
+    if (!kills.length) return own;
+    const ref = inKills[nameOf(hit)];
+    return Math.min(own, ref?.byRole[role.get(hit.target) ?? ''] ?? 0);
+  };
   const failed = (hit: TimelineHit) => {
     const max = maxHp.get(hit.target);
     const damage = unmitigated(hit);
-    if (!max || damage <= max || damage <= FAILED_TIMES * (usual.get(nameOf(hit)) ?? Infinity)) return false;
+    if (!max || damage <= max || damage <= FAILED_TIMES * usualOf(hit)) return false;
     return damage >= UNSURVIVABLE * max || died(hit);
   };
   // What the attack usually does to their role (else to anyone), but for failed hits.
-  const role = new Map(timeline.players.map((p) => [p.id, p.role]));
   const usualFor = (hit: TimelineHit) => {
     const fine = hits.filter((h) => nameOf(h) === nameOf(hit) && !failed(h));
     const theirs = fine.filter((h) => role.get(h.target) === role.get(hit.target));

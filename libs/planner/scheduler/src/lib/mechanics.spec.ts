@@ -220,4 +220,34 @@ describe('mechanicsOf', () => {
     });
     expect(completed.hits.some((h) => h.failed)).toBe(false);
   });
+
+  it("judges a wipe's hits by what other groups' kills say the attack does: once in the pull, or never in a kill", () => {
+    // The bard dies to Fireball once (3,000,000; the kills' bards take
+    // 150,000) and the scholar to Puddle (none of the kills has it); the
+    // paladin's 150,000 Fireball is as the kills have it.
+    const wipe = pull([
+      [10, 'Fireball', 1, 150_000],
+      [10, 'Fireball', 3, 3_000_000],
+      [20, 'Puddle', 2, 400_000],
+    ]);
+    wipe.deaths = [
+      { at: 10_500, player: 3, action: 0, source: null },
+      { at: 20_500, player: 2, action: 0, source: null },
+    ];
+    const kill = pull([
+      [10, 'Fireball', 1, 150_000],
+      [10, 'Fireball', 3, 150_000],
+    ]);
+
+    const marked = (t: Parameters<typeof mechanicsOf>[0]) =>
+      mechanicsOf(t).flatMap((m) => m.hits.filter((h) => h.failed).map((h) => [m.name, h.player]));
+
+    expect(marked({ ...wipe, clears: [kill], clearsFrom: 'kills' })).toEqual([
+      ['Fireball', 3],
+      ['Puddle', 2],
+    ]);
+    // Without kills (or with the report's own later pulls), the pull alone.
+    expect(marked(wipe)).toEqual([]);
+    expect(marked({ ...wipe, clears: [kill], clearsFrom: 'report' })).toEqual([]);
+  });
 });
