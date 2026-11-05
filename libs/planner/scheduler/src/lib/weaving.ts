@@ -1,6 +1,7 @@
 import { ActionCatalog, PullTimeline, TimelineAura } from '@everise/core/api-types';
 import { EUKRASIA, EUKRASIA_MS } from './tools';
 import type { GcdCast, Occupied } from './weaving.model';
+import { withRhythm } from './weaving-rhythm';
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
 // round trip to the server. Two fit after an instant GCD of 2.5s, one after
@@ -55,6 +56,8 @@ export class Weaving {
     castOf = new Map<number, number>(),
     auras: TimelineAura[] = [],
     private readonly freeFrom = new Map<number, number>(),
+    downtime: { from: number; to: number }[] = [],
+    deaths: { at: number; player: number }[] = [],
   ) {
     const lightspeed = auras.filter((a) => a.status === LIGHTSPEED && a.target === a.source);
     // A Eukrasia and the GCD it augments are one GCD slot, at the Eukrasia.
@@ -76,13 +79,15 @@ export class Weaving {
         push(this.gcds, cast.source, { at: cast.at, castMs, fullMs, ...flags });
       } else if (!planned(cast.source, cast.action)) push(this.kept, cast.source, cast.at);
     }
-    for (const list of this.gcds.values()) {
+    for (const [player, list] of this.gcds) {
       list.sort((a, b) => a.at - b.at);
       for (const i of landedGcds(list)) {
         list[i].landed = true;
         // Its cast was only begun before, not made instant.
         delete list[i].instant;
       }
+      const died = deaths.filter((d) => d.player === player).map((d) => d.at);
+      this.gcds.set(player, withRhythm(list, downtime, died));
     }
   }
 
@@ -99,6 +104,8 @@ export class Weaving {
       new Map(catalog.actions.map((a) => [a.id, a.castMs])),
       timeline.auras,
       freeFrom,
+      timeline.downtime ?? [],
+      timeline.deaths,
     );
   }
 

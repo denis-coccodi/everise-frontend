@@ -5481,6 +5481,10 @@ export interface components {
         name: string;
         intermission: boolean;
       }[];
+      downtime: {
+        from: number;
+        to: number;
+      }[];
     };
     RegistrationResponse: components['schemas']['UserResponse'] | components['schemas']['ConfirmationResponse'];
     RelayEmbed: {

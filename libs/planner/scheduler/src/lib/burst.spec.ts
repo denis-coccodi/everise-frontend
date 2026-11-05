@@ -12,6 +12,8 @@ const timeline = (job: string) => {
   t.playerCasts = Array.from({ length: 100 }, (_, i) => 500 + i * 2500)
     .filter((at) => at < 115_000 || at >= 135_000)
     .map((at) => ({ at, source: 2, target: null, action: 9, castMs: null }));
+  // Nothing to target then: the gap stays a gap.
+  t.downtime = [{ from: 115_000, to: 135_000 }];
   return t;
 };
 const cat = () => {

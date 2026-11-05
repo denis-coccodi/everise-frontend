@@ -13,8 +13,13 @@ const MIN_GCD_MS = 2_000;
 // a stand-in comes just before it (`standIn`): the player's usual damage GCD
 // (`filler`), else a plain "GCD". Only where one fits between the GCDs
 // around it; where none does, the oGCD is a late weave after the GCD before.
-// Not in the countdown, where oGCDs come before any GCD.
-export function withStandInGcds(entries: PlanEntry[], filler: CatalogAction | undefined): PlanEntry[] {
+// Not in the countdown, where oGCDs come before any GCD, nor in downtime,
+// with nothing to hit.
+export function withStandInGcds(
+  entries: PlanEntry[],
+  filler: CatalogAction | undefined,
+  downtime: { from: number; to: number }[] = [],
+): PlanEntry[] {
   const sorted = [...entries].sort((a, b) => a.at - b.at);
   const gcds = sorted.filter(isGcd).map((e) => e.at);
   const added: PlanUseEntry[] = [];
@@ -23,6 +28,8 @@ export function withStandInGcds(entries: PlanEntry[], filler: CatalogAction | un
     if (gcds.some((at) => at <= entry.at && entry.at - at <= GCD_REACH_MS)) continue;
     const at = Math.max(0, entry.at - STAND_IN_LEAD_MS);
     if (gcds.some((g) => Math.abs(g - at) < MIN_GCD_MS)) continue;
+    // Nothing to hit while nothing can be targeted.
+    if (downtime.some((d) => d.from <= at && at <= d.to)) continue;
     gcds.push(at);
     added.push({
       kind: 'use',

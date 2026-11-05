@@ -74,7 +74,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
   const entries = [...uses, ...asPlayed(plan, timeline, playerId, catalog), ...hits];
   if (!catalog) return entries.sort((a, b) => a.at - b.at);
   const casts = timeline.playerCasts.filter((c) => c.source === playerId);
-  return withStandInGcds(entries, usualAttack(casts, catalogAction));
+  return withStandInGcds(entries, usualAttack(casts, catalogAction), timeline.downtime);
 }
 
 // Where a hit's damage was estimated from, when it was.
