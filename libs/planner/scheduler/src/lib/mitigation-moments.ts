@@ -58,3 +58,25 @@ export function pickBest(candidates: (Candidate | null)[]) {
   }
   return pick;
 }
+
+// Whether a player's own cooldown (`t`, all its effects on them: Rampart)
+// waits for a bigger hit on them within its recast, among the mechanics
+// still to plan (`pending`), rather than go to `m`. Mechanics are planned
+// by the danger to anyone, so a raidwide would take a tank's Rampart for
+// their share of it before their tank buster comes up. `weight`: how much
+// of the HP it lands on a hit takes.
+export function waitsForBigger(
+  m: Mechanic,
+  t: MitigationTool,
+  pending: Mechanic[],
+  weight: (m: Mechanic, h: MechanicHit) => number,
+) {
+  if (!t.effects.length || !t.effects.every((e) => e.target === 'self')) return false;
+  const theirs = (o: Mechanic) => o.hits.find((h) => h.player === t.player && !h.avoidable);
+  const here = theirs(m);
+  if (!here) return false;
+  return pending.some((o) => {
+    const hit = theirs(o);
+    return o !== m && !!hit && Math.abs(o.at - m.at) < t.recastMs && weight(o, hit) > weight(m, here);
+  });
+}
