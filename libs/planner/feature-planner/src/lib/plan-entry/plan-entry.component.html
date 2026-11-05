@@ -11,39 +11,45 @@
     <!-- A use for no hit: a heal on cooldown, a lily that would overcap. -->
     <p class="detail">
       {{
-        e.standIn
-          ? 'Damage: a GCD to weave the next after'
-          : e.attack
-            ? e.instead
-              ? 'Damage, in place of ' + e.instead + ' as played'
-              : e.castAt !== null && e.castAt !== undefined
-                ? 'Damage, cast in the countdown'
-                : 'Damage, as played'
-            : e.covers.length
-              ? 'For ' + e.covers.join(', ')
-              : e.damage
-                ? 'Damage: the Blood Lily is in full bloom'
-                : e.kept
-                  ? 'As played: ' + e.kept
-                  : e.opener
-                    ? 'Part of the opener'
-                    : e.burst
-                      ? 'On cooldown, for the burst windows'
-                      : e.again === 'kardia'
-                        ? 'Back where it was: Kardia stays until moved'
-                        : e.again === 'horoscope'
-                          ? 'Read again: Horoscope Helios heals now'
-                          : e.refill
-                            ? 'Addersgall is running low: one more for the heals after'
-                            : e.overcap
-                              ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
-                              : 'On cooldown, or before it would go to waste'
+        e.raise
+          ? e.target
+            ? 'A raise: the plan couldn’t keep them alive'
+            : 'Swiftcast, for the raise after it'
+          : e.standIn
+            ? 'Damage: a GCD to weave the next after'
+            : e.attack
+              ? e.instead
+                ? 'Damage, in place of ' + e.instead + ' as played'
+                : e.castAt !== null && e.castAt !== undefined
+                  ? 'Damage, cast in the countdown'
+                  : 'Damage, as played'
+              : e.covers.length
+                ? 'For ' + e.covers.join(', ')
+                : e.damage
+                  ? 'Damage: the Blood Lily is in full bloom'
+                  : e.kept
+                    ? 'As played: ' + e.kept
+                    : e.opener
+                      ? 'Part of the opener'
+                      : e.burst
+                        ? 'On cooldown, for the burst windows'
+                        : e.again === 'kardia'
+                          ? 'Back where it was: Kardia stays until moved'
+                          : e.again === 'horoscope'
+                            ? 'Read again: Horoscope Helios heals now'
+                            : e.refill
+                              ? 'Addersgall is running low: one more for the heals after'
+                              : e.overcap
+                                ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
+                                : 'On cooldown, or before it would go to waste'
       }}
     </p>
   }
   @case ('hit') {
     <p class="line">
-      <span class="label">{{ e.wipe ? 'Wipe' : e.avoidable ? 'Avoidable' : e.safe ? 'Hit' : 'Short' }}</span
+      <span class="label">{{
+        e.wipe ? 'Wipe' : e.avoidable ? 'Avoidable' : e.fatal ? 'Death' : e.safe ? 'Hit' : 'Short'
+      }}</span
       >{{ ' ' }}<strong>{{ e.action }}</strong>
     </p>
     <p class="detail">{{ detail(e) }}</p>

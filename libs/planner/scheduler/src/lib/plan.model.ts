@@ -1,4 +1,5 @@
 import type { PlanEdits } from './edits.model';
+import type { PlannedDeath } from './plan-deaths.model';
 import type { InvulnerabilityChoice } from './invulnerabilities.model';
 export type { InvulnerabilityChoice, InvulnerabilityOptions } from './invulnerabilities.model';
 import type { MpShort, PlannedMp } from './mp.model';
@@ -287,6 +288,8 @@ export interface PlannedUse {
   edited?: boolean;
   // As played, before the start of a player planned from a wipe point on.
   played?: boolean;
+  // A raise for a death the plan couldn't prevent, or its Swiftcast.
+  raise?: boolean;
 }
 
 // A hit as the plan leaves it.
@@ -311,6 +314,8 @@ export interface PlannedHit {
   avoidable: boolean;
   // The mitigations and shields the plan has up for it.
   covers: string[];
+  // The hit that kills them (`withDeaths`).
+  fatal?: boolean;
 }
 
 export interface Plan {
@@ -330,6 +335,8 @@ export interface Plan {
   scheduled?: string[];
   // Of those, the ones replanned only from a completed wipe's wipe point.
   late?: number[];
+  // The deaths the plan couldn't prevent, and their raises (`withDeaths`).
+  deaths?: PlannedDeath[];
 }
 
 // A player's HP with the plan: what it is after each change, in time order.
@@ -337,3 +344,5 @@ export interface PlannedHp {
   player: number;
   points: { at: number; hp: number }[];
 }
+
+export type { PlannedDeath };
