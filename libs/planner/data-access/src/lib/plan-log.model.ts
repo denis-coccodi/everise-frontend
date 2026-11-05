@@ -70,6 +70,9 @@ export interface PlanUseEntry {
   instead?: string;
   // When its cast began, for one begun in the countdown.
   castAt?: number | null;
+  // A GCD the plan adds so the oGCD after it is woven after one, as every
+  // oGCD is: the player's usual damage GCD (`withStandInGcds`).
+  standIn?: boolean;
 }
 
 export type PlanEntry = PlanHitEntry | PlanUseEntry;

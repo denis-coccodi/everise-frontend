@@ -21,6 +21,7 @@ export type { OpenerId, OpenerPreset } from './lib/openers.model';
 export { ENABLERS } from './lib/enablers';
 export { attackSeverity, severityOf } from './lib/severity';
 export { withAttackNames } from './lib/attack-names';
+export { gcdCasts } from './lib/gcd-casts';
 export type { Severity, SeverityTier } from './lib/severity.model';
 export { editChoices, editSlots } from './lib/edits';
 export type { EditChoice, EditSlot, PlanEdit, PlanEdits } from './lib/edits.model';

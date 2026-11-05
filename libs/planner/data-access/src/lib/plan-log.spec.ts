@@ -240,7 +240,8 @@ describe('planLog', () => {
 
     const log = planLog({ ...plan, uses: [chain], replanned: [1] }, timeline, 1, catalog);
 
-    const notAttacks = log.filter((e) => e.kind === 'use' && !e.attack);
+    // Nor the stand-in GCD it's woven after.
+    const notAttacks = log.filter((e) => e.kind === 'use' && !e.attack && !e.standIn);
     expect(notAttacks.map((e) => [e.at, e.kind === 'use' && (e.burst ?? e.kept)])).toEqual([[130_000, true]]);
   });
 
