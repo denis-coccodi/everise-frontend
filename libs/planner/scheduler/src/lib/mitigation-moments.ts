@@ -18,8 +18,18 @@ export function burstsOf(mechanics: Mechanic[]) {
   return burst;
 }
 
+// A shield or mitigation can go up in the countdown, these last seconds
+// before the pull, as top groups' do (Panhaima, Haima, Galvanize up at the
+// pull in half of 36 ultimate kills): one that needs no resource the pull
+// gives. A second a player's, a second earlier.
+const COUNTDOWN_MS = [-3_000, -4_000, -5_000, -6_000];
+
+// Whether `t` can go up in the countdown.
+export const beforePull = (t: MitigationTool) => !t.pool && !t.grantedBy;
+
 // When a use could go up for `m`: as late as it can, and earlier where its
-// window would also catch an earlier mechanic.
+// window would also catch an earlier mechanic, or in the countdown where it
+// still covers `m` then.
 export function momentsFor(m: Mechanic, t: MitigationTool, mechanics: Mechanic[]) {
   const duration = Math.min(...t.effects.map((e) => e.durationMs));
   const latest = m.at - LEAD_MS;
@@ -29,7 +39,8 @@ export function momentsFor(m: Mechanic, t: MitigationTool, mechanics: Mechanic[]
     const at = other.at - LEAD_MS;
     if (at >= earliest && at < latest) moments.add(at);
   }
-  return [...moments].filter((at) => at >= 0);
+  for (const at of beforePull(t) ? COUNTDOWN_MS : []) if (m.at - duration <= at) moments.add(at);
+  return [...moments].filter((at) => at >= 0 || COUNTDOWN_MS.includes(at));
 }
 
 // The hit of `m` the plan so far leaves taking the most of the HP it lands

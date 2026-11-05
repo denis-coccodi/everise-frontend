@@ -223,7 +223,8 @@ export class Weaving {
       .filter((g) => !g.landed && (free === undefined || g.at < free))
       .map((g) => g.at)
       .filter((t) => within(t) && !taken.has(t) && clear(t));
-    if (played.length && free === undefined) return theirs.sort(order)[0] ?? null;
+    // In the countdown, they're free to act: a GCD from their others.
+    if (played.length && free === undefined && at >= 0) return theirs.sort(order)[0] ?? null;
     const gcds = [...occupied.filter((o) => o.gcd).map((o) => o.at), ...played.map((g) => g.at)];
     const apart = (t: number) => gcds.every((g) => Math.abs(g - t) >= GCD_MS);
     // Where asked, a GCD from the others, or just after or before an oGCD.
@@ -232,7 +233,10 @@ export class Weaving {
       ...gcds.flatMap((g) => [g - GCD_MS, g + GCD_MS]),
       ...ogcds.flatMap((b) => [b.to, b.from - Math.max(castMs, INSTANT_LOCK_MS)]),
     ];
-    const freely = candidates.filter((t) => within(t) && apart(t) && clear(t) && t >= (free ?? -Infinity));
+    const countdown = (t: number) => t < 0 || !played.length || free !== undefined;
+    const freely = candidates.filter(
+      (t) => within(t) && apart(t) && clear(t) && t >= (free ?? -Infinity) && countdown(t),
+    );
     return [...theirs, ...freely].sort(order)[0] ?? null;
   }
 
