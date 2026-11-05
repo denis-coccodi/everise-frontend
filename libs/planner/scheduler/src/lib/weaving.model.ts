@@ -13,6 +13,9 @@ export interface GcdCast {
   // Instant by a buff (Swiftcast, Lightspeed...) though it has a cast time:
   // a GCD the plan puts there is instant too.
   instant?: boolean;
+  // Not played: one the plan has them press in a gap of theirs, at their
+  // rhythm (`withRhythm`).
+  filled?: boolean;
 }
 
 // An action the plan already has a player use: an oGCD takes a weave slot,

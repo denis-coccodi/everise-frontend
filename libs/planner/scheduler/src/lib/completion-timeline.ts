@@ -101,6 +101,14 @@ export function completedTimeline(
     deaths: before(wipe.deaths),
     // An Ultimate's phases: the wipe's, then the kill's it never reached.
     phases: [...before(wipe.phases), ...after(clear.phases)],
+    // When nothing could be targeted: the wipe's, then the kill's after it.
+    downtime: [
+      ...wipe.downtime.filter((d) => d.from <= from).map((d) => ({ ...d, to: Math.min(d.to, from) })),
+      ...clear.downtime
+        .map((d) => ({ from: shift(d.from), to: shift(d.to) }))
+        .filter((d) => d.to > from)
+        .map((d) => ({ ...d, from: Math.max(d.from, from) })),
+    ],
     completion: {
       from,
       clear: { code: clear.code, pullId: clear.pullId },

@@ -174,5 +174,6 @@ export function pull(
     auras: [],
     deaths: [],
     phases: [],
+    downtime: [],
   };
 }
