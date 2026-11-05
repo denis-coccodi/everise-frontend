@@ -191,6 +191,23 @@ describe('Weaving', () => {
   });
 });
 
+describe('Weaving, a GCD late', () => {
+  // Instant GCDs every 2.5s, but one 1.6s late: at 0, 2.5, 5 and 9.1s.
+  const at = (ms: number) => ({ at: ms, source: 1, target: null, action: 9, castMs: null });
+  const weaving = new Weaving([at(0), at(2_500), at(5_000), at(9_100), at(11_600)], new Map([[9, true]]));
+
+  it('leaves no more weave room after it than after one on time: two oGCDs, not four', () => {
+    const placed: { at: number; gcd: boolean; castMs: number }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const slot = weaving.ogcdAfter(1, 5_000, 9_100, placed);
+      if (slot === null) break;
+      placed.push({ at: slot, gcd: false, castMs: 0 });
+    }
+
+    expect(placed.map((o) => o.at)).toEqual([5_600, 6_300]);
+  });
+});
+
 describe('withoutFollowUps', () => {
   it("drops what the log has of a GCD's follow-up, under its name: nobody pressed it", () => {
     const cat = catalog();

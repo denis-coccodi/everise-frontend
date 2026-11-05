@@ -14,7 +14,7 @@ export type {
   PlannedUse,
 } from './lib/plan.model';
 export { PlannerScheduler } from './lib/planner-scheduler.service';
-export { landedGcds } from './lib/weaving';
+export { landedGcds, withoutFollowUps } from './lib/weaving';
 export { playerActions, pressedFirst } from './lib/tools';
 export { catalogAtLevel, pullLevel } from './lib/trait-levels';
 export { OPENERS } from './lib/openers';

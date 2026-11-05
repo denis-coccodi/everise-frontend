@@ -71,9 +71,9 @@ export function burstUses(
       .map((u) => ({ at: u.at, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 }));
     const firstGcd = weaving.gcdsBetween(p.id, 0, end)[0];
     if (firstGcd === undefined) continue;
-    // The first weave slot from `due`, at their next GCD if it's downtime;
-    // past a completed wipe's wipe point, where they have no GCDs as played,
-    // from `due` itself.
+    // The first weave slot from `due`, at their next GCD if it's downtime
+    // (past a completed wipe's wipe point, those at their rhythm); with none
+    // left, from `due` itself.
     const place = (action: number, name: string, due: number) => {
       const next = weaving.gcdsBetween(p.id, due - GCD_MS, end)[0] ?? (weaving.freeAt(p.id, due) ? due : undefined);
       const at = next === undefined ? null : weaving.ogcdAfter(p.id, Math.max(due, next), end, taken);

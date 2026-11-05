@@ -1,5 +1,5 @@
 import { ActionCatalog, CatalogAction, PullTimeline, TimelineAura } from '@everise/core/api-types';
-import { attackSeverity, catalogAtLevel, pullLevel } from '@everise/planner/scheduler';
+import { attackSeverity, catalogAtLevel, pullLevel, withoutFollowUps } from '@everise/planner/scheduler';
 import { onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import { countdownStart } from './pull-time';
@@ -51,44 +51,46 @@ export function playerLog(timeline: PullTimeline, full: ActionCatalog, playerId:
 
   // Everything they used, attacks too, so the tab shows their whole
   // rotation, as the plan's column does.
-  const uses: UseEntry[] = timeline.playerCasts
-    .filter((cast) => cast.source === playerId)
-    .map((cast): UseEntry => {
-      const action = actions.get(cast.action);
-      const attack = onlyDamage(cast.action, action) ? { attack: true } : {};
-      // One the catalog doesn't have (Umbral Draw, a combo step, a potion): the log's name.
-      if (!action) {
-        return {
-          kind: 'use',
-          at: cast.at,
-          action: actionName(cast.action),
-          target: null,
-          effects: 'attack' in attack ? 'Damage' : whatItDoes(cast.action, action),
-          ...attack,
-        };
-      }
-      const castAt = countdownStart(cast.at, cast.castMs, action.castMs);
-      // Who a single-target heal, shield or mitigation went on.
-      const targeted = action.effects.some((effect) => effect.target === 'target');
-      const target = targeted && cast.target !== null ? (playerName.get(cast.target) ?? null) : null;
+  // Their presses: not the follow-ups the log has of a GCD (Pneuma's heal).
+  const uses: UseEntry[] = withoutFollowUps(
+    timeline.playerCasts.filter((cast) => cast.source === playerId),
+    catalog,
+  ).map((cast): UseEntry => {
+    const action = actions.get(cast.action);
+    const attack = onlyDamage(cast.action, action) ? { attack: true } : {};
+    // One the catalog doesn't have (Umbral Draw, a combo step, a potion): the log's name.
+    if (!action) {
       return {
         kind: 'use',
         at: cast.at,
-        action: action.name,
-        icon: action.icon,
-        description: action.description ?? null,
-        target,
-        effects: action.effects.length
-          ? effectsText(action.effects)
-          : 'attack' in attack
-            ? castAt === null
-              ? 'Damage'
-              : 'Damage, begun in the countdown'
-            : whatItDoes(action.id, action),
-        castAt,
+        action: actionName(cast.action),
+        target: null,
+        effects: 'attack' in attack ? 'Damage' : whatItDoes(cast.action, action),
         ...attack,
       };
-    });
+    }
+    const castAt = countdownStart(cast.at, cast.castMs, action.castMs);
+    // Who a single-target heal, shield or mitigation went on.
+    const targeted = action.effects.some((effect) => effect.target === 'target');
+    const target = targeted && cast.target !== null ? (playerName.get(cast.target) ?? null) : null;
+    return {
+      kind: 'use',
+      at: cast.at,
+      action: action.name,
+      icon: action.icon,
+      description: action.description ?? null,
+      target,
+      effects: action.effects.length
+        ? effectsText(action.effects)
+        : 'attack' in attack
+          ? castAt === null
+            ? 'Damage'
+            : 'Damage, begun in the countdown'
+          : whatItDoes(action.id, action),
+      castAt,
+      ...attack,
+    };
+  });
 
   const deaths: DeathEntry[] = timeline.deaths
     .filter((death) => death.player === playerId)

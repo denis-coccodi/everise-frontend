@@ -1,5 +1,5 @@
 import { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
-import { gcdCasts, type Plan, type PlannedUse } from '@everise/planner/scheduler';
+import { gcdCasts, withoutFollowUps, type Plan, type PlannedUse } from '@everise/planner/scheduler';
 import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
@@ -35,7 +35,11 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const names = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const mine = plan.uses.filter((u) => u.player === playerId);
-  const casts = timeline.playerCasts.filter((c) => c.source === playerId).sort((a, b) => a.at - b.at);
+  // Their presses: not the follow-ups the log has of a GCD (Pneuma's heal).
+  const casts = withoutFollowUps(
+    timeline.playerCasts.filter((c) => c.source === playerId),
+    catalog,
+  );
   const replanned = !plan.replanned || plan.replanned.includes(playerId);
   const plannedGcds = mine.filter((u) => byId.get(u.action)?.gcd).map((u) => u.at);
   const slotTaken = (at: number) => plannedGcds.some((t) => Math.abs(t - at) < SAME_GCD_MS);

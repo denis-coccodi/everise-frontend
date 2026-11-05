@@ -51,7 +51,9 @@ describe('burstUses', () => {
   });
 
   it("goes on past a completed wipe's wipe point, where they have no GCDs as played", () => {
-    // Their casts stop at 100s; Chain Stratagem is due again at 126.2s and 246.2s.
+    // Their casts stop at 100s; they carry on at their rhythm. Chain
+    // Stratagem is due again at 126.2s, in the downtime: at their first GCD
+    // after it, and not again before the end.
     const t = timeline('SCH');
     t.playerCasts = t.playerCasts.filter((cast) => cast.at < 100_000);
     const c = cat();
@@ -67,10 +69,7 @@ describe('burstUses', () => {
       ).map((u) => [u.name, u.at]);
 
     expect(placed()).toEqual([]);
-    expect(placed(new Map([[2, 100_000]]))).toEqual([
-      ['Chain Stratagem', 126_200],
-      ['Chain Stratagem', 246_200],
-    ]);
+    expect(placed(new Map([[2, 100_000]]))).toEqual([['Chain Stratagem', 136_100]]);
   });
 
   it('starts it at the first GCD without an opener', () => {
