@@ -34,6 +34,12 @@ describe('compareLog', () => {
     ]);
   });
 
+  it('puts a GCD first among what the plan has at the same moment', () => {
+    const rows = compareLog([], [plannedUse(8_000, 'Assize'), { ...plannedUse(8_000, 'Afflatus Misery'), gcd: true }]);
+
+    expect(rows[0].planned.map((e) => (e.kind === 'use' ? e.action : e.kind))).toEqual(['Afflatus Misery', 'Assize']);
+  });
+
   it('starts a new row more than a second after a row starts, and keeps an empty side empty', () => {
     const rows = compareLog([used(10_000, 'A'), used(10_900, 'B'), used(11_100, 'C')], []);
 
@@ -53,7 +59,7 @@ describe('compareLog', () => {
     ]);
   });
 
-  it("keeps the plan's oGCDs in their GCD's row, the GCD first", () => {
+  it("keeps the plan's oGCDs in their GCD's row, in the order they're pressed", () => {
     const gcd = (at: number): PlanEntry => ({ kind: 'gcd', at, prepull: false, castAt: null });
     const rows = compareLog(
       [],
@@ -68,9 +74,9 @@ describe('compareLog', () => {
     );
 
     expect(rows.map((row) => row.planned.map((e) => (e.kind === 'gcd' ? 'GCD' : e.action)))).toEqual([
-      // Woven up to 2s after the Misery, though more than 1s after the row
-      // began.
-      ['Afflatus Misery', 'Assize', 'Aquaveil', 'Divine Benison'],
+      // Assize woven before the Misery; the rest up to 2s after it, though
+      // more than 1s after the row began.
+      ['Assize', 'Afflatus Misery', 'Aquaveil', 'Divine Benison'],
       ['GCD', 'Temperance'],
     ]);
   });
