@@ -109,6 +109,8 @@ export function completedTimeline(
         .filter((d) => d.to > from)
         .map((d) => ({ ...d, from: Math.max(d.from, from) })),
     ],
+    // The gauge: the wipe's, then the kill's after it.
+    limitBreakGauge: [...before(wipe.limitBreakGauge ?? []), ...after(clear.limitBreakGauge ?? [])],
     completion: {
       from,
       clear: { code: clear.code, pullId: clear.pullId },

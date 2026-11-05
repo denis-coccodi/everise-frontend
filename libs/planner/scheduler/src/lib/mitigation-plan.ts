@@ -5,6 +5,9 @@ import { AUTOMATIC } from './tools';
 import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest, waitsForBigger } from './mitigation-moments';
 import { plannedHits } from './mitigation-hits';
+import { lastResortFor } from './limit-break-plan';
+import type { GroupLimitBreak } from './limit-break-gauge.model';
+import type { PullTimeline } from '@everise/core/api-types';
 import type { PullFacts } from './coverage.model';
 import type { Candidate, Granted } from './mitigation-plan.model';
 import type { MpModel } from './mp';
@@ -39,6 +42,7 @@ export function planMitigation(
   shieldTimes?: PullFacts['shieldTimes'],
   automatic: PlannedUse[] = [],
   mp?: MpModel,
+  limitBreaks: { gauge: PullTimeline['limitBreakGauge']; played: GroupLimitBreak[] } = { gauge: [], played: [] },
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -287,6 +291,14 @@ export function planMitigation(
       add(pick);
     }
   };
+  // Where a hit would still kill, a tank's Limit Break on gauge the group had.
+  const killing = (m: Mechanic) => (h: MechanicHit) => {
+    const { damage, invulnerable } = project(m, h, uses);
+    return !invulnerable && damage >= hpOf(m, h);
+  };
+  const lethal = (m: Mechanic) => m.hits.filter(killing(m)).length;
+  const breaks = tools.filter((t) => t.limitBreak && ours(t));
+  const lastResort = lastResortFor(breaks, limitBreaks.gauge, limitBreaks.played, { uses, add, fill, lethal });
   // A player's own cooldown waits for their bigger hit still to plan.
   const pending = new Set(order);
   const weight = (m: Mechanic, h: MechanicHit) => h.unmitigated / hpOf(m, h);
@@ -306,12 +318,10 @@ export function planMitigation(
         .filter((c): c is Candidate => c !== null)
         .slice(0, 1);
     });
-    if (!saves.length) {
-      uses.push(...removed);
-      continue;
-    }
-    for (const save of saves) add(save);
-    fill(m, free);
+    if (saves.length) for (const save of saves) add(save);
+    else uses.push(...removed);
+    if (saves.length) fill(m, free);
+    lastResort(m, tried, free);
   }
   // What a cooldown waited for may not have needed it: any hit still short
   // gets every tool.

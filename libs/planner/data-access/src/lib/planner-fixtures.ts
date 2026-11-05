@@ -181,5 +181,6 @@ export function pullTimeline(): PullTimeline {
     deaths: [{ at: 200_000, player: 2, action: 45956, source: 13 }],
     phases: [],
     downtime: [],
+    limitBreakGauge: [],
   };
 }

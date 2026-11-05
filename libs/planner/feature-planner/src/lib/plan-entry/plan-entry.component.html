@@ -24,7 +24,9 @@
                   ? 'Damage, cast in the countdown'
                   : 'Damage, as played'
               : e.covers.length
-                ? 'For ' + e.covers.join(', ')
+                ? 'For ' +
+                  e.covers.join(', ') +
+                  (e.gauge ? '; nothing else saves them. Three bars were up: ' + e.gauge : '')
                 : e.damage
                   ? 'Damage: the Blood Lily is in full bloom'
                   : e.kept

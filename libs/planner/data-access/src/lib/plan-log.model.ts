@@ -77,6 +77,10 @@ export interface PlanUseEntry {
   standIn?: boolean;
   // A raise for a death the plan couldn't prevent, or its Swiftcast.
   raise?: boolean;
+  // A tank Limit Break the plan adds where nothing else saves anyone, on
+  // three bars the group had: what of theirs it takes the place of ("in
+  // place of their Dragonsong Dive at 12:53", or "gauge they never spent").
+  gauge?: string;
 }
 
 export type PlanEntry = PlanHitEntry | PlanUseEntry;
