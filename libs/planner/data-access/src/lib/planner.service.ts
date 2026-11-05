@@ -9,7 +9,7 @@ import {
   PlannerClears,
   PullTimeline,
 } from '@everise/core/api-types';
-import { referenceDamage, type ReferenceDamage } from '@everise/planner/scheduler';
+import { referenceDamage, withAttackNames, type ReferenceDamage } from '@everise/planner/scheduler';
 import {
   catchError,
   concatMap,
@@ -42,13 +42,16 @@ export class PlannerService {
     return this.api.get<FightReport>(`/planner/reports/${encodeURIComponent(code)}`, undefined, notFoundIsThePages());
   }
 
-  // Everything that happened in one of its pulls.
+  // Everything that happened in one of its pulls, its attacks named for
+  // people (auto-attacks "Attack", unnamed ones by id: `withAttackNames`).
   pull(code: string, pullId: number) {
-    return this.api.get<PullTimeline>(
-      `/planner/reports/${encodeURIComponent(code)}/pulls/${pullId}`,
-      undefined,
-      notFoundIsThePages(),
-    );
+    return this.api
+      .get<PullTimeline>(
+        `/planner/reports/${encodeURIComponent(code)}/pulls/${pullId}`,
+        undefined,
+        notFoundIsThePages(),
+      )
+      .pipe(map(withAttackNames));
   }
 
   // Several of a report's pulls, read in turn, one that won't load skipped.
