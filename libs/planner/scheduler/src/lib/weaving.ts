@@ -96,6 +96,10 @@ export class Weaving {
     catalog: ActionCatalog,
     planned: (player: number, action: number) => boolean,
     freeFrom?: Map<number, number>,
+    // The players replanned from the start, whom the plan keeps alive: their
+    // deaths in the log leave no gap. The others' stand (as played up to
+    // the log's end); a wipe's final deaths are gone from a completed one.
+    keptAlive: number[] = [],
   ) {
     return new Weaving(
       timeline.playerCasts,
@@ -105,7 +109,7 @@ export class Weaving {
       timeline.auras,
       freeFrom,
       timeline.downtime ?? [],
-      timeline.deaths,
+      timeline.deaths.filter((d) => !keptAlive.includes(d.player)),
     );
   }
 
