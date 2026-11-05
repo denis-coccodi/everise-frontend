@@ -228,7 +228,8 @@ export function planMitigation(
     let found: Candidate | null = null;
     for (const moment of momentsFor(m, t, mechanics)) {
       const at = fit(m, t, moment);
-      if (at === null || at < 0 || isAway(t, at) || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
+      const first = Math.min(0, moment - t.castMs);
+      if (at === null || at < first || isAway(t, at) || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (cutsUnion(t.action, at, (a) => timesOf(t.player, a))) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
       if (mp && !mp.affordable(t.player, t.action, at, own, drop)) continue;
