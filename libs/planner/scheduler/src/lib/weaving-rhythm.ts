@@ -16,14 +16,7 @@ const GAP_GCDS = 1.5;
 // (`deaths`). The added ones are `filled`.
 export function withRhythm(gcds: GcdCast[], downtime: { from: number; to: number }[], deaths: number[]): GcdCast[] {
   if (gcds.length < 2) return gcds;
-  const gaps = gcds
-    .slice(1)
-    .map((g, i) => g.at - gcds[i].at)
-    .filter((gap) => gap >= MIN_GCD_MS && gap <= MAX_GCD_MS)
-    .sort((a, b) => a - b);
-  const every = gaps[gaps.length >> 1] ?? USUAL_GCD_MS;
-  const casts = gcds.map((g) => g.castMs).sort((a, b) => a - b);
-  const castMs = casts[casts.length >> 1] ?? 0;
+  const { every, castMs } = rhythmOf(gcds);
   const down = (from: number, to: number) => downtime.some((d) => d.from < to && from < d.to);
   const out: GcdCast[] = [];
   gcds.forEach((g, i) => {
@@ -37,5 +30,38 @@ export function withRhythm(gcds: GcdCast[], downtime: { from: number; to: number
       out.push({ at, castMs, fullMs: castMs, filled: true });
     }
   });
+  return out;
+}
+
+// A player's rhythm: their usual GCD (skill or spell speed in it) and usual
+// cast time, from their GCDs as played.
+export function rhythmOf(gcds: GcdCast[]) {
+  const gaps = gcds
+    .slice(1)
+    .map((g, i) => g.at - gcds[i].at)
+    .filter((gap) => gap >= MIN_GCD_MS && gap <= MAX_GCD_MS)
+    .sort((a, b) => a - b);
+  const casts = gcds.map((g) => g.castMs).sort((a, b) => a - b);
+  return { every: gaps[gaps.length >> 1] ?? USUAL_GCD_MS, castMs: casts[casts.length >> 1] ?? 0 };
+}
+
+// A player's GCDs at their rhythm from where they act freely (`free`: past a
+// completed wipe's wipe point, with nobody of their job in the kill) to the
+// pull's end, but in downtime: they carry on with their rotation, so their
+// oGCDs are woven after GCDs, as always.
+export function rhythmFrom(
+  gcds: GcdCast[],
+  rhythm: { every: number; castMs: number },
+  free: number | undefined,
+  endsAt: number,
+  downtime: { from: number; to: number }[],
+): GcdCast[] {
+  if (free === undefined || !Number.isFinite(endsAt)) return [];
+  const last = [...gcds].reverse().find((g) => g.at < free)?.at ?? free - rhythm.every;
+  const out: GcdCast[] = [];
+  for (let at = last + rhythm.every; at < endsAt; at += rhythm.every) {
+    if (at < free || downtime.some((d) => d.from <= at && at <= d.to)) continue;
+    out.push({ at, castMs: rhythm.castMs, fullMs: rhythm.castMs, filled: true });
+  }
   return out;
 }

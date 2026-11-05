@@ -1,7 +1,7 @@
 import { ActionCatalog, PullTimeline, TimelineAura } from '@everise/core/api-types';
 import { EUKRASIA, EUKRASIA_MS } from './tools';
 import type { GcdCast, Occupied } from './weaving.model';
-import { withRhythm } from './weaving-rhythm';
+import { rhythmFrom, rhythmOf, withRhythm } from './weaving-rhythm';
 import { RELEASED } from './heal-tools';
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
@@ -22,6 +22,8 @@ const LIGHTSPEED_CUT_MS = 2_500;
 // How much later than Eukrasia's recast its GCD may come and still be the
 // one it augments (latency, a late press).
 const EUKRASIA_SLACK_MS = 500;
+// A GCD this much later than the player's rhythm came late.
+const LATE_SLACK_MS = 200;
 // A GCD's follow-up shows in the log this soon after it, under its name.
 const FOLLOW_UP_MS = 1_500;
 
@@ -45,6 +47,8 @@ export class Weaving {
   private readonly gcds = new Map<number, GcdCast[]>();
   private readonly kept = new Map<number, number[]>();
   private readonly fixed = new Map<number, Occupied[]>();
+  // Each player's usual GCD, as played.
+  private readonly rhythm = new Map<number, number>();
 
   // Players' casts, the GCDs among their actions, and which the plan
   // schedules; with none, everyone acts freely. `castOf` gives each
@@ -61,6 +65,7 @@ export class Weaving {
     private readonly freeFrom = new Map<number, number>(),
     downtime: { from: number; to: number }[] = [],
     deaths: { at: number; player: number }[] = [],
+    endsAt = Infinity,
   ) {
     const lightspeed = auras.filter((a) => a.status === LIGHTSPEED && a.target === a.source);
     // A Eukrasia and the GCD it augments are one GCD slot, at the Eukrasia.
@@ -90,7 +95,10 @@ export class Weaving {
         delete list[i].instant;
       }
       const died = deaths.filter((d) => d.player === player).map((d) => d.at);
-      this.gcds.set(player, withRhythm(list, downtime, died));
+      const rhythm = rhythmOf(list);
+      this.rhythm.set(player, rhythm.every);
+      const free = freeFrom.get(player);
+      this.gcds.set(player, [...withRhythm(list, downtime, died), ...rhythmFrom(list, rhythm, free, endsAt, downtime)]);
     }
   }
 
@@ -114,6 +122,7 @@ export class Weaving {
       freeFrom,
       timeline.downtime ?? [],
       timeline.deaths.filter((d) => !keptAlive.includes(d.player)),
+      timeline.durationMs,
     );
   }
 
@@ -220,7 +229,7 @@ export class Weaving {
     const played = this.gcds.get(player) ?? [];
     const taken = new Set(occupied.filter((o) => o.gcd).map((o) => o.at));
     const theirs = played
-      .filter((g) => !g.landed && (free === undefined || g.at < free))
+      .filter((g) => !g.landed && (free === undefined || g.at < free || g.filled))
       .map((g) => g.at)
       .filter((t) => within(t) && !taken.has(t) && clear(t));
     // In the countdown, they're free to act: a GCD from their others.
@@ -256,11 +265,25 @@ export class Weaving {
         .map(([at, castMs]) => ({ at, castMs, landed: false })),
     ];
     const ogcds = [...(this.kept.get(player) ?? []), ...occupied.filter((o) => !o.gcd).map((o) => o.at)];
+    // A GCD that came late leaves no more weave room than one on time: the
+    // rest is the player being slow, not free time (an oGCD always comes
+    // after a GCD, two at most). A longer gap is downtime or a death.
+    const every = this.rhythm.get(player);
+    const sorted = [...gcds].sort((a, b) => a.at - b.at);
+    const late = every
+      ? sorted.slice(1).flatMap((g, i) => {
+          const gap = g.at - sorted[i].at;
+          return gap > every + LATE_SLACK_MS && gap < 2 * every ? [{ from: sorted[i].at + every, to: g.at }] : [];
+        })
+      : [];
     return {
-      gcds: gcds.map((g) => ({
-        from: g.landed ? g.at - CAST_BAR_MS : g.at,
-        to: g.at + Math.max(g.castMs, INSTANT_LOCK_MS),
-      })),
+      gcds: [
+        ...gcds.map((g) => ({
+          from: g.landed ? g.at - CAST_BAR_MS : g.at,
+          to: g.at + Math.max(g.castMs, INSTANT_LOCK_MS),
+        })),
+        ...late,
+      ],
       ogcds: ogcds.map((at) => ({ from: at, to: at + WEAVE_MS })),
     };
   }
