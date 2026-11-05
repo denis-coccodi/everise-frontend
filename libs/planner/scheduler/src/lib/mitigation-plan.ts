@@ -3,7 +3,8 @@ import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } 
 import { cutsUnion } from './fairy-heals';
 import { AUTOMATIC } from './tools';
 import { WEAVE_MS, Weaving } from './weaving';
-import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest } from './mitigation-moments';
+import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest, waitsForBigger } from './mitigation-moments';
+import { plannedHits } from './mitigation-hits';
 import type { PullFacts } from './coverage.model';
 import type { Candidate, Granted } from './mitigation-plan.model';
 import type { MpModel } from './mp';
@@ -278,17 +279,22 @@ export function planMitigation(
   const invulnerabilities = plannable.filter(
     (t) => t.effects.some((e) => e.invulnerable) && !never.has(`${t.player}:${t.action}`),
   );
-  const fill = (m: Mechanic) => {
+  const fill = (m: Mechanic, tools = others) => {
     for (;;) {
       if (!m.hits.some(short(m))) return;
-      const pick = pickBest(others.map((t) => best(m, t, short(m))));
+      const pick = pickBest(tools.map((t) => best(m, t, short(m))));
       if (!pick) return;
       add(pick);
     }
   };
+  // A player's own cooldown waits for their bigger hit still to plan.
+  const pending = new Set(order);
+  const weight = (m: Mechanic, h: MechanicHit) => h.unmitigated / hpOf(m, h);
   for (const m of order) {
+    pending.delete(m);
     const tried = uses.length;
-    fill(m);
+    const free = others.filter((t) => !waitsForBigger(m, t, [...pending], weight));
+    fill(m, free);
     const left = m.hits.filter(short(m));
     if (!left.length) continue;
     // Placed without the uses tried, which give their weave slots back.
@@ -305,8 +311,11 @@ export function planMitigation(
       continue;
     }
     for (const save of saves) add(save);
-    fill(m);
+    fill(m, free);
   }
+  // What a cooldown waited for may not have needed it: any hit still short
+  // gets every tool.
+  for (const m of order) fill(m);
   // The oGCDs left, where they add the most margin: on the hits still
   // taking more than half of what the margin allows.
   const spare = others.filter((t) => !t.gcd);
@@ -322,27 +331,7 @@ export function planMitigation(
     }
   }
 
-  const hits = mechanics.flatMap((m) =>
-    m.hits.map((hit) => {
-      const { damage, absorbed, statuses, invulnerable } = project(m, hit, uses);
-      const hp = maxHp.get(hit.player);
-      return {
-        mechanic: m.id,
-        player: hit.player,
-        unmitigated: hit.unmitigated,
-        planned: damage,
-        asPlayed: hit.asPlayed,
-        absorbed,
-        // At full HP: the heals come after.
-        hpBefore: hp ?? null,
-        share: hp ? damage / hp : null,
-        safe: invulnerable || damage <= limit(m, hit),
-        invulnerable,
-        avoidable: hit.avoidable,
-        covers: statuses,
-      };
-    }),
-  );
+  const hits = plannedHits(mechanics, (m, h) => project(m, h, uses), limit, maxHp);
   for (const use of uses) {
     use.covers = mechanics.filter((m) => m.hits.some((h) => reaches(tool(use), use, m, h).length)).map((m) => m.id);
   }
