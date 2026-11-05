@@ -2,6 +2,7 @@ import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { pressedFirst, attackSeverity, type Plan } from '@everise/planner/scheduler';
 import { asPlayed, usualAttack } from './plan-as-played';
 import { withStandInGcds } from './plan-gcds';
+import { pullClock } from './pull-time';
 import type { PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 
 // One player's part of the plan, in time order: what to use when, and how
@@ -11,6 +12,7 @@ import type { PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanEntry[] {
   const mechanic = new Map(plan.mechanics.map((m) => [m.id, m]));
   const playerName = new Map(timeline.players.map((p) => [p.id, p.name]));
+  const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const catalogAction = new Map(catalog?.actions.map((a) => [a.id, a]));
   const maxHp = timeline.players.find((p) => p.id === playerId)?.maxHp ?? null;
   // As the pull's log has it, so both columns agree.
@@ -70,6 +72,13 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       ...(use.refill ? { refill: true } : {}),
       ...(use.again ? { again: use.again } : {}),
       ...(use.raise ? { raise: true } : {}),
+      ...(use.gauge
+        ? {
+            gauge: use.gauge.replaces
+              ? `in place of their ${actionName.get(use.gauge.replaces.action) ?? 'Limit Break'} at ${pullClock(use.gauge.replaces.at)}`
+              : 'gauge they never spent',
+          }
+        : {}),
       ...(catalogAction.get(use.action)?.gcd ? { gcd: true } : {}),
     }));
   // A use comes before the hits it's for; every oGCD after a GCD.

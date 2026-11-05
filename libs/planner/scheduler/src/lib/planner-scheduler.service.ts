@@ -12,6 +12,7 @@ import { LUCID_DREAMING, lucidTimes, lucidUse, mpTools } from './lucid';
 import { thinAirTimes, thinAirUse } from './thin-air';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
+import { groupLimitBreaks } from './limit-break-gauge';
 import { playedUses } from './played-uses';
 import { Weaving, WEAVE_MS } from './weaving';
 import { InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
@@ -117,8 +118,7 @@ export class PlannerScheduler {
     weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));
     // An astrologian's Lightspeeds go first: they make weave room.
     const lightspeed = placeLightspeed(timeline, catalog, replannedPlayers, opening, weaving, options.lightspeed);
-    // A GCD shield grows with its caster's healing potency buffs: those the
-    // plan has up when it's cast, and the rest as played.
+    // A GCD shield grows with its caster's potency buffs: the plan's, the rest as played.
     const party = timeline.players.map((p) => p.id);
     const potency = new HealingBuffs(buffs, party, timeline, new Set([...mitigation, ...heals, ...pairings].map(key)));
     const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
@@ -128,8 +128,7 @@ export class PlannerScheduler {
     const fairyPowers = new Map(
       scholars.map((s) => [s.id, fairyPower(timeline, s.id, power.get(s.id) ?? null, fairyHeal)]),
     );
-    // Seraph's Seraphic Veils, as uses of a tool the plan never orders, for
-    // their barriers.
+    // Seraph's Seraphic Veils: uses of a tool the plan never orders, for their barriers.
     const veils = mitigationTools(
       scholars,
       catalog,
@@ -159,6 +158,7 @@ export class PlannerScheduler {
         shieldTimes,
         casts,
         mp,
+        { gauge: timeline.limitBreakGauge, played: groupLimitBreaks(timeline) },
       );
       const planned = planHeals(
         { ...mitigated, uses: [...mitigated.uses.filter(notPlaced), ...placed, ...lucid] },

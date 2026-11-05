@@ -5487,6 +5487,11 @@ export interface components {
         from: number;
         to: number;
       }[];
+      limitBreakGauge: {
+        at: number;
+        value: number;
+        bars: number;
+      }[];
     };
     RegistrationResponse: components['schemas']['UserResponse'] | components['schemas']['ConfirmationResponse'];
     RelayEmbed: {

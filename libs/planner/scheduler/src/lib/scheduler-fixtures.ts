@@ -175,5 +175,6 @@ export function pull(
     deaths: [],
     phases: [],
     downtime: [],
+    limitBreakGauge: [],
   };
 }

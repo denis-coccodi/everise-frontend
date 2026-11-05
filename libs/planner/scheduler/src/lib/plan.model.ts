@@ -259,6 +259,9 @@ export interface PlannedUse {
   played?: boolean;
   // A raise for a death the plan couldn't prevent, or its Swiftcast.
   raise?: boolean;
+  // A tank's Limit Break the plan adds as a last resort, on gauge the group had:
+  // their Limit Break as played it takes the place of (null: they never spent it).
+  gauge?: { replaces: { action: number; at: number } | null };
 }
 
 // A hit as the plan leaves it.
