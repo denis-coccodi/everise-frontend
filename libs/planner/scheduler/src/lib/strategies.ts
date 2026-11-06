@@ -4,7 +4,14 @@ import type { Strategy } from './strategy.model';
 
 // The ways a pull is planned: the plain one, then the others where it still
 // lets players die.
-export const STRATEGIES: Strategy[] = [{}, { partyWaits: true }, { healsFirstNeed: true }, { tankChains: true }];
+export const STRATEGIES: Strategy[] = [
+  {},
+  { partyWaits: true },
+  { healsFirstNeed: true },
+  { tankChains: true },
+  { healersHeal: true },
+  { macrocosmos: true },
+];
 
 // Whether plan `a` is better than `b`: fewer deaths, then `better`.
 export function betterPlan(a: Plan, b: Plan, maxHp: Map<number, number>, options: PlanOptions) {
