@@ -7,6 +7,7 @@ import type { OpenerId } from './openers.model';
 import type { ToolPool } from './tool-pool.model';
 export type { ToolPool } from './tool-pool.model';
 import type { Mechanic } from './mechanic.model';
+import type { Strategy } from './strategy.model';
 export type { DamageType, Mechanic, MechanicHit } from './mechanic.model';
 
 // What the scheduler plans from and answers. Times are ms from the pull's start.
@@ -30,6 +31,8 @@ export interface PlanOptions {
   edits?: PlanEdits;
   // Failed mechanics: covered like any other hit (left out), or avoided.
   failedMechanics?: 'cover' | 'ignore';
+  // The way it's planned (`STRATEGIES`); the plain one when left out.
+  strategy?: Strategy;
 }
 
 // Favouring damage, a healer spends what would overcap on damage and keeps

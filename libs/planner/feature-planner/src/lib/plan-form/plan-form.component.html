@@ -27,7 +27,15 @@
     </cdt-field>
   }
   <button cdtButton type="submit" [disabled]="form().invalid() || plans.planning() || !plans.replan().length">
-    {{ plans.planning() ? 'Planning…' : current() ? 'Plan again' : 'Plan the pull' }}
+    {{
+      plans.planning()
+        ? 'Planning…'
+        : plans.improving()
+          ? 'Looking for a better plan…'
+          : current()
+            ? 'Plan again'
+            : 'Plan the pull'
+    }}
   </button>
 </form>
 @if (completionNote(); as note) {

@@ -3,7 +3,7 @@ import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } 
 import { cutsUnion } from './fairy-heals';
 import { AUTOMATIC } from './tools';
 import { WEAVE_MS, Weaving } from './weaving';
-import { LEAD_MS, burstsOf, momentsFor, mostEndangered, pickBest, waitsForBigger } from './mitigation-moments';
+import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, waitsForBigger } from './mitigation-moments';
 import { plannedHits } from './mitigation-hits';
 import { lastResortFor } from './limit-break-plan';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
@@ -59,10 +59,8 @@ export function planMitigation(
   const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) =>
     h.avoidable ? AVOIDED : projected(m, h, list, of, facts);
   const max = (h: MechanicHit) => maxHp.get(h.player) ?? Infinity;
-  // The earlier mechanics of each one's burst, and whether two are in one.
-  const burst = burstsOf(mechanics);
-  const sameBurst = (a: Mechanic, b: Mechanic) => burst.get(a.id) === burst.get(b.id);
-  const earlier = (m: Mechanic) => mechanics.filter((o) => o.at < m.at && sameBurst(o, m));
+  // Whether two mechanics are in one burst, and what lands just before one.
+  const { sameBurst, earlier } = chainsOf(mechanics, options.strategy?.tankChains);
   // The HP a hit lands on (an earlier plan's, with its heals), and the most
   // it may take and leave the margin. In a burst, with no earlier plan, it
   // lands on what the burst's hits before it left: there's no time to heal.
@@ -306,7 +304,7 @@ export function planMitigation(
   for (const m of order) {
     pending.delete(m);
     const tried = uses.length;
-    const free = others.filter((t) => !waitsForBigger(m, t, [...pending], weight));
+    const free = others.filter((t) => !waitsForBigger(m, t, [...pending], weight, options.strategy?.partyWaits));
     fill(m, free);
     const left = m.hits.filter(short(m));
     if (!left.length) continue;
