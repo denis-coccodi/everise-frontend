@@ -28,7 +28,7 @@ import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata
 import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
 import { upkeepCasts, withUpkeep } from './completion-upkeep';
-import { pastWipePoint } from './completion-mp';
+import { mpExtras } from './mp-extras';
 
 // Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
@@ -126,7 +126,7 @@ export class PullPlanner {
     // Their MP, and that of those planned from a completed wipe's wipe point
     // on: their heals there spend it too.
     const mpIds = [...ids, ...late.keys()];
-    const past = pastWipePoint(given, catalog, upkeep, ids, opening.uses);
+    const past = mpExtras(given, catalog, opening, upkeep, ids);
     const weaving = Weaving.of(timeline, catalog, (p, a) => scheduled.has(`${p}:${a}`), stops, ids);
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });

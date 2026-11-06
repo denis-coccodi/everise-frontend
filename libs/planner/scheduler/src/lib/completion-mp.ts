@@ -1,10 +1,5 @@
 import type { ActionCatalog, PullTimeline, TimelineCast, TimelinePlayer } from '@everise/core/api-types';
-import { upkeepCasts } from './completion-upkeep';
-import { LUCID_DREAMING } from './lucid';
 import { TICK_MS, tickOf } from './mp';
-import type { PastWipePoint } from './mp.model';
-import type { PlannedUse } from './plan.model';
-import type { ReferencedTimeline } from './reference-damage.model';
 
 // A player acting this long after a death was raised.
 const RAISED_MS = 1_000;
@@ -75,34 +70,10 @@ export function mpPastWipePoint(
   return { mp: readings, casts };
 }
 
-// What the MP model makes up past a completed wipe's wipe point, where no
-// log has the players' MP: the upkeep of those planned from there
-// (`upkeep`); for those replanned from the start (`fromStart`), what their
-// plan already has there that gives MP (`planned`: a scholar's opener
-// Aetherflows) and a Lucid Dreaming each minute until the plan places its
-// own; and each player's damage spells' MP a GCD (their pace before it).
-export function pastWipePoint(
-  timeline: ReferencedTimeline,
-  catalog: ActionCatalog,
-  upkeep: TimelineCast[],
-  fromStart: number[],
-  planned: PlannedUse[],
-): PastWipePoint {
-  const from = timeline.completion?.from;
-  if (from === undefined) return { from: Infinity, unlogged: [], perGcd: new Map() };
-  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-  const gives = (action: number) => !!byId.get(action)?.effects.some((e) => e.kind === 'mp' || e.kind === 'mpRegen');
-  const own = planned
-    .filter((u) => u.at > from && fromStart.includes(u.player) && gives(u.action))
-    .map((u) => ({ at: u.at, source: u.player, target: null, action: u.action, castMs: null }));
-  const theirs = new Map(fromStart.map((p) => [p, from]));
-  const lucids = upkeepCasts(timeline, theirs, catalog).filter((c) => c.action === LUCID_DREAMING);
-  const pace = (p: TimelinePlayer) => (p.maxMp ? ownPace(timeline, p, from, catalog, p.maxMp).perGcd : 0);
-  return {
-    from,
-    unlogged: [...upkeep, ...own, ...lucids],
-    perGcd: new Map(timeline.players.map((p) => [p.id, pace(p)])),
-  };
+// What a player's GCDs cost them on average up to `until`, in damage
+// spells' MP less what their attacks give back (`mpPastWipePoint`'s pace).
+export function damageMpPerGcd(wipe: PullTimeline, player: TimelinePlayer, until: number, catalog: ActionCatalog) {
+  return player.maxMp ? ownPace(wipe, player, until, catalog, player.maxMp).perGcd : 0;
 }
 
 // From a player's casts up to `until`: what their GCDs cost them on
