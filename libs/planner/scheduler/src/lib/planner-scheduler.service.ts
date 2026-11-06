@@ -1,6 +1,6 @@
 import { Service } from '@angular/core';
 import { withDeaths } from './plan-deaths';
-import { better } from './plan-score';
+import { atLowestHp, better } from './plan-score';
 import { aliveIn, MpModel, mpShortOf } from './mp';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
@@ -38,9 +38,9 @@ export class PlannerScheduler {
   // The party's mitigations and shields over the pull, then the healers'
   // heals, every hit left the margin of the player's HP where the party's
   // cooldowns allow. The mitigations are planned first as if every hit
-  // landed at full HP; where a hit is still short, again around the HP the
-  // heals leave it, then the heals again, as long as that makes the plan
-  // better. Only the players `asked` to replan are planned, with their
+  // landed at full HP; where a hit is still short, again around the lowest
+  // HP any round's heals left it, then the heals again, the best plan kept.
+  // Only the players `asked` to replan are planned, with their
   // edits; the others as they played.
   plan(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     // The actions as the pull's level has them (its traits).
@@ -180,10 +180,10 @@ export class PlannerScheduler {
     // The fairy's heals from the plan's own HP replace hers as played,
     // whichever plan comes out better.
     if (scholars.length) best = once(best);
-    for (let round = 1; round < ROUNDS && best.hits.some((h) => !h.safe); round++) {
-      const next = once(best);
-      if (!better(next, best, maxHp, options)) break;
-      best = next;
+    const lowest = new Map<string, number>();
+    for (let round = 1, last = best; round < ROUNDS && best.hits.some((h) => !h.safe); round++) {
+      last = once(atLowestHp(last, lowest));
+      if (better(last, best, maxHp, options)) best = last;
     }
     // A replanned sage uses Rhizomata where the plan's heals leave their
     // Addersgall low; the heals are planned again with its stacks, unless
