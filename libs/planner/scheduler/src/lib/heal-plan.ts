@@ -4,11 +4,11 @@ import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
-import { best, better, kardiaBack, waitsForBiggerNeed } from './heal-candidates';
+import { NO_ROOM_MS, best, better, kardiaBack, waitsForBiggerNeed } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { walkingDeads } from './walking-dead';
-import { Weaving } from './weaving';
+import { WEAVE_MS, Weaving } from './weaving';
 import { naturalRegen, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
@@ -28,10 +28,10 @@ import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
-// Mechanics this close together are healed for at once: there's no time to
-// heal between them. A second is time for an oGCD heal (a burst's hits come
-// about that far apart).
-const GAP_MS = 1000;
+// Mechanics this close together are healed for at once, before the first:
+// between them there's no room for a heal (one landing a second after a
+// hit and half a second before the next) in a weave slot. A burst's hits,
+// a second apart, are healed for before it.
 // How soon after its Helios lands Horoscope is read at the latest.
 const READ_MS = 5_000;
 // The heals planned for one mechanic, at most.
@@ -182,7 +182,7 @@ export function planHeals(
 
   for (const m of mechanics) {
     // Healing from after the last mechanic there was time to heal after.
-    const anchor = mechanics.filter((o) => o.at <= m.at - GAP_MS).at(-1)?.at ?? -1;
+    const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS).at(-1)?.at ?? -1;
     // A hit an invulnerability is up for needs no healing for.
     const checkpoints = m.hits
       .filter((h) => !invulnerable.has(`${m.id}:${h.player}`))
