@@ -2,7 +2,7 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
-import { STRATEGIES, type ReferencedTimeline, type Strategy } from '@everise/planner/scheduler';
+import { STOPPED, STRATEGIES, type ReferencedTimeline, type Strategy } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import type { FailedMechanics, PlanPlayer } from './plan.model';
 import { refinePlans } from './plan-refine';
@@ -13,9 +13,6 @@ import { characterKey, saveReplan, storedReplan } from './plan-replan';
 export const DEFAULT_MARGIN = 10;
 export const MARGIN_RANGE = { min: 0, max: 50 };
 
-// Long enough for the browser to draw "Planning…" before the work starts.
-const PAINT_MS = 50;
-const paint = () => new Promise((drawn) => setTimeout(drawn, PAINT_MS));
 // Whether two plans have the same uses and hits.
 const samePlan = (a: Plan, b: Plan) => JSON.stringify([a.uses, a.hits]) === JSON.stringify([b.uses, b.hits]);
 
@@ -88,6 +85,7 @@ export const PlanStore = signalStore(
     _scheduler: injectAsync(() => import('@everise/planner/scheduler').then((m) => m.PlannerScheduler), {
       prefetch: onIdle,
     }),
+    _pool: injectAsync(() => import('@everise/planner/scheduler').then((m) => m.PlanPool), { prefetch: onIdle }),
   })),
   withMethods((store) => {
     // Who to replan, remembered for the next reports.
@@ -109,11 +107,12 @@ export const PlanStore = signalStore(
     // are tried after it, a better one shown when found.
     const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
       const runId = ++runs;
+      const latest = () => runId === runs;
       patchState(store, { planning: true, improving: false, error: '', editWarning: '', sameAsBefore: false });
-      // Planning holds the page for a few seconds: "Planning…" is drawn first.
-      await paint();
       try {
-        const scheduler = await store._scheduler();
+        // Planned in workers, off the page; an older run's plans are dropped.
+        const pool = await store._pool();
+        pool.stop();
         const options = {
           margin: store.margin() / 100,
           failedMechanics: store.failedMechanics(),
@@ -124,24 +123,30 @@ export const PlanStore = signalStore(
         const edits = store.edits();
         const edited = edits.added.length + edits.removed.length > 0;
         // The plan with the edits, and the one without (kept while its options stay), made one way.
-        const planWith = (strategy: Strategy) => {
-          const plan = scheduler.plan(timeline, catalog, { ...options, edits, strategy });
+        const planWith = async (strategy: Strategy) => {
           const baseKey = JSON.stringify({ pullId, ...options, strategy });
           const kept = store.baseKey() === baseKey ? store.basePlan() : null;
-          const basePlan = !edited ? plan : (kept ?? scheduler.plan(timeline, catalog, { ...options, strategy }));
+          const [plan, base] = await Promise.all([
+            pool.plan(timeline, catalog, { ...options, edits, strategy }),
+            edited ? (kept ?? pool.plan(timeline, catalog, { ...options, strategy })) : null,
+          ]);
+          const basePlan = base ?? plan;
           return { plan, basePlan, baseKey, editWarning: edited ? editWarningFor(basePlan, plan) : '' };
         };
-        const first = planWith(STRATEGIES[0]);
+        const first = await planWith(STRATEGIES[0]);
+        if (!latest()) return;
         const before = store.pullId() === pullId ? store.plan() : null;
         const sameAsBefore = !!before && samePlan(before, first.plan);
         const improving = !!first.plan.deaths?.length;
         patchState(store, { ...first, timeline, pullId, planning: false, sameAsBefore, improving });
         const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp ?? 0]));
-        const latest = () => runId === runs;
-        await refinePlans(first, planWith, (best) => patchState(store, best), latest, { ...options, maxHp }, paint);
-        if (latest()) patchState(store, { improving: false });
-      } catch {
-        patchState(store, { planning: false, error: LOAD_ERROR });
+        await refinePlans(first, planWith, (best) => patchState(store, best), latest, { ...options, maxHp });
+        if (!latest()) return;
+        // Those still being made when nobody died any more aren't needed.
+        pool.stop();
+        patchState(store, { improving: false });
+      } catch (e) {
+        if (e !== STOPPED && latest()) patchState(store, { planning: false, improving: false, error: LOAD_ERROR });
       }
     };
     // An edit, saved for the pull, then the plan again.
