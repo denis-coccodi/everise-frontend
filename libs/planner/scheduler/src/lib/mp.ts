@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { MpShort, PastWipePoint, PlannedMp } from './mp.model';
+import type { MpExtras, MpShort, PlannedMp } from './mp.model';
 import type { Plan } from './plan.model';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 
@@ -20,8 +20,10 @@ type Own = {
   undone: Change[];
   edges: Change[];
   dead: { from: number; to: number }[];
-  // "action:at" of their unlogged casts (`PastWipePoint`), counted once.
+  // "action:at" of their unlogged casts (`MpExtras`), counted once; the
+  // actions of their fixed ones, the plan's uses of which are left out.
   unlogged: Set<string>;
+  fixed: Set<number>;
 };
 
 interface Change {
@@ -56,7 +58,7 @@ export class MpModel {
     replanned: number[],
     scheduled: Set<string>,
     alive: (player: number, at: number) => boolean = () => false,
-    past: PastWipePoint = { from: Infinity, unlogged: [], perGcd: new Map() },
+    past: MpExtras = { from: Infinity, fixed: [], unlogged: [], perGcd: new Map() },
   ) {
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const players = new Map<number, Own>();
@@ -75,6 +77,7 @@ export class MpModel {
         edges,
         dead: [],
         unlogged: new Set(),
+        fixed: new Set(),
       });
     }
     const model = new MpModel(players, (action, player, at) => {
@@ -101,6 +104,13 @@ export class MpModel {
       const now = gain - a.mpCost + freed;
       return [...(now ? [{ at, mp: now }] : []), ...ticks];
     });
+    // The plan's uses known before it plans, throughout.
+    for (const cast of past.fixed) {
+      const own = players.get(cast.source);
+      if (!own) continue;
+      own.undone.push(...model.changesOf(cast.action, cast.source, cast.at));
+      own.fixed.add(cast.action);
+    }
     // What the casts the log's MP doesn't have do, on top.
     const added = new Set(past.unlogged);
     for (const cast of added) {
@@ -202,9 +212,9 @@ export class MpModel {
   // planned Thin Air costs nothing.
   private planned(player: number, uses: { action: number; at: number }[]): Change[] {
     let thinAir = -Infinity;
-    const counted = this.players.get(player)?.unlogged;
+    const own = this.players.get(player);
     return uses
-      .filter((u) => !counted?.has(`${u.action}:${u.at}`))
+      .filter((u) => !own?.unlogged.has(`${u.action}:${u.at}`) && !own?.fixed.has(u.action))
       .sort((a, b) => a.at - b.at)
       .flatMap((u) => {
         if (u.action === THIN_AIR) thinAir = u.at;
