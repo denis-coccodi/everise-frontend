@@ -1,4 +1,5 @@
 import { PullTimeline } from '@everise/core/api-types';
+import { combinedShares } from './combined-hots';
 import { TICK_MS } from './heal-tools';
 import { isMechanicHit } from './mechanics';
 import { HealTool, Mechanic, PlannedHit, PlannedUse } from './plan.model';
@@ -51,6 +52,10 @@ export function pullEvents(
       if (e.status) own.add(`${t.player}:status ${e.status}`);
     }
   }
+  // A merged tick ("Combined HoTs"): the share of the heals over time the plan doesn't replace.
+  const planned = (source: number, status: number) =>
+    own.has(`${source}:status ${status}`) || own.has(`${source}:status ${statusName.get(status)}`);
+  const shares = combinedShares(timeline, planned);
   for (const heal of timeline.heals) {
     // No source: the Limit Break (a raise), or ticks no healer was credited.
     if (heal.source === null || heal.action === NATURAL_REGEN) continue;
@@ -64,7 +69,8 @@ export function pullEvents(
         : []),
     ];
     if (keys.some((k) => own.has(k))) continue;
-    events.push({ at: heal.at, player: heal.target, amount: heal.amount + heal.overheal });
+    const share = shares.get(heal) ?? 1;
+    if (share > 0) events.push({ at: heal.at, player: heal.target, amount: (heal.amount + heal.overheal) * share });
   }
   return events;
 }
