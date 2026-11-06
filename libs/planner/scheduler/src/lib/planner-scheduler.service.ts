@@ -21,6 +21,7 @@ import { mitigationTools, notAutomatic, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
 import { scholarFairies } from './scholar-fairies';
+import { macrocosmosUses } from './macrocosmos';
 import { burstActions, burstUses, placeLightspeed } from './burst';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
@@ -126,6 +127,8 @@ export class PlannerScheduler {
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
     weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));
+    // An astrologian's Macrocosmos on cooldown, just before the raidwides, where the strategy says so.
+    if (asked.strategy?.macrocosmos) placed.push(...macrocosmosUses(replannedPlayers, catalog, mechanics, weaving));
     // An astrologian's Lightspeeds go first: they make weave room.
     const lightspeed = placeLightspeed(timeline, catalog, replannedPlayers, opening, weaving, options.lightspeed);
     // A GCD shield grows with its caster's potency buffs: the plan's, the rest as played.
