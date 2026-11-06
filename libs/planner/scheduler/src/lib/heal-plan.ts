@@ -93,10 +93,11 @@ export function planHeals(
     const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
     return [...own, ...movedAway(tool, use), ...bonded(tool, use, own)];
   };
-  // A heal spell in a planned Synastry's 20s heals its bond its share too.
+  // A heal spell in a Synastry's 20s (planned, or already in the plan) heals its bond its share too.
   const bonded = (tool: HealTool, use: PlannedUse, own: HpEvent[]): HpEvent[] => {
     const p = pairings.find((o) => o.bond && o.player === use.player && o.heals.includes(tool.action));
-    const bond = p && uses.find((u) => u.action === p.action && u.player === use.player && u.at <= use.at);
+    const mine = (u: PlannedUse) => p && u.action === p.action && u.player === use.player && u.at <= use.at;
+    const bond = p && (uses.find(mine) ?? plan.uses.find(mine));
     if (!p || !bond || bond.target === null || use.at > bond.at + p.withinMs || !own.length) return [];
     const lands = Math.min(...own.map((e) => e.at));
     const healed = use.target ?? use.player;
@@ -114,6 +115,7 @@ export function planHeals(
       .map((h) => ({ at: h.at, player: h.target, amount: -h.amount }));
   };
   const spent: Spent[] = [];
+  const uses: PlannedUse[] = [];
   for (const use of plan.uses) {
     const mitigationTool = mitigationOf.get(key(use));
     // A heal an opener has (Assize) counts too.
@@ -140,7 +142,6 @@ export function planHeals(
     // A mitigation that heals later (Exaltation) heals when it ends.
     if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
   }
-  const uses: PlannedUse[] = [];
   // Hits that need no healing for: under an invulnerability, or avoided.
   const invulnerable = new Set(
     plan.hits.filter((h) => h.invulnerable || h.avoidable).map((h) => `${h.mechanic}:${h.player}`),

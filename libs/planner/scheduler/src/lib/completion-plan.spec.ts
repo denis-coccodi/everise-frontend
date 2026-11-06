@@ -4,15 +4,14 @@ import { catalog, pull } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
 
 describe('late starts', () => {
-  // A wipe completed from 50s, the paladin (1) and the bard (3) with no
-  // stand-in of their job.
+  // A wipe completed from 50s.
   const completed = (): ReferencedTimeline => ({
     ...pull([]),
     playerCasts: [
       { at: 20_000, source: 1, target: 1, action: 7531, castMs: null },
       { at: 70_000, source: 1, target: 1, action: 7531, castMs: null },
     ],
-    completion: { from: 50_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [1, 3] },
+    completion: { from: 50_000, clear: { code: 'Other0000000000a', pullId: 7 } },
   });
 
   it('starts at the wipe point those not asked to be replanned from the start', () => {
@@ -24,11 +23,8 @@ describe('late starts', () => {
     expect(lateStarts(pull([]), { margin: 0.1, replan: [2] }).size).toBe(0);
   });
 
-  it('stops the GCDs as played at the wipe point of everyone without a stand-in, replanned from the start or not', () => {
-    expect([...castsStopAt(completed())]).toEqual([
-      [1, 50_000],
-      [3, 50_000],
-    ]);
+  it('stops the GCDs as played at the wipe point of everyone, replanned from the start or not', () => {
+    expect([...castsStopAt(completed())].map(([, at]) => at)).toEqual(completed().players.map(() => 50_000));
     expect(castsStopAt(pull([])).size).toBe(0);
   });
 

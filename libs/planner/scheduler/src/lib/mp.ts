@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { MpShort, PlannedMp } from './mp.model';
+import type { MpShort, PastWipePoint, PlannedMp } from './mp.model';
 import type { Plan } from './plan.model';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 
@@ -20,6 +20,8 @@ type Own = {
   undone: Change[];
   edges: Change[];
   dead: { from: number; to: number }[];
+  // "action:at" of their unlogged casts (`PastWipePoint`), counted once.
+  unlogged: Set<string>;
 };
 
 interface Change {
@@ -46,13 +48,15 @@ export class MpModel {
 
   // `scheduled`: the plan's player:action keys, whose uses as played it
   // replaces. `alive`: whether the plan keeps a player alive at a moment
-  // they died as played (left out, it doesn't).
+  // they died as played (left out, it doesn't). `past`: what's made up
+  // past a completed wipe's wipe point.
   static of(
     timeline: PullTimeline,
     catalog: ActionCatalog,
     replanned: number[],
     scheduled: Set<string>,
     alive: (player: number, at: number) => boolean = () => false,
+    past: PastWipePoint = { from: Infinity, unlogged: [], perGcd: new Map() },
   ) {
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const players = new Map<number, Own>();
@@ -63,7 +67,15 @@ export class MpModel {
         .filter((c) => c.source === p.id && EDGES.has(c.action))
         .map((c) => ({ at: c.at, mp: byId.get(c.action)?.mpCost ?? 0 }))
         .filter((e) => e.mp && paid(p.mp, e));
-      players.set(p.id, { logged: p.mp, max: p.maxMp, tick: tickOf(p.mp), undone: [], edges, dead: [] });
+      players.set(p.id, {
+        logged: p.mp,
+        max: p.maxMp,
+        tick: tickOf(p.mp),
+        undone: [],
+        edges,
+        dead: [],
+        unlogged: new Set(),
+      });
     }
     const model = new MpModel(players, (action, player, at) => {
       const a = byId.get(action);
@@ -84,9 +96,19 @@ export class MpModel {
             mp: (e.potency ?? 0) * 10,
           })),
         );
-      const now = gain - a.mpCost;
+      // Past the wipe point, a GCD takes a damage spell's place, and its MP.
+      const freed = a.gcd && at > past.from ? (past.perGcd.get(player) ?? 0) : 0;
+      const now = gain - a.mpCost + freed;
       return [...(now ? [{ at, mp: now }] : []), ...ticks];
     });
+    // What the casts the log's MP doesn't have do, on top.
+    const added = new Set(past.unlogged);
+    for (const cast of added) {
+      const own = players.get(cast.source);
+      if (!own || scheduled.has(`${cast.source}:${cast.action}`)) continue;
+      own.undone.push(...model.changesOf(cast.action, cast.source, cast.at));
+      own.unlogged.add(`${cast.action}:${cast.at}`);
+    }
     // Undone: what the played uses did, the other way. A spell a played
     // Thin Air made free cost nothing to give back.
     const thinAir = new Map<number, number>();
@@ -97,7 +119,7 @@ export class MpModel {
       const a = byId.get(cast.action);
       const free = !!a?.mpCost && cast.at - (thinAir.get(cast.source) ?? -Infinity) <= THIN_AIR_MS;
       if (free) thinAir.delete(cast.source);
-      if (!scheduled.has(`${cast.source}:${cast.action}`)) continue;
+      if (!scheduled.has(`${cast.source}:${cast.action}`) || added.has(cast)) continue;
       const changes = model.changesOf(cast.action, cast.source, cast.at);
       const undone = changes.map((c) => ({ at: c.at, mp: -c.mp - (free && c.at === cast.at ? (a?.mpCost ?? 0) : 0) }));
       own.undone.push(...undone.filter((c) => c.mp !== 0));
@@ -180,7 +202,9 @@ export class MpModel {
   // planned Thin Air costs nothing.
   private planned(player: number, uses: { action: number; at: number }[]): Change[] {
     let thinAir = -Infinity;
-    return [...uses]
+    const counted = this.players.get(player)?.unlogged;
+    return uses
+      .filter((u) => !counted?.has(`${u.action}:${u.at}`))
       .sort((a, b) => a.at - b.at)
       .flatMap((u) => {
         if (u.action === THIN_AIR) thinAir = u.at;

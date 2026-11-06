@@ -16,18 +16,24 @@ const MIN_EVERY_MS = 10_000;
 // A tooltip that starts like this is an attack's.
 const ATTACK = /^(Deals|Delivers)\b/;
 
-// The players a completed wipe plans only from its wipe point (`late`: no
-// stand-in of their job in the kill, not asked to be replanned from the
-// start) keep playing their job past it: each oGCD they used before it
-// that neither heals, mitigates nor attacks (a raid buff, Aetherflow,
-// Dissipation, Lucid Dreaming, Thin Air) again on cooldown, from their
+// The players a completed wipe plans only from its wipe point (`late`: not
+// asked to be replanned from the pull's start) keep playing their job
+// past it: each oGCD they used before it that neither heals, mitigates
+// nor attacks (a raid buff, Aetherflow, Dissipation, Lucid Dreaming, Thin
+// Air) again on cooldown, from their
 // last use to the end; an astrologian's draws in turn 55 seconds apart; a
 // healer's Lucid Dreaming each minute: as played, where the log has none
 // (a scholar's Aetherflow brings its stacks so).
-export function withUpkeep(timeline: PullTimeline, late: Map<number, number>, catalog: ActionCatalog): PullTimeline {
-  if (!late.size) return timeline;
-  const added = [...late].flatMap(([player, from]) => upkeepOf(timeline, player, from, catalog));
-  return { ...timeline, playerCasts: [...timeline.playerCasts, ...added].sort((a, b) => a.at - b.at) };
+// The log's MP has none of what they give (Lucid Dreaming, an
+// astrologian's draws): the MP model adds it (`MpModel.of`'s `unlogged`).
+export function upkeepCasts(timeline: PullTimeline, late: Map<number, number>, catalog: ActionCatalog) {
+  return [...late].flatMap(([player, from]) => upkeepOf(timeline, player, from, catalog));
+}
+
+// The timeline with those casts (`upkeepCasts`) as if logged.
+export function withUpkeep(timeline: PullTimeline, upkeep: TimelineCast[]): PullTimeline {
+  if (!upkeep.length) return timeline;
+  return { ...timeline, playerCasts: [...timeline.playerCasts, ...upkeep].sort((a, b) => a.at - b.at) };
 }
 
 function upkeepOf(timeline: PullTimeline, player: number, from: number, catalog: ActionCatalog): TimelineCast[] {

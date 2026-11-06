@@ -1,5 +1,5 @@
 import { MpModel, mpShortOf } from './mp';
-import { action, catalog, pull } from './scheduler-fixtures';
+import { action, catalog, heal, pull } from './scheduler-fixtures';
 import { Plan } from './plan.model';
 
 const PHYSICK = 190;
@@ -166,5 +166,57 @@ describe("a replanned healer's MP", () => {
     expect(alive.curve(2, []).at(-1)?.mp).toBe(8_000);
     // No drop to 0 where the log shows them gone, not even for a moment.
     expect(alive.curve(2, []).map((c) => c.mp)).not.toContain(0);
+  });
+});
+
+describe("MP past a completed wipe's wipe point", () => {
+  const AETHERFLOW = 166;
+  // The scholar (2) at 5,000 from 0s to 60s, the wipe point at 10s:
+  // Aetherflow gives 1,000 there (unlogged), their damage spells 400 a GCD.
+  function past(scheduled = new Set<string>()) {
+    const timeline = pull([]);
+    timeline.playerCasts = [];
+    timeline.players = timeline.players.map((p) =>
+      p.id === 2 ? { ...p, maxMp: 10_000, mp: [0, 30, 60].map((s) => ({ at: s * 1000, mp: 5_000 })) } : p,
+    );
+    const c = catalog();
+    c.actions = c.actions.map((a) => (a.id === ADLOQUIUM ? { ...a, mpCost: 900 } : a));
+    c.actions.push(action(AETHERFLOW, 'Aetherflow', ['SCH'], 60, [{ ...heal(0), kind: 'mp', potency: 1_000 }]));
+    const unlogged = [{ at: 20_000, source: 2, target: null, action: AETHERFLOW, castMs: null }];
+    const mp = MpModel.of(timeline, c, [2], scheduled, undefined, {
+      from: 10_000,
+      unlogged,
+      perGcd: new Map([[2, 400]]),
+    });
+    return mp;
+  }
+
+  it('adds what a cast the log has no MP for gives, once, even where the plan has it too', () => {
+    const aetherflow = { action: AETHERFLOW, at: 20_000 };
+
+    expect(past().curve(2, []).at(-1)?.mp).toBe(6_000);
+    expect(past().curve(2, [aetherflow]).at(-1)?.mp).toBe(6_000);
+  });
+
+  it('leaves it out where the plan schedules its own, which then counts', () => {
+    const mp = past(new Set([`2:${AETHERFLOW}`]));
+
+    expect(mp.curve(2, []).at(-1)?.mp).toBe(5_000);
+    expect(mp.curve(2, [{ action: AETHERFLOW, at: 40_000 }]).at(-1)?.mp).toBe(6_000);
+  });
+
+  it('charges a GCD there less the damage spell it takes the place of', () => {
+    // Adloquium's 900 less the 400 its slot's damage spell would have cost;
+    // before the wipe point, all of it.
+    expect(
+      past()
+        .curve(2, [{ action: ADLOQUIUM, at: 25_000 }])
+        .at(-1)?.mp,
+    ).toBe(5_500);
+    expect(
+      past()
+        .curve(2, [{ action: ADLOQUIUM, at: 5_000 }])
+        .at(-1)?.mp,
+    ).toBeLessThan(5_200);
   });
 });

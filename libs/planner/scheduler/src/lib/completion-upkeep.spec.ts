@@ -1,5 +1,5 @@
 import type { PullTimeline } from '@everise/core/api-types';
-import { withUpkeep } from './completion-upkeep';
+import { upkeepCasts, withUpkeep } from './completion-upkeep';
 import { action, catalog, pull } from './scheduler-fixtures';
 
 // The scholar (2) with Aetherflow (60 s) at 10 s and Chain Stratagem (120 s)
@@ -26,7 +26,7 @@ const added = (t: PullTimeline) => t.playerCasts.filter((c) => c.at > 100_000).m
 
 describe('withUpkeep', () => {
   it("keeps a late player's buffs and Aetherflow on cooldown past their start, not their heals or attacks", () => {
-    const t = withUpkeep(wiped(), new Map([[2, 100_000]]), cat());
+    const t = withUpkeep(wiped(), upkeepCasts(wiped(), new Map([[2, 100_000]]), cat()));
 
     expect(added(t)).toEqual(
       [
@@ -46,6 +46,6 @@ describe('withUpkeep', () => {
 
   it('adds nothing without late players', () => {
     const t = wiped();
-    expect(withUpkeep(t, new Map(), cat())).toBe(t);
+    expect(withUpkeep(t, upkeepCasts(t, new Map(), cat()))).toBe(t);
   });
 });

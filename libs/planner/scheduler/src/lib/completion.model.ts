@@ -26,11 +26,10 @@ export interface Progress {
 export type StandIns = Record<number, { player: number; sameJob: boolean }>;
 
 // A wipe completed from another group's kill: from `from` on, the fight is
-// the kill's (`clear`), shifted to continue the wipe. Its players of the
-// same job as their stand-in do what that one did; the others
-// (`plannedFrom`) did nothing there, so they're planned from `from` on.
+// the kill's (`clear`), shifted to continue the wipe. Its players did
+// nothing there, so each is planned from `from` on (those not asked to be
+// replanned from the pull's start).
 export interface Completion {
   from: number;
   clear: { code: string; pullId: number };
-  plannedFrom: number[];
 }

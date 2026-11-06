@@ -27,7 +27,8 @@ import { toolWindows } from './tool-windows';
 import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
-import { withUpkeep } from './completion-upkeep';
+import { upkeepCasts, withUpkeep } from './completion-upkeep';
+import { pastWipePoint } from './completion-mp';
 
 // Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
@@ -55,7 +56,8 @@ export class PullPlanner {
     // The actions as the pull's level has them (its traits).
     const catalog = catalogAtLevel(full, pullLevel(given));
     const [late, stops] = [lateStarts(given, asked), castsStopAt(given)];
-    const timeline = withUpkeep(given, late, catalog);
+    const upkeep = upkeepCasts(given, late, catalog);
+    const timeline = withUpkeep(given, upkeep);
     const maxHp = new Map(timeline.players.flatMap((p) => (p.maxHp ? [[p.id, p.maxHp] as const] : [])));
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player) || late.has(t.player);
     const edits = ownEdits(asked.edits, replanned);
@@ -121,6 +123,10 @@ export class PullPlanner {
     );
     // Replanned from the start: their MP below; kept alive, a death leaves no gap.
     const ids = replannedPlayers.map((p) => p.id);
+    // Their MP, and that of those planned from a completed wipe's wipe point
+    // on: their heals there spend it too.
+    const mpIds = [...ids, ...late.keys()];
+    const past = pastWipePoint(given, catalog, upkeep, ids, opening.uses);
     const weaving = Weaving.of(timeline, catalog, (p, a) => scheduled.has(`${p}:${a}`), stops, ids);
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
@@ -141,7 +147,7 @@ export class PullPlanner {
     // Until the plan places its own Lucid Dreaming, their Lucids as played stay.
     const lucidKeys = new Set(healers.map((h) => key({ player: h, action: LUCID_DREAMING })));
     const current = () => (lucid.length ? scheduled : new Set([...scheduled].filter((k) => !lucidKeys.has(k))));
-    const mpModel = (from?: Plan) => MpModel.of(timeline, catalog, ids, current(), from && aliveIn(from));
+    const mpModel = (from?: Plan) => MpModel.of(timeline, catalog, mpIds, current(), from && aliveIn(from), past);
     const once = (from?: Plan) => {
       const mp = mpModel(from);
       const { healing, casts } = fairy(from);
@@ -210,7 +216,7 @@ export class PullPlanner {
     // A replanned healer's Lucid Dreaming where the plan runs their MP low;
     // the heals are planned again with it, unless that comes out worse: then
     // they stay, and the Lucids (in slots they leave free, MP only) are added.
-    const low = MpModel.of(timeline, catalog, ids, scheduled, aliveIn(best));
+    const low = MpModel.of(timeline, catalog, mpIds, scheduled, aliveIn(best), past);
     const withLucid = [...best.uses, ...rhizomata];
     lucid = healers.flatMap((h) =>
       lucidTimes(h, low, withLucid, weaving, byId, timeline.durationMs).map((at) => lucidUse(h, at)),
@@ -236,7 +242,7 @@ export class PullPlanner {
       late: [...late.keys()],
       scheduled: [...current()],
       uses,
-      mp: mpModel(best).plannedMp(ids, uses),
+      mp: mpModel(best).plannedMp(mpIds, uses),
     };
     return withDeaths(plan, timeline, catalog);
   }

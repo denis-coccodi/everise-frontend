@@ -5,23 +5,22 @@ import type { ReferencedTimeline } from './reference-damage.model';
 import { MISERY } from './spare-heals';
 
 // The players a completed wipe has planned from its wipe point on, by id,
-// that moment: those with no stand-in of their job in the kill, who did
-// nothing there, unless asked to be replanned from the pull's start.
-// Everyone replanned (no `replan`): none.
+// that moment: every one not asked to be replanned from the pull's start,
+// as played before it. Everyone replanned (no `replan`): none.
 export function lateStarts(timeline: ReferencedTimeline, asked: PlanOptions): Map<number, number> {
   const { completion } = timeline;
   const replan = asked.replan;
   if (!completion || !replan) return new Map();
-  return new Map(completion.plannedFrom.filter((p) => !replan.includes(p)).map((p) => [p, completion.from]));
+  const late = timeline.players.filter((p) => !replan.includes(p.id));
+  return new Map(late.map((p) => [p.id, completion.from]));
 }
 
 // Where each player's GCDs as played stop in a completed wipe, by id: at
-// its wipe point for those with no stand-in of their job in the kill, who
-// did nothing there, replanned from the pull's start or from there. Past
-// it, their GCD heals need slots of their own (`Weaving`'s `freeFrom`).
+// its wipe point, past which nobody did anything. Past it, their GCD heals
+// need slots of their own (`Weaving`'s `freeFrom`).
 export function castsStopAt(timeline: ReferencedTimeline): Map<number, number> {
   const { completion } = timeline;
-  return new Map(completion?.plannedFrom.map((p) => [p, completion.from]) ?? []);
+  return new Map(completion ? timeline.players.map((p) => [p.id, completion.from]) : []);
 }
 
 // The tools, a late-starting player's away until their start.
