@@ -27,6 +27,23 @@ const COUNTDOWN_MS = [-3_000, -4_000, -5_000, -6_000];
 // Whether `t` can go up in the countdown.
 export const beforePull = (t: MitigationTool) => !t.pool && !t.grantedBy;
 
+// Tank busters this close one after another land on what the ones before
+// left, where the strategy says so (`tankChains`): a tank isn't healed back
+// up in between. Other hits only in a burst.
+const TANK_CHAIN_MS = 6_000;
+
+// Whether two mechanics are in one burst, and the mechanics a hit of `m`
+// lands just after: its burst's before it, and with `tankChains` for a tank
+// buster the tank busters within `TANK_CHAIN_MS` before it.
+export function chainsOf(mechanics: Mechanic[], tankChains = false) {
+  const burst = burstsOf(mechanics);
+  const sameBurst = (a: Mechanic, b: Mechanic) => burst.get(a.id) === burst.get(b.id);
+  const tanks = (o: Mechanic, m: Mechanic) =>
+    tankChains && o.kind === 'tankbuster' && m.kind === 'tankbuster' && m.at - o.at < TANK_CHAIN_MS;
+  const earlier = (m: Mechanic) => mechanics.filter((o) => o.at < m.at && (sameBurst(o, m) || tanks(o, m)));
+  return { sameBurst, earlier };
+}
+
 // When a use could go up for `m`: as late as it can, and earlier where its
 // window would also catch an earlier mechanic, or in the countdown where it
 // still covers `m` then.
@@ -70,6 +87,10 @@ export function pickBest(candidates: (Candidate | null)[]) {
   return pick;
 }
 
+// A party mitigation waits, with `partyWaits`, for a mechanic taking the
+// party this many times as much.
+const PARTY_BIGGER = 1.5;
+
 // Whether a player's own cooldown (`t`, all its effects on them: Rampart)
 // waits for a bigger hit on them within its recast, among the mechanics
 // still to plan (`pending`), rather than go to `m`. Mechanics are planned
@@ -81,7 +102,14 @@ export function waitsForBigger(
   t: MitigationTool,
   pending: Mechanic[],
   weight: (m: Mechanic, h: MechanicHit) => number,
+  partyWaits = false,
 ) {
+  // With `partyWaits`, one on the party or the enemies waits for a
+  // mechanic taking the party `PARTY_BIGGER` times as much.
+  if (partyWaits && t.effects.length && t.effects.every((e) => e.target === 'party' || e.target === 'enemies')) {
+    const party = (o: Mechanic) => o.hits.filter((h) => !h.avoidable).reduce((sum, h) => sum + weight(o, h), 0);
+    return pending.some((o) => o !== m && Math.abs(o.at - m.at) < t.recastMs && party(o) > PARTY_BIGGER * party(m));
+  }
   if (!t.effects.length || !t.effects.every((e) => e.target === 'self')) return false;
   const theirs = (o: Mechanic) => o.hits.find((h) => h.player === t.player && !h.avoidable);
   const here = theirs(m);

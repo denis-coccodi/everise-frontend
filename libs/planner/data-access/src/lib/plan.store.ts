@@ -2,24 +2,20 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { Favour, InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
-import type { ReferencedTimeline } from '@everise/planner/scheduler';
+import { STRATEGIES, type ReferencedTimeline, type Strategy } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import type { FailedMechanics, PlanPlayer } from './plan.model';
+import { refinePlans } from './plan-refine';
+import { characterKey, saveReplan, storedReplan } from './plan-replan';
 
 // The HP margin a plan starts with (percent of max HP), and the range a
 // person may set.
 export const DEFAULT_MARGIN = 10;
 export const MARGIN_RANGE = { min: 0, max: 50 };
 
-// The players last replanned, remembered in this browser so the next
-// report replans them by default (the member's own character, mostly):
-// "<name>@<server>" each, as JSON.
-const REPLAN_KEY = 'planner.replan';
-
-const characterKey = (p: { name: string; server: string | null }) => `${p.name}@${p.server ?? ''}`;
-
 // Long enough for the browser to draw "Planning…" before the work starts.
 const PAINT_MS = 50;
+const paint = () => new Promise((drawn) => setTimeout(drawn, PAINT_MS));
 // Whether two plans have the same uses and hits.
 const samePlan = (a: Plan, b: Plan) => JSON.stringify([a.uses, a.hits]) === JSON.stringify([b.uses, b.hits]);
 
@@ -58,6 +54,8 @@ interface PlanState {
   sameAsBefore: boolean;
   pullId: number | null;
   planning: boolean;
+  // Shown, and looking for a better plan made another way (`refinePlans`).
+  improving: boolean;
   error: string;
 }
 
@@ -86,6 +84,7 @@ export const PlanStore = signalStore(
     sameAsBefore: false,
     pullId: null,
     planning: false,
+    improving: false,
     error: '',
   }),
   withProps(() => ({
@@ -96,24 +95,26 @@ export const PlanStore = signalStore(
   withMethods((store) => {
     // Who to replan, remembered for the next reports.
     const replanOnly = (playerIds: number[]) => {
-      const keys = store
-        .players()
-        .filter((p) => playerIds.includes(p.id))
-        .map(characterKey);
-      try {
-        localStorage.setItem(REPLAN_KEY, JSON.stringify(keys));
-      } catch {
-        // Not remembered; it still applies to this visit.
-      }
+      saveReplan(
+        store
+          .players()
+          .filter((p) => playerIds.includes(p.id))
+          .map(characterKey),
+      );
       patchState(store, { replan: playerIds });
     };
+    // A run's number: a newer run stops an older one's looking further.
+    let runs = 0;
     // Plans the pull with the options set, and with the user's edits, says
     // what they leave short that the plan without them doesn't: a move (out
     // of one place, into another) reads as one change, whatever the steps.
+    // The plain plan shows first; where it lets players die, the other ways
+    // are tried after it, a better one shown when found.
     const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
-      patchState(store, { planning: true, error: '', editWarning: '', sameAsBefore: false });
+      const runId = ++runs;
+      patchState(store, { planning: true, improving: false, error: '', editWarning: '', sameAsBefore: false });
       // Planning holds the page for a few seconds: "Planning…" is drawn first.
-      await new Promise((drawn) => setTimeout(drawn, PAINT_MS));
+      await paint();
       try {
         const scheduler = await store._scheduler();
         const options = {
@@ -125,18 +126,24 @@ export const PlanStore = signalStore(
           openers: store.openers(),
         };
         const edits = store.edits();
-        const plan = scheduler.plan(timeline, catalog, { ...options, edits });
-        const baseKey = JSON.stringify({ pullId, ...options });
         const edited = edits.added.length + edits.removed.length > 0;
-        const basePlan = !edited
-          ? plan
-          : store.baseKey() === baseKey
-            ? store.basePlan()
-            : scheduler.plan(timeline, catalog, options);
-        const editWarning = edited ? editWarningFor(basePlan, plan) : '';
+        // The plan with the edits, and the one without (kept while its options stay), made one way.
+        const planWith = (strategy: Strategy) => {
+          const plan = scheduler.plan(timeline, catalog, { ...options, edits, strategy });
+          const baseKey = JSON.stringify({ pullId, ...options, strategy });
+          const kept = store.baseKey() === baseKey ? store.basePlan() : null;
+          const basePlan = !edited ? plan : (kept ?? scheduler.plan(timeline, catalog, { ...options, strategy }));
+          return { plan, basePlan, baseKey, editWarning: edited ? editWarningFor(basePlan, plan) : '' };
+        };
+        const first = planWith(STRATEGIES[0]);
         const before = store.pullId() === pullId ? store.plan() : null;
-        const sameAsBefore = !!before && samePlan(before, plan);
-        patchState(store, { plan, timeline, pullId, planning: false, basePlan, baseKey, editWarning, sameAsBefore });
+        const sameAsBefore = !!before && samePlan(before, first.plan);
+        const improving = !!first.plan.deaths?.length;
+        patchState(store, { ...first, timeline, pullId, planning: false, sameAsBefore, improving });
+        const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp ?? 0]));
+        const latest = () => runId === runs;
+        await refinePlans(first, planWith, (best) => patchState(store, best), latest, { ...options, maxHp }, paint);
+        if (latest()) patchState(store, { improving: false });
       } catch {
         patchState(store, { planning: false, error: LOAD_ERROR });
       }
@@ -239,12 +246,3 @@ export const PlanStore = signalStore(
     };
   }),
 );
-
-function storedReplan(): string[] {
-  try {
-    const keys: unknown = JSON.parse(localStorage.getItem(REPLAN_KEY) ?? '[]');
-    return Array.isArray(keys) ? keys.filter((k): k is string => typeof k === 'string') : [];
-  } catch {
-    return [];
-  }
-}

@@ -1,6 +1,7 @@
 import { Service } from '@angular/core';
 import { withDeaths } from './plan-deaths';
 import { atLowestHp, better } from './plan-score';
+import { bestOfStrategies, betterPlan } from './strategies';
 import { aliveIn, MpModel, mpShortOf } from './mp';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
@@ -19,7 +20,7 @@ import { InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse }
 import { mitigationTools, notAutomatic, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
-import { fairyPotency, fairyPower, scholarsFairy } from './fairy-heals';
+import { scholarFairies } from './scholar-fairies';
 import { burstActions, burstUses, placeLightspeed } from './burst';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
@@ -35,6 +36,15 @@ const ROUNDS = 3;
 // asked for (injectAsync), keeping it out of the page's own bundle.
 @Service()
 export class PlannerScheduler {
+  // The plan of the pull made the way `asked` says (`strategy`), else the
+  // best of the ways it can be made (`STRATEGIES`).
+  plan(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+    if (asked.strategy) return this.planWith(given, full, asked);
+    const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
+    const score = (a: Plan, b: Plan) => betterPlan(a, b, maxHp, asked);
+    return bestOfStrategies((strategy) => this.planWith(given, full, { ...asked, strategy }), score);
+  }
+
   // The party's mitigations and shields over the pull, then the healers'
   // heals, every hit left the margin of the player's HP where the party's
   // cooldowns allow. The mitigations are planned first as if every hit
@@ -42,7 +52,7 @@ export class PlannerScheduler {
   // HP any round's heals left it, then the heals again, the best plan kept.
   // Only the players `asked` to replan are planned, with their
   // edits; the others as they played.
-  plan(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+  private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     // The actions as the pull's level has them (its traits).
     const catalog = catalogAtLevel(full, pullLevel(given));
     const [late, stops] = [lateStarts(given, asked), castsStopAt(given)];
@@ -122,21 +132,8 @@ export class PlannerScheduler {
     const party = timeline.players.map((p) => p.id);
     const potency = new HealingBuffs(buffs, party, timeline, new Set([...mitigation, ...heals, ...pairings].map(key)));
     const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
-    // A replanned scholar's fairy heals on her own, as the HP the round
-    // before leaves calls for (as played in the first round).
-    const fairyHeal = fairyPotency(pullLevel(timeline));
-    const fairyPowers = new Map(
-      scholars.map((s) => [s.id, fairyPower(timeline, s.id, power.get(s.id) ?? null, fairyHeal)]),
-    );
-    // Seraph's Seraphic Veils: uses of a tool the plan never orders, for their barriers.
-    const veils = mitigationTools(
-      scholars,
-      catalog,
-      new Map([...fairyPowers].filter((e): e is [number, number] => e[1] !== null)),
-      true,
-    );
-    const fairy = (from?: Plan) =>
-      scholarsFairy(timeline, scholars, fairyPowers, maxHp, fairyHeal, opening.dissipations, from);
+    // A replanned scholar's fairy heals on her own; Seraph's Seraphic Veils, for their barriers.
+    const { veils, fairy } = scholarFairies(timeline, scholars, catalog, power, maxHp, opening.dissipations);
     // A sage's Addersgall with their Rhizomata's stacks, once planned (below).
     const bonus = new Map<number, number[]>();
     let lucid: PlannedUse[] = [];

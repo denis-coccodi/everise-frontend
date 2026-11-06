@@ -36,6 +36,7 @@ const GAP_MS = 1000;
 const READ_MS = 5_000;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
+const MACROCOSMOS = 25874;
 
 // The healers' heals planned over the pull, after the mitigations and
 // shields: in time order, before each mechanic, enough heals that every hit
@@ -67,7 +68,11 @@ export function planHeals(
   const healers = new Set(timeline.players.filter((p) => p.role === 'healer').map((p) => p.id));
   // The healers' heals, and a replanned DPS's (Lux Solaris...); the others'
   // heals (a tank's Nascent Flash) are their mitigation's.
-  const planned = heals.filter((t) => healers.has(t.player) || DPS_HEALS.has(t.action));
+  // Healing at first need (`healsFirstNeed`), Macrocosmos counts as the damage spell it is.
+  const firstNeed = !!options.strategy?.healsFirstNeed;
+  const planned = heals
+    .filter((t) => healers.has(t.player) || DPS_HEALS.has(t.action))
+    .map((t) => (firstNeed && t.action === MACROCOSMOS ? { ...t, cost: 'neutral' as const } : t));
   const favourOf = (player: number): Favour => options.favour?.[player] ?? 'dps';
 
   const track = new HpTrack(maxHp, [
@@ -219,7 +224,8 @@ export function planHeals(
       const among = (tools: HealTool[]) =>
         tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
       // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
-      const pick = among(planned.filter((t) => !waitsForBiggerNeed(t, m, mechanics, needOf))) ?? among(planned);
+      const waits = (t: HealTool) => !firstNeed && waitsForBiggerNeed(t, m, mechanics, needOf);
+      const pick = among(planned.filter((t) => !waits(t))) ?? among(planned);
       if (!pick) break;
       track.add(pick.events);
       uses.push(pick.use);

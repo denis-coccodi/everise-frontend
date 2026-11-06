@@ -296,6 +296,9 @@ export async function planEveryone(rendered: RenderedPull, margin?: string) {
     rendered,
     () => !!summary() || !!rendered.page.querySelector('cdt-planner-plan-form [role=alert]')?.textContent?.trim(),
   );
+  // Done looking for a better plan, where it lets players die.
+  const button = () => rendered.page.querySelector('cdt-planner-plan-form button[type=submit]')?.textContent ?? '';
+  await waitFor(rendered, () => !button().includes('better plan'));
 }
 
 // The catalog with the paladin's Hallowed Ground.

@@ -14,6 +14,8 @@ export type {
   PlannedUse,
 } from './lib/plan.model';
 export { PlannerScheduler } from './lib/planner-scheduler.service';
+export { STRATEGIES, betterPlan } from './lib/strategies';
+export type { Strategy } from './lib/strategy.model';
 export { landedGcds, withoutFollowUps } from './lib/weaving';
 export { playerActions, pressedFirst } from './lib/tools';
 export { catalogAtLevel, pullLevel } from './lib/trait-levels';
