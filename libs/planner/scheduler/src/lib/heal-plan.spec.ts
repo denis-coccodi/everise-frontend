@@ -381,7 +381,7 @@ describe('planHeals', () => {
     const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
     const power = healPower(timeline, cat);
     const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name === 'Aspected Benefic');
-    const options = { margin: 0.1, favour: { 2: 'healing' as const } };
+    const options = { margin: 0.1, strategy: { healersHeal: true } };
 
     const plan = planHeals(
       planMitigation(mechanicsOf(timeline), [], maxHp, options),
@@ -418,7 +418,7 @@ describe('planHeals', () => {
     const power = healPower(timeline, cat);
     const heals = healTools(timeline.players, cat, [], power).filter((t) => t.gcd && t.name !== 'Physick');
     const plan = (favour: 'dps' | 'healing') => {
-      const options = { margin: 0.1, favour: { 2: favour } };
+      const options = { margin: 0.1, strategy: { healersHeal: favour === 'healing' } };
       return planHeals(planMitigation(mechanicsOf(timeline), [], maxHp, options), timeline, [], heals, maxHp, options);
     };
 
@@ -450,7 +450,7 @@ describe('planHeals', () => {
       expect(lilies.filter((l) => l > since && l < misery)).toHaveLength(3);
     }
     // Planned only from a wipe point at 100s: no lily nor Misery before it.
-    const options = { margin: 0.1, favour: { 2: 'dps' as const } };
+    const options = { margin: 0.1 };
     const late = startingAt(heals, new Map([[2, 100_000]]));
     const mitigated = planMitigation(mechanicsOf(timeline), [], maxHp, options);
     const fromWipe = planHeals(mitigated, timeline, [], late, maxHp, options).uses;

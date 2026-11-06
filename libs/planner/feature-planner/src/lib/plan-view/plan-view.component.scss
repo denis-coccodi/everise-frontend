@@ -4,13 +4,11 @@
   display: block;
 }
 
-.favour,
 .opener,
 .lightspeed {
   max-width: 16rem;
 }
 
-cdt-field:has(.favour),
 cdt-field:has(.opener),
 cdt-field:has(.lightspeed) {
   margin-bottom: 0.75rem;

@@ -21,8 +21,6 @@ export interface PlanOptions {
   // out, those of the pull, where they were used (`playedInvulnerabilities`).
   // Any other the plan uses only where nothing else saves a hit.
   invulnerabilities?: InvulnerabilityChoice[];
-  // What each replanned player favours, by id: damage (default) or healing.
-  favour?: Record<number, Favour>;
   // Each replanned player's opener, by id; left out, the standard one.
   openers?: Record<number, OpenerId>;
   // A replanned astrologian's other Lightspeed charge: as played, or planned.
@@ -36,7 +34,8 @@ export interface PlanOptions {
 }
 
 // Favouring damage, a healer spends what would overcap on damage and keeps
-// GCD heals for where nothing else will do; favouring healing, they don't.
+// GCD heals for where nothing else will do; favouring healing (the
+// `healersHeal` strategy), they don't.
 export type Favour = 'dps' | 'healing';
 
 // A mitigation or shield a player can use: an action and what it lowers or

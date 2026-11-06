@@ -73,9 +73,8 @@ export function planHeals(
   const planned = heals
     .filter((t) => healers.has(t.player) || DPS_HEALS.has(t.action))
     .map((t) => (firstNeed && t.action === MACROCOSMOS ? { ...t, cost: 'neutral' as const } : t));
-  // Every healer favours healing where the strategy says so (`healersHeal`).
-  const favourOf = (player: number): Favour =>
-    options.strategy?.healersHeal ? 'healing' : (options.favour?.[player] ?? 'dps');
+  // Every healer favours healing where the strategy says so (`healersHeal`), else damage.
+  const favourOf = (): Favour => (options.strategy?.healersHeal ? 'healing' : 'dps');
 
   const track = new HpTrack(maxHp, [
     ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated),
