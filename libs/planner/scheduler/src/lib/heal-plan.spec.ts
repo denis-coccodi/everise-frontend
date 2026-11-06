@@ -464,6 +464,42 @@ describe('planHeals', () => {
     expect(solaces.filter((s) => s < next)).toHaveLength(3);
   });
 
+  it('credits a heal for what it still heals toward the next hits: a regen over a heal as big', () => {
+    // Both heal the tank's first buster in full, with the same GCD and cost;
+    // only Medica III's regen goes on healing for the second, 6s later.
+    const cat = catalog();
+    const regen = { ...heal(175), kind: 'regen' as const, durationMs: 15_000 };
+    cat.actions.push(
+      action(135, 'Cure II', ['SCH'], 2.5, [heal(800)], { gcd: true, castMs: 2000 }),
+      action(37010, 'Medica III', ['SCH'], 2.5, [heal(800), regen], { gcd: true, castMs: 2000 }),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 70_000],
+        [34, 'Buster', 1, 40_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const heals = healTools(timeline.players, cat, [], healPower(timeline, cat)).filter(
+      (t) => t.name === 'Cure II' || t.name === 'Medica III',
+    );
+    const options = { margin: 0.1 };
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+    );
+
+    // Cast to land between the two.
+    const forSecond = plan.uses.filter((u) => u.at + 2000 > 30_000 && u.at + 2000 < 34_000);
+    expect(forSecond.map((u) => u.name)).toEqual(['Medica III']);
+  });
+
   describe('Earthly Star', () => {
     // The scholar as an astrologian, for the star alone: 720 potency, 72,000
     // HP once grown.

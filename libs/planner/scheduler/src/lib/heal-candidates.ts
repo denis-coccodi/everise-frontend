@@ -44,6 +44,27 @@ const FULL_WORTH = 1.05;
 const LONG_RECAST_MS = 90_000;
 const BIGGER_NEED = 1.5;
 
+// The hits this soon after a mechanic count for the heals planned for it
+// too (a regen's ticks after the hit, what a big heal leaves over, toward
+// the next hits), at this share: later heals could still see to them. A
+// heal still has to help with the mechanic itself.
+const AHEAD_MS = 15_000;
+const AHEAD_WORTH = 0.5;
+
+// The mechanics after `m` whose hits count for its heals.
+export function aheadOf(m: Mechanic, mechanics: Mechanic[]) {
+  return mechanics.filter((o) => o.at > m.at && o.at - m.at <= AHEAD_MS);
+}
+
+// How much of the players' deficits (`short`) a heal makes up (`after`: theirs with it).
+export function madeUp(short: Map<number, number>, after: Map<number, number>) {
+  let value = 0;
+  for (const [player, deficit] of short) {
+    if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
+  }
+  return value;
+}
+
 // Whether `tool` waits for a bigger need than `m`'s ahead (`needOf`: what a
 // mechanic takes of the party, in shares of HP), as the log's healers keep
 // their big cooldowns for the heaviest stretch.
@@ -75,6 +96,8 @@ export function best(
   favourOf: (player: number) => Favour,
   // Whether the healer has the MP for it then (MpModel).
   affordable: (at: number) => boolean = () => true,
+  // What it makes up of the deficits at the hits after (`aheadOf`).
+  ahead: (events: HpEvent[]) => number = () => 0,
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
   const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
@@ -163,11 +186,8 @@ export function best(
       ...pairWith(use, alone).map((p) => ({ events: p.events, paired: p })),
     ];
     for (const { events, paired } of options) {
-      const after = deficits(events);
-      let value = 0;
-      for (const [player, deficit] of short) {
-        if (deficit > 0) value += deficit - Math.max(0, after.get(player) ?? deficit);
-      }
+      let value = madeUp(short, deficits(events));
+      if (value > 0) value += AHEAD_WORTH * ahead(events);
       value *= worth;
       if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs, paired };
     }
