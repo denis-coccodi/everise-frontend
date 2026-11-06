@@ -4,7 +4,7 @@ import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from
 import { projected, pullFacts, reaches } from './coverage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
-import { NO_ROOM_MS, best, better, kardiaBack, waitsForBiggerNeed } from './heal-candidates';
+import { NO_ROOM_MS, aheadOf, best, better, kardiaBack, madeUp, waitsForBiggerNeed } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { walkingDeads } from './walking-dead';
@@ -28,10 +28,6 @@ import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 
-// Mechanics this close together are healed for at once, before the first:
-// between them there's no room for a heal (one landing a second after a
-// hit and half a second before the next) in a weave slot. A burst's hits,
-// a second apart, are healed for before it.
 // How soon after its Helios lands Horoscope is read at the latest.
 const READ_MS = 5_000;
 // The heals planned for one mechanic, at most.
@@ -181,26 +177,30 @@ export function planHeals(
   };
 
   for (const m of mechanics) {
-    // Healing from after the last mechanic there was time to heal after.
+    // Healing from after the last mechanic there was time to heal after (a burst's hits at once).
     const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS).at(-1)?.at ?? -1;
-    // A hit an invulnerability is up for needs no healing for.
-    const checkpoints = m.hits
-      .filter((h) => !invulnerable.has(`${m.id}:${h.player}`))
-      .map((h) => track.checkpoint(h.player, anchor))
-      .filter((c): c is HpCheckpoint => c !== null);
-    const deficits = (extra: HpEvent[] = []) =>
-      new Map(
-        checkpoints.map((c) => {
-          const max = maxHp.get(c.player) as number;
-          const hit = m.hits.find((h) => h.player === c.player) as MechanicHit;
-          const need = Math.min(max, damageOf(m, hit) + options.margin * max);
-          return [c.player, need - track.before(c, m.at, extra)];
-        }),
-      );
+    // What those `o` hits lack before it, from the anchor on (none under an invulnerability).
+    const shortOf = (o: Mechanic) => {
+      const checkpoints = o.hits
+        .filter((h) => !invulnerable.has(`${o.id}:${h.player}`))
+        .map((h) => track.checkpoint(h.player, anchor))
+        .filter((c): c is HpCheckpoint => c !== null);
+      return (extra: HpEvent[] = []) =>
+        new Map(
+          checkpoints.map((c) => {
+            const max = maxHp.get(c.player) as number;
+            const hit = o.hits.find((h) => h.player === c.player) as MechanicHit;
+            const need = Math.min(max, damageOf(o, hit) + options.margin * max);
+            return [c.player, need - track.before(c, o.at, extra)];
+          }),
+        );
+    };
+    const [deficits, ...later] = [m, ...aheadOf(m, mechanics)].map(shortOf);
 
     for (let n = 0; n < HEALS_PER_MECHANIC; n++) {
-      const short = deficits();
+      const [short, ...laterShort] = [deficits, ...later].map((f) => f());
       if (![...short.values()].some((d) => d > 0)) break;
+      const ahead = (events: HpEvent[]) => laterShort.reduce((sum, s, i) => sum + madeUp(s, later[i](events)), 0);
       const candidateOf = (tool: HealTool) => {
         const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
         const pairWith = (use: PlannedUse, events: HpEvent[]) =>
@@ -221,7 +221,7 @@ export function planHeals(
           );
         const own = spent.filter((s) => s.player === tool.player);
         const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
-        return best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf, affordable);
+        return best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf, affordable, ahead);
       };
       const among = (tools: HealTool[]) =>
         tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
