@@ -66,7 +66,7 @@ describe('hpCurves', () => {
     const completed = {
       ...timeline(),
       deaths: [],
-      completion: { from: 90_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [] },
+      completion: { from: 90_000, clear: { code: 'Other0000000000a', pullId: 7 } },
     };
     const healer = hpCurves(completed, null, timeline()).find((c) => c.name === 'Heal Main');
 

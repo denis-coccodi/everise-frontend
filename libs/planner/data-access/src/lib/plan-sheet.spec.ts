@@ -67,7 +67,7 @@ describe('planSheet', () => {
   it('marks the rows past a completed wipe’s log', () => {
     const timeline: ReferencedTimeline = {
       ...pullTimeline(),
-      completion: { from: 100_000, clear: { code: 'x', pullId: 1 }, plannedFrom: [] },
+      completion: { from: 100_000, clear: { code: 'x', pullId: 1 } },
     };
 
     const sheet = planSheet(plan(), timeline, actionCatalog());
@@ -79,7 +79,7 @@ describe('planSheet', () => {
   it('shows a player planned only from the wipe point as played before it, and the plan’s after', () => {
     const timeline: ReferencedTimeline = {
       ...pullTimeline(),
-      completion: { from: 100_000, clear: { code: 'x', pullId: 1 }, plannedFrom: [1] },
+      completion: { from: 100_000, clear: { code: 'x', pullId: 1 } },
     };
     // The tank isn't ticked, but has nobody of their job in the kill.
     const late: Plan = {

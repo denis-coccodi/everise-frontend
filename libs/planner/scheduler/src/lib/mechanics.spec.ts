@@ -207,7 +207,7 @@ describe('mechanicsOf', () => {
         [90, 'Tower', 2, 30_000],
         [90, 'Tower', 3, 400_000],
       ]),
-      completion: { from: 60_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [1, 2, 3] },
+      completion: { from: 60_000, clear: { code: 'Other0000000000a', pullId: 7 } },
     };
 
     const [played, completed] = mechanicsOf(t);

@@ -473,7 +473,7 @@ describe('PlannerScheduler', () => {
       expect(usesBy(p, 1)).not.toContainEqual(['Rampart', 58_000]);
     });
 
-    it("plans a completed wipe's player with no stand-in of their job from its wipe point only", () => {
+    it("plans a completed wipe's players not asked for from its wipe point only", () => {
       // The pull is completed from 50s; the paladin's Rampart at 20s stays,
       // and a buster at 30s gets nothing new from them. Only the bard is
       // asked for, so the buster at 60s is the paladin's to cover.
@@ -486,15 +486,41 @@ describe('PlannerScheduler', () => {
           healed,
         ),
         playerCasts: [{ at: 20_000, source: 1, target: 1, action: 7531, castMs: null }],
-        completion: { from: 50_000, clear: { code: 'Other0000000000a', pullId: 7 }, plannedFrom: [1] },
+        completion: { from: 50_000, clear: { code: 'Other0000000000a', pullId: 7 } },
       };
       const p = new PlannerScheduler().plan(timeline, catalog(), { margin: 0.1, replan: [3] });
       const paladin = p.uses.filter((u) => u.player === 1);
 
-      expect(p.replanned).toEqual([3, 1]);
+      expect(p.replanned).toEqual([3, 1, 2]);
       expect(paladin.filter((u) => u.played).map((u) => [u.name, u.at])).toEqual([['Rampart', 20_000]]);
       expect(paladin.some((u) => !u.played)).toBe(true);
       expect(paladin.filter((u) => !u.played).every((u) => u.at >= 50_000)).toBe(true);
+    });
+
+    it("models the MP of a completed wipe's healer planned from its wipe point, for their heals there", () => {
+      const base = pull([[60, 'Raidwide', 2, 60_000]], healed);
+      const timeline: ReferencedTimeline = {
+        ...base,
+        players: base.players.map((p) =>
+          p.id === 2
+            ? {
+                ...p,
+                maxMp: 10_000,
+                mp: [
+                  { at: 0, mp: 10_000 },
+                  { at: 50_000, mp: 9_000 },
+                ],
+              }
+            : p,
+        ),
+        completion: { from: 50_000, clear: { code: 'Other0000000000a', pullId: 7 } },
+      };
+
+      const p = new PlannerScheduler().plan(timeline, catalog(), { margin: 0.1, replan: [3] });
+
+      // The scholar, not asked for, is planned from 50s with their MP.
+      expect(p.late).toContain(2);
+      expect(p.mp?.map((m) => m.player)).toContain(2);
     });
   });
 

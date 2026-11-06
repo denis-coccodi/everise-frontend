@@ -5,6 +5,7 @@ import { catalog, pull } from './scheduler-fixtures';
 
 const RAMPART = 7531;
 const RAMPART_STATUS = 1191;
+const VULNERABILITY = 1789;
 
 // The wipe: a paladin (1), a scholar (2) and a bard (3), all killed by
 // Finale Fatale at 100 s.
@@ -81,7 +82,11 @@ function kill(): PullTimeline {
         hp: null,
       },
     ],
-    auras: [aura(100_000, 11, RAMPART_STATUS), aura(160_000, 11, RAMPART_STATUS)],
+    auras: [
+      aura(100_000, 11, RAMPART_STATUS),
+      aura(160_000, 11, RAMPART_STATUS),
+      { ...aura(140_000, 40, VULNERABILITY), target: 13 },
+    ],
     enemyCasts: [{ at: 115_000, source: 41, target: 12, action: 777, castMs: 3000 }],
   };
 }
@@ -96,13 +101,6 @@ const aligned: Alignment = {
   endsAt: 200_000,
   matched: 12,
 };
-
-function withRampartStatus() {
-  const c = catalog();
-  const rampart = c.actions.find((a) => a.id === RAMPART);
-  if (rampart) rampart.effects = [{ ...rampart.effects[0], statusId: RAMPART_STATUS }];
-  return c;
-}
 
 describe('completedTimeline', () => {
   it("continues the wipe at its wipe point with the kill's hits, shifted and retargeted", () => {
@@ -126,7 +124,6 @@ describe('completedTimeline', () => {
     expect(done?.completion).toEqual({
       from: 99_999,
       clear: { code: 'Other0000000000a', pullId: 7 },
-      plannedFrom: [2],
     });
   });
 
@@ -146,26 +143,17 @@ describe('completedTimeline', () => {
     ]);
   });
 
-  it("brings what the players of their stand-in's job did, not the others'", () => {
+  it("brings nothing the kill's players did, of their stand-in's job or not: everyone is planned from the wipe point", () => {
     const done = completedTimeline(wipe(), kill(), aligned, catalog());
 
-    // The paladin's second Rampart (the first is still on cooldown); the
-    // white mage's heal isn't the scholar's to copy.
-    expect(done?.playerCasts.map((c) => [c.at, c.source, c.action])).toEqual([
-      [60_000, 1, RAMPART],
-      [165_000, 1, RAMPART],
-    ]);
+    // The paladin's own Rampart; neither the kill's paladin's nor the
+    // white mage's heal.
+    expect(done?.playerCasts.map((c) => [c.at, c.source, c.action])).toEqual([[60_000, 1, RAMPART]]);
     expect(done?.heals).toEqual([]);
-    // The bard's MP after the wipe point is their stand-in's.
-    expect(done?.players.find((p) => p.id === 3)?.mp).toEqual([{ at: 155_000, mp: 9000 }]);
-  });
-
-  it('leaves out a copied skill the player still has on cooldown, with the status it put up', () => {
-    const done = completedTimeline(wipe(), kill(), aligned, withRampartStatus());
-
-    // Rampart at 60 s is back at 150 s: the copy at 105 s goes, the one at 165 s stays.
-    expect(done?.playerCasts.map((c) => c.at)).toEqual([60_000, 165_000]);
-    expect(done?.auras.map((a) => [a.from, a.target])).toEqual([[165_000, 1]]);
+    // Only the statuses the kill's enemies put up: the bat's on the bard.
+    expect(done?.auras.map((a) => [a.from, a.target, a.status])).toEqual([[145_000, 3, VULNERABILITY]]);
+    // The bard's MP after the wipe point is their own, not their stand-in's.
+    expect(done?.players.find((p) => p.id === 3)?.mp).not.toContainEqual({ at: 155_000, mp: 9000 });
   });
 
   it('adds nothing when the kill ends before the wipe point', () => {
