@@ -1,7 +1,7 @@
 import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { Favour, InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
+import type { InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
 import { STRATEGIES, type ReferencedTimeline, type Strategy } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import type { FailedMechanics, PlanPlayer } from './plan.model';
@@ -30,8 +30,6 @@ interface PlanState {
   preparedFor: number | null;
   players: PlanPlayer[];
   replan: number[];
-  // What each player favours, damage (left out) or healing, by id.
-  favour: Record<number, Favour>;
   // A replanned astrologian's other Lightspeed charge, by id: as played
   // (left out) or planned.
   lightspeed: Record<number, 'logged' | 'replan'>;
@@ -70,7 +68,6 @@ export const PlanStore = signalStore(
     preparedFor: null,
     players: [],
     replan: [],
-    favour: {},
     lightspeed: {},
     openers: {},
     invulnerabilityOptions: null,
@@ -121,7 +118,6 @@ export const PlanStore = signalStore(
           margin: store.margin() / 100,
           failedMechanics: store.failedMechanics(),
           replan: store.replan(),
-          favour: store.favour(),
           lightspeed: store.lightspeed(),
           openers: store.openers(),
         };
@@ -179,7 +175,6 @@ export const PlanStore = signalStore(
           preparedFor: pullId,
           players,
           replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
-          favour: {},
           lightspeed: {},
           openers: {},
           invulnerabilityOptions: null,
@@ -200,9 +195,6 @@ export const PlanStore = signalStore(
         replanOnly(on ? [...others, playerId] : others);
       },
       replanOnly,
-      setFavour(player: number, favour: Favour) {
-        patchState(store, { favour: { ...store.favour(), [player]: favour } });
-      },
       setLightspeed(player: number, second: 'logged' | 'replan') {
         patchState(store, { lightspeed: { ...store.lightspeed(), [player]: second } });
       },

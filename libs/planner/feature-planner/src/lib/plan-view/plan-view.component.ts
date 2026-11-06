@@ -4,8 +4,8 @@ import { PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner
 import { OPENERS, type OpenerId } from '@everise/planner/scheduler';
 import { FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
-// The player's own part of planning, in their tab: what a replanned healer
-// favours, damage or healing; how a replanned tank's invulnerabilities are
+// The player's own part of planning, in their tab: their opener, a replanned
+// astrologian's Lightspeed; how a replanned tank's invulnerabilities are
 // planned; and how
 // the plan went for them (their part of it is in the pull view's timeline). The margin and the button are the plan form's,
 // above the tabs.
@@ -33,8 +33,6 @@ export class PlanViewComponent {
       ? `${chosen.name}, from ${chosen.source}: the pull starts with it, and the plan follows on from it.`
       : 'No opener: the plan places everything itself from the pull.';
   });
-  // What a replanned healer favours: damage unless set to healing.
-  protected readonly favour = computed(() => this.plans.favour()[this.player().id] ?? 'dps');
   // A replanned astrologian's other Lightspeed charge: as played by default.
   protected readonly lightspeed = computed(() => this.plans.lightspeed()[this.player().id] ?? 'logged');
   // A replanned tank with invulnerabilities, told how they're planned.
@@ -91,9 +89,5 @@ export class PlanViewComponent {
 
   protected setLightspeed(value: string) {
     this.plans.setLightspeed(this.player().id, value === 'replan' ? 'replan' : 'logged');
-  }
-
-  protected setFavour(value: string) {
-    this.plans.setFavour(this.player().id, value === 'healing' ? 'healing' : 'dps');
   }
 }
