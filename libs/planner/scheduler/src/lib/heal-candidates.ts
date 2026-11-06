@@ -22,6 +22,8 @@ export function kardiaBack(player: number, at: number, weaving: Weaving, occupie
 // this long after the hits before it.
 const LEAD_MS = 500;
 const AFTER_MS = 1000;
+// The time between two mechanics that leaves none to heal in between.
+export const NO_ROOM_MS = LEAD_MS + AFTER_MS;
 // How long before the pull an Earthly Star can go down (in the countdown).
 const PREPULL_MS = 15_000;
 const EARTHLY_STAR = 7439;
