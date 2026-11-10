@@ -49,9 +49,13 @@ export function pairingsFor(
       pairing.onTarget && e.player !== healed ? e : { ...e, amount: e.amount * pairing.times },
     );
     const target = pairing.onTarget ? healed : null;
-    // Synastry's bond, on whoever is shortest: its share of the heal.
-    const neediest = [...short].reduce<[number, number] | null>((a, b) => (!a || b[1] > a[1] ? b : a), null);
-    const bondTo = pairing.bond ? (neediest?.[0] ?? healed) : null;
+    // Synastry's bond, on whoever else is shortest: its share of the heal.
+    // The game puts it on another member only, never on its caster.
+    const neediest = [...short]
+      .filter(([player]) => player !== use.player)
+      .reduce<[number, number] | null>((a, b) => (!a || b[1] > a[1] ? b : a), null);
+    const bondTo = pairing.bond ? (neediest?.[0] ?? (healed !== use.player ? healed : null)) : null;
+    if (pairing.bond && bondTo === null) continue;
     const bonded = boosted
       .filter((e) => bondTo !== null && e.at === lands && e.player === healed)
       .map((e) => ({ at: lands, player: bondTo as number, amount: e.amount * pairing.bond }));
