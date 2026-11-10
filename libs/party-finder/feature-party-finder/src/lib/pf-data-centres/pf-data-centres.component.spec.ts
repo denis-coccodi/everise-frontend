@@ -17,7 +17,7 @@ import { PfDataCentresComponent } from './pf-data-centres.component';
 class HostComponent {}
 
 describe('PfDataCentresComponent', () => {
-  it("links to every data centre by region, keeping the member's other choices, the current one marked", async () => {
+  it("links to every physical data centre with its listings up, keeping the member's other choices, the current one marked", async () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -32,6 +32,7 @@ describe('PfDataCentresComponent', () => {
       .expectOne('/party-finder?dataCentre=Chaos')
       .flush({
         dataCentre: 'Chaos',
+        dataCentres: ['Light', 'Chaos'],
         worlds: [],
         regions: [
           { name: 'Europe', dataCentres: ['Light', 'Chaos'] },
@@ -40,17 +41,22 @@ describe('PfDataCentresComponent', () => {
         fetchedAt: null,
         icons: null,
         listings: [],
+        counts: [
+          { dataCentre: 'Light', listings: 3 },
+          { dataCentre: 'Chaos', listings: 2 },
+          { dataCentre: 'Materia', listings: 4 },
+        ],
       });
     await harness.fixture.whenStable();
     const page = harness.fixture.nativeElement as HTMLElement;
 
-    expect([...page.querySelectorAll('h3')].map((h) => h.textContent?.trim())).toEqual(['Europe', 'Oceania']);
     const links = [...page.querySelectorAll('a')];
+    // Light and Chaos are one: the one shown counts its list (none here).
+    expect(links.map((a) => a.textContent?.trim())).toEqual(['Europe: Light, Chaos (0)', 'Oceania: Materia (4)']);
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      '/party-finder?dc=light&slot=healer',
       '/party-finder?dc=chaos&slot=healer',
       '/party-finder?dc=materia&slot=healer',
     ]);
-    expect(links.map((a) => a.getAttribute('aria-current'))).toEqual([null, 'page', null]);
+    expect(links.map((a) => a.getAttribute('aria-current'))).toEqual(['page', null]);
   });
 });

@@ -2,18 +2,8 @@
   <div class="fields">
     <cdt-field label="Data centre" for="pf-data-centre">
       <select #dataCentre id="pf-data-centre" cdtInput (change)="setDataCentre(dataCentre.value)">
-        @for (region of store.regions(); track region.name) {
-          @if (region.name) {
-            <optgroup [label]="region.name">
-              @for (name of region.dataCentres; track name) {
-                <option [value]="name" [selected]="name === store.dataCentre()">{{ name }}</option>
-              }
-            </optgroup>
-          } @else {
-            @for (name of region.dataCentres; track name) {
-              <option [value]="name" [selected]="name === store.dataCentre()">{{ name }}</option>
-            }
-          }
+        @for (option of store.physicalDataCentres(); track option.value) {
+          <option [value]="option.value" [selected]="option.current">{{ option.label }}</option>
         }
       </select>
     </cdt-field>

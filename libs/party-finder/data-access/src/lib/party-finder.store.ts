@@ -35,6 +35,8 @@ interface PartyFinderState {
   // Every data centre by region, from the last answer (kept while another
   // data centre loads).
   regions: PartyFinderBoard['regions'];
+  // How many listings are up on each data centre, from the last answer.
+  counts: PartyFinderBoard['counts'];
   // What the page shows, a mirror of its query string (party-finder-query.ts).
   dataCentre: DataCentre;
   filters: PartyFinderFilters;
@@ -53,6 +55,7 @@ function initialState(): PartyFinderState {
     checkedAt: 0,
     now: Date.now(),
     regions: [],
+    counts: [],
     ...selectionFromQuery(query ?? { get: () => null }),
   };
 }
@@ -93,6 +96,31 @@ export const PartyFinderStore = signalStore(
       regions: computed(() =>
         store.regions().length ? store.regions() : [{ name: '', dataCentres: [store.dataCentre()] }],
       ),
+      // The physical data centres, for the pickers: each region's data
+      // centres share one Party Finder in the game (since patch 7.58 in
+      // Europe and North America). Each with the data centre it goes to
+      // (the one shown, if it's there), whether it's the one shown, and its
+      // name with how many listings are up ("Europe: Light, Chaos (138)").
+      // The one shown counts its list, so the two agree.
+      physicalDataCentres: computed(() => {
+        const counts = new Map(store.counts().map((c) => [c.dataCentre as string, c.listings]));
+        const shown = store.board()?.dataCentre === store.dataCentre();
+        return store.regions().map((region) => {
+          const current = region.dataCentres.includes(store.dataCentre());
+          const known = region.dataCentres.every((name) => counts.has(name));
+          const count =
+            current && shown ? live().length : region.dataCentres.reduce((n, d) => n + (counts.get(d) ?? 0), 0);
+          const names = region.dataCentres.join(', ');
+          const name = region.name ? `${region.name}: ${names}` : names;
+          return {
+            value: current ? store.dataCentre() : region.dataCentres[0],
+            current,
+            label: known || (current && shown) ? `${name} (${count})` : name,
+          };
+        });
+      }),
+      // The data centres whose listings are shown, in words: "Light and Chaos".
+      shownOn: computed(() => inWords(store.board()?.dataCentres ?? [store.dataCentre()])),
       pages,
       currentPage,
       pageListings: computed(() => listings().slice((currentPage() - 1) * PAGE_SIZE, currentPage() * PAGE_SIZE)),
@@ -128,6 +156,7 @@ export const PartyFinderStore = signalStore(
                   patchState(store, {
                     board,
                     regions: board.regions,
+                    counts: board.counts,
                     loadState: 'ready',
                     loading: false,
                     error: '',
@@ -173,8 +202,11 @@ export const PartyFinderStore = signalStore(
       }
       return {
         load,
+        // Another physical data centre: one of the data centres shown
+        // together is the same board.
         setDataCentre: (dataCentre: DataCentre) => {
-          if (dataCentre !== store.dataCentre()) show(onDataCentre(dataCentre), true);
+          const together = store.regions().find((r) => r.dataCentres.includes(store.dataCentre()))?.dataCentres ?? [];
+          if (dataCentre !== store.dataCentre() && !together.includes(dataCentre)) show(onDataCentre(dataCentre), true);
         },
         // The query for a link to another data centre, keeping the rest.
         queryFor: (dataCentre: DataCentre) => selectionToQuery(onDataCentre(dataCentre)),
@@ -202,3 +234,8 @@ export const PartyFinderStore = signalStore(
     },
   })),
 );
+
+// Names in words: "Light", "Light and Chaos", "Aether, Crystal, Dynamis and Primal".
+function inWords(names: string[]) {
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+}

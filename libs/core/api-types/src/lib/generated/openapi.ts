@@ -5261,6 +5261,19 @@ export interface components {
         | 'Mana'
         | 'Meteor'
         | 'Materia';
+      dataCentres: (
+        | 'Light'
+        | 'Chaos'
+        | 'Aether'
+        | 'Crystal'
+        | 'Dynamis'
+        | 'Primal'
+        | 'Elemental'
+        | 'Gaia'
+        | 'Mana'
+        | 'Meteor'
+        | 'Materia'
+      )[];
       worlds: {
         id: number;
         name: string;
@@ -5330,6 +5343,22 @@ export interface components {
         updatedAt: string;
         /** Format: date-time */
         expiresAt: string;
+      }[];
+      counts: {
+        /** @enum {string} */
+        dataCentre:
+          | 'Light'
+          | 'Chaos'
+          | 'Aether'
+          | 'Crystal'
+          | 'Dynamis'
+          | 'Primal'
+          | 'Elemental'
+          | 'Gaia'
+          | 'Mana'
+          | 'Meteor'
+          | 'Materia';
+        listings: number;
       }[];
     };
     PasswordResetResponse: {
