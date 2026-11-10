@@ -12,9 +12,12 @@
 // previews never wait for and not every crawler does. robots.txt and
 // sitemap.xml are written here too.
 //
+// /guide/* and /docs/* are the documentation, from GitHub Pages (docs.ts).
+//
 // Only the paths in assets.run_worker_first reach this script; the ASSETS
 // branch below is a fallback in case that routing changes.
 
+import { docsResponse, isDocs } from './docs';
 import { Article, articlePage } from './seo/article-page';
 import { SitemapData, robotsTxt, sitemapXml } from './seo/crawling';
 import { ListingFound, listingIdIn, listingPage } from './seo/listing-page';
@@ -71,7 +74,9 @@ export default {
     const indexable = env.SEARCH_ENGINES === 'allow';
     const oldDataCentre = OLD_DATA_CENTRE_PAGE.exec(pathname)?.[1];
     let response: Response;
-    if (pathname === '/home' || pathname === '/home/') {
+    if (isDocs(pathname)) {
+      response = await docsResponse(request);
+    } else if (pathname === '/home' || pathname === '/home/') {
       // The home page's old address: for good at /, its canonical one.
       const url = new URL(request.url);
       response = Response.redirect(`${url.origin}/${url.search}`, 301);

@@ -1,18 +1,13 @@
 ---
-title: Home
+title: Overview
 nav_order: 1
 ---
 
 # Everise frontend
 
-The Angular app of [everise.dev](https://everise.dev), the Everise FC community site, themed after FINAL FANTASY XIV. It talks to the [backend](https://denis-coccodi.github.io/everise-backend/) through `/api`, which the frontend Worker forwards over a service binding.
+The Angular app of [everise.dev](https://everise.dev), the Everise FC community site, themed after FINAL FANTASY XIV. It talks to the [backend](/docs/backend/) through `/api`, which the frontend Worker forwards over a service binding.
 
-This site has two parts:
-
-- **[Site guide](guide/)**: what each part of everise.dev does, in plain language, for players, staging testers and admins.
-- **Technical reference** (the pages below): how the frontend is built.
-
-Both live in the repository's `docs/` folder and change in the same pull requests as the code.
+These pages are the frontend's technical reference. They live in the repository's `docs/` folder, change in the same pull requests as the code, and are served at everise.dev/docs/frontend/. The plain-language [site guide](/guide/) is built from the same folder (`docs/_guide`), and the [backend docs](/docs/backend/) from the backend's.
 
 | Page                                      | What it covers                                                  |
 | ----------------------------------------- | --------------------------------------------------------------- |

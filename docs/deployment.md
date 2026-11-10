@@ -20,6 +20,18 @@ Browser ──> prod / staging  ├─ static files (Angular build)
 
 Because `/api` is same-origin, the session cookie and the live-updates WebSocket (`wss://<site>/api/live`) need no CORS.
 
+## Documentation
+
+The Worker also serves the documentation at the site's own address (`worker/docs.ts`), from the GitHub Pages sites both repositories build from their `docs/` folders:
+
+| Address           | Built from                      |
+| ----------------- | ------------------------------- |
+| `/guide/`         | this repository's `docs/_guide` |
+| `/docs/frontend/` | this repository's `docs/`       |
+| `/docs/backend/`  | the backend's `docs/`           |
+
+Pages are cached for 5 minutes. A merge to `main` rebuilds them within a minute or two, in production and on staging alike: the docs aren't versioned with a deploy. The `docs-site` skill has the details.
+
 ## Environments
 
 | Environment | URL                         | Environment file         | API                                      | Deployed by                              |

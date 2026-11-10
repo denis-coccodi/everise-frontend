@@ -5,7 +5,7 @@ nav_order: 8
 
 # Fight planner
 
-The fight planner (`/planner`, behind the `planner` flag) plans a party's heals and mitigations for one pull of an Extreme, Savage or Ultimate fight, from that party's FFLogs report. The backend only reads FFLogs ([backend docs](https://denis-coccodi.github.io/everise-backend/features/fight-planner.html)); the planning runs in the browser.
+The fight planner (`/planner`, behind the `planner` flag) plans a party's heals and mitigations for one pull of an Extreme, Savage or Ultimate fight, from that party's FFLogs report. The backend only reads FFLogs ([backend docs](/docs/backend/features/fight-planner.html)); the planning runs in the browser.
 
 ## Libraries
 

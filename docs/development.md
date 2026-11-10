@@ -9,7 +9,7 @@ nav_order: 6
 
 You need Node.js 22 and npm, and the [backend](https://github.com/denis-coccodi/everise-backend) checked out next to this repository.
 
-1. **Backend:** `npm install`, create its `.dev.vars` (see the [backend docs](https://denis-coccodi.github.io/everise-backend/configuration.html)), then `npx wrangler dev --port 8080`.
+1. **Backend:** `npm install`, create its `.dev.vars` (see the [backend docs](/docs/backend/configuration.html)), then `npx wrangler dev --port 8080`.
 2. **Frontend:** `npm install`, then `npm start`. Open http://localhost:4200.
 
 - **API address:** the local build calls the backend directly at `http://localhost:8080/api` (`apps/everise/src/environments/environment.ts`).

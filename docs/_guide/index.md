@@ -2,42 +2,37 @@
 title: Welcome
 nav_order: 1
 permalink: /guide/
+hero: The Everise site guide
+tagline: Everything everise.dev offers the free company and its friends, and how to use it.
+description: What everise.dev offers and how to use it - the Everise free company's site for FINAL FANTASY XIV.
 ---
 
-# Welcome to Everise
+## What is everise.dev?
 
-[everise.dev](https://everise.dev) is the home of the Everise free company in FINAL FANTASY XIV. It brings together the free company's posts and Discord news with tools for playing: the Party Finder, community events and venues, a Duty Roulette, market prices, and a chat room with characters from the game.
+The home of **Everise**, a laid-back, friendly free company in FINAL FANTASY XIV. Everyone is welcome, in the free company or not. The site brings together:
 
-This guide explains what each part of the site does, in plain words. For how the site is built, see the technical pages.
+- the free company's news and posts;
+- this week's resets, Fashion Report and hunt trains;
+- tools that make playing easier.
 
-## Guests and members
+<ul class="cards">
+  <li><a class="card" href="/guide/home-and-feeds/"><img src="/docs/frontend/screenshots/guide/weekly.png" alt="The home page's Weekly tab: when the next resets come" /><div class="card-body"><h3>Home and feeds</h3><p>Resets, the Fashion Report, hunt trains, and everyone's posts.</p></div></a></li>
+  <li><a class="card" href="/guide/party-finder/"><img src="/docs/frontend/screenshots/guide/party-finder.png" alt="The Party Finder's filters: data centre, world, category, role" /><div class="card-body"><h3>Party Finder</h3><p>Every party being recruited in the game right now, from your browser.</p></div></a></li>
+  <li><a class="card" href="/guide/duty-roulette/"><img src="/docs/frontend/screenshots/roulette.png" alt="The Duty Roulette's three reels" /><div class="card-body"><h3>Duty Roulette</h3><p>Can't decide what to run? Let the reels pick, and post what you got.</p></div></a></li>
+  <li><a class="card" href="/guide/waking-sands/"><img src="/docs/frontend/screenshots/guide/waking-sands.png" alt="The Waking Sands' welcome" /><div class="card-body"><h3>The Waking Sands</h3><p>Chat with Tataru, Y'shtola, Alphinaud and friends, voiced by an AI.</p></div></a></li>
+  <li><a class="card" href="/guide/market-history/"><img src="/docs/frontend/screenshots/guide/market-history.png" alt="Market History's welcome" /><div class="card-body"><h3>Market History</h3><p>An item's price on every world of your region, to buy where it's cheapest.</p></div></a></li>
+  <li><a class="card" href="/guide/events-and-venues/"><div class="card-body"><h3>Events and Venues</h3><p>This week's club nights, parties and races, and the player-run venues that host them.</p></div></a></li>
+</ul>
 
-Anyone can visit. Without an account you can:
+## Start here
 
-- read the Weekly and Hunts tabs and the global feed;
-- browse the Party Finder, events and venues;
-- spin the Duty Roulette (Tataru posts your result for you);
-- watch The Waking Sands;
-- try the Fight Planner, with a small hourly allowance, where it's switched on.
+1. **Look around.** Most of the site works without an account: the Weekly and Hunts tabs, the global feed, the Party Finder, events and venues, and the Duty Roulette.
+2. **Sign up** when you want to post, chat in The Waking Sands, or see market prices. It's free, open to anyone, and takes a minute. See [Getting started](/guide/getting-started/).
+3. **Join the free company's Discord** from the home page. Shared posts, parties and events turn up there.
+{: .steps}
 
-With a free account you can also:
+## Need something else?
 
-- post, comment, favourite posts and follow people;
-- share listings, events and venues with the free company's Discord;
-- talk in The Waking Sands;
-- see market price history;
-- get notifications.
-
-## Joining
-
-Sign up with an email address and a password, or with your Google or Discord account. The same button signs you in next time. With an email address, you'll get a link to confirm it before you can sign in.
-
-## In this guide
-
-| Page                                        | What it covers                                        |
-| ------------------------------------------- | ----------------------------------------------------- |
-| [Home and feeds](home-and-feeds.md)         | Weekly, Hunts, the feeds, posting and sharing         |
-| [Community](community.md)                   | Party Finder, Events, Venues, The Waking Sands        |
-| [Tools](tools.md)                           | Duty Roulette, Market History, Fight Planner          |
-| [Your account](your-account.md)             | Signing in, settings, profile, notifications, privacy |
-| [Testers and admins](testers-and-admins.md) | The staging site, and what admins can do              |
+- How your account, notifications and privacy work: [Your account](/guide/your-account/).
+- Where the site's information comes from, and how often it changes: [How it works](/guide/how-it-works/).
+- Building or changing the site: the [developer docs](/docs/frontend/).

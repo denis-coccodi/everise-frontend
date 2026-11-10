@@ -37,3 +37,10 @@ footer {
 .community {
   margin-left: auto;
 }
+
+// The site guide, the developer docs and the privacy policy, side by side.
+.help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}

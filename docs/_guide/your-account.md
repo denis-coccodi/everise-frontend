@@ -1,35 +1,38 @@
 ---
 title: Your account
-nav_order: 5
+nav_order: 10
+description: Signing in, settings, your profile, notifications and privacy.
 ---
 
 # Your account
 
-## Signing up and signing in
+## Signing in
 
-- **Email and password:**
-  - passwords are 8 to 72 characters, with no required symbols, and can't be one known from a data leak;
-  - you'll get a link to confirm your address, valid for 24 hours. The page that tells you to check your email has **Send the link again**.
-- **Google or Discord:** one button both signs you up and signs you in. If you already have an account with the same email address, it's linked to that account.
-- **Forgot your password?** Ask for a code on the sign-in page. It arrives by email, with a link to choose a new password.
+- **Google or Discord:** one button signs you up the first time and signs you in after that. If you already have an account with the same email address, it's linked to that account.
+- **Email and password:** sign in with your email address in any letter case.
+- **Forgot your password?** Ask for a code on the sign-in page. It arrives by email with a link to choose a new password.
 - **Too many wrong passwords:** after 10 wrong tries in 15 minutes, signing in to that address pauses until the 15 minutes are over.
-- **Bot check:** some forms show a quick, usually invisible check against bots.
 
 ## Settings
 
-- **Profile picture:** pick a picture, crop it to a square, and it's shrunk for you before uploading.
-- **Bio, email address and password:** changing your email or password asks for your current password. A new email address needs confirming before it takes over.
-- **Your character:** add your character's name and world, and the site calls you by them everywhere, e.g. "Avar Kriss (Odin)".
+Open **Settings** from the account menu at the top right.
+
+- **Profile picture:** pick a picture and crop it to a square. It's shrunk for you before uploading.
+- **Bio, email address and password:**
+  - changing your email or password asks for your current password;
+  - a new email address needs confirming before it takes over;
+  - changing your password signs you out everywhere else, and you get an email about it.
+- **Your character:** add your character's name and world, and the site calls you by them everywhere.
 - **Appearance:** dark mode (the default) or the "Final Fantasy white" light mode. Your choice follows you to every browser you sign in on.
-- **Sign out everywhere** signs you out on every device. Changing your password does the same, and you get an email about it.
+- **Sign out everywhere:** signs you out on every device at once.
 
-## Profile
+## Your profile
 
-Your profile shows your picture, bio and posts, and a tab for the posts you've favourited. Other members can follow you from it.
+Your profile shows your picture, your bio and your posts, with a tab for the posts you've favourited. Other members follow you from it.
 
 ## Notifications
 
-The bell in the header shows:
+The bell at the top shows:
 
 - who favourited or commented on your posts, grouped per post ("Alisaie and 2 others liked your post");
 - who started following you;
@@ -40,4 +43,4 @@ The number on the bell counts what you haven't seen yet. You're never notified a
 
 ## Privacy
 
-The privacy policy is on the site at `/privacy`. If you ask for your account to be deleted, an admin removes it for good, with your posts, comments, favourites, follows and pictures.
+The [privacy policy](https://everise.dev/privacy) explains what the site keeps. If you ask for your account to be deleted, an admin removes it for good, with your posts, comments, favourites, follows and pictures.
