@@ -7,7 +7,6 @@ import { HealingBuffs } from './healing-buffs';
 import { NO_ROOM_MS, aheadOf, best, better, kardiaBack, madeUp, waitsForBiggerNeed } from './heal-candidates';
 import { pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
-import { walkingDeads } from './walking-dead';
 import { WEAVE_MS, Weaving } from './weaving';
 import { naturalRegen, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
@@ -27,6 +26,7 @@ import { AUTOMATIC } from './tools';
 import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
+import { coveredMechanics, healCheckpoints } from './damage-checks';
 
 // How soon after its Helios lands Horoscope is read at the latest.
 const READ_MS = 5_000;
@@ -144,10 +144,9 @@ export function planHeals(
   );
   const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
   const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
-  // Living Dead: the tank must be full again when Walking Dead ends.
-  const deads = walkingDeads(plan, (u) => mitigationOf.get(key(u)), maxHp, options.margin, weaving);
+  // The mechanics, with Living Dead's and the damage outside them (damage over time, auto-attacks).
+  const { deads, mechanics } = healCheckpoints(plan, timeline, maxHp, options.margin, weaving, mitigationOf);
   for (const dead of deads) track.add(dead.selfHeals);
-  const mechanics = [...plan.mechanics, ...deads.map((d) => d.check)].sort((a, b) => a.at - b.at);
   // What each mechanic takes of the party, in shares of HP, mitigated.
   const need = new Map<number, number>();
   for (const h of plan.hits) if (!h.avoidable) need.set(h.mechanic, (need.get(h.mechanic) ?? 0) + (h.share ?? 0));
@@ -339,7 +338,7 @@ export function planHeals(
     return { ...hit, hpBefore, safe };
   });
   // A heal for Walking Dead is for the hit that set it off.
-  for (const use of uses) use.covers = use.covers.map((id) => deads.find((d) => d.check.id === id)?.trigger.id ?? id);
+  for (const use of uses) use.covers = coveredMechanics(use.covers, deads);
   return {
     mechanics: plan.mechanics,
     uses: [...plan.uses, ...uses].sort((a, b) => a.at - b.at || a.player - b.player),

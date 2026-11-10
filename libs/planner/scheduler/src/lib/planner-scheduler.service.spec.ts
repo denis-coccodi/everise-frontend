@@ -220,8 +220,8 @@ describe('PlannerScheduler', () => {
     expect(wall?.share).toBeGreaterThan(0.9);
   });
 
-  it('heals the player up for the next hit, an oGCD before a GCD, and judges each hit by the HP it leaves', () => {
-    // The auto-attack leaves the tank short for the second buster.
+  it('heals the player up for the next hit, an auto-attack too, an oGCD before a GCD, and judges each hit by the HP it leaves', () => {
+    // The buster leaves the tank 5,000 HP: the auto-attack at 45 s needs a heal before it.
     const p = plan([
       [30, 'Buster', 1, 95_000],
       [45, 'Attack', 1, 60_000],
@@ -229,9 +229,10 @@ describe('PlannerScheduler', () => {
     ]);
 
     const heal = p.uses.find((u) => u.name === 'Lustrate');
-    expect(heal).toMatchObject({ player: 2, target: 1, covers: [1] });
+    expect(heal).toMatchObject({ player: 2, target: 1 });
     expect(heal?.at).toBeGreaterThan(30_000);
-    expect(heal?.at).toBeLessThan(60_000);
+    expect(heal?.at).toBeLessThan(45_000);
+    expect(p.deaths ?? []).toEqual([]);
     expect(p.uses.map((u) => u.name)).not.toContain('Physick');
     const second = p.hits[1];
     expect(second.safe).toBe(true);
