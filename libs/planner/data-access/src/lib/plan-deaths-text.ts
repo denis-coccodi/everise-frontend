@@ -14,7 +14,8 @@ export function deathsText(plan: Plan, players: PullTimeline['players']): string
   };
   const mechanic = new Map(plan.mechanics.map((m) => [m.id, m.name]));
   const each = deaths.map((d) => {
-    const died = `${who(d.player)} to ${mechanic.get(d.mechanic) ?? 'a hit'} at ${pullClock(d.at)}`;
+    const cause = (d.mechanic !== null ? mechanic.get(d.mechanic) : null) ?? d.cause ?? 'a hit';
+    const died = `${who(d.player)} to ${cause} at ${pullClock(d.at)}`;
     if (d.raisedBy === null || d.raisedAt === null) return `${died}, and nobody can raise them`;
     const raise = plan.uses.find((u) => u.raise && u.player === d.raisedBy && u.target === d.player && u.at >= d.at);
     const swift = plan.uses.some(

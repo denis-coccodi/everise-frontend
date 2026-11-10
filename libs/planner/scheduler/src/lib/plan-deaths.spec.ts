@@ -103,4 +103,42 @@ describe('withDeaths', () => {
 
     expect(withDeaths(safe, t, c)).toBe(safe);
   });
+
+  it('counts HP run out by anything, a damage-over-time tick too, as a death, and names it', () => {
+    const { t, c } = setup();
+    const bleed = {
+      at: 80_000,
+      action: 555,
+      amount: 45_000,
+      target: 3,
+      source: 9,
+      tick: true,
+      unmitigated: 45_000,
+      hp: 0,
+    };
+    const timeline = {
+      ...t,
+      actions: [...t.actions, { id: 555, name: 'Bleeding' }],
+      damage: [bleed],
+    } as unknown as PullTimeline;
+    const ticked = {
+      ...plan(),
+      hits: [hit(1, 1, 100_000, 50_000)],
+      hp: [
+        {
+          player: 3,
+          points: [
+            { at: 0, hp: 100_000 },
+            { at: 79_000, hp: 30_000 },
+            { at: 80_000, hp: 0 },
+            { at: 81_000, hp: 2_000 },
+          ],
+        },
+      ],
+    };
+
+    const [death] = withDeaths(ticked, timeline, c).deaths ?? [];
+
+    expect(death).toMatchObject({ player: 3, at: 80_000, mechanic: null, cause: 'Bleeding', raisedBy: 4 });
+  });
 });

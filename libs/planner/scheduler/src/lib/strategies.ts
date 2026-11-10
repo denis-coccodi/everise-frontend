@@ -20,11 +20,14 @@ export function betterPlan(a: Plan, b: Plan, maxHp: Map<number, number>, options
 }
 
 // The best of the plans `planWith` makes with each strategy (`better`).
-// The others are only tried while players die.
+// The others are only tried while players die to a mechanic's hit: they
+// change where the cooldowns go, which deaths to a damage-over-time tick
+// or an auto-attack don't turn on (heals cover those), and each costs a
+// whole plan's time.
 export function bestOfStrategies(planWith: (strategy: Strategy) => Plan, better: (a: Plan, b: Plan) => boolean): Plan {
   let best = planWith(STRATEGIES[0]);
   for (const strategy of STRATEGIES.slice(1)) {
-    if (!best.deaths?.length) break;
+    if (!best.deaths?.some((d) => d.mechanic !== null)) break;
     const next = planWith(strategy);
     if (better(next, best)) best = next;
   }
