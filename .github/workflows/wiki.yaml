@@ -1,0 +1,56 @@
+# Copies docs/ into the repository's wiki on every merge to main
+# (scripts/wiki-sync.mjs): the wiki is a read-only copy, edit docs/.
+# The wiki's git repository only exists once its first page has been
+# saved in the web interface (Wiki -> Create the first page).
+name: Sync docs to the wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', 'scripts/wiki-sync.mjs', '.github/workflows/wiki.yaml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Until the wiki's first page is saved, its git repository doesn't exist:
+      # say so and stop, instead of failing.
+      - name: Check the wiki exists
+        id: wiki
+        run: |
+          if git ls-remote "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.wiki.git" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning title=No wiki yet::Open the repository's Wiki tab, choose 'Create the first page' and save it, then run this workflow again."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.wiki.outputs.exists == 'true'
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+      - if: steps.wiki.outputs.exists == 'true'
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - if: steps.wiki.outputs.exists == 'true'
+        run: node scripts/wiki-sync.mjs docs wiki "$GITHUB_REPOSITORY"
+      - name: Push the wiki
+        if: steps.wiki.outputs.exists == 'true'
+        working-directory: wiki
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898732+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "The wiki is up to date."; exit 0; fi
+          git commit -m "Sync from docs/ at ${GITHUB_SHA::7}"
+          git push
