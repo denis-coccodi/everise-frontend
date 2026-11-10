@@ -8,7 +8,8 @@ export const EVERISE_DISCORD = 'https://discord.gg/FeuTPU8jR5';
 export const EVERISE_LODESTONE = 'https://na.finalfantasyxiv.com/lodestone/freecompany/9232660711086364990/';
 
 // The free company's Discord server and Lodestone page, opening in a new
-// tab: as buttons (the home page banner) or as plain links (the footer).
+// tab: as buttons (the home page banner), plain links in a row, or a column
+// of links (the footer).
 @Component({
   selector: 'cdt-community-links',
   template: `
@@ -35,7 +36,7 @@ export const EVERISE_LODESTONE = 'https://na.finalfantasyxiv.com/lodestone/freec
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunityLinksComponent {
-  readonly look = input<'buttons' | 'links'>('links');
+  readonly look = input<'buttons' | 'links' | 'column'>('links');
 
   protected readonly links = [
     { text: 'Join us on Discord', href: EVERISE_DISCORD, icon: 'assets/images/discord.svg' },

@@ -37,6 +37,9 @@ export const ICON_NAMES = [
   'calendar',
   'check',
   'shield',
+  'book',
+  'code',
+  'lock',
 ] as const;
 // A small icon drawn in the page itself, so it shows even when no icon font
 // loads (data saving, slow connections, content blockers): the site uses
@@ -58,6 +61,17 @@ export const ICON_NAMES = [
         @case ('shield') {
           <path d="M12 3l7.5 3v5.5c0 4.6-3.1 8.3-7.5 9.5-4.4-1.2-7.5-4.9-7.5-9.5V6z" />
           <path d="M9 12l2 2 4-4" />
+        }
+        @case ('book') {
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z" />
+          <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" />
+        }
+        @case ('code') {
+          <path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" />
+        }
+        @case ('lock') {
+          <rect x="4" y="11" width="16" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         }
         @case ('close') {
           <path d="M6 6l12 12M18 6L6 18" />
