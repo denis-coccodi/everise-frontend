@@ -518,3 +518,11 @@ a.card:hover {
     transition: none;
   }
 }
+
+/* A small picture under a heading (the guide's How it works). */
+.page img.small {
+  display: block;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0.5rem 0 0.75rem;
+}

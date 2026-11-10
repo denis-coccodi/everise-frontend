@@ -8,7 +8,7 @@ description: An item's price over time on every world of your region, and where 
 
 An item's price over time on every world of your region, a line per world, and where it sells cheapest right now. See where to buy before you travel. Open it from **Tools → Market History**. It's for members: an account keeps bots from using up the market lookups everyone shares.
 
-![Market History](/docs/frontend/screenshots/guide/market-history.png)
+![The price history of Grade 4 Gemdraught of Strength (HQ) on Odin and Zodiark over a month](/docs/frontend/screenshots/guide/market-history.png)
 
 ## Using it
 
