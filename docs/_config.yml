@@ -1,0 +1,29 @@
+# The frontend's documentation site, published by GitHub Pages from docs/ on
+# main. Pages here change in the same pull requests as the code they describe.
+# Two parts: the site guide (docs/_guide, plain language, for players, testers
+# and admins) and the technical reference (the pages in docs/).
+title: Everise docs
+description: The Everise site guide, and how the frontend is built.
+remote_theme: just-the-docs/just-the-docs@v0.10.1
+plugins:
+  - jekyll-remote-theme
+  - jekyll-relative-links
+search_enabled: true
+color_scheme: dark
+collections:
+  guide:
+    permalink: '/:collection/:path/'
+    output: true
+just_the_docs:
+  collections:
+    guide:
+      name: Site guide
+      nav_fold: false
+aux_links:
+  everise.dev: https://everise.dev
+  Repository: https://github.com/denis-coccodi/everise-frontend
+  Backend docs: https://denis-coccodi.github.io/everise-backend/
+footer_content: Edited with the code - see the repository's <code>docs/</code> folder.
+relative_links:
+  enabled: true
+  collections: true

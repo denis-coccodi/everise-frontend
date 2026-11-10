@@ -1,6 +1,6 @@
 # planner-feature-planner
 
-The Fight Planner page (`/planner`). Guests read what it does and how to sign in; members get the tool (`cdt-planner-tool`, which provides `PlannerStore` and `PlanStore`):
+The Fight Planner page (`/planner`). Guests plan too, within the FFLogs lookups the backend gives them (10 new reports and 10 new pulls an hour, shown in a note); everyone gets the tool (`cdt-planner-tool`, which provides `PlannerStore` and `PlanStore`):
 
 - `cdt-planner-report-form`: the FFLogs report link or code (a pull's link opens that pull).
 - `cdt-planner-pull-list`: the report's Extreme, Savage and Ultimate pulls, a group per fight, to pick one; the one open is shown pressed.
