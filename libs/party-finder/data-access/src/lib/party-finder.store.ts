@@ -10,6 +10,7 @@ import { categoriesIn, matchesFilters, worldId } from './listing-filters';
 import { sortListings } from './listing-sort';
 import { selectionFromQuery, selectionToQuery } from './party-finder-query';
 import { PartyFinderService } from './party-finder.service';
+import { inWords, regionChoices, worldGroups } from './regions';
 import type { PartyFinderFilters } from './listing-filters.model';
 import type { SortOrder } from './listing-sort.model';
 import type { PartyFinderSelection } from './party-finder-selection.model';
@@ -83,6 +84,8 @@ export const PartyFinderStore = signalStore(
     return {
       // The data centre's worlds, each with its id in the query string.
       worlds: computed(() => (store.board()?.worlds ?? []).map((world) => ({ id: worldId(world), name: world.name }))),
+      // The same worlds by data centre, for the picker's groups.
+      worldGroups: computed(() => worldGroups(store.board()?.worlds ?? [])),
       // The game's role icons and the beginners' sprout, once loaded.
       // The same icons from one refresh to the next don't redraw the list.
       icons: computed(() => store.board()?.icons ?? null, {
@@ -96,29 +99,13 @@ export const PartyFinderStore = signalStore(
       regions: computed(() =>
         store.regions().length ? store.regions() : [{ name: '', dataCentres: [store.dataCentre()] }],
       ),
-      // The physical data centres, for the pickers: each region's data
-      // centres share one Party Finder in the game (since patch 7.58 in
-      // Europe and North America). Each with the data centre it goes to
-      // (the one shown, if it's there), whether it's the one shown, and its
-      // name with how many listings are up ("Europe: Light, Chaos (138)").
-      // The one shown counts its list, so the two agree.
-      physicalDataCentres: computed(() => {
-        const counts = new Map(store.counts().map((c) => [c.dataCentre as string, c.listings]));
-        const shown = store.board()?.dataCentre === store.dataCentre();
-        return store.regions().map((region) => {
-          const current = region.dataCentres.includes(store.dataCentre());
-          const known = region.dataCentres.every((name) => counts.has(name));
-          const count =
-            current && shown ? live().length : region.dataCentres.reduce((n, d) => n + (counts.get(d) ?? 0), 0);
-          const names = region.dataCentres.join(', ');
-          const name = region.name ? `${region.name}: ${names}` : names;
-          return {
-            value: current ? store.dataCentre() : region.dataCentres[0],
-            current,
-            label: known || (current && shown) ? `${name} (${count})` : name,
-          };
-        });
-      }),
+      // The regions for the pickers, with how many listings are up ("Europe (138)").
+      physicalDataCentres: computed(() =>
+        regionChoices(store.regions(), store.counts(), store.dataCentre(), {
+          shown: store.board()?.dataCentre === store.dataCentre(),
+          listings: live().length,
+        }),
+      ),
       // The data centres whose listings are shown, in words: "Light and Chaos".
       shownOn: computed(() => inWords(store.board()?.dataCentres ?? [store.dataCentre()])),
       pages,
@@ -234,8 +221,3 @@ export const PartyFinderStore = signalStore(
     },
   })),
 );
-
-// Names in words: "Light", "Light and Chaos", "Aether, Crystal, Dynamis and Primal".
-function inWords(names: string[]) {
-  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
-}

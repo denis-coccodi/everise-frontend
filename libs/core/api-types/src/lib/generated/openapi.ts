@@ -5277,6 +5277,19 @@ export interface components {
       worlds: {
         id: number;
         name: string;
+        /** @enum {string} */
+        dataCentre:
+          | 'Light'
+          | 'Chaos'
+          | 'Aether'
+          | 'Crystal'
+          | 'Dynamis'
+          | 'Primal'
+          | 'Elemental'
+          | 'Gaia'
+          | 'Mana'
+          | 'Meteor'
+          | 'Materia';
       }[];
       regions: {
         name: string;

@@ -8,14 +8,14 @@ description: Find a party from your browser, filter it, and share it with the fr
 
 Every party being recruited in the game right now, on any data centre, without logging in to the game. Open it from **Community → Party Finder**. It starts on **Light and Chaos**, with all their worlds.
 
-![Party Finder listings on Light](/docs/frontend/screenshots/guide/party-finder.png)
+![Party Finder listings in Europe, Light and Chaos together](/docs/frontend/screenshots/guide/party-finder.png)
 
 Recruiters' names and party descriptions are blurred in this picture.
 
 ## Finding a party
 
-1. **Pick your data centre.** Since patch 7.58, the game shows the parties of every data centre in the same region together (Light and Chaos are one Party Finder), and so does the site. Each choice says how many parties are up there right now, Europe first.
-2. **Pick your world, if you like.** You then see what you can actually join from it: every data centre in your region, plus your own world's Hunt and FATE parties.
+1. **Pick your region.** Since patch 7.58, the game shows the parties of every data centre in the same region together (Light and Chaos are one Party Finder), and so does the site. Each region says how many parties are up there right now, Europe first.
+2. **Pick your world, if you like.** They're grouped by data centre. You then see what you can actually join from it: every data centre in your region, plus your own world's Hunt and FATE parties.
 3. **Narrow it down:**
    - **Category:** every category is listed, even ones with nothing in them right now;
    - **Open slot for:** your role;
