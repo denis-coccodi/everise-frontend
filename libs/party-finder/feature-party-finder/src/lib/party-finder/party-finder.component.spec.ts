@@ -101,7 +101,8 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
 
 describe('PartyFinderComponent', () => {
   // The page as the app routes it: /party-finder, or a data centre's own.
-  async function render(url = '/party-finder', { signedIn = false, discord = true } = {}) {
+  // Most tests look from Odin, as a member picking their world does.
+  async function render(url = '/party-finder?dc=light&world=odin', { signedIn = false, discord = true } = {}) {
     TestBed.configureTestingModule({
       providers: [
         // Whether the backend can share in the Everise Discord.
@@ -129,7 +130,18 @@ describe('PartyFinderComponent', () => {
     return { fixture, http, page, titles, select, change };
   }
 
-  it('starts on Light, from Odin, without listings that have no duty', async () => {
+  it('opens on Light with all its worlds when the address names no data centre', async () => {
+    const { fixture, http, select } = await render('/party-finder');
+
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    expect(select('pf-data-centre').value).toBe('Light');
+    expect(select('pf-world').value).toBe('');
+    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=light');
+  });
+
+  it('shows Light from Odin without listings that have no duty', async () => {
     const { fixture, http, page, titles, select } = await render();
 
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
@@ -267,7 +279,7 @@ describe('PartyFinderComponent', () => {
   });
 
   it("opens a listing's own page from its card, the share buttons staying buttons", async () => {
-    const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+    const { fixture, http, page } = await render(undefined, { signedIn: true });
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
 
@@ -400,7 +412,7 @@ describe('PartyFinderComponent', () => {
     });
 
     it('posts it with a message and, when ticked, in the Discord too, then links to the post', async () => {
-      const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+      const { fixture, http, page } = await render(undefined, { signedIn: true });
       http.expectOne('/party-finder?dataCentre=Light').flush(board());
       await fixture.whenStable();
       // Each button names its listing for screen readers.
@@ -441,7 +453,7 @@ describe('PartyFinderComponent', () => {
     });
 
     it('sends it to the Discord only, and keeps the window open with the reason when it fails', async () => {
-      const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+      const { fixture, http, page } = await render(undefined, { signedIn: true });
       http.expectOne('/party-finder?dataCentre=Light').flush(board());
       await fixture.whenStable();
 
@@ -475,7 +487,7 @@ describe('PartyFinderComponent', () => {
     });
 
     it('a listing that ended while the member wrote: says so, stays on the page, and refreshes the listings', async () => {
-      const { fixture, http, page } = await render('/party-finder', { signedIn: true });
+      const { fixture, http, page } = await render(undefined, { signedIn: true });
       http.expectOne('/party-finder?dataCentre=Light').flush(board());
       await fixture.whenStable();
 
@@ -505,7 +517,7 @@ describe('PartyFinderComponent', () => {
     });
 
     it("doesn't offer Discord where the site can't share there", async () => {
-      const { fixture, http, page } = await render('/party-finder', { signedIn: true, discord: false });
+      const { fixture, http, page } = await render(undefined, { signedIn: true, discord: false });
       http.expectOne('/party-finder?dataCentre=Light').flush(board());
       await fixture.whenStable();
 

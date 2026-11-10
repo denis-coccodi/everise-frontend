@@ -84,18 +84,27 @@ describe('Party Finder filters', () => {
     expect(categoryName('HighEndDuty:Ultimate')).toBe('Ultimate');
     expect(categoryName('HighEndDuty:Other')).toBe('Other high-end');
     expect(listingTitle(listing({ category: 'TheHunt', duty: null }))).toBe('The Hunt');
-    expect(
-      categoriesIn([
-        listing({ category: 'None' }),
-        listing({ category: 'Trial' }),
-        listing(),
-        listing({ duty: 'The Jade Stoa (Extreme)' }),
-        listing({ category: 'Fate' }),
-      ]),
-    ).toEqual({
-      others: ['Fate', 'Trial', 'None'],
-      highEnd: ['HighEndDuty:Ultimate', 'HighEndDuty:Extreme'],
-    });
+  });
+
+  it('lists every category, even with no listings, plus new ones from xivpf or the picked one', () => {
+    const empty = categoriesIn([]);
+    expect(empty.highEnd).toEqual([
+      'HighEndDuty:Ultimate',
+      'HighEndDuty:Savage',
+      'HighEndDuty:Extreme',
+      'HighEndDuty:Unreal',
+      'HighEndDuty:Chaotic',
+      'HighEndDuty:Other',
+    ]);
+    expect(empty.others).toHaveLength(15);
+    expect(empty.others.slice(0, 3)).toEqual(['DeepDungeon', 'Dungeon', 'DutyRoulette']);
+    expect(empty.others.at(-1)).toBe('None');
+    expect(empty.others).not.toContain('HighEndDuty');
+
+    const withNew = categoriesIn([listing({ category: 'Fishing' })], 'Crafting');
+    expect(withNew.others).toContain('Fishing');
+    expect(withNew.others).toContain('Crafting');
+    expect(withNew.others.at(-1)).toBe('None');
   });
 
   it('tells ultimates, savage raids, extremes and unreals apart, or takes all high-end duty together', () => {
