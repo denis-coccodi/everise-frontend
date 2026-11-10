@@ -12,12 +12,12 @@ function written(selection: PartyFinderSelection) {
 }
 
 describe('the Party Finder query string', () => {
-  it("opens on Everise's home, Light from Odin, when it names no data centre", () => {
+  it("opens on Everise's home, Light with all its worlds, when it names no data centre", () => {
     const home = selectionFromQuery(query({}));
 
     expect(home.dataCentre).toBe('Light');
-    expect(home.filters.world).toBe('odin');
-    expect(written(home)).toEqual({ dc: 'light', world: 'odin' });
+    expect(home.filters.world).toBeNull();
+    expect(written(home)).toEqual({ dc: 'light' });
   });
 
   it('shows all worlds of a data centre it names without a world, Light too', () => {

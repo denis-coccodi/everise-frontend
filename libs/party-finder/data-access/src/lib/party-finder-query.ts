@@ -15,11 +15,9 @@ import type { PartyFinderSelection } from './party-finder-selection.model';
 //   page=2                  the page of listings, after the first
 // What is at its default is left out, except the data centre. A query
 // without one is someone arriving at /party-finder: they get Everise's own
-// view, Light from Odin. Picking a data centre, Light too, shows all its
-// worlds.
+// view: Light, with all its worlds, as picking any data centre shows it.
 // Everise's home: where /party-finder starts.
 const HOME_DATA_CENTRE = 'Light';
-const HOME_WORLD = 'odin';
 
 const ROLES: PartyRole[] = ['tank', 'healer', 'dps'];
 
@@ -61,7 +59,7 @@ export function selectionFromQuery(query: { get(name: string): string | null }):
   return {
     dataCentre: dataCentreName(dc || HOME_DATA_CENTRE),
     filters: {
-      world: id('world') || (dc ? null : HOME_WORLD),
+      world: id('world') || null,
       category: category ? categoryFromId(category) : '',
       role: ROLES.find((r) => r === role) ?? '',
       search: query.get('search') ?? '',

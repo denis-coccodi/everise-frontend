@@ -85,7 +85,7 @@ export const PartyFinderStore = signalStore(
       icons: computed(() => store.board()?.icons ?? null, {
         equal: (a, b) => JSON.stringify(a) === JSON.stringify(b),
       }),
-      categories: computed(() => categoriesIn(live())),
+      categories: computed(() => categoriesIn(live(), store.filters().category)),
       listings,
       total: computed(() => live().length),
       // The data centres for the list: by region, or just this one before

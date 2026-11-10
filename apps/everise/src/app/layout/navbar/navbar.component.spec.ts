@@ -71,9 +71,9 @@ describe('NavbarComponent', () => {
     expect(roulette().getAttribute('aria-current')).toBe('page');
   });
 
-  it('opens the Party Finder on Light from Odin, and marks it current whatever is picked', async () => {
+  it('opens the Party Finder on Light with all its worlds, and marks it current whatever is picked', async () => {
     const partyFinder = () => page().querySelector('a[href^="/party-finder"]') as HTMLAnchorElement;
-    expect(partyFinder().getAttribute('href')).toBe('/party-finder?dc=light&world=odin');
+    expect(partyFinder().getAttribute('href')).toBe('/party-finder?dc=light');
 
     await TestBed.inject(Router).navigateByUrl('/party-finder?dc=chaos&slot=healer');
     await fixture.whenStable();

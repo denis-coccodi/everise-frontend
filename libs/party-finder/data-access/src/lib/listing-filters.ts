@@ -115,19 +115,18 @@ export function matchesFilters(listing: PartyFinderListing, filters: PartyFinder
   return true;
 }
 
-// The categories the listings have, for the page's list: the others by
-// name, "No duty" last, and the kinds of high-end duty apart (the page
-// groups them under "High-end Duty").
-export function categoriesIn(listings: PartyFinderListing[]) {
-  const categories = [...new Set(listings.map((listing) => listing.category))].filter(
-    (category) => category !== HIGH_END,
-  );
-  const kinds = new Set(listings.map(kindOf));
+// The categories for the page's list: every one the page knows, even with
+// no listings right now (a refresh may bring one), plus any xivpf adds that
+// the listings or the picked category name. The others by name, "No duty"
+// last, and the kinds of high-end duty apart (the page groups them under
+// "High-end Duty").
+export function categoriesIn(listings: PartyFinderListing[], picked = '') {
+  const highEnd = HIGH_END_KINDS.map((kind) => `${HIGH_END}:${kind}`);
+  const named = [...Object.keys(CATEGORY_NAMES), ...listings.map((listing) => listing.category)];
+  if (picked && !highEnd.includes(picked)) named.push(picked);
+  const categories = [...new Set(named)].filter((category) => category !== HIGH_END && category !== NO_DUTY);
   return {
-    others: categories
-      .filter((category) => category !== NO_DUTY)
-      .sort((a, b) => categoryName(a).localeCompare(categoryName(b)))
-      .concat(categories.includes(NO_DUTY) ? [NO_DUTY] : []),
-    highEnd: HIGH_END_KINDS.map((kind) => `${HIGH_END}:${kind}`).filter((kind) => kinds.has(kind)),
+    others: categories.sort((a, b) => categoryName(a).localeCompare(categoryName(b))).concat([NO_DUTY]),
+    highEnd,
   };
 }
