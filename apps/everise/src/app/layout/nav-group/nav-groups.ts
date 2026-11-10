@@ -10,9 +10,9 @@ export function navGroups(features: Features): NavGroup[] {
     {
       label: 'Community',
       pages: [
-        // The Party Finder opens on Everise's home, Light from Odin
+        // The Party Finder opens on Everise's home, Light with all its worlds
         // (party-finder/data-access's party-finder-query.ts).
-        { label: 'Party Finder', icon: 'party', path: '/party-finder', query: { dc: 'light', world: 'odin' } },
+        { label: 'Party Finder', icon: 'party', path: '/party-finder', query: { dc: 'light' } },
         { label: 'Venues', icon: 'venue', path: '/venues' },
         { label: 'Events', icon: 'calendar', path: '/events' },
         { label: 'The Waking Sands', icon: 'chat', path: '/waking-sands' },

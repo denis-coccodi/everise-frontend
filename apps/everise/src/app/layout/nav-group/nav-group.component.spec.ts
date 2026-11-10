@@ -43,7 +43,7 @@ describe('NavGroupComponent', () => {
     expect(host.querySelector('[role=menu]')?.getAttribute('aria-label')).toBe('Community');
     expect(links().map((a) => a.textContent?.trim())).toEqual(['Party Finder', 'Venues', 'Events', 'The Waking Sands']);
     expect(links().map((a) => a.getAttribute('href'))).toEqual([
-      '/party-finder?dc=light&world=odin',
+      '/party-finder?dc=light',
       '/venues',
       '/events',
       '/waking-sands',
