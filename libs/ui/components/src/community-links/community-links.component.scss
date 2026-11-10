@@ -23,3 +23,8 @@ img {
   flex: none;
   border-radius: var(--radius-sm);
 }
+
+ul.column {
+  flex-direction: column;
+  gap: 0.6rem;
+}
