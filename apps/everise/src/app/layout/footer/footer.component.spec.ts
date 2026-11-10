@@ -27,4 +27,16 @@ describe('FooterComponent', () => {
     expect(link?.textContent?.trim()).toBe('Privacy policy');
     expect(link?.getAttribute('href')).toBe('/privacy');
   });
+
+  it('links to the site guide and the developer docs, which the Worker serves', () => {
+    const links = [...(fixture.nativeElement as HTMLElement).querySelectorAll('nav.help a')].map((a) => [
+      a.textContent?.trim(),
+      a.getAttribute('href'),
+    ]);
+    expect(links).toEqual([
+      ['Site guide', '/guide/'],
+      ['Developer docs', '/docs/frontend/'],
+      ['Privacy policy', '/privacy'],
+    ]);
+  });
 });

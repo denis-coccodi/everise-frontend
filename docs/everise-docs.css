@@ -1,0 +1,520 @@
+---
+layout: null
+# Served at /docs/frontend/everise-docs.css; the backend's docs use it too.
+---
+
+/* The documentation's look: the site's own (the theme in
+   libs/ui/components/src/theme), dark mode, written phone first. Colours are
+   the site's palette and role values; keep them in step with _tokens.scss. */
+:root {
+  --color-base: #070d1c;
+  --color-base-deep: #04070f;
+  --color-base-raised: #0a1530;
+  --color-surface: #0d1d40;
+  --color-surface-strong: #122852;
+  --color-contrast: #f7f8fa;
+  --color-contrast-soft: #c9d4e8;
+  --color-contrast-muted: #a9b8d6;
+  --color-heading: #ffffff;
+  --color-label: #8fb3ea;
+  --color-primary: #00a9b0;
+  --color-primary-strong: #5fd3d8;
+  --color-on-primary: #04070f;
+  --color-secondary: #073a8c;
+  --color-accent: #c49a0b;
+  --color-link: #5fd3d8;
+  --color-link-hover: #d6f7f8;
+  --color-border: rgba(220, 220, 220, 0.55);
+  --color-border-soft: rgba(169, 184, 214, 0.28);
+  --color-divider: rgba(169, 184, 214, 0.16);
+  --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --font-body: 'Source Sans Pro', 'Segoe UI', system-ui, sans-serif;
+  --font-reading: 'Marcellus', Georgia, serif;
+  --letter-spacing-display: 0.1em;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-panel: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.45);
+  --glow-heading: 0 0 14px rgba(201, 212, 232, 0.35);
+  --glow-crystal: 0 0 8px rgba(95, 211, 216, 0.85);
+  --gradient-page:
+    radial-gradient(ellipse at 20% 0%, rgba(7, 58, 140, 0.45), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(100, 74, 116, 0.25), transparent 50%), linear-gradient(#070d1c, #04070f);
+  --gradient-panel: linear-gradient(160deg, rgba(18, 40, 82, 0.92), rgba(10, 21, 48, 0.95) 60%);
+  --gradient-title-bar: linear-gradient(#073a8c, #052a66);
+  --gradient-navbar: linear-gradient(rgba(13, 29, 64, 0.97), rgba(7, 13, 28, 0.97));
+  --content-width: 72rem;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-base-deep);
+  background-image: var(--gradient-page);
+  background-attachment: fixed;
+  color: var(--color-contrast);
+  font: 400 1.0625rem/1.65 var(--font-body);
+}
+
+a {
+  color: var(--color-link);
+  text-underline-offset: 0.15em;
+}
+a:hover {
+  color: var(--color-link-hover);
+}
+:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.skip:focus {
+  top: 0.5rem;
+}
+
+/* The bar at the top, like the site's navbar. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--gradient-navbar);
+  border-bottom: 1px solid var(--color-border-soft);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+.topbar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.25rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-heading);
+  font: 700 1.2rem var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-decoration: none;
+  text-shadow: var(--glow-heading);
+}
+.brand img {
+  border-radius: var(--radius-sm);
+}
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sections a {
+  display: inline-block;
+  padding: 0.35rem 0;
+  color: var(--color-contrast-soft);
+  font: 600 0.8rem var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.sections a:hover,
+.sections a[aria-current='true'] {
+  color: var(--color-heading);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+/* Technical pages: a contents column, then the page. */
+.layout {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1rem;
+}
+.contents {
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-panel);
+}
+.contents summary {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--gradient-title-bar);
+  color: var(--color-heading);
+  font: 700 0.85rem var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.contents ul {
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.75rem;
+  list-style: none;
+}
+.contents ul ul {
+  padding: 0 0 0 0.9rem;
+  border-left: 1px solid var(--color-divider);
+}
+.contents a {
+  display: block;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-contrast-soft);
+  text-decoration: none;
+}
+.contents a:hover {
+  background: rgba(0, 169, 176, 0.12);
+  color: var(--color-heading);
+}
+.contents a[aria-current='page'] {
+  background: rgba(0, 169, 176, 0.18);
+  color: var(--color-heading);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+/* A page's own window. */
+.page {
+  min-width: 0;
+  padding: 1.25rem 1rem 2rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.page h1,
+.page h2,
+.page h3 {
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-shadow: var(--glow-heading);
+}
+.page h1 {
+  margin: 0 0 1rem;
+  font-size: 1.75rem;
+}
+.page h2 {
+  margin: 2.25rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 1.3rem;
+}
+.page h3 {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1.05rem;
+  color: var(--color-label);
+  text-shadow: none;
+}
+.page p,
+.page li {
+  max-width: 48rem;
+}
+.page li + li {
+  margin-top: 0.25rem;
+}
+.page strong {
+  color: var(--color-heading);
+}
+
+code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: rgba(4, 7, 15, 0.6);
+  color: var(--color-primary-strong);
+  font:
+    0.9em ui-monospace,
+    'Cascadia Code',
+    Consolas,
+    monospace;
+  overflow-wrap: anywhere;
+}
+pre {
+  overflow-x: auto;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: rgba(4, 7, 15, 0.75);
+}
+pre code {
+  padding: 0;
+  background: none;
+  color: var(--color-contrast-soft);
+  overflow-wrap: normal;
+}
+
+/* Tables scroll inside themselves on narrow screens. */
+.table-wrap,
+.page table {
+  display: block;
+  overflow-x: auto;
+}
+.page table {
+  margin: 1rem 0;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.page th {
+  background: var(--gradient-title-bar);
+  color: var(--color-heading);
+  font: 600 0.8rem var(--font-display);
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+}
+.page th,
+.page td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-divider);
+  vertical-align: top;
+}
+.page tr:nth-child(even) td {
+  background: rgba(4, 7, 15, 0.25);
+}
+
+.page img {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+}
+
+.edit {
+  margin-top: 2rem;
+  color: var(--color-contrast-muted);
+  font-size: 0.9rem;
+}
+
+.site-footer {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+  color: var(--color-contrast-muted);
+  font-size: 0.9rem;
+}
+
+/* The site guide: a page to read, with a welcome and windows to pick from. */
+.guide .page {
+  font-family: var(--font-body);
+}
+.hero {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2.5rem 1rem 1.5rem;
+  text-align: center;
+}
+.hero img {
+  border-radius: var(--radius-md);
+  box-shadow: var(--glow-crystal);
+}
+.hero h1 {
+  margin: 0.75rem 0 0.5rem;
+  color: var(--color-heading);
+  font: 700 2rem/1.2 var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-shadow: var(--glow-heading);
+}
+.hero p {
+  max-width: 40rem;
+  margin: 0 auto;
+  color: var(--color-contrast-soft);
+  font-size: 1.15rem;
+}
+.hero .cta {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  background: linear-gradient(#5fd3d8, #00a9b0);
+  color: var(--color-on-primary);
+  font: 700 0.9rem var(--font-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-decoration: none;
+}
+.hero .cta:hover {
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-crystal);
+}
+
+.cards {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 0;
+  list-style: none;
+}
+.cards > li {
+  max-width: none;
+  margin: 0;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, #122852, #0a1530 70%);
+  color: var(--color-contrast);
+  text-decoration: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+a.card:hover {
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 1px var(--color-primary),
+    var(--shadow-panel);
+  color: var(--color-contrast);
+}
+.card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  border-radius: 0;
+}
+.card-body {
+  padding: 0.9rem 1rem 1.1rem;
+}
+.card h3,
+.page .card h3 {
+  margin: 0 0 0.35rem;
+  color: var(--color-heading);
+  font: 700 1.05rem var(--font-display);
+  letter-spacing: 0.04em;
+  text-shadow: none;
+}
+.card p {
+  margin: 0;
+  color: var(--color-contrast-soft);
+}
+
+/* Steps: numbered crystals down the side. */
+.steps {
+  counter-reset: step;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+.steps > li {
+  position: relative;
+  margin: 0 0 0.9rem;
+  padding-left: 2.6rem;
+}
+.steps > li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: linear-gradient(#5fd3d8, #007f85);
+  color: var(--color-on-primary);
+  font: 700 0.95rem/1.8rem var(--font-display);
+  text-align: center;
+}
+
+/* A note to the side: a tip, or something to know. */
+.note {
+  max-width: 48rem;
+  margin: 1.25rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(196, 154, 11, 0.5);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: rgba(196, 154, 11, 0.08);
+}
+.note > :first-child {
+  margin-top: 0;
+}
+.note > :last-child {
+  margin-bottom: 0;
+}
+
+.next {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-divider);
+}
+
+@media (min-width: 40rem) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .page {
+    padding: 1.75rem 2rem 2.5rem;
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+  }
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .contents {
+    position: sticky;
+    top: 4.5rem;
+    margin: 0;
+  }
+  .contents summary {
+    pointer-events: none;
+    list-style: none;
+  }
+  .contents summary::-webkit-details-marker {
+    display: none;
+  }
+  .cards.three {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

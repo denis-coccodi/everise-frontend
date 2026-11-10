@@ -9,3 +9,8 @@
 /.nx/workspace-data
 package-lock.json
 .nx/self-healing
+
+# Jekyll layouts (Liquid) and the site guide (kramdown {: .class} markers), which Prettier would break.
+/docs/_layouts
+/docs/_includes
+/docs/_guide

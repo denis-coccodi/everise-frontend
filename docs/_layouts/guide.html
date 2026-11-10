@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- A page of the site guide (docs/_guide), served at /guide/ on everise.dev. -->
+<html lang="en">
+  <head>
+    {% include head.html path=page.url label="Site guide" %}
+  </head>
+  <body class="guide">
+    {% include topbar.html section="guide" %}
+    {% if page.hero %}
+    <div class="hero">
+      <img src="/assets/images/everise-crest.png" alt="" width="72" height="72" />
+      <h1>{{ page.hero }}</h1>
+      <p>{{ page.tagline }}</p>
+      <a class="cta" href="/">Visit everise.dev</a>
+    </div>
+    {% endif %}
+    {% assign chapters = site.guide | sort: "nav_order" %}
+    <div class="layout">
+      <details class="contents" open>
+        <summary>Site guide</summary>
+        <nav aria-label="Site guide">
+          <ul>
+            {% for p in chapters %}
+            <li><a href="{{ p.url }}"{% if p.url == page.url %} aria-current="page"{% endif %}>{{ p.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </details>
+      <main id="main" class="page">
+        {{ content }}
+        {% assign at = 0 %}
+        {% for p in chapters %}{% if p.url == page.url %}{% assign at = forloop.index0 %}{% endif %}{% endfor %}
+        {% assign before = at | minus: 1 %}{% assign after = at | plus: 1 %}
+        <nav class="next" aria-label="More of the guide">
+          {% if at > 0 %}<a href="{{ chapters[before].url }}">← {{ chapters[before].title }}</a>{% else %}<span></span>{% endif %}
+          {% if chapters[after] %}<a href="{{ chapters[after].url }}">{{ chapters[after].title }} →</a>{% endif %}
+        </nav>
+      </main>
+    </div>
+  </body>
+</html>

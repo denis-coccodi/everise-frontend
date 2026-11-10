@@ -11,7 +11,7 @@
 ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare&logoColor=white)
 ![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2%20AA-073a8c)
 
-[**everise.dev**](https://everise.dev) · [Backend](https://github.com/denis-coccodi/everise-backend) · [Documentation](https://denis-coccodi.github.io/everise-frontend/) · [Architecture](#architecture) · [Accessibility](#accessibility) · [Deployment](#environments-and-deployment)
+[**everise.dev**](https://everise.dev) · [Backend](https://github.com/denis-coccodi/everise-backend) · [Site guide](https://everise.dev/guide/) · [Documentation](https://everise.dev/docs/frontend/) · [Architecture](#architecture) · [Accessibility](#accessibility) · [Deployment](#environments-and-deployment)
 
 ![The global feed in dark mode: Tataru's post of a guest's roulette result, then a member's](docs/screenshots/feed.png)
 
