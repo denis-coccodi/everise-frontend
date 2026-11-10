@@ -66,6 +66,7 @@ function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFi
 function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
   return {
     dataCentre: 'Light',
+    dataCentres: ['Light', 'Chaos'],
     worlds: LIGHT_WORLDS,
     regions: [
       { name: 'Europe', dataCentres: ['Light', 'Chaos'] },
@@ -75,6 +76,19 @@ function board(changes: Partial<PartyFinderBoard> = {}): PartyFinderBoard {
     ],
     fetchedAt: new Date().toISOString(),
     icons: { tank: 62581, healer: 62582, dps: 62583, beginner: 61523 },
+    counts: [
+      { dataCentre: 'Light', listings: 3 },
+      { dataCentre: 'Chaos', listings: 2 },
+      { dataCentre: 'Aether', listings: 10 },
+      { dataCentre: 'Crystal', listings: 20 },
+      { dataCentre: 'Dynamis', listings: 30 },
+      { dataCentre: 'Primal', listings: 40 },
+      { dataCentre: 'Elemental', listings: 1 },
+      { dataCentre: 'Gaia', listings: 2 },
+      { dataCentre: 'Mana', listings: 3 },
+      { dataCentre: 'Meteor', listings: 4 },
+      { dataCentre: 'Materia', listings: 46 },
+    ],
     listings: [
       listing('66-1'),
       listing('67-2', {
@@ -203,24 +217,38 @@ describe('PartyFinderComponent', () => {
     expect(page.querySelector('.notice')?.textContent).toContain('No listings match');
   });
 
-  it("switches to Chaos's listings, all its worlds, in the query string", async () => {
+  it("switches to Materia's listings, all its worlds, in the query string", async () => {
     const { fixture, http, titles, change } = await render();
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
 
-    await change('pf-data-centre', 'Chaos');
+    await change('pf-data-centre', 'Materia');
     await fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=chaos');
-    http.expectOne('/party-finder?dataCentre=Chaos').flush(
+    expect(TestBed.inject(Router).url).toBe('/party-finder?dc=materia');
+    http.expectOne('/party-finder?dataCentre=Materia').flush(
       board({
-        dataCentre: 'Chaos',
-        worlds: [{ id: 71, name: 'Moogle' }],
-        listings: [listing('71-9', { world: { id: 71, name: 'Moogle' }, duty: 'Sastasha' })],
+        dataCentre: 'Materia',
+        dataCentres: ['Materia'],
+        worlds: [{ id: 22, name: 'Bismarck' }],
+        listings: [listing('22-9', { world: { id: 22, name: 'Bismarck' }, duty: 'Sastasha' })],
       }),
     );
     await fixture.whenStable();
 
     expect(titles()).toEqual(['Sastasha']);
+  });
+
+  it('shows Light and Chaos together, one Party Finder since patch 7.58: picking Europe again loads nothing', async () => {
+    const { fixture, http, page, change } = await render();
+    http
+      .expectOne('/party-finder?dataCentre=Light')
+      .flush(board({ listings: [listing('66-1'), listing('71-9', { world: { id: 71, name: 'Moogle' } })] }));
+    await fixture.whenStable();
+
+    expect(page.textContent).toContain('2 of 2 listings on Light and Chaos');
+    await change('pf-data-centre', 'Light');
+    await fixture.whenStable();
+    http.expectNone('/party-finder?dataCentre=Light');
   });
 
   it('opens the data centre the query string names, with all its worlds', async () => {
@@ -229,7 +257,9 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
 
     expect(select('pf-data-centre').value).toBe('Chaos');
-    expect(page.querySelector('cdt-pf-data-centres [aria-current=page]')?.textContent?.trim()).toBe('Chaos');
+    expect(page.querySelector('cdt-pf-data-centres [aria-current=page]')?.textContent?.trim()).toBe(
+      'Europe: Light, Chaos (3)',
+    );
     expect(select('pf-world').value).toBe('');
   });
 
@@ -239,8 +269,8 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
     expect(select('pf-world').value).toBe('odin');
 
-    const light = [...page.querySelectorAll<HTMLAnchorElement>('cdt-pf-data-centres a')].find(
-      (a) => a.textContent?.trim() === 'Light',
+    const light = [...page.querySelectorAll<HTMLAnchorElement>('cdt-pf-data-centres a')].find((a) =>
+      a.textContent?.trim().startsWith('Europe'),
     ) as HTMLAnchorElement;
     expect(light.getAttribute('href')).toBe('/party-finder?dc=light');
     light.click();
@@ -319,14 +349,20 @@ describe('PartyFinderComponent', () => {
     expect(page.querySelector('.join a')?.getAttribute('href')).toBe('/register');
   });
 
-  it('offers every data centre by region, Europe first', async () => {
+  it('offers every physical data centre, its data centres together, with how many listings are up, Europe first', async () => {
     const { fixture, http, select } = await render();
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
 
-    const groups = [...select('pf-data-centre').querySelectorAll('optgroup')];
-    expect(groups.map((group) => group.label)).toEqual(['Europe', 'North America', 'Japan', 'Oceania']);
-    expect([...groups[0].querySelectorAll('option')].map((option) => option.value)).toEqual(['Light', 'Chaos']);
+    const options = [...select('pf-data-centre').querySelectorAll('option')];
+    // Europe as its list counts (3 listings up); the others as the counts say.
+    expect(options.map((option) => option.textContent?.trim())).toEqual([
+      'Europe: Light, Chaos (3)',
+      'North America: Aether, Crystal, Dynamis, Primal (100)',
+      'Japan: Elemental, Gaia, Mana, Meteor (10)',
+      'Oceania: Materia (46)',
+    ]);
+    expect(options.map((option) => option.value)).toEqual(['Light', 'Aether', 'Elemental', 'Materia']);
     expect(select('pf-data-centre').value).toBe('Light');
   });
 

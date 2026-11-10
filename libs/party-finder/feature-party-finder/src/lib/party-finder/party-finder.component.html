@@ -9,7 +9,7 @@
   <div #status class="status">
     <p class="summary">
       @if (store.loadState() === 'ready') {
-        {{ store.listings().length }} of {{ store.total() }} listings on {{ store.dataCentre() }} · checked
+        {{ store.listings().length }} of {{ store.total() }} listings on {{ store.shownOn() }} · checked
         {{ checked() }}
       }
     </p>
@@ -50,7 +50,7 @@
           <cdt-pf-listing [listing]="shared" [now]="store.now()" [icons]="icons" [link]="pageOf(shared)" />
         }
       } @else if (store.loadState() !== 'loading') {
-        <p class="notice">That listing has ended or filled up. Here's what's up on {{ store.dataCentre() }} now.</p>
+        <p class="notice">That listing has ended or filled up. Here's what's up on {{ store.shownOn() }} now.</p>
       }
     </section>
   }
