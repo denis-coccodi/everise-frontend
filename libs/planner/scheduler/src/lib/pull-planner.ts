@@ -31,6 +31,7 @@ import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
 import { upkeepCasts, withUpkeep } from './completion-upkeep';
 import { mpExtras } from './mp-extras';
+import { withoutRepeatedDots } from './combined-dots';
 
 // Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
@@ -41,7 +42,9 @@ export class PullPlanner {
   // The plan of the pull made the way `asked` says (`strategy`), else the
   // best of the ways it can be made (`STRATEGIES`), its deaths then
   // mended a big cooldown at a time where that saves someone.
-  plan(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+  plan(pull: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+    // Each damage-over-time tick once, as the game dealt it.
+    const given = withoutRepeatedDots(pull);
     if (asked.strategy) return this.planWith(given, full, asked);
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     const score = (a: Plan, b: Plan) => betterPlan(a, b, maxHp, asked);
