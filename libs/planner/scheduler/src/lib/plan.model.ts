@@ -1,3 +1,4 @@
+import type { Hold } from './death-repair.model';
 import type { PlanEdits } from './edits.model';
 import type { PlannedDeath } from './plan-deaths.model';
 import type { InvulnerabilityChoice } from './invulnerabilities.model';
@@ -31,6 +32,8 @@ export interface PlanOptions {
   failedMechanics?: 'cover' | 'ignore';
   // The way it's planned (`STRATEGIES`); the plain one when left out.
   strategy?: Strategy;
+  // Big cooldowns kept for a death (`repairDeaths`), the planner's own.
+  holds?: Hold[];
 }
 
 // Favouring damage, a healer spends what would overcap on damage and keeps
