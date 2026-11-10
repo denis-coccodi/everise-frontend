@@ -1,6 +1,6 @@
 import { PullTimeline, TimelineHit } from '@everise/core/api-types';
 import { enrages } from './enrages';
-import { Mechanic } from './plan.model';
+import { Mechanic, MechanicHit } from './plan.model';
 import type { ReferenceDamage, ReferencedTimeline } from './reference-damage.model';
 
 // Hits of one attack this close to the first are one mechanic.
@@ -103,30 +103,49 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
       kind,
       // One attack: one damage type.
       damageType: group.hits[0].damageType,
-      hits: group.hits.map((hit) => {
-        const leavesOneHp = spared(hit);
-        // Past a completed wipe's end, nobody of theirs played it: never
-        // failed. One the other group failed lands as the attack usually
-        // does instead, as if done right.
-        const completed = hit.at > completedAfter && !blocked.has(hit);
-        const fails = !completed && !leavesOneHp && failed(hit);
-        return {
-          player: hit.target,
-          unmitigated: completed && failed(hit) ? usualFor(hit) : unmitigated(hit),
-          asPlayed: hit.amount,
-          ...(fails ? { failed: true } : {}),
-          ...(leavesOneHp ? { leavesOneHp: true as const } : {}),
-          ...(blocked.has(hit)
-            ? { estimated: fromClears.has(hit) ? ('clears' as const) : ('pull' as const) }
-            : hit.at > completedAfter
-              ? { estimated: 'completion' as const }
-              : {}),
-          avoidable: !!wipe || (fails && (ignore || unsurvivable(hit))),
-        };
-      }),
+      hits: byPlayer(
+        group.hits.map((hit) => {
+          const leavesOneHp = spared(hit);
+          // Past a completed wipe's end, nobody of theirs played it: never
+          // failed. One the other group failed lands as the attack usually
+          // does instead, as if done right.
+          const completed = hit.at > completedAfter && !blocked.has(hit);
+          const fails = !completed && !leavesOneHp && failed(hit);
+          return {
+            player: hit.target,
+            unmitigated: completed && failed(hit) ? usualFor(hit) : unmitigated(hit),
+            asPlayed: hit.amount,
+            ...(fails ? { failed: true } : {}),
+            ...(leavesOneHp ? { leavesOneHp: true as const } : {}),
+            ...(blocked.has(hit)
+              ? { estimated: fromClears.has(hit) ? ('clears' as const) : ('pull' as const) }
+              : hit.at > completedAfter
+                ? { estimated: 'completion' as const }
+                : {}),
+            avoidable: !!wipe || (fails && (ignore || unsurvivable(hit))),
+          };
+        }),
+      ),
       ...(wipe ? { wipe } : {}),
     };
   });
+}
+
+// A mechanic's hits with each player's hits as one: an attack that hits a
+// player twice (Mistral Song) takes the sum, as the HP they have then must
+// last through both. Judged one by one, each looked survivable while the
+// two together killed. Hits that differ in what they are (one failed, one
+// estimated...) stay apart.
+function byPlayer(hits: MechanicHit[]): MechanicHit[] {
+  const merged: MechanicHit[] = [];
+  const kind = (h: MechanicHit) => JSON.stringify({ ...h, player: 0, unmitigated: 0, asPlayed: 0 });
+  for (const hit of hits) {
+    const same = merged.find((m) => m.player === hit.player && kind(m) === kind(hit));
+    if (same)
+      Object.assign(same, { unmitigated: same.unmitigated + hit.unmitigated, asPlayed: same.asPlayed + hit.asPlayed });
+    else merged.push({ ...hit });
+  }
+  return merged;
 }
 
 // Whether a hit is part of a boss mechanic: not a damage over time tick, an

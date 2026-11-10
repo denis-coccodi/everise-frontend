@@ -21,6 +21,21 @@ describe('mechanicsOf', () => {
     ]);
   });
 
+  it('makes an attack that hits a player twice one hit taking both, so the HP must last through the two', () => {
+    const [mistral] = mechanicsOf(
+      pull([
+        [100, 'Mistral Song', 2, 5_355],
+        [100.7, 'Mistral Song', 2, 5_311],
+        [100.7, 'Mistral Song', 3, 5_000],
+      ]),
+    );
+
+    expect(mistral.hits.map((h) => [h.player, h.unmitigated])).toEqual([
+      [2, 10_666],
+      [3, 5_000],
+    ]);
+  });
+
   it('keeps the same attack a second later apart', () => {
     const mechanics = mechanicsOf(
       pull([
