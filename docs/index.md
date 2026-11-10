@@ -17,6 +17,6 @@ These pages are the frontend's technical reference. They live in the repository'
 | [Accessibility](accessibility.md)         | WCAG 2.2 AA rules and how to check a change                     |
 | [Development](development.md)             | Running locally, commands, the checks before pushing            |
 | [Deployment](deployment.md)               | The Worker, environments, CI/CD, releases, search engines       |
-| [Fight planner](fight-planner.md)         | How the planner plans a pull in the browser                     |
+| [Features](features/index.md)             | How each feature works in the browser, next to its backend page |
 
 ![The global feed in dark mode](screenshots/feed.png)
