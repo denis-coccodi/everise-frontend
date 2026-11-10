@@ -1,6 +1,7 @@
 ---
 title: Fight planner
-nav_order: 8
+parent: Features
+nav_order: 9
 ---
 
 # Fight planner
