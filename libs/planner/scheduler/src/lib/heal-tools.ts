@@ -10,6 +10,7 @@ import {
   castMsOf,
   criticalTimes,
   playerActions,
+  recastMsOf,
 } from './tools';
 
 // Healing over time ticks this often.
@@ -224,7 +225,7 @@ export function healTools(
         action: action.id,
         name: action.name,
         // One Kardion at a time: no other move while one lasts.
-        recastMs: action.id === KARDIA ? Math.max(action.recastMs, KARDIA_HEALS * TICK_MS) : action.recastMs,
+        recastMs: action.id === KARDIA ? Math.max(action.recastMs, KARDIA_HEALS * TICK_MS) : recastMsOf(action),
         charges: action.charges,
         gcd: action.gcd,
         castMs: castMsOf(action),

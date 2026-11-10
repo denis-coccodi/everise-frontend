@@ -262,6 +262,8 @@ export interface PlannedUse {
   edited?: boolean;
   // As played, before the start of a player planned from a wipe point on.
   played?: boolean;
+  // At when it landed, as played (its cast bar's end), not when its cast began.
+  landed?: boolean;
   // A raise for a death the plan couldn't prevent, or its Swiftcast.
   raise?: boolean;
   // A tank's Limit Break the plan adds as a last resort, on gauge the group had:

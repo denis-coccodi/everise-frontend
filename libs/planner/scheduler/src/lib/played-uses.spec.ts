@@ -23,8 +23,8 @@ describe('playedUses', () => {
     const tools = mitigationTools(timeline.players, catalog(), power).filter((t) => t.player !== 3);
 
     expect(playedUses(timeline, tools)).toEqual([
-      { player: 1, action: 7531, name: 'Rampart', at: 10_000, target: null, covers: [] },
-      { player: 2, action: 185, name: 'Adloquium', at: 21_500, target: 1, covers: [] },
+      { player: 1, action: 7531, name: 'Rampart', at: 10_000, target: null, covers: [], landed: true },
+      { player: 2, action: 185, name: 'Adloquium', at: 21_500, target: 1, covers: [], landed: true },
     ]);
   });
 });

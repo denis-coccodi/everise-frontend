@@ -1,5 +1,5 @@
 import { action, catalog, heal, party } from './scheduler-fixtures';
-import { POOLS, castMsOf, mitigationTools, pressedFirst, withGrantedCovers } from './tools';
+import { POOLS, castMsOf, mitigationTools, pressedFirst, recastMsOf, withGrantedCovers } from './tools';
 
 describe('Eukrasia', () => {
   it('comes before each Eukrasian heal, which lands 1.6s into its slot', () => {
@@ -9,6 +9,13 @@ describe('Eukrasia', () => {
     expect(pressedFirst(37034)).toBe('Eukrasia');
     expect(castMsOf(action(24284, 'Diagnosis', ['SGE'], 2.5, [], { castMs: 1500 }))).toBe(1500);
     expect(pressedFirst(24284)).toBeNull();
+  });
+});
+
+describe('recastMsOf', () => {
+  it("leaves a GCD with no cooldown of its own to the player's GCD slots, at their spell speed", () => {
+    expect(recastMsOf(action(37013, 'Concitation', ['SCH'], 2.5, [], { gcd: true }))).toBe(0);
+    expect(recastMsOf(action(16536, 'Temperance', ['WHM'], 120))).toBe(120_000);
   });
 });
 
