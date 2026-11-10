@@ -56,6 +56,28 @@ describe('pairingsFor', () => {
     expect(pair(zoe)[0].barrier).toBeNull();
   });
 
+  it("puts Synastry's bond on the shortest other member, never on the astrologian", () => {
+    const benefic = { player: 2, action: 3594, gcd: true, castMs: 1500, effects: [] } as unknown as HealTool;
+    const synastry = { ...zoe, action: 3612, name: 'Synastry', heals: [3594], withinMs: 20_000, times: 1, bond: 0.4 };
+    const onSelf = { ...use, action: 3594, name: 'Benefic II', target: 2 };
+    const selfEvents = [{ at: 61_500, player: 2, amount: 50_000 }];
+    const bondFor = (short: Map<number, number>) =>
+      pairingsFor([synastry], benefic, onSelf, selfEvents, [], () => [], new Weaving(), new Map(), undefined, short);
+
+    // The astrologian is the shortest, but the bond goes to the next one.
+    const [paired] = bondFor(
+      new Map([
+        [2, 90_000],
+        [3, 40_000],
+      ]),
+    );
+    expect(paired.use.target).toBe(3);
+    expect(paired.events).toContainEqual({ at: 61_500, player: 3, amount: 20_000 });
+
+    // Nobody else short, and the heal is on the astrologian: no Synastry.
+    expect(bondFor(new Map([[2, 90_000]]))).toEqual([]);
+  });
+
   it('puts Krasis on the member an oGCD heal is for, and makes only their heal bigger', () => {
     const druochole = { player: 2, action: 24296, gcd: false, castMs: 0, effects: [] } as unknown as HealTool;
     const krasis = {
