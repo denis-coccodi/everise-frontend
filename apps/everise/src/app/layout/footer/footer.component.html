@@ -1,13 +1,29 @@
 <footer>
   <div class="container">
-    <a href="/" class="logo-font"
-      ><img class="crest" src="assets/images/everise-crest.png" alt="" width="24" height="24" />everise</a
-    >
-    <cdt-community-links class="community" />
-    <nav class="help" aria-label="Help">
-      <a href="/guide/">Site guide</a>
-      <a href="/docs/frontend/">Developer docs</a>
-      <a routerLink="/privacy" class="privacy">Privacy policy</a>
+    <div class="brand">
+      <a href="/" class="logo-font"
+        ><img class="crest" src="assets/images/everise-crest.png" alt="" width="32" height="32" />everise</a
+      >
+      <p class="motto">A laid-back, friendly free company. Everyone is welcome.</p>
+    </div>
+    <nav class="group community" aria-labelledby="footer-community">
+      <p id="footer-community" class="xiv-label">Community</p>
+      <cdt-community-links look="column" />
+    </nav>
+    <nav class="group help" aria-labelledby="footer-help">
+      <p id="footer-help" class="xiv-label">Help</p>
+      <ul>
+        <li>
+          <a href="/guide/"><cdt-icon name="book" />Site guide</a>
+        </li>
+        <li>
+          <a href="/docs/frontend/"><cdt-icon name="code" />Developer docs</a>
+        </li>
+        <li>
+          <a routerLink="/privacy" class="privacy"><cdt-icon name="lock" />Privacy policy</a>
+        </li>
+      </ul>
     </nav>
   </div>
+  <p class="credit">Everise is a non-commercial fan site. FINAL FANTASY XIV © SQUARE ENIX CO., LTD.</p>
 </footer>
