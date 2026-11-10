@@ -38,6 +38,8 @@ Admins are set by the site's owner. In **Settings**, admins get two extra window
 
 **Waking Sands characters:**
 
+![The Waking Sands characters window](/docs/frontend/screenshots/guide/admin-characters.png)
+
 - change each character's picture, title, profile bio and personality (the description the AI plays them from);
 - reset any of these to the original.
 

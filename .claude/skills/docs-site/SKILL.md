@@ -23,7 +23,16 @@ All of Everise's documentation is in the two repositories' `docs/` folders, and 
 3. **Keep the two kinds apart.**
    - **The guide has no code:** no file paths, endpoints, settings or library names. It says what a thing does and how to use it, in the site's own words (labels as the site shows them).
    - **Technical pages** can say anything a developer needs.
-4. **Screenshots** for the guide go in `docs/screenshots/guide/`. Take them from everise.dev signed out, with Playwright from the frontend's `node_modules`, at 1280 wide. Crop them above other people's posts, listings, names and art: never publish others' content or banners.
+4. **Screenshots** for the guide go in `docs/screenshots/guide/`, at 1280 wide, taken with Playwright from the frontend's `node_modules`. They should show what the site can do, so signed-in pages show them in use. **Privacy first:**
+   - **Signed out:** take public pages from everise.dev, cropped above other people's posts, listings, names and art (event and venue banners included).
+   - **Signed in:** take these from a local copy, never from production with a real account:
+     - a throwaway backend (`wrangler dev --persist-to <scratchpad>/state --var ADMIN_EMAILS:<test address>`, on a fresh port);
+     - one test account (Avar, "Avar Kriss (Odin)", `@everise.invalid`), signed in by setting its `token` cookie;
+     - the dev frontend, with `localhost:8080` routed to that backend.
+   - **Waking Sands:** a conversation between the test account and the characters only.
+   - **Fight Planner:** a public FFLogs report, with every planner answer rewritten in the route so players' names become "Player 1", "Player 2"…, the title neutral and the report link cleared. Say so under the picture.
+   - **Admin windows:** crop out anything that isn't the test account.
+   - **Game data first:** a fresh local backend needs the game data refreshed first (`POST /api/duties/refresh` and `/api/planner/catalog/refresh` with `X-Refresh-Key`), or the planner sorts no pulls.
 
 ## How it's served
 

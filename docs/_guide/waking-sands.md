@@ -8,7 +8,7 @@ description: Chat with characters from FINAL FANTASY XIV, voiced by an AI, in on
 
 Drop by the Scions' rooms in Vesper Bay and talk with whoever is in, members and characters alike. Open it from **Community → The Waking Sands**. You need to be signed in to step inside.
 
-![The Waking Sands' welcome](/docs/frontend/screenshots/guide/waking-sands.png)
+![Tataru, Y'shtola and Alphinaud answering a member](/docs/frontend/screenshots/guide/waking-sands-room.png)
 
 ## Who's there
 

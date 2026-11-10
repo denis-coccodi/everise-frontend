@@ -11,6 +11,10 @@ description: Plan a party's heals and mitigations from its FFLogs report.
 
 It plans a party's heals and mitigations for a pull of an Extreme, Savage or Ultimate fight, from that party's FFLogs report.
 
+![A planned pull of Futures Rewritten (Ultimate): each player's actions as played next to the plan](/docs/frontend/screenshots/guide/fight-planner.png)
+
+Player names in this picture are replaced with "Player 1", "Player 2" and so on.
+
 1. **Paste the report's link** from FFLogs. The report must be public or unlisted.
 2. **Pick a pull.** Pulls are grouped by fight.
 3. **Compare:** each player has a tab showing what they did, next to what the plan suggests, on one timeline.
