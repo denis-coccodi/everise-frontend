@@ -1,6 +1,8 @@
 import { withDeaths } from './plan-deaths';
 import { atLowestHp, better } from './plan-score';
 import { bestOfStrategies, betterPlan } from './strategies';
+import type { Strategy } from './strategy.model';
+import { repairDeaths } from './death-repair';
 import { aliveIn, MpModel, mpShortOf } from './mp';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
@@ -37,12 +39,22 @@ const ROUNDS = 3;
 // page itself (`PlannerScheduler`).
 export class PullPlanner {
   // The plan of the pull made the way `asked` says (`strategy`), else the
-  // best of the ways it can be made (`STRATEGIES`).
+  // best of the ways it can be made (`STRATEGIES`), its deaths then
+  // mended a big cooldown at a time where that saves someone.
   plan(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     if (asked.strategy) return this.planWith(given, full, asked);
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     const score = (a: Plan, b: Plan) => betterPlan(a, b, maxHp, asked);
-    return bestOfStrategies((strategy) => this.planWith(given, full, { ...asked, strategy }), score);
+    const ways = new WeakMap<Plan, Strategy>();
+    const best = bestOfStrategies((strategy) => {
+      const plan = this.planWith(given, full, { ...asked, strategy });
+      ways.set(plan, strategy);
+      return plan;
+    }, score);
+    const recasts = new Map(full.actions.map((a) => [a.id, a.recastMs]));
+    const strategy = ways.get(best) ?? {};
+    const replanWith = (holds: PlanOptions['holds']) => this.planWith(given, full, { ...asked, strategy, holds });
+    return repairDeaths(best, replanWith, (action) => recasts.get(action) ?? 0, score);
   }
 
   // The party's mitigations and shields over the pull, then the healers'
@@ -70,7 +82,7 @@ export class PullPlanner {
     const scholars = replannedPlayers.filter((p) => p.job === 'SCH');
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
     const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
-    const opened = toolWindows(timeline, opening, edits, mechanics);
+    const opened = toolWindows(timeline, opening, edits, mechanics, asked.holds);
     // A scholar's fairy orders wait for her while Dissipation has her away;
     // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
     const mitigation = startingAt(opened(mitigationTools(timeline.players, catalog, power)), late);
