@@ -24,7 +24,11 @@ All of Everise's documentation is in the two repositories' `docs/` folders, and 
    - **The guide has no code:** no file paths, endpoints, settings or library names. It says what a thing does and how to use it, in the site's own words (labels as the site shows them).
    - **Technical pages** can say anything a developer needs.
 4. **Screenshots** for the guide go in `docs/screenshots/guide/`, at 1280 wide, taken with Playwright from the frontend's `node_modules`. They should show what the site can do, so signed-in pages show them in use. **Privacy first:**
-   - **Signed out:** take public pages from everise.dev, cropped above other people's posts, listings, names and art (event and venue banners included).
+   - **Signed out:** take public pages from everise.dev. Show them in use (real parties, events, venues), but blur people's details with a stylesheet added only in the screenshot browser:
+     - recruiters' names and party descriptions (`cdt-pf-listing .recruiter, .description`);
+     - event and venue banners, hosts, summaries and notices (`.event .cover, .team, .summary`, `.venue .cover, .summary, .notice`).
+       Say so under the picture. Prefer ordinary examples (search "cafe") over nightclubs and gambling. Leave out titles that name a character.
+   - **No empty pages:** a picture shows the feature in use, never a welcome or sign-in wall. Market History, for example, is a real item's chart from the local copy.
    - **Signed in:** take these from a local copy, never from production with a real account:
      - a throwaway backend (`wrangler dev --persist-to <scratchpad>/state --var ADMIN_EMAILS:<test address>`, on a fresh port);
      - one test account (Avar, "Avar Kriss (Odin)", `@everise.invalid`), signed in by setting its `token` cookie;

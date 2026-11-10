@@ -8,7 +8,9 @@ description: Find a party from your browser, filter it, and share it with the fr
 
 Every party being recruited in the game right now, on any data centre, without logging in to the game. Open it from **Community → Party Finder**. It starts on **Light**, with all its worlds.
 
-![The Party Finder's filters](/docs/frontend/screenshots/guide/party-finder.png)
+![Party Finder listings on Light](/docs/frontend/screenshots/guide/party-finder.png)
+
+Recruiters' names and party descriptions are blurred in this picture.
 
 ## Finding a party
 
