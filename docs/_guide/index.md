@@ -1,6 +1,7 @@
 ---
 title: Welcome
 nav_order: 1
+permalink: /guide/
 ---
 
 # Welcome to Everise
