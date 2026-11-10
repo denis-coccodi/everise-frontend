@@ -34,7 +34,7 @@ export function repairDeaths(
       tried.add(holdKey(hold));
       tries++;
       const replanned = replanWith([...holds, hold]);
-      if ((replanned.deaths?.length ?? 0) < (best.deaths?.length ?? 0) && better(replanned, best)) {
+      if (mechanicDeaths(replanned) < mechanicDeaths(best) && better(replanned, best)) {
         [best, holds, kept] = [replanned, [...holds, hold], true];
         break;
       }
@@ -44,13 +44,17 @@ export function repairDeaths(
   return best;
 }
 
+const mechanicDeaths = (plan: Plan) => (plan.deaths ?? []).filter((d) => d.mechanic !== null).length;
+
 // The holds worth trying for the plan's deaths, the latest use first: each
 // big cooldown of a replanned player used before a death, but not so close
 // that it covers it, and still recasting when the death's hit lands.
 export function heldFor(plan: Plan, recastOf: (action: number) => number): Hold[] {
   const replanned = new Set(plan.replanned ?? []);
   const holds = new Map<string, Hold & { used: number }>();
-  for (const death of plan.deaths ?? []) {
+  // Only deaths to a mechanic's hit: holding a cooldown for one doesn't stop
+  // a damage-over-time tick or an auto-attack (heals cover those).
+  for (const death of (plan.deaths ?? []).filter((d) => d.mechanic !== null)) {
     for (const use of plan.uses) {
       const recast = recastOf(use.action);
       if (!replanned.has(use.player) || !movable(use) || recast < BIG_RECAST_MS) continue;

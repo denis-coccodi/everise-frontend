@@ -238,7 +238,7 @@ describe('PlannerScheduler', () => {
     expect((second.hpBefore ?? 0) - second.planned).toBeGreaterThanOrEqual(10_000);
   });
 
-  it("says a hit isn't safe when nothing heals the player up for it", () => {
+  it('lets the player die to an auto-attack when nothing heals them up for it, and says so', () => {
     // No heals in the pull: the planner can't tell what the scholar's do.
     const p = new PlannerScheduler().plan(
       pull([
@@ -250,9 +250,9 @@ describe('PlannerScheduler', () => {
       { margin: 0.1 },
     );
 
+    // The buster leaves them 5,000; the auto-attack at 45 s takes the rest. All damage counts, as in the game.
     expect(p.hits[0]).toMatchObject({ safe: true, hpBefore: 100_000 });
-    expect(p.hits[1].safe).toBe(false);
-    expect(p.hits[1].hpBefore).toBeLessThan(100_000);
+    expect(p.deaths).toEqual([expect.objectContaining({ player: 1, at: 45_000, mechanic: null, cause: 'Attack' })]);
   });
 
   it("uses nothing on hits that don't need it", () => {

@@ -11,6 +11,8 @@ const SWIFTCAST = 7561;
 const REACT_MS = 2_500;
 const ACCEPT_MS = 8_000;
 const BACK_HP = 0.2;
+// Damage this close to where the HP runs out is what took it.
+const SAME_MOMENT_MS = 100;
 // A raidwide this soon after they're back would find them at 20%: the raise
 // waits until just after it.
 const GRACE_MS = 5_000;
@@ -21,7 +23,9 @@ const DUALCAST_MS = 5_000;
 const TRIES = 12;
 
 // The plan with what it couldn't prevent: a hit that leaves a player no HP,
-// which nothing in the plan saved, kills them (rule #1 is that nobody dies,
+// which nothing in the plan saved, kills them, and so does anything else
+// that takes their HP to nothing (a damage-over-time tick, an auto-attack:
+// all damage counts, as in the game) (rule #1 is that nobody dies,
 // so this is what's left). Dead, they take no hits and do nothing until a
 // raise brings them back: by whoever loses least, as the guides rank them
 // (The Balance, Icy Veins): a Red Mage, then a healer with Swiftcast, a
@@ -36,10 +40,11 @@ export function withDeaths(plan: Plan, timeline: PullTimeline, catalog: ActionCa
   const uses = [...plan.uses];
   const deadAt = (player: number, at: number) =>
     deaths.some((d) => d.player === player && d.at <= at && at < (d.backAt ?? Infinity));
-  const lethal = plan.hits
+  const lethal: { player: number; mechanic: number | null; at: number; cause?: string }[] = plan.hits
     .filter((h) => !h.safe && !h.avoidable && !h.invulnerable && h.hpBefore !== null && h.hpBefore - h.planned <= 0)
-    .map((h) => ({ player: h.player, mechanic: h.mechanic, at: mechanics.get(h.mechanic)?.at ?? 0 }))
-    .sort((a, b) => a.at - b.at);
+    .map((h) => ({ player: h.player, mechanic: h.mechanic, at: mechanics.get(h.mechanic)?.at ?? 0 }));
+  lethal.push(...drained(plan, timeline).filter((d) => !lethal.some((l) => l.player === d.player && l.at === d.at)));
+  lethal.sort((a, b) => a.at - b.at);
   const raiser = (player: number) => !!RAISES[timeline.players.find((p) => p.id === player)?.job ?? ''];
   const raises = new Raises(plan, timeline, uses, byId, deadAt);
   for (const at of [...new Set(lethal.map((l) => l.at))]) {
@@ -52,6 +57,21 @@ export function withDeaths(plan: Plan, timeline: PullTimeline, catalog: ActionCa
   }
   if (!deaths.length) return plan;
   return { ...plan, deaths, ...afterDeaths(plan, timeline, deaths, raises.uses, mechanics) };
+}
+
+// Where a player's HP as the plan leaves it runs out besides a mechanic's
+// hit, and what took it: the damage landing on them then, by name.
+function drained(plan: Plan, timeline: PullTimeline) {
+  const name = new Map(timeline.actions.map((a) => [a.id, a.name]));
+  const found: { player: number; mechanic: null; at: number; cause?: string }[] = [];
+  for (const curve of plan.hp) {
+    for (const point of curve.points) {
+      if (point.hp > 0) continue;
+      const hit = timeline.damage.find((d) => d.target === curve.player && Math.abs(d.at - point.at) <= SAME_MOMENT_MS);
+      found.push({ player: curve.player, mechanic: null, at: point.at, cause: hit ? name.get(hit.action) : undefined });
+    }
+  }
+  return found;
 }
 
 // The plan's hits, HP and uses with the deaths: no hit lands on the dead
