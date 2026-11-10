@@ -17,6 +17,8 @@ description: Signing in, settings, your profile, notifications and privacy.
 
 Open **Settings** from the account menu at the top right.
 
+![Your settings](/docs/frontend/screenshots/guide/settings.png)
+
 - **Profile picture:** pick a picture and crop it to a square. It's shrunk for you before uploading.
 - **Bio, email address and password:**
   - changing your email or password asks for your current password;
