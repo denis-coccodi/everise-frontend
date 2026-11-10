@@ -76,3 +76,12 @@ The docs look like the site, in its dark mode:
   2. open the changed pages at everise.dev, or staging, at phone and desktop widths;
   3. check the contents column and the links.
 - **Local builds:** Ruby isn't installed here. With Docker Desktop running, `docker run --rm -v "$PWD/docs:/srv/jekyll" jekyll/jekyll jekyll build` builds the site locally.
+
+## The wiki
+
+The repository's GitHub wiki is a **read-only copy** of the technical pages (`docs/*.md`, `docs/features/*.md`). The site guide stays out of it: it lives at everise.dev/guide/, and each wiki holds only its own repository's docs.
+- **How it's written:** `.github/workflows/wiki.yaml` runs `scripts/wiki-sync.mjs` on every merge to `main` that touches `docs/`, and pushes to `<repo>.wiki.git`.
+- **Conversion:** the script strips front matter and `{: .…}` markers, turns links between pages into wiki page names (from each page's `title`) and other everise.dev links into full addresses, points pictures at `raw.githubusercontent.com/.../main/docs/`, and writes `Home`, `_Sidebar` and `_Footer`.
+- **Never edit the wiki:** the next sync overwrites it. Change `docs/`.
+- **Both repositories:** the script and the workflow are the same in both; change them together.
+- **No wiki yet:** a wiki's git repository only exists after its first page is saved on github.com. Until then the workflow skips with a warning.
