@@ -17,7 +17,7 @@ import { PfDataCentresComponent } from './pf-data-centres.component';
 class HostComponent {}
 
 describe('PfDataCentresComponent', () => {
-  it("links to every physical data centre with its listings up, keeping the member's other choices, the current one marked", async () => {
+  it("links to every region with its listings up, keeping the member's other choices, the current one marked", async () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -52,7 +52,7 @@ describe('PfDataCentresComponent', () => {
 
     const links = [...page.querySelectorAll('a')];
     // Light and Chaos are one: the one shown counts its list (none here).
-    expect(links.map((a) => a.textContent?.trim())).toEqual(['Europe: Light, Chaos (0)', 'Oceania: Materia (4)']);
+    expect(links.map((a) => a.textContent?.trim())).toEqual(['Europe (0)', 'Oceania (4)']);
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
       '/party-finder?dc=chaos&slot=healer',
       '/party-finder?dc=materia&slot=healer',

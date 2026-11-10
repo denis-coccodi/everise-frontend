@@ -22,7 +22,13 @@ const uploaded = (id: string) => ({
 
 const ODIN = { id: 66, name: 'Odin' };
 const SHIVA = { id: 67, name: 'Shiva' };
-const LIGHT_WORLDS = [{ id: 402, name: 'Alpha' }, ODIN, SHIVA];
+// The board's worlds: Light's and Chaos's, one region.
+const LIGHT_WORLDS = [
+  { id: 402, name: 'Alpha', dataCentre: 'Light' as const },
+  { ...ODIN, dataCentre: 'Light' as const },
+  { ...SHIVA, dataCentre: 'Light' as const },
+  { id: 71, name: 'Moogle', dataCentre: 'Chaos' as const },
+];
 
 function listing(id: string, changes: Partial<PartyFinderListing> = {}): PartyFinderListing {
   return {
@@ -229,7 +235,7 @@ describe('PartyFinderComponent', () => {
       board({
         dataCentre: 'Materia',
         dataCentres: ['Materia'],
-        worlds: [{ id: 22, name: 'Bismarck' }],
+        worlds: [{ id: 22, name: 'Bismarck', dataCentre: 'Materia' }],
         listings: [listing('22-9', { world: { id: 22, name: 'Bismarck' }, duty: 'Sastasha' })],
       }),
     );
@@ -257,9 +263,7 @@ describe('PartyFinderComponent', () => {
     await fixture.whenStable();
 
     expect(select('pf-data-centre').value).toBe('Chaos');
-    expect(page.querySelector('cdt-pf-data-centres [aria-current=page]')?.textContent?.trim()).toBe(
-      'Europe: Light, Chaos (3)',
-    );
+    expect(page.querySelector('cdt-pf-data-centres [aria-current=page]')?.textContent?.trim()).toBe('Europe (3)');
     expect(select('pf-world').value).toBe('');
   });
 
@@ -322,9 +326,9 @@ describe('PartyFinderComponent', () => {
     expect(card.querySelectorAll('.share button')).toHaveLength(2);
   });
 
-  it('opens what a link asks for, and drops a world the data centre does not have', async () => {
+  it('opens what a link asks for, and drops a world the region does not have', async () => {
     const { fixture, http, select } = await render(
-      '/party-finder?dc=light&world=moogle&category=high-end-duty&slot=tank&sort=name&no-duty=show',
+      '/party-finder?dc=light&world=cerberus&category=high-end-duty&slot=tank&sort=name&no-duty=show',
     );
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
@@ -349,7 +353,7 @@ describe('PartyFinderComponent', () => {
     expect(page.querySelector('.join a')?.getAttribute('href')).toBe('/register');
   });
 
-  it('offers every physical data centre, its data centres together, with how many listings are up, Europe first', async () => {
+  it('offers every region, its data centres together, with how many listings are up, Europe first', async () => {
     const { fixture, http, select } = await render();
     http.expectOne('/party-finder?dataCentre=Light').flush(board());
     await fixture.whenStable();
@@ -357,13 +361,36 @@ describe('PartyFinderComponent', () => {
     const options = [...select('pf-data-centre').querySelectorAll('option')];
     // Europe as its list counts (3 listings up); the others as the counts say.
     expect(options.map((option) => option.textContent?.trim())).toEqual([
-      'Europe: Light, Chaos (3)',
-      'North America: Aether, Crystal, Dynamis, Primal (100)',
-      'Japan: Elemental, Gaia, Mana, Meteor (10)',
-      'Oceania: Materia (46)',
+      'Europe (3)',
+      'North America (100)',
+      'Japan (10)',
+      'Oceania (46)',
     ]);
     expect(options.map((option) => option.value)).toEqual(['Light', 'Aether', 'Elemental', 'Materia']);
     expect(select('pf-data-centre').value).toBe('Light');
+  });
+
+  it("groups the region's worlds by data centre, and lists them plain where it has just one", async () => {
+    const { fixture, http, select, change } = await render();
+    http.expectOne('/party-finder?dataCentre=Light').flush(board());
+    await fixture.whenStable();
+
+    const groups = [...select('pf-world').querySelectorAll('optgroup')];
+    expect(groups.map((g) => g.label)).toEqual(['Light', 'Chaos']);
+    expect([...groups[1].querySelectorAll('option')].map((o) => o.value)).toEqual(['moogle']);
+
+    await change('pf-data-centre', 'Materia');
+    await fixture.whenStable();
+    http.expectOne('/party-finder?dataCentre=Materia').flush(
+      board({
+        dataCentre: 'Materia',
+        dataCentres: ['Materia'],
+        worlds: [{ id: 22, name: 'Bismarck', dataCentre: 'Materia' }],
+      }),
+    );
+    await fixture.whenStable();
+    expect(select('pf-world').querySelectorAll('optgroup')).toHaveLength(0);
+    expect([...select('pf-world').querySelectorAll('option')].map((o) => o.value)).toEqual(['', 'bismarck']);
   });
 
   it('lists like the game, or in the order picked', async () => {

@@ -24,13 +24,13 @@ Everything the page shows is in its query string, by id (`party-finder-query.ts`
 ?dc=light&world=odin&category=high-end-duty-savage&slot=healer&search=coil&sort=ending-soon&no-duty=show&beginners=only&page=2
 ```
 
-Without a data centre, the page opens on Light with all its worlds. The game's Party Finder works across a physical data centre (North America and Europe since patch 7.58, 10 November 2026; Japan before), so the page shows one too: Light and Chaos together, North America's four, Japan's four, or Materia, with all their worlds. The data centre picker and the **Every data centre** list offer one entry per physical data centre, with how many listings are up on it (`Europe: Light, Chaos (138)`). Picking another one clears the world and category.
+Without a data centre, the page opens on Light with all its worlds. The game's Party Finder works across a physical data centre (North America and Europe since patch 7.58, 10 November 2026; Japan before), so the page shows one too: Light and Chaos together, North America's four, Japan's four, or Materia, with all their worlds. The **Region** picker and the **Every region** list offer one entry per physical data centre, with how many listings are up on it (`Europe (138)`), and the **Your world** picker groups the region's worlds by data centre. Picking another region clears the world and category.
 
 ## The list
 
 - **Refresh:** the store asks every 30 seconds while the page is in view. Nothing is kept in the browser, and a refresh keeps the reader's place.
 - **Filters** (`listing-filters.ts`):
-  - **World:** what can be joined from it, which is the whole physical data centre plus that world's own Hunt and FATE parties.
+  - **World:** what can be joined from it, which is the whole region plus that world's own Hunt and FATE parties.
   - **Category:** every category the page knows, even with no listings, plus any new one from xivpf and the one picked.
   - **Open slot** for a role, and words to find.
   - Listings without a duty are hidden unless switched on.
