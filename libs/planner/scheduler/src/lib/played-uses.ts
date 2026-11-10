@@ -28,6 +28,7 @@ export function playedUses(timeline: PullTimeline, tools: PlayedTool[]): Planned
       at: cast.at + (cast.castMs ?? 0) + lands,
       target: targeted ? (cast.target ?? tool.player) : null,
       covers: [],
+      landed: true,
     });
   }
   return uses;

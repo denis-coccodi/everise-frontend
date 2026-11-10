@@ -155,6 +155,19 @@ describe('projected with a GCD shield', () => {
 
     expect([at(gcd), at(ogcd)]).toEqual([36_000, 30_000]);
   });
+
+  it('goes up when its cast bar ends: one begun before a hit and landing after it is there for the next', () => {
+    const galvanize = { ...tool('Galvanize', { shield: { hp: 30_000 } }), gcd: true, castMs: 2_000 };
+    const shield = (at: number, u: PlannedUse) => {
+      const m = mechanic(at);
+      return projected(m, m.hits[0], [u], () => galvanize, facts).absorbed;
+    };
+
+    // Begun at 9.5s, it lands at 11.5s: after the 10s hit, before the 12s one.
+    expect([shield(10_000, use('Galvanize', 9_500)), shield(12_000, use('Galvanize', 9_500))]).toEqual([0, 30_000]);
+    // One as played is at when it landed already.
+    expect(shield(10_000, { ...use('Galvanize', 9_500), landed: true })).toBe(30_000);
+  });
 });
 
 describe('projected under an invulnerability', () => {

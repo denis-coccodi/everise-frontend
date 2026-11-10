@@ -144,6 +144,13 @@ const EUKRASIAN_LEAD_MS = EUKRASIA_MS + 600;
 export const pressedFirst = (action: number) => (EUKRASIAN.includes(action) ? 'Eukrasia' : null);
 // How long after its start an action lands, as the plan counts it.
 export const castMsOf = (action: CatalogAction) => (EUKRASIAN.includes(action.id) ? EUKRASIAN_LEAD_MS : action.castMs);
+// The longest recast a GCD has with no cooldown of its own: the GCD.
+const GCD_RECAST_MS = 2_500;
+// How soon an action can be used again, as the plan counts it: a GCD with
+// no cooldown of its own, at any of the player's GCDs (the weaving's slots
+// space them, at the player's own spell speed: 2.4s apart, not the base 2.5s).
+export const recastMsOf = (action: CatalogAction) =>
+  action.gcd && action.recastMs <= GCD_RECAST_MS ? 0 : action.recastMs;
 // A shield's condition that holds when its heal is critical.
 const CRITICAL = 'critical heal';
 // Haima's and Panhaima's barrier: a new one as each breaks, one a stack, so a
@@ -214,7 +221,7 @@ export function mitigationTools(
         player: player.id,
         action: action.id,
         name: action.name,
-        recastMs: action.recastMs,
+        recastMs: recastMsOf(action),
         charges: action.charges,
         gcd: action.gcd,
         castMs: castMsOf(action),

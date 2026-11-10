@@ -46,6 +46,9 @@ interface Busy {
 export class Weaving {
   private readonly gcds = new Map<number, GcdCast[]>();
   private readonly kept = new Map<number, number[]>();
+  // The time each kept oGCD takes: to the end of its weave, or the GCD they
+  // pressed after it, as they did, if that came sooner.
+  private readonly keptBusy = new Map<number, Busy[]>();
   private readonly fixed = new Map<number, Occupied[]>();
   // Each player's usual GCD, as played.
   private readonly rhythm = new Map<number, number>();
@@ -99,6 +102,14 @@ export class Weaving {
       this.rhythm.set(player, rhythm.every);
       const free = freeFrom.get(player);
       this.gcds.set(player, [...withRhythm(list, downtime, died), ...rhythmFrom(list, rhythm, free, endsAt, downtime)]);
+    }
+    for (const [player, times] of this.kept) {
+      const gcds = (this.gcds.get(player) ?? []).map((g) => g.at).sort((a, b) => a - b);
+      const next = (at: number) => gcds.find((g) => g > at) ?? Infinity;
+      this.keptBusy.set(
+        player,
+        times.map((at) => ({ from: at, to: Math.min(at + WEAVE_MS, next(at)) })),
+      );
     }
   }
 
@@ -264,7 +275,8 @@ export class Weaving {
         .filter(([at]) => !played.some((g) => g.at === at))
         .map(([at, castMs]) => ({ at, castMs, landed: false })),
     ];
-    const ogcds = [...(this.kept.get(player) ?? []), ...occupied.filter((o) => !o.gcd).map((o) => o.at)];
+    const kept = this.keptBusy.get(player) ?? [];
+    const ogcds = [...kept, ...occupied.filter((o) => !o.gcd).map((o) => ({ from: o.at, to: o.at + WEAVE_MS }))];
     // A GCD that came late leaves no more weave room than one on time: the
     // rest is the player being slow, not free time (an oGCD always comes
     // after a GCD, two at most). A longer gap is downtime or a death.
@@ -284,7 +296,7 @@ export class Weaving {
         })),
         ...late,
       ],
-      ogcds: ogcds.map((at) => ({ from: at, to: at + WEAVE_MS })),
+      ogcds,
     };
   }
 

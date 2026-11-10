@@ -208,6 +208,24 @@ describe('Weaving, a GCD late', () => {
   });
 });
 
+describe('Weaving, an oGCD as played', () => {
+  // Instant GCDs 2.4s apart (their spell speed), an oGCD kept 0.67s before
+  // the one at 2.4s, as they pressed it.
+  const at = (ms: number, action = 9) => ({ at: ms, source: 1, target: null, action, castMs: null });
+  const weaving = new Weaving(
+    [at(0), at(1_730, 42), at(2_400), at(4_800)],
+    new Map([
+      [9, true],
+      [42, false],
+    ]),
+    () => false,
+  );
+
+  it("never takes the GCD they pressed after it, though a weave's 0.7s would reach it", () => {
+    expect(weaving.gcdBefore(1, 2_400, 1_000, 0, [])).toBe(2_400);
+  });
+});
+
 describe('withoutFollowUps', () => {
   it("drops what the log has of a GCD's follow-up, under its name: nobody pressed it", () => {
     const cat = catalog();

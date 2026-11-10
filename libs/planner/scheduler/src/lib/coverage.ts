@@ -20,11 +20,18 @@ export const LEAVES_ONE_HP = 'Leaves 1 HP';
 // that had ended up to 0.8s before it (9 in 10 of those).
 const SNAPSHOT_MS = 1_000;
 
+// When a use's effects go up: a planned spell's when its cast bar ends; a
+// use as played (`landed`) is at that already.
+export const landsAt = (tool: MitigationTool, use: PlannedUse) => use.at + (use.landed ? 0 : tool.castMs);
+
 // A use's effects reach a hit: on the party, from the enemy, on its user,
-// or on the member it was given to; while they last at its snapshot.
+// or on the member it was given to; from when they go up, while they last
+// at its snapshot. (A shield cast before a hit but landing after it is
+// still there for the next.)
 export function reaches(tool: MitigationTool, use: PlannedUse, mechanic: Mechanic, hit: MechanicHit) {
+  const from = landsAt(tool, use);
   return tool.effects.filter((effect) => {
-    if (mechanic.at < use.at || mechanic.at > use.at + effect.durationMs + SNAPSHOT_MS) return false;
+    if (mechanic.at < from || mechanic.at > from + effect.durationMs + SNAPSHOT_MS) return false;
     if (effect.target === 'self') return hit.player === use.player;
     if (effect.target === 'target') return hit.player === use.target;
     return true;
@@ -53,7 +60,7 @@ export function projected(
       if (effect.invulnerable) {
         if (!invulnerable?.invulnerable || landsUnder(invulnerable.invulnerable)) invulnerable = effect;
       } else if (effect.shield) {
-        if (facts.hitsBetween(hit.player, use.at, mechanic.at) >= effect.hits) continue;
+        if (facts.hitsBetween(hit.player, landsAt(toolOf(use), use), mechanic.at) >= effect.hits) continue;
         // A GCD's shield grows with its caster's healing potency buffs.
         const times = toolOf(use).gcd ? facts.shieldTimes(use, uses) : 1;
         const hp = shieldHp(effect.shield, hit.player, facts) * times;
