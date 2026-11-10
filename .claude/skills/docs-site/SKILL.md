@@ -80,6 +80,7 @@ The docs look like the site, in its dark mode:
 ## The wiki
 
 The repository's GitHub wiki is a **read-only copy** of the technical pages (`docs/*.md`, `docs/features/*.md`). The site guide stays out of it: it lives at everise.dev/guide/, and each wiki holds only its own repository's docs.
+
 - **How it's written:** `.github/workflows/wiki.yaml` runs `scripts/wiki-sync.mjs` on every merge to `main` that touches `docs/`, and pushes to `<repo>.wiki.git`.
 - **Conversion:** the script strips front matter and `{: .…}` markers, turns links between pages into wiki page names (from each page's `title`) and other everise.dev links into full addresses, points pictures at `raw.githubusercontent.com/.../main/docs/`, and writes `Home`, `_Sidebar` and `_Footer`.
 - **Never edit the wiki:** the next sync overwrites it. Change `docs/`.
