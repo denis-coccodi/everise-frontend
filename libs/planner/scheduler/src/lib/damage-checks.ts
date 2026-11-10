@@ -12,6 +12,10 @@ const GAP_MS = 3_000;
 const LONGEST_MS = 10_000;
 // A burst smaller than this share of max HP needs no heal of its own.
 const SMALLEST_SHARE = 0.05;
+// Nor does one grow past this share: heals before a burst can only fill the
+// HP to full, so a heavy bleed (Burnished Glory's ticks, a third of the HP
+// each) is a check per tick, with heals between them, as healers do.
+const LARGEST_SHARE = 0.5;
 // The checks' ids: below 0, apart from the pull's mechanics and the
 // Walking Dead checks (-1, -2...).
 export const FIRST_DAMAGE_CHECK = -1_000;
@@ -49,7 +53,9 @@ export function damageChecks(timeline: PullTimeline, maxHp: Map<number, number>)
     };
     for (const hit of hits) {
       const last = burst.at(-1);
-      if (last && (hit.at - last.at > GAP_MS || hit.at - burst[0].at > LONGEST_MS)) close();
+      const total = burst.reduce((sum, d) => sum + d.amount, 0) + hit.amount;
+      const apart = last && (hit.at - last.at > GAP_MS || hit.at - burst[0].at > LONGEST_MS);
+      if (last && (apart || total > LARGEST_SHARE * max)) close();
       burst.push(hit);
     }
     close();
