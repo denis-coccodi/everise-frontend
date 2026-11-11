@@ -230,7 +230,7 @@ export function planMitigation(
       if (at === null || at < first || isAway(t, at) || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (cutsUnion(t.action, at, (a) => timesOf(t.player, a))) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
-      if (mp && !mp.affordable(t.player, t.action, at, own, drop)) continue;
+      if (mp && !mp.affordable(t.player, t.action, at, own, drop, target)) continue;
       const needs =
         t.grantedBy && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy);
       for (const option of needs ? granting(m, t, at) : [{ granted: [], tool: t }]) {

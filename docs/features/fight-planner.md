@@ -31,6 +31,7 @@ The flow, in `pull-planner.ts`:
 5. **Heals:** then the healers' heals (`heal-plan.ts`). Several rounds replan the mitigations around the lowest HP the heals left.
 6. **Resources:**
    - each healer's MP (`mp.ts`, Lucid Dreaming, Thin Air);
+   - a Dark Knight's MP: The Blackest Night costs nothing in the end when it breaks, as Dark Arts makes the next Edge of Shadow free (`dark-arts.ts`: it breaks once its target takes a quarter of their max HP in its 7s, as played). One that won't break costs an Edge, so it's planned only where a hit needs it, never for spare margin;
    - gauges (Aetherflow, Addersgall with Rhizomata, the astrologian's cards);
    - each replanned player's burst windows.
 7. **Strategies:** the whole plan is made several ways, and the one with the fewest deaths is kept (`strategies.ts`). The ways: the plain one, the party waiting for bigger hits, big heals first, tank-buster chains, healers favouring healing, and Macrocosmos on cooldown.
