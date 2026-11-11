@@ -27,6 +27,7 @@ import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 import { coveredMechanics, healCheckpoints } from './damage-checks';
+import { hitDamage } from './hit-damage';
 
 // How soon after its Helios lands Horoscope is read at the latest.
 const READ_MS = 5_000;
@@ -139,12 +140,8 @@ export function planHeals(
     // A mitigation that heals later (Exaltation) heals when it ends.
     if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
   }
-  // Hits that need no healing for: under an invulnerability, or avoided.
-  const invulnerable = new Set(
-    plan.hits.filter((h) => h.invulnerable || h.avoidable).map((h) => `${h.mechanic}:${h.player}`),
-  );
-  const damage = new Map(plan.hits.map((h) => [`${h.mechanic}:${h.player}`, h.planned]));
-  const damageOf = (m: Mechanic, h: MechanicHit) => damage.get(`${m.id}:${h.player}`) ?? h.unmitigated;
+  // What each hit takes, which need no healing for, and what lands with each.
+  const { invulnerable, damage, damageOf, together } = hitDamage(plan);
   // The mechanics, with Living Dead's and the damage outside them (damage over time, auto-attacks).
   const { deads, mechanics } = healCheckpoints(plan, timeline, maxHp, options.margin, weaving, mitigationOf);
   for (const dead of deads) track.add(dead.selfHeals);
@@ -191,7 +188,7 @@ export function planHeals(
             const max = maxHp.get(c.player) as number;
             const hit = o.hits.find((h) => h.player === c.player) as MechanicHit;
             const need = Math.min(max, damageOf(o, hit) + options.margin * max);
-            return [c.player, need - track.before(c, o.at, extra)];
+            return [c.player, need + together(o, c.player) - track.before(c, o.at, extra)];
           }),
         );
     };
@@ -331,7 +328,8 @@ export function planHeals(
     const start = track.checkpoint(hit.player, -1);
     if (!start) return hit;
     const max = maxHp.get(hit.player) as number;
-    const hpBefore = Math.round(track.before(start, mechanicOf.get(hit.mechanic)?.at ?? 0));
+    const m = mechanicOf.get(hit.mechanic) as Mechanic;
+    const hpBefore = Math.round(track.before(start, m.at) - together(m, hit.player));
     // Under Living Dead, one the tank isn't healed full after dies.
     const dead = deads.find((d) => d.trigger.id === hit.mechanic && d.player === hit.player);
     const healed = !dead || track.before(start, dead.check.at + 1) >= max - 1;
