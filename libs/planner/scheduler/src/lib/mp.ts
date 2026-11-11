@@ -2,6 +2,7 @@ import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { MpExtras, MpShort, PlannedMp } from './mp.model';
 import type { Plan } from './plan.model';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
+import { BLACKEST_NIGHT, blackestNightBreaks } from './dark-arts';
 
 // The game's MP tick, and the natural one when the log can't tell.
 export const TICK_MS = 3_000;
@@ -11,6 +12,8 @@ const DEFAULT_TICK = 200;
 // didn't drop by most of its cost) frees nothing.
 const EDGES = new Set([16470, 16469]);
 const PAID = 0.8;
+// A target no hit lands on.
+const NO_ONE = -1;
 
 // `dead`: when they lay dead as played, where the plan doesn't prevent it.
 type Own = {
@@ -31,6 +34,9 @@ interface Change {
   mp: number;
 }
 
+// One of the plan's uses: on whom matters for The Blackest Night.
+type Use = { action: number; at: number; target?: number | null };
+
 // A replanned player's MP with the plan: the log's MP, changed by what the
 // plan does differently. Their uses as played of the actions the plan
 // schedules are undone (their cost given back, their MP gain taken away),
@@ -45,7 +51,7 @@ export class MpModel {
     private readonly players: Map<number, Own>,
     // What a use does to the player's MP: what it spends (negative) and
     // gains, as it's used and, for Lucid Dreaming, at each tick after.
-    private readonly changesOf: (action: number, player: number, at: number) => Change[],
+    private readonly changesOf: (action: number, player: number, at: number, target?: number | null) => Change[],
   ) {}
 
   // `scheduled`: the plan's player:action keys, whose uses as played it
@@ -80,7 +86,8 @@ export class MpModel {
         fixed: new Set(),
       });
     }
-    const model = new MpModel(players, (action, player, at) => {
+    const breaks = blackestNightBreaks(timeline, catalog);
+    const model = new MpModel(players, (action, player, at, target) => {
       const a = byId.get(action);
       if (!a) return [];
       const max = players.get(player)?.max ?? 10_000;
@@ -102,13 +109,16 @@ export class MpModel {
       // Past the wipe point, a GCD takes a damage spell's place, and its MP.
       const freed = a.gcd && at > past.from ? (past.perGcd.get(player) ?? 0) : 0;
       const now = gain - a.mpCost + freed;
-      return [...(now ? [{ at, mp: now }] : []), ...ticks];
+      // A Blackest Night that breaks gives its MP back (Dark Arts).
+      const broke = action === BLACKEST_NIGHT ? breaks(target ?? player, at) : null;
+      const back = broke === null ? [] : [{ at: broke, mp: a.mpCost }];
+      return [...(now ? [{ at, mp: now }] : []), ...back, ...ticks];
     });
     // The plan's uses known before it plans, throughout.
     for (const cast of past.fixed) {
       const own = players.get(cast.source);
       if (!own) continue;
-      own.undone.push(...model.changesOf(cast.action, cast.source, cast.at));
+      own.undone.push(...model.changesOf(cast.action, cast.source, cast.at, cast.target));
       own.fixed.add(cast.action);
     }
     // What the casts the log's MP doesn't have do, on top.
@@ -116,7 +126,7 @@ export class MpModel {
     for (const cast of added) {
       const own = players.get(cast.source);
       if (!own || scheduled.has(`${cast.source}:${cast.action}`)) continue;
-      own.undone.push(...model.changesOf(cast.action, cast.source, cast.at));
+      own.undone.push(...model.changesOf(cast.action, cast.source, cast.at, cast.target));
       own.unlogged.add(`${cast.action}:${cast.at}`);
     }
     // Undone: what the played uses did, the other way. A spell a played
@@ -130,7 +140,10 @@ export class MpModel {
       const free = !!a?.mpCost && cast.at - (thinAir.get(cast.source) ?? -Infinity) <= THIN_AIR_MS;
       if (free) thinAir.delete(cast.source);
       if (!scheduled.has(`${cast.source}:${cast.action}`) || added.has(cast)) continue;
-      const changes = model.changesOf(cast.action, cast.source, cast.at);
+      // A Blackest Night that broke cost nothing, so taking it away gives
+      // nothing back: its Edge, free as played, would cost MP without it.
+      if (cast.action === BLACKEST_NIGHT && breaks(cast.target ?? cast.source, cast.at) !== null) continue;
+      const changes = model.changesOf(cast.action, cast.source, cast.at, cast.target);
       const undone = changes.map((c) => ({ at: c.at, mp: -c.mp - (free && c.at === cast.at ? (a?.mpCost ?? 0) : 0) }));
       own.undone.push(...undone.filter((c) => c.mp !== 0));
     }
@@ -157,18 +170,24 @@ export class MpModel {
 
   // Whether the player can afford `action` at `at` with their other uses:
   // their MP never runs out from then on, a Dark Knight's Edges dropped if
-  // need be (`mayDrop`: not for spare margin). Recorded when not.
-  affordable(player: number, action: number, at: number, uses: { action: number; at: number }[], mayDrop = true) {
-    const spends = this.changesOf(action, player, at).some((c) => c.mp < 0);
-    if (!spends || !this.players.has(player)) return true;
+  // need be (`mayDrop`: not for spare margin). Spare margin never costs MP
+  // in the end, as a Blackest Night that won't break does (an Edge's), and
+  // one that breaks must fit at its full cost: its Dark Arts goes to the
+  // Edges, not to more of them. Recorded when not, but for spare margin.
+  affordable(player: number, action: number, at: number, uses: Use[], mayDrop = true, target: number | null = null) {
+    const changes = this.changesOf(action, player, at, target);
+    if (!changes.some((c) => c.mp < 0) || !this.players.has(player)) return true;
+    if (!mayDrop && changes.reduce((sum, c) => sum + c.mp, 0) < 0) return false;
     const kept = this.dropped(player, uses);
-    if (this.withDrops(player, [...uses, { action, at }], at, mayDrop ? undefined : kept).ok) return true;
+    // No one's target: what it costs, nothing back.
+    const use = { action, at, target: mayDrop ? target : NO_ONE };
+    if (this.withDrops(player, [...uses, use], at, mayDrop ? undefined : kept).ok) return true;
     this.refused.push({ player, at });
     return false;
   }
 
   // The player's MP with these uses, at each change.
-  curve(player: number, uses: { action: number; at: number }[]): Change[] {
+  curve(player: number, uses: Use[]): Change[] {
     const { dropped } = this.withDrops(player, uses, -Infinity);
     // Between readings, a refund can show over the max for a moment.
     const max = this.players.get(player)?.max ?? Infinity;
@@ -184,7 +203,7 @@ export class MpModel {
   }
 
   // The Edges of Shadow these uses need dropped for MP (their times).
-  dropped(player: number, uses: { action: number; at: number }[]): number[] {
+  dropped(player: number, uses: Use[]): number[] {
     return this.withDrops(player, uses, -Infinity)
       .dropped.map((e) => e.at)
       .sort((a, b) => a - b);
@@ -193,7 +212,7 @@ export class MpModel {
   // Where MP runs out from `from` on, a Dark Knight's latest Edge before
   // it is dropped, as long as that helps; ok when it no longer runs out.
   // `only`: the Edges that may be dropped (by time), when not any.
-  private withDrops(player: number, uses: { action: number; at: number }[], from: number, only?: number[]) {
+  private withDrops(player: number, uses: Use[], from: number, only?: number[]) {
     const own = this.players.get(player);
     const all = own?.edges ?? [];
     const edges = only ? all.filter((e) => only.includes(e.at)) : all;
@@ -210,7 +229,7 @@ export class MpModel {
 
   // What the plan's uses do to the player's MP; a spell right after a
   // planned Thin Air costs nothing.
-  private planned(player: number, uses: { action: number; at: number }[]): Change[] {
+  private planned(player: number, uses: Use[]): Change[] {
     let thinAir = -Infinity;
     const own = this.players.get(player);
     return uses
@@ -218,7 +237,7 @@ export class MpModel {
       .sort((a, b) => a.at - b.at)
       .flatMap((u) => {
         if (u.action === THIN_AIR) thinAir = u.at;
-        const changes = this.changesOf(u.action, player, u.at);
+        const changes = this.changesOf(u.action, player, u.at, u.target);
         const spends = changes.some((c) => c.at === u.at && c.mp < 0);
         if (!spends || u.at - thinAir > THIN_AIR_MS) return changes;
         thinAir = -Infinity;
@@ -227,7 +246,7 @@ export class MpModel {
   }
 
   // The log's MP plus the plan's difference, at every reading and use.
-  private walk(player: number, uses: { action: number; at: number }[], dropped: Change[] = []): Change[] {
+  private walk(player: number, uses: Use[], dropped: Change[] = []): Change[] {
     const own = this.players.get(player);
     if (!own) return [];
     const changes = [...own.undone, ...dropped, ...this.planned(player, uses)].sort((a, b) => a.at - b.at);
