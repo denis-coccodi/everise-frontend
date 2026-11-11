@@ -8,7 +8,7 @@ import { NO_ROOM_MS, aheadOf, best, better, kardiaBack, madeUp, waitsForBiggerNe
 import { pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { WEAVE_MS, Weaving } from './weaving';
-import { naturalRegen, pullEvents } from './hp-events';
+import { guardsOf, naturalRegen, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
   Favour,
@@ -72,8 +72,9 @@ export function planHeals(
   // Every healer favours healing where the strategy says so (`healersHeal`), else damage.
   const favourOf = (): Favour => (options.strategy?.healersHeal ? 'healing' : 'dps');
 
+  const guards = guardsOf(plan.uses, (u) => mitigationOf.get(key(u)));
   const track = new HpTrack(maxHp, [
-    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated),
+    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated, guards),
     ...naturalRegen(timeline),
     ...fairy.events,
   ]);

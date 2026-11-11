@@ -1,3 +1,5 @@
+import type { Invulnerability } from './plan.model';
+
 // A change to one player's HP: damage taken (negative) or healing.
 export interface HpEvent {
   at: number;
@@ -14,4 +16,12 @@ export interface HpCheckpoint {
   at: number;
   hp: number;
   next: number;
+}
+
+// When an invulnerability is up on a player, and which.
+export interface Guard {
+  player: number;
+  from: number;
+  to: number;
+  invulnerable: Invulnerability;
 }

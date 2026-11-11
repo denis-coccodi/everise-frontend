@@ -1,6 +1,6 @@
 import { TimelineHeal } from '@everise/core/api-types';
-import { healEvents, naturalRegen, pullEvents } from './hp-events';
-import { HealTool, Mechanic, PlannedHit } from './plan.model';
+import { guardsOf, healEvents, naturalRegen, pullEvents } from './hp-events';
+import { HealTool, Mechanic, MitigationTool, PlannedHit } from './plan.model';
 import { pull } from './scheduler-fixtures';
 
 describe('pullEvents', () => {
@@ -75,6 +75,41 @@ describe('pullEvents', () => {
       { at: 30_000, player: 3, amount: -72_000 },
       { at: 40_000, player: 1, amount: -5000 },
       { at: 50_000, player: 1, amount: 1500 },
+    ]);
+  });
+
+  it("guards against the damage outside the mechanics under the plan's invulnerabilities: none under Hallowed Ground, 1 HP left under Holmgang", () => {
+    const tool = (action: number, invulnerable: 'immune' | 'lastHp', player: number): MitigationTool =>
+      ({
+        player,
+        action,
+        name: String(action),
+        castMs: 0,
+        effects: [{ target: 'self', durationMs: 10_000, invulnerable }],
+      }) as unknown as MitigationTool;
+    const tools = [tool(30, 'immune', 1), tool(43, 'lastHp', 3)];
+    const use = (player: number, action: number) => ({
+      player,
+      action,
+      name: '',
+      at: 35_000,
+      target: null,
+      covers: [],
+    });
+    const guards = guardsOf([use(1, 30), use(3, 43)], (u) => tools.find((t) => t.action === u.action));
+    expect(guards).toEqual([
+      { player: 1, from: 35_000, to: 45_000, invulnerable: 'immune' },
+      { player: 3, from: 35_000, to: 45_000, invulnerable: 'lastHp' },
+    ]);
+    const timeline = pull([
+      [40, 'Attack', 1, 5000],
+      [41, 'Attack', 3, 5000],
+      [50, 'Attack', 3, 5000],
+    ]);
+
+    expect(pullEvents(timeline, [], [], [], [], guards)).toEqual([
+      { at: 41_000, player: 3, amount: -5000, floor: 1 },
+      { at: 50_000, player: 3, amount: -5000 },
     ]);
   });
 
