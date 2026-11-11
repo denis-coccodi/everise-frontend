@@ -3,16 +3,8 @@ import { combinedShares } from './combined-hots';
 import { TICK_MS } from './heal-tools';
 import { isMechanicHit } from './mechanics';
 import { landsAt, landsUnder } from './coverage';
-import { HealTool, Invulnerability, Mechanic, MitigationTool, PlannedHit, PlannedUse } from './plan.model';
-import type { HpEvent } from './hp-track.model';
-
-// When an invulnerability is up on a player, and which.
-export interface Guard {
-  player: number;
-  from: number;
-  to: number;
-  invulnerable: Invulnerability;
-}
+import { HealTool, Mechanic, MitigationTool, PlannedHit, PlannedUse } from './plan.model';
+import type { Guard, HpEvent } from './hp-track.model';
 
 // The invulnerabilities the plan's `uses` put up, on whom and while (from
 // when each lands).
