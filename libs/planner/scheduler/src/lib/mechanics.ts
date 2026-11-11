@@ -53,7 +53,12 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
   // fight doesn't let it kill.
   const blocking = new Set(timeline.statuses.filter((s) => BLOCKING.has(s.name)).map((s) => s.id));
   const spared = (hit: TimelineHit) =>
-    hit.hp === 0 && hit.overkill > 0 && !died(hit) && !hit.statuses.some((id) => blocking.has(id));
+    (hit.hp === 0 && hit.overkill > 0 && !died(hit) && !hit.statuses.some((id) => blocking.has(id))) ||
+    toOneHp.has(nameOf(hit));
+  const toOneHp = takenToOneHp(
+    hits.filter((hit) => !blocked.has(hit)),
+    nameOf,
+  );
   // What other groups' kills say an attack does to each role, done right:
   // nothing to a role it never hits there.
   const role = new Map(timeline.players.map((p) => [p.id, p.role]));
@@ -111,9 +116,16 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
           // does instead, as if done right.
           const completed = hit.at > completedAfter && !blocked.has(hit);
           const fails = !completed && !leavesOneHp && failed(hit);
+          // One that takes them to 1 HP does so from any HP: their max HP,
+          // kept from the last.
+          const damage = toOneHp.has(nameOf(hit))
+            ? (maxHp.get(hit.target) ?? unmitigated(hit))
+            : completed && failed(hit)
+              ? usualFor(hit)
+              : unmitigated(hit);
           return {
             player: hit.target,
-            unmitigated: completed && failed(hit) ? usualFor(hit) : unmitigated(hit),
+            unmitigated: damage,
             asPlayed: hit.amount,
             ...(fails ? { failed: true } : {}),
             ...(leavesOneHp ? { leavesOneHp: true as const } : {}),
@@ -146,6 +158,19 @@ function byPlayer(hits: MechanicHit[]): MechanicHit[] {
     else merged.push({ ...hit });
   }
   return merged;
+}
+
+// The attacks that take whoever they hit to 1 HP, whatever their HP (TEA's
+// Photon): unique damage leaving each of them, at least two, at exactly 1 HP.
+// Taken as a set amount, a player coming in with less HP than the log's
+// died to it in the plan.
+function takenToOneHp(hits: TimelineHit[], nameOf: (hit: TimelineHit) => string) {
+  const names = new Set<string>();
+  for (const name of new Set(hits.map(nameOf))) {
+    const theirs = hits.filter((h) => nameOf(h) === name);
+    if (theirs.length >= 2 && theirs.every((h) => h.hp === 1 && h.damageType === 'unique')) names.add(name);
+  }
+  return names;
 }
 
 // Whether a hit is part of a boss mechanic: not a damage over time tick, an
