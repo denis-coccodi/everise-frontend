@@ -2,8 +2,39 @@ import { PullTimeline } from '@everise/core/api-types';
 import { combinedShares } from './combined-hots';
 import { TICK_MS } from './heal-tools';
 import { isMechanicHit } from './mechanics';
-import { HealTool, Mechanic, PlannedHit, PlannedUse } from './plan.model';
+import { landsAt, landsUnder } from './coverage';
+import { HealTool, Invulnerability, Mechanic, MitigationTool, PlannedHit, PlannedUse } from './plan.model';
 import type { HpEvent } from './hp-track.model';
+
+// When an invulnerability is up on a player, and which.
+export interface Guard {
+  player: number;
+  from: number;
+  to: number;
+  invulnerable: Invulnerability;
+}
+
+// The invulnerabilities the plan's `uses` put up, on whom and while (from
+// when each lands).
+export function guardsOf(uses: PlannedUse[], toolOf: (use: PlannedUse) => MitigationTool | undefined): Guard[] {
+  return uses.flatMap((use) => {
+    const tool = toolOf(use);
+    if (!tool) return [];
+    const from = landsAt(tool, use);
+    return tool.effects.flatMap((e) =>
+      e.invulnerable && (e.target === 'self' || e.target === 'target')
+        ? [
+            {
+              player: e.target === 'self' ? use.player : (use.target ?? use.player),
+              from,
+              to: from + e.durationMs,
+              invulnerable: e.invulnerable,
+            },
+          ]
+        : [],
+    );
+  });
+}
 
 // The game's natural regeneration, which logs show as an action of its own:
 // 1% of max HP every 3s, on each player's own tick, whenever they're missing
@@ -26,6 +57,7 @@ export function pullEvents(
   hits: PlannedHit[],
   heals: HealTool[],
   recalculated: string[] = [],
+  guarded: Guard[] = [],
 ): HpEvent[] {
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const statusName = new Map(timeline.statuses.map((s) => [s.id, s.name]));
@@ -37,8 +69,14 @@ export function pullEvents(
     amount: -hit.planned,
     ...(hit.invulnerable ? { floor: 1 } : {}),
   }));
+  // The rest as played, but under the plan's invulnerabilities (`guarded`)
+  // as its mechanics' hits are: none under one that blocks it all, never
+  // below 1 HP under one that lets it land (Holmgang).
   for (const hit of timeline.damage) {
-    if (!isMechanicHit(hit, actionName)) events.push({ at: hit.at, player: hit.target, amount: -hit.amount });
+    if (isMechanicHit(hit, actionName)) continue;
+    const guard = guarded.find((g) => g.player === hit.target && g.from <= hit.at && hit.at <= g.to);
+    if (guard && !landsUnder(guard.invulnerable)) continue;
+    events.push({ at: hit.at, player: hit.target, amount: -hit.amount, ...(guard ? { floor: 1 } : {}) });
   }
 
   // The heals the plan counts itself: its heal tools' actions and the
