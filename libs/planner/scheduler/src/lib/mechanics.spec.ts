@@ -209,6 +209,29 @@ describe('mechanicsOf', () => {
     ]);
   });
 
+  it('takes an attack that leaves everyone at exactly 1 HP as one setting HP to 1, from any HP', () => {
+    // TEA's Photon: unique damage of their HP but one, whatever it is.
+    const t = pull([
+      [130, 'Photon', 1, 41_000],
+      [130, 'Photon', 2, 29_000],
+      [130, 'Photon', 3, 20_000],
+      [150, 'Spin Crusher', 1, 30_000],
+    ]);
+    t.damage = t.damage.map((h) => ({
+      ...h,
+      damageType: 'unique' as const,
+      hp: h.action === t.actions[0].id ? 1 : 20_000,
+    }));
+    const maxHp = new Map(t.players.map((p) => [p.id, p.maxHp]));
+
+    const [photon, crusher] = mechanicsOf(t);
+
+    expect(photon.hits.map((h) => [h.player, h.unmitigated, !!h.leavesOneHp])).toEqual(
+      [1, 2, 3].map((p) => [p, maxHp.get(p), true]),
+    );
+    expect(crusher.hits.map((h) => [h.unmitigated, !!h.leavesOneHp])).toEqual([[30_000, false]]);
+  });
+
   it("never takes a hit past a completed wipe's end as failed: one the other group failed lands as usual", () => {
     // The wipe ends at 60s; the rest is another group's kill. The scholar
     // failed the 30s tower themselves (ten times the rest); the kill's bard
