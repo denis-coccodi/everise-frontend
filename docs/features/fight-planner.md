@@ -22,7 +22,7 @@ Each library's `README.md` describes its files in detail. The scheduler's is the
 
 The flow, in `pull-planner.ts`:
 
-1. **Mechanics:** the pull's hits are grouped into boss mechanics: raidwides, tank busters and targeted hits (`mechanics.ts`). A hit far bigger than that attack usually does is a failed mechanic, taken as avoided.
+1. **Mechanics:** the pull's hits are grouped into boss mechanics: raidwides, tank busters and targeted hits (`mechanics.ts`). A hit far bigger than that attack usually does is a failed mechanic, taken as avoided. A hit the fight doesn't let kill can't take the last HP: one logged at no HP with the player alive, or an attack that takes everyone to 1 HP whatever their HP (TEA's Photon).
 2. **Tools:**
    - each player's mitigations, shields and heals at their level, from the backend's action catalog (`tools.ts`, `heal-tools.ts`);
    - each player's heal power, read from the pull (`heal-power.ts`).
