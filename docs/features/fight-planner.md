@@ -28,7 +28,7 @@ The flow, in `pull-planner.ts`:
    - each player's heal power, read from the pull (`heal-power.ts`).
 3. **Openers:** a replanned player starts with their opener (`openers.ts`), as The Balance (or Icy Veins) gives it.
 4. **Mitigation:** the party's mitigations and shields are planned first, as if every hit landed at full HP (`mitigation-plan.ts`).
-5. **Heals:** then the healers' heals (`heal-plan.ts`). Several rounds replan the mitigations around the lowest HP the heals left.
+5. **Heals:** then the healers' heals (`heal-plan.ts`). Several rounds replan the mitigations around the lowest HP the heals left. The boss's auto-attacks count with the plan's mitigations and shields, not those up as played (`auto-damage.ts`), so a tank's cooldowns as played don't count on top of the plan's.
 6. **Resources:**
    - each healer's MP (`mp.ts`, Lucid Dreaming, Thin Air);
    - a Dark Knight's MP: The Blackest Night costs nothing in the end when it breaks, as Dark Arts makes the next Edge of Shadow free (`dark-arts.ts`: it breaks once its target takes a quarter of their max HP in its 7s, as played). One that won't break costs an Edge, so it's planned only where a hit needs it, never for spare margin;

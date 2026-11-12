@@ -2,6 +2,7 @@ import { PullTimeline } from '@everise/core/api-types';
 import type { MpModel } from './mp';
 import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from './heal-tools';
 import { projected, pullFacts, reaches } from './coverage';
+import { AutoDamage } from './auto-damage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
 import { NO_ROOM_MS, aheadOf, best, better, kardiaBack, madeUp, waitsForBiggerNeed } from './heal-candidates';
@@ -63,8 +64,7 @@ export function planHeals(
   const mitigationOf = new Map(mitigation.map((t) => [key(t), t]));
   const party = timeline.players.map((p) => p.id);
   const healers = new Set(timeline.players.filter((p) => p.role === 'healer').map((p) => p.id));
-  // The healers' heals, and a replanned DPS's (Lux Solaris...); the others'
-  // heals (a tank's Nascent Flash) are their mitigation's.
+  // The healers' heals and a replanned DPS's (Lux Solaris...); a tank's (Nascent Flash) are its mitigation's.
   // Healing at first need (`healsFirstNeed`), Macrocosmos counts as the damage spell it is.
   const firstNeed = !!options.strategy?.healsFirstNeed;
   const planned = heals
@@ -72,10 +72,16 @@ export function planHeals(
     .map((t) => (firstNeed && t.action === MACROCOSMOS ? { ...t, cost: 'neutral' as const } : t));
   // Every healer favours healing where the strategy says so (`healersHeal`), else damage.
   const favourOf = (): Favour => (options.strategy?.healersHeal ? 'healing' : 'dps');
-
+  const scheduled = new Set([...healOf.keys(), ...mitigationOf.keys(), ...pairings.map(key)]);
+  const boosts = new HealingBuffs(buffs, party, timeline, scheduled);
+  for (const use of plan.uses) boosts.add(use);
+  // A GCD shield grows with its caster's healing potency buffs. The autos take the plan's mitigations and shields.
+  const facts = pullFacts(plan.mechanics, maxHp, (use) => boosts.potencyAt(use.player, use.at, []));
   const guards = guardsOf(plan.uses, (u) => mitigationOf.get(key(u)));
+  const autos = new AutoDamage(timeline, plan.uses, (u) => mitigationOf.get(key(u)), facts);
+  const dealt = autos.amountOf;
   const track = new HpTrack(maxHp, [
-    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated, guards),
+    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated, guards, dealt),
     ...naturalRegen(timeline),
     ...fairy.events,
   ]);
@@ -83,9 +89,6 @@ export function planHeals(
   for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);
   const hitTimes = (player: number, from: number, to: number) =>
     (hitAt.get(player) ?? []).filter((at) => at > from && at <= to).sort((a, b) => a - b);
-  const scheduled = new Set([...healOf.keys(), ...mitigationOf.keys(), ...pairings.map(key)]);
-  const boosts = new HealingBuffs(buffs, party, timeline, scheduled);
-  for (const use of plan.uses) boosts.add(use);
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
   const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => {
     const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
@@ -143,7 +146,7 @@ export function planHeals(
   // What each hit takes, which need no healing for, and what lands with each.
   const { invulnerable, damage, damageOf, together } = hitDamage(plan);
   // The mechanics, with Living Dead's and the damage outside them (damage over time, auto-attacks).
-  const { deads, mechanics } = healCheckpoints(plan, timeline, maxHp, options.margin, weaving, mitigationOf);
+  const { deads, mechanics } = healCheckpoints(plan, timeline, maxHp, options.margin, weaving, mitigationOf, dealt);
   for (const dead of deads) track.add(dead.selfHeals);
   // What each mechanic takes of the party, in shares of HP, mitigated.
   const need = new Map<number, number>();
@@ -152,14 +155,13 @@ export function planHeals(
 
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
-  // A GCD shield grows with its caster's healing potency buffs.
-  const facts = pullFacts(plan.mechanics, maxHp, (use) => boosts.potencyAt(use.player, use.at, []));
   const mitigating = plan.uses.filter((u) => mitigationOf.has(key(u)));
   const toolOfUse = (u: PlannedUse) => mitigationOf.get(key(u)) as MitigationTool;
   // Such a heal lowers the hits it reaches, and the HP track gets back what
   // they no longer take.
   const mitigate = (use: PlannedUse, tool: MitigationTool) => {
     mitigating.push(use);
+    track.add(autos.add(use));
     for (const m of plan.mechanics) {
       for (const h of m.hits) {
         if (!reaches(tool, use, m, h).length) continue;

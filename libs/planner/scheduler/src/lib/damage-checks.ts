@@ -1,4 +1,4 @@
-import type { PullTimeline } from '@everise/core/api-types';
+import type { PullTimeline, TimelineHit } from '@everise/core/api-types';
 import { isMechanicHit } from './mechanics';
 import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
 import { walkingDeads } from './walking-dead';
@@ -22,17 +22,24 @@ export const FIRST_DAMAGE_CHECK = -1_000;
 export const isDamageCheck = (id: number) => id <= FIRST_DAMAGE_CHECK;
 
 // The heals' checkpoints for the damage that isn't a mechanic's hit
-// (damage-over-time ticks, auto-attacks, unnamed attacks), as it was dealt:
+// (damage-over-time ticks, auto-attacks, unnamed attacks), as it was dealt
+// (the autos with the plan's mitigations and shields: `amountOf`):
 // a burst of it on a player is one check at its first hit, taking all of
 // it, so the heals before it leave the margin through the whole burst.
 // Damage over time is a large share of an ultimate's damage; left out,
 // plans let players die to it unseen.
-export function damageChecks(timeline: PullTimeline, maxHp: Map<number, number>): Mechanic[] {
+export function damageChecks(
+  timeline: PullTimeline,
+  maxHp: Map<number, number>,
+  amountOf: (hit: TimelineHit) => number = (hit) => hit.amount,
+): Mechanic[] {
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const checks: Mechanic[] = [];
   for (const [player, max] of maxHp) {
     const hits = timeline.damage
-      .filter((d) => d.target === player && d.amount > 0 && !isMechanicHit(d, actionName))
+      .filter((d) => d.target === player && !isMechanicHit(d, actionName))
+      .map((d) => ({ ...d, amount: amountOf(d) }))
+      .filter((d) => d.amount > 0)
       .sort((a, b) => a.at - b.at);
     let burst: typeof hits = [];
     const close = () => {
@@ -79,9 +86,10 @@ export function healCheckpoints(
   margin: number,
   weaving: Weaving,
   mitigationOf: Map<string, MitigationTool>,
+  amountOf?: (hit: TimelineHit) => number,
 ) {
   const toolOf = (use: PlannedUse) => mitigationOf.get(`${use.player}:${use.action}`);
   const deads = walkingDeads(plan, toolOf, maxHp, margin, weaving);
-  const checks = [...deads.map((d) => d.check), ...damageChecks(timeline, maxHp)];
+  const checks = [...deads.map((d) => d.check), ...damageChecks(timeline, maxHp, amountOf)];
   return { deads, mechanics: [...plan.mechanics, ...checks].sort((a, b) => a.at - b.at) };
 }

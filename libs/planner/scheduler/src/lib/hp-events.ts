@@ -1,4 +1,4 @@
-import { PullTimeline } from '@everise/core/api-types';
+import { PullTimeline, TimelineHit } from '@everise/core/api-types';
 import { combinedShares } from './combined-hots';
 import { TICK_MS } from './heal-tools';
 import { isMechanicHit } from './mechanics';
@@ -35,9 +35,10 @@ const NATURAL_REGEN = 1302;
 const NATURAL_SHARE = 0.01;
 
 // What happens to the party's HP besides the plan's heals: the mechanics'
-// hits as the plan leaves them, every other hit (auto-attacks, damage over
-// time, the floor) as it was played, and the healing the plan doesn't
-// schedule as it was played (a tank's own sustain, Kardia, the faerie's
+// hits as the plan leaves them, the auto-attacks with its mitigations
+// (`amountOf`), every other hit (damage over time, the floor) as it was
+// played, and the healing the plan doesn't schedule as it was played (a
+// tank's own sustain, Kardia, the faerie's
 // Embrace), all of it with its overheal, as the HP it lands on may differ.
 // Natural regeneration isn't among them: the log has it only where the HP
 // as played was missing some (`naturalRegen` recalculates it). Nor are the
@@ -50,6 +51,8 @@ export function pullEvents(
   heals: HealTool[],
   recalculated: string[] = [],
   guarded: Guard[] = [],
+  // What a hit outside them takes with the plan (auto-attacks: `AutoDamage`).
+  amountOf: (hit: TimelineHit) => number = (hit) => hit.amount,
 ): HpEvent[] {
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const statusName = new Map(timeline.statuses.map((s) => [s.id, s.name]));
@@ -68,7 +71,7 @@ export function pullEvents(
     if (isMechanicHit(hit, actionName)) continue;
     const guard = guarded.find((g) => g.player === hit.target && g.from <= hit.at && hit.at <= g.to);
     if (guard && !landsUnder(guard.invulnerable)) continue;
-    events.push({ at: hit.at, player: hit.target, amount: -hit.amount, ...(guard ? { floor: 1 } : {}) });
+    events.push({ at: hit.at, player: hit.target, amount: -amountOf(hit), ...(guard ? { floor: 1 } : {}) });
   }
 
   // The heals the plan counts itself: its heal tools' actions and the
