@@ -34,6 +34,9 @@ interface Change {
   mp: number;
 }
 
+// What a use is for, as the MP it may cost goes (`affordable`).
+export type MpUse = 'need' | 'spare' | 'upkeep';
+
 // One of the plan's uses: on whom matters for The Blackest Night.
 type Use = { action: number; at: number; target?: number | null };
 
@@ -170,19 +173,28 @@ export class MpModel {
 
   // Whether the player can afford `action` at `at` with their other uses:
   // their MP never runs out from then on, a Dark Knight's Edges dropped if
-  // need be (`mayDrop`: not for spare margin). Spare margin never costs MP
-  // in the end, as a Blackest Night that won't break does (an Edge's), and
-  // one that breaks must fit at its full cost: its Dark Arts goes to the
-  // Edges, not to more of them. Recorded when not, but for spare margin.
-  affordable(player: number, action: number, at: number, uses: Use[], mayDrop = true, target: number | null = null) {
+  // a hit needs it (`for`: 'need'). Spare margin never costs MP in the end,
+  // as a Blackest Night that won't break does (an Edge's), and one that
+  // breaks must fit at its full cost: its Dark Arts goes to the Edges, not
+  // to more of them. A tank's upkeep on the autos ('upkeep') never costs MP
+  // in the end either, and only needs it there: its Dark Arts comes back.
+  // Recorded when not, but for upkeep.
+  affordable(
+    player: number,
+    action: number,
+    at: number,
+    uses: Use[],
+    use: MpUse = 'need',
+    target: number | null = null,
+  ) {
     const changes = this.changesOf(action, player, at, target);
     if (!changes.some((c) => c.mp < 0) || !this.players.has(player)) return true;
-    if (!mayDrop && changes.reduce((sum, c) => sum + c.mp, 0) < 0) return false;
-    const kept = this.dropped(player, uses);
+    if (use !== 'need' && changes.reduce((sum, c) => sum + c.mp, 0) < 0) return false;
+    const kept = use === 'need' ? undefined : this.dropped(player, uses);
     // No one's target: what it costs, nothing back.
-    const use = { action, at, target: mayDrop ? target : NO_ONE };
-    if (this.withDrops(player, [...uses, use], at, mayDrop ? undefined : kept).ok) return true;
-    this.refused.push({ player, at });
+    const added = { action, at, target: use === 'spare' ? NO_ONE : target };
+    if (this.withDrops(player, [...uses, added], at, kept).ok) return true;
+    if (use !== 'upkeep') this.refused.push({ player, at });
     return false;
   }
 

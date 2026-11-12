@@ -27,7 +27,7 @@ import { AUTOMATIC } from './tools';
 import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
-import { coveredMechanics, healCheckpoints } from './damage-checks';
+import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
 import { hitDamage } from './hit-damage';
 
 // How soon after its Helios lands Horoscope is read at the latest.
@@ -176,8 +176,8 @@ export function planHeals(
   };
 
   for (const m of mechanics) {
-    // Healing from after the last mechanic there was time to heal after (a burst's hits at once).
-    const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS).at(-1)?.at ?? -1;
+    // Healing from after the last mechanic there was time to heal after (`anchors`: not others' checks).
+    const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS && anchors(m, o)).at(-1)?.at ?? -1;
     // What those `o` hits lack before it, from the anchor on (none under an invulnerability).
     const shortOf = (o: Mechanic) => {
       const checkpoints = o.hits

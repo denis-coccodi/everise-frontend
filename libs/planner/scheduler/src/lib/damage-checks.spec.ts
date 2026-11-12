@@ -1,5 +1,6 @@
 import type { PullTimeline } from '@everise/core/api-types';
-import { coveredMechanics, damageChecks, FIRST_DAMAGE_CHECK } from './damage-checks';
+import { anchors, coveredMechanics, damageChecks, FIRST_DAMAGE_CHECK } from './damage-checks';
+import type { Mechanic } from './plan.model';
 
 describe('damageChecks', () => {
   // Player 1 (100,000 HP): a bleed (2) ticking every 3 s, then an auto-attack (3) burst; a buster (4) is a mechanic.
@@ -68,5 +69,28 @@ describe('damageChecks', () => {
     const dead = { check: { id: -1 }, trigger: { id: 7 } } as never;
 
     expect(coveredMechanics([3, FIRST_DAMAGE_CHECK, -1], [dead])).toEqual([3, 7]);
+  });
+});
+
+describe('anchors', () => {
+  const check = (id: number, at: number, player: number): Mechanic => ({
+    id,
+    at,
+    action: 7,
+    name: 'Attack',
+    kind: 'targeted',
+    damageType: null,
+    hits: [{ player, unmitigated: 10_000, asPlayed: 10_000, avoidable: false }],
+  });
+  const tank = check(FIRST_DAMAGE_CHECK - 5, 30_000, 1);
+
+  it("heals a tank's autos from the last mechanic, or theirs 10s before", () => {
+    expect(anchors(tank, { ...check(4, 29_000, 2), kind: 'raidwide' })).toBe(true);
+    expect(anchors(tank, check(FIRST_DAMAGE_CHECK - 1, 20_000, 1))).toBe(true);
+  });
+
+  it("not from their auto just before, nor anyone else's", () => {
+    expect(anchors(tank, check(FIRST_DAMAGE_CHECK - 4, 27_000, 1))).toBe(false);
+    expect(anchors(tank, check(FIRST_DAMAGE_CHECK - 2, 15_000, 2))).toBe(false);
   });
 });

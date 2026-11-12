@@ -32,6 +32,7 @@ import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-pla
 import { upkeepCasts, withUpkeep } from './completion-upkeep';
 import { mpExtras } from './mp-extras';
 import { withoutRepeatedDots } from './combined-dots';
+import { autoCooldowns, autoTimes } from './tank-autos';
 
 // Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
@@ -163,6 +164,8 @@ export class PullPlanner {
     const lucidKeys = new Set(healers.map((h) => key({ player: h, action: LUCID_DREAMING })));
     const current = () => (lucid.length ? scheduled : new Set([...scheduled].filter((k) => !lucidKeys.has(k))));
     const mpModel = (from?: Plan) => MpModel.of(timeline, catalog, mpIds, current(), from && aliveIn(from), past);
+    // The tanks' short cooldowns go on the autos they take too.
+    const [autos, short] = [autoTimes(timeline), alone.filter((t) => !asPlayed(t))];
     const once = (from?: Plan) => {
       const mp = mpModel(from);
       const { healing, casts } = fairy(from);
@@ -178,6 +181,9 @@ export class PullPlanner {
         casts,
         mp,
         { gauge: timeline.limitBreakGauge, played: groupLimitBreaks(timeline) },
+      );
+      mitigated.uses = [...mitigated.uses, ...autoCooldowns(mitigated, short, autos, weaving, mp)].sort(
+        (a, b) => a.at - b.at || a.player - b.player,
       );
       const planned = planHeals(
         { ...mitigated, uses: [...mitigated.uses.filter(notPlaced), ...placed, ...lucid] },

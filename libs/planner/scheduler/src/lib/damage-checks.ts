@@ -93,3 +93,14 @@ export function healCheckpoints(
   const checks = [...deads.map((d) => d.check), ...damageChecks(timeline, maxHp, amountOf)];
   return { deads, mechanics: [...plan.mechanics, ...checks].sort((a, b) => a.at - b.at) };
 }
+
+// Whether the heals for `m` start after `o`: any mechanic of the pull, but a
+// check of one player's own (damage outside the mechanics, a Walking Dead
+// check) only for a check of theirs at least a burst's length later. A tank's
+// autos come every 3 s or so, each a check: anchored on the one before, its
+// heals would have a moment to go in, not the whole stream of autos, and on
+// everyone else's ticks and the other tank's autos, none.
+export function anchors(m: Mechanic, o: Mechanic): boolean {
+  if (o.id >= 0) return true;
+  return m.id < 0 && m.at - o.at >= LONGEST_MS && o.hits.some((h) => m.hits.some((k) => k.player === h.player));
+}
