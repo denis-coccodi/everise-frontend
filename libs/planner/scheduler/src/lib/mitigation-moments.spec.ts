@@ -1,5 +1,5 @@
 import type { Mechanic, MitigationTool } from './plan.model';
-import { waitsForBigger } from './mitigation-moments';
+import { mostEndangered, waitsForBigger } from './mitigation-moments';
 
 // A raidwide at 30s (the paladin, 1, takes 60% of their HP) and their tank
 // buster at 60s (140%); max HP 100,000.
@@ -54,5 +54,30 @@ describe('waitsForBigger', () => {
     expect(waitsForBigger(raidwide, tool('self', 20), [buster], weight)).toBe(false);
     expect(waitsForBigger(raidwide, tool('party', 90), [buster], weight)).toBe(false);
     expect(waitsForBigger(buster, tool('self', 90), [raidwide], weight)).toBe(false);
+  });
+});
+
+describe('mostEndangered', () => {
+  // Each hit as the plan has it: its damage against 100,000 HP.
+  const project = (_m: Mechanic, h: Mechanic['hits'][number]) => ({ damage: h.unmitigated });
+  const hp = () => 100_000;
+  // The warrior (1) with Nascent Flash.
+  const nascent = { ...tool('self', 25), action: 16464, name: 'Nascent Flash' };
+
+  it('never names the warrior for their Nascent Flash', () => {
+    const own = mechanic(3, 60_000, 'tankbuster', [
+      [1, 90_000],
+      [2, 50_000],
+    ]);
+
+    expect(mostEndangered(own, [], project, hp, nascent)).toBe(2);
+  });
+
+  it('on a raidwide only where a hit is short of the margin, not for spare', () => {
+    expect(mostEndangered(buster, [], project, hp, { ...nascent, player: 2 })).toBe(1);
+    expect(mostEndangered(raidwide, [], project, hp, nascent, true)).toBe(3);
+    expect(mostEndangered(raidwide, [], project, hp, nascent)).toBeNull();
+    const targeted = mechanic(5, 40_000, 'targeted', [[3, 50_000]]);
+    expect(mostEndangered(targeted, [], project, hp, nascent)).toBe(3);
   });
 });

@@ -60,17 +60,29 @@ export function momentsFor(m: Mechanic, t: MitigationTool, mechanics: Mechanic[]
   return [...moments].filter((at) => at >= 0 || COUNTDOWN_MS.includes(at));
 }
 
+// The cooldowns cast on someone else only: Intervention, Nascent Flash.
+const NASCENT_FLASH = 16464;
+const ON_OTHERS = new Set([7382, NASCENT_FLASH]);
+
 // The hit of `m` the plan so far leaves taking the most of the HP it lands
-// on.
+// on, among those `t` may go on: never its user's for one cast on someone
+// else. Nascent Flash shares Bloodwhetting's recast, which the warrior keeps
+// for themselves (the autos, the hits they take), as warriors play it: on
+// a raidwide it goes only where a hit is short of the margin (`needed`:
+// Forsaken, lining up every cooldown), never for spare margin.
 export function mostEndangered(
   m: Mechanic,
   uses: PlannedUse[],
   project: (m: Mechanic, h: MechanicHit, list: PlannedUse[]) => { damage: number },
   hpOf: (m: Mechanic, h: MechanicHit) => number,
+  t?: MitigationTool,
+  needed = false,
 ) {
   let worst: { player: number; share: number } | null = null;
   for (const hit of m.hits) {
     const share = project(m, hit, uses).damage / hpOf(m, hit);
+    if (t && ON_OTHERS.has(t.action) && hit.player === t.player) continue;
+    if (t?.action === NASCENT_FLASH && m.kind === 'raidwide' && !needed) continue;
     if (!worst || share > worst.share) worst = { player: hit.player, share };
   }
   return worst?.player ?? null;

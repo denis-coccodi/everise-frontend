@@ -190,7 +190,7 @@ export function planMitigation(
     if (gAt === null || gAt < 0 || isAway(g, gAt) || !fitsRecast(times, gAt, g.recastMs, g.charges)) return [];
     if (cutsUnion(g.action, gAt, (a) => timesOf(t.player, a))) return [];
     if (!fitsGrant(timesOf(t.player, t.action), [...timesOf(t.player, g.action), gAt], at, grant)) return [];
-    const target = g.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
+    const target = g.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf, g) : null;
     const use = { player: g.player, action: g.action, name: g.name, at: gAt, target, covers: [] };
     const options = [{ granted: [{ use, tool: g }], tool: t }];
     const r = g.whenCritical && t.whenCritical && plannable.find((o) => o.player === t.player && o.critical);
@@ -220,7 +220,9 @@ export function planMitigation(
     const spent = t.pool
       ? uses.filter((u) => u.player === t.player && tool(u).pool?.name === t.pool?.name).map((u) => u.at)
       : [];
-    const target = t.effects.some((e) => e.target === 'target') ? mostEndangered(m, uses, project, hpOf) : null;
+    const target = t.effects.some((e) => e.target === 'target')
+      ? mostEndangered(m, uses, project, hpOf, t, drop)
+      : null;
     const lasts = Math.max(...t.effects.map((e) => e.durationMs));
     const own = [...fixed, ...uses].filter((u) => u.player === t.player);
     let found: Candidate | null = null;
