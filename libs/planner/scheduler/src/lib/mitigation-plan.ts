@@ -300,9 +300,9 @@ export function planMitigation(
   const lethal = (m: Mechanic) => m.hits.filter(killing(m)).length;
   const breaks = tools.filter((t) => t.limitBreak && ours(t));
   const lastResort = lastResortFor(breaks, limitBreaks.gauge, limitBreaks.played, { uses, add, fill, lethal });
-  // A player's own cooldown waits for their bigger hit still to plan.
+  // A player's own cooldown waits for their bigger hit still to plan, by its size, not the HP a round left.
   const pending = new Set(order);
-  const weight = (m: Mechanic, h: MechanicHit) => h.unmitigated / hpOf(m, h);
+  const weight = (_m: Mechanic, h: MechanicHit) => h.unmitigated / max(h);
   for (const m of order) {
     pending.delete(m);
     const tried = uses.length;

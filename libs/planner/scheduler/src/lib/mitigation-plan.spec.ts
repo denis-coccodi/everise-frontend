@@ -3,6 +3,7 @@ import { burstsOf } from './mitigation-moments';
 import { planMitigation } from './mitigation-plan';
 import { catalog, pull } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
+import type { Plan, PlannedHit } from './plan.model';
 
 describe('planMitigation', () => {
   // Three hits of 40,000 1.1s apart on everyone (100,000 HP): each
@@ -36,5 +37,34 @@ describe('planMitigation', () => {
     // margin of what the first two left.
     expect(plan.uses.length).toBeGreaterThan(0);
     expect(last.every((h) => h.safe)).toBe(true);
+  });
+
+  it("keeps a tank's own cooldowns for their biggest hit by its size, not by the HP a round left", () => {
+    // A raidwide at 40s (70,000 on the paladin, 1), then their tank buster
+    // at 60s (105,000). An earlier round had them go into the raidwide at
+    // 50,000 HP, so it looked the bigger of the two.
+    const timeline = pull([
+      [40, 'Raidwide', 1, 70_000],
+      [40, 'Raidwide', 2, 95_000],
+      [40, 'Raidwide', 3, 95_000],
+      [60, 'Buster', 1, 105_000],
+    ]);
+    const mechanics = mechanicsOf(timeline);
+    const [raidwide, buster] = mechanics;
+    const hit = (mechanic: number, player: number, hpBefore: number) => ({ mechanic, player, hpBefore }) as PlannedHit;
+    const from: Plan = {
+      mechanics,
+      uses: [],
+      hits: [hit(raidwide.id, 1, 50_000), hit(buster.id, 1, 100_000)],
+      unplaced: [],
+      hp: [],
+    };
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const tools = mitigationTools(timeline.players, catalog());
+
+    const plan = planMitigation(mechanics, tools, maxHp, { margin: 0.1 }, from);
+    const guardian = plan.uses.find((u) => u.name === 'Guardian');
+
+    expect(guardian?.covers).toContain(buster.id);
   });
 });
