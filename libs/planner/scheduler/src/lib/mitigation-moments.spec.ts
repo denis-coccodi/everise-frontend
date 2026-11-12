@@ -1,5 +1,5 @@
 import type { Mechanic, MitigationTool } from './plan.model';
-import { mostEndangered, waitsForBigger } from './mitigation-moments';
+import { mostEndangered, reachMs, waitsForBigger } from './mitigation-moments';
 
 // A raidwide at 30s (the paladin, 1, takes 60% of their HP) and their tank
 // buster at 60s (140%); max HP 100,000.
@@ -79,5 +79,28 @@ describe('mostEndangered', () => {
     expect(mostEndangered(raidwide, [], project, hp, nascent)).toBeNull();
     const targeted = mechanic(5, 40_000, 'targeted', [[3, 50_000]]);
     expect(mostEndangered(targeted, [], project, hp, nascent)).toBe(3);
+  });
+});
+
+describe('reachMs', () => {
+  const effect = tool('self', 25).effects[0];
+
+  it('reaches as far back as its longest mitigation (Bloodwhetting 8s, not Stem the Flow 4s), not its shield', () => {
+    const bloodwhetting = {
+      ...tool('self', 25),
+      effects: [
+        { ...effect, durationMs: 8_000 },
+        { ...effect, durationMs: 4_000 },
+        { ...effect, physical: 0, magic: 0, shield: { potency: 400 }, durationMs: 20_000 },
+      ],
+    } as MitigationTool;
+
+    expect(reachMs(bloodwhetting)).toBe(8_000);
+  });
+
+  it('a shield alone as far as it lasts', () => {
+    const shield = { ...tool('self', 25), effects: [{ ...effect, physical: 0, magic: 0, durationMs: 7_000 }] };
+
+    expect(reachMs(shield)).toBe(7_000);
   });
 });

@@ -3,7 +3,7 @@ import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } 
 import { cutsUnion } from './fairy-heals';
 import { AUTOMATIC } from './tools';
 import { WEAVE_MS, Weaving } from './weaving';
-import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, waitsForBigger } from './mitigation-moments';
+import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, reachMs, waitsForBigger } from './mitigation-moments';
 import { plannedHits } from './mitigation-hits';
 import { lastResortFor } from './limit-break-plan';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
@@ -98,7 +98,7 @@ export function planMitigation(
   // When the player can use `t` for `m`, at `at` or before it while it
   // still covers `m`; null when they can't.
   const fit = (m: Mechanic, t: MitigationTool, at: number) => {
-    const from = m.at - Math.min(...t.effects.map((e) => e.durationMs));
+    const from = m.at - reachMs(t);
     const occupied = uses
       .filter((u) => u.player === t.player && !AUTOMATIC.has(u.action))
       .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
