@@ -131,3 +131,13 @@ export function waitsForBigger(
     return o !== m && !!hit && Math.abs(o.at - m.at) < t.recastMs && weight(o, hit) > weight(m, here);
   });
 }
+
+// How long before a hit `t` can go up and still mitigate it: as long as its
+// longest mitigation lasts (Bloodwhetting's 8s, not Stem the Flow's 4s), or
+// for one with none, its shortest effect (a shield). Each moment counts for
+// what is still up at the hit, so the latest one, the 4s part covering it
+// too, is taken whenever the tank can act then.
+export function reachMs(t: MitigationTool): number {
+  const mitigations = t.effects.filter((e) => (e.physical || e.magic) && e.durationMs > 0).map((e) => e.durationMs);
+  return mitigations.length ? Math.max(...mitigations) : Math.min(...t.effects.map((e) => e.durationMs));
+}
