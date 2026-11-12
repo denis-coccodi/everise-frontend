@@ -221,10 +221,10 @@ describe('PlannerScheduler', () => {
   });
 
   it('heals the player up for the next hit, an auto-attack too, an oGCD before a GCD, and judges each hit by the HP it leaves', () => {
-    // The buster leaves the tank 5,000 HP: the auto-attack at 45 s needs a heal before it.
+    // The auto-attack at 45 s, half of it taken off by the buster's mitigations still up, needs a heal before it.
     const p = plan([
       [30, 'Buster', 1, 95_000],
-      [45, 'Attack', 1, 60_000],
+      [45, 'Attack', 1, 130_000],
       [60, 'Buster', 1, 95_000],
     ]);
 
@@ -244,14 +244,14 @@ describe('PlannerScheduler', () => {
     const p = new PlannerScheduler().plan(
       pull([
         [30, 'Buster', 1, 95_000],
-        [45, 'Attack', 1, 60_000],
+        [45, 'Attack', 1, 130_000],
         [60, 'Buster', 1, 95_000],
       ]),
       catalog(),
       { margin: 0.1 },
     );
 
-    // The buster leaves them 5,000; the auto-attack at 45 s takes the rest. All damage counts, as in the game.
+    // The auto-attack at 45 s takes what the buster left, with the plan's mitigations still up. All damage counts, as in the game.
     expect(p.hits[0]).toMatchObject({ safe: true, hpBefore: 100_000 });
     expect(p.deaths).toEqual([expect.objectContaining({ player: 1, at: 45_000, mechanic: null, cause: 'Attack' })]);
   });

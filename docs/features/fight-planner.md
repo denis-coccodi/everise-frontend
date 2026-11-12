@@ -27,11 +27,11 @@ The flow, in `pull-planner.ts`:
    - each player's mitigations, shields and heals at their level, from the backend's action catalog (`tools.ts`, `heal-tools.ts`);
    - each player's heal power, read from the pull (`heal-power.ts`).
 3. **Openers:** a replanned player starts with their opener (`openers.ts`), as The Balance (or Icy Veins) gives it.
-4. **Mitigation:** the party's mitigations and shields are planned first, as if every hit landed at full HP (`mitigation-plan.ts`).
-5. **Heals:** then the healers' heals (`heal-plan.ts`). Several rounds replan the mitigations around the lowest HP the heals left.
+4. **Mitigation:** the party's mitigations and shields are planned first, as if every hit landed at full HP (`mitigation-plan.ts`). Then each tank's cooldowns go on the autos they take whenever they're ready, after what the mechanics need (`tank-autos.ts`): the short ones (The Blackest Night, Holy Sheltron, Heart of Corundum, Bloodwhetting, Oblation), The Blackest Night only where it breaks, and the bigger ones that work on physical hits (Rampart, Reprisal, Guardian, Bulwark, Damnation, Shadowed Vigil, Great Nebula, Camouflage), so a stretch of heavy autos isn't left without.
+5. **Heals:** then the healers' heals (`heal-plan.ts`). Several rounds replan the mitigations around the lowest HP the heals left. The boss's auto-attacks count with the plan's mitigations and shields, not those up as played (`auto-damage.ts`), so a tank's cooldowns as played don't count on top of the plan's. A tank's autos, every 3s or so, are healed for as one stream: the heals for one can go in from the last mechanic or from their autos 10s before, not just in the moment since the auto before (or the other tank's).
 6. **Resources:**
    - each healer's MP (`mp.ts`, Lucid Dreaming, Thin Air);
-   - a Dark Knight's MP: The Blackest Night costs nothing in the end when it breaks, as Dark Arts makes the next Edge of Shadow free (`dark-arts.ts`: it breaks once its target takes a quarter of their max HP in its 7s, as played). One that won't break costs an Edge, so it's planned only where a hit needs it, never for spare margin;
+   - a Dark Knight's MP: The Blackest Night costs nothing in the end when it breaks, as Dark Arts makes the next Edge of Shadow free (`dark-arts.ts`: it breaks once its target takes a quarter of their max HP in its 7s, as played). One that won't break costs an Edge, so it's planned only where a hit needs it, never for spare margin. One on the autos needs the MP only as it goes up;
    - gauges (Aetherflow, Addersgall with Rhizomata, the astrologian's cards);
    - each replanned player's burst windows.
 7. **Strategies:** the whole plan is made several ways, and the one with the fewest deaths is kept (`strategies.ts`). The ways: the plain one, the party waiting for bigger hits, big heals first, tank-buster chains, healers favouring healing, and Macrocosmos on cooldown.

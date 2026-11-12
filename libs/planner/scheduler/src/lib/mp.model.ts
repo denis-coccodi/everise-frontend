@@ -30,3 +30,7 @@ export interface MpShort {
   player: number;
   at: number;
 }
+
+// What a use is for, as the MP it may cost goes (`MpModel.affordable`): one
+// a hit needs, spare margin, or a tank's upkeep on the autos.
+export type MpUse = 'need' | 'spare' | 'upkeep';

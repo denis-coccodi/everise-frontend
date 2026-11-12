@@ -62,11 +62,25 @@ describe("a Dark Knight's MP with The Blackest Night", () => {
   it("never spends MP for spare margin on one that won't break: that costs an Edge", () => {
     const mp = MpModel.of(darkKnight(), withBlackestNight(), [1], new Set());
 
-    expect(mp.affordable(1, BLACKEST_NIGHT, 30_000, [], false, 1)).toBe(true);
-    expect(mp.affordable(1, BLACKEST_NIGHT, 50_000, [], false, 1)).toBe(false);
+    expect(mp.affordable(1, BLACKEST_NIGHT, 30_000, [], 'spare', 1)).toBe(true);
+    expect(mp.affordable(1, BLACKEST_NIGHT, 50_000, [], 'spare', 1)).toBe(false);
     // Where it's needed, it may.
-    expect(mp.affordable(1, BLACKEST_NIGHT, 50_000, [], true, 1)).toBe(true);
+    expect(mp.affordable(1, BLACKEST_NIGHT, 50_000, [], 'need', 1)).toBe(true);
     expect(mp.refused).toEqual([]);
+  });
+
+  it('needs the MP only as it goes up, for the autos: what breaks gives it back', () => {
+    // 4,000 until 40s, then 2,000: the full cost would run them out then.
+    const timeline = darkKnight([
+      [0, 4_000],
+      [40, 2_000],
+    ]);
+    const mp = MpModel.of(timeline, withBlackestNight(), [1], new Set());
+
+    expect(mp.affordable(1, BLACKEST_NIGHT, 30_000, [], 'spare', 1)).toBe(false);
+    expect(mp.affordable(1, BLACKEST_NIGHT, 30_000, [], 'upkeep', 1)).toBe(true);
+    // One that won't break costs an Edge: not for the autos either.
+    expect(mp.affordable(1, BLACKEST_NIGHT, 10_000, [], 'upkeep', 1)).toBe(false);
   });
 
   it('gives nothing back for one played that broke: its Edge, free as played, costs MP without it', () => {
