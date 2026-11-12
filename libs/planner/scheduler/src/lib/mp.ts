@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { MpExtras, MpShort, PlannedMp } from './mp.model';
+import type { MpExtras, MpShort, MpUse, PlannedMp } from './mp.model';
 import type { Plan } from './plan.model';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 import { BLACKEST_NIGHT, blackestNightBreaks } from './dark-arts';
@@ -33,9 +33,6 @@ interface Change {
   at: number;
   mp: number;
 }
-
-// What a use is for, as the MP it may cost goes (`affordable`).
-export type MpUse = 'need' | 'spare' | 'upkeep';
 
 // One of the plan's uses: on whom matters for The Blackest Night.
 type Use = { action: number; at: number; target?: number | null };
