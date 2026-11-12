@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { TimelinePlayer } from '@everise/core/api-types';
 import { PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
 import { OPENERS, type OpenerId } from '@everise/planner/scheduler';
+import { edgesNote } from './edges-note';
 import { FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
 // The player's own part of planning, in their tab: their opener, a replanned
@@ -75,12 +76,10 @@ export class PlanViewComponent {
     if (!times.length) return '';
     return `Short on MP at ${times.join(', ')}: the plan couldn't afford a heal there.`;
   });
-  // A Dark Knight's Edges of Shadow as played the plan drops for MP.
-  protected readonly dropped = computed(() => {
-    const times = this.current()?.mp?.find((m) => m.player === this.player().id)?.dropped ?? [];
-    if (!times.length) return '';
-    return `The plan drops the Edge of Shadow at ${times.map(pullClock).join(', ')} for The Blackest Night's MP.`;
-  });
+  // A Dark Knight's Edges of Shadow against the log.
+  protected readonly dropped = computed(() =>
+    edgesNote(this.current()?.mp?.find((m) => m.player === this.player().id)),
+  );
 
   protected setOpener(value: string) {
     const opener = this.openers().find((o) => o.id === value);

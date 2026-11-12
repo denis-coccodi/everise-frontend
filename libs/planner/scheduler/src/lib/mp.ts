@@ -1,6 +1,6 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { MpExtras, MpShort, MpUse, PlannedMp } from './mp.model';
-import type { Plan } from './plan.model';
+import type { MpExtras, MpUse, PlannedMp } from './mp.model';
+import { spareEdges } from './dark-knight-edges';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 import { BLACKEST_NIGHT, blackestNightBreaks } from './dark-arts';
 
@@ -10,7 +10,8 @@ const DEFAULT_TICK = 200;
 // A Dark Knight's MP spenders the plan may drop for The Blackest Night's
 // MP: Edge and Flood of Shadow. One Dark Arts paid for (the log's MP
 // didn't drop by most of its cost) frees nothing.
-const EDGES = new Set([16470, 16469]);
+const EDGE_OF_SHADOW = 16470;
+const EDGES = new Set([EDGE_OF_SHADOW, 16469]);
 const PAID = 0.8;
 // A target no hit lands on.
 const NO_ONE = -1;
@@ -22,6 +23,7 @@ type Own = {
   tick: number;
   undone: Change[];
   edges: Change[];
+  darkKnight: boolean;
   dead: { from: number; to: number }[];
   // "action:at" of their unlogged casts (`MpExtras`), counted once; the
   // actions of their fixed ones, the plan's uses of which are left out.
@@ -81,6 +83,7 @@ export class MpModel {
         tick: tickOf(p.mp),
         undone: [],
         edges,
+        darkKnight: p.job === 'DRK',
         dead: [],
         unlogged: new Set(),
         fixed: new Set(),
@@ -203,12 +206,26 @@ export class MpModel {
     return this.walk(player, uses, dropped).map(({ at, mp }) => ({ at, mp: Math.min(max, Math.max(0, mp)) }));
   }
 
-  // Each of these players' MP with the plan's uses, and the Edges it drops.
+  // Each of these players' MP with the plan's uses, and a Dark Knight's
+  // Edges of Shadow it drops and those more its MP pays for (`spareEdges`).
   plannedMp(players: number[], uses: { player: number; action: number; at: number }[]): PlannedMp[] {
     return players.map((player) => {
       const own = uses.filter((u) => u.player === player);
-      return { player, points: this.curve(player, own), dropped: this.dropped(player, own) };
+      const points = this.curve(player, own);
+      const { dropped } = this.withDrops(player, own, -Infinity);
+      const fits = (extra: number[]) => this.edgesFit(player, own, dropped, extra);
+      const gained = this.players.get(player)?.darkKnight ? spareEdges(points, fits) : [];
+      return { player, points, dropped: dropped.map((e) => e.at).sort((a, b) => a - b), gained };
     });
+  }
+
+  // Whether Edges of Shadow at these moments, on top, leave the player's MP
+  // above 0 from the first on (but while down), no more Edges dropped.
+  private edgesFit(player: number, uses: Use[], dropped: Change[], at: number[]) {
+    const own = this.players.get(player);
+    const down = (t: number) => !!own?.dead.some((d) => t >= d.from && t < d.to);
+    const edges = at.map((t) => ({ action: EDGE_OF_SHADOW, at: t }));
+    return this.walk(player, [...uses, ...edges], dropped).every((c) => c.at < at[0] || c.mp >= 0 || down(c.at));
   }
 
   // The Edges of Shadow these uses need dropped for MP (their times).
@@ -293,31 +310,6 @@ export class MpModel {
     if (delta >= 0 || logged < own.max) return delta;
     return Math.min(0, delta + (own.tick * elapsed) / TICK_MS);
   }
-}
-
-// How soon before a hit a heal turned down for MP counts against it.
-const SHORT_WITHIN_MS = 15_000;
-
-// Where the plan wanted a heal the healer hadn't the MP for: each hit left
-// short soon after a heal was turned down, once per healer.
-export function mpShortOf(mp: MpModel, plan: Plan): MpShort[] {
-  const atOf = new Map(plan.mechanics.map((m) => [m.id, m.at]));
-  const short = plan.hits.filter((h) => !h.safe).map((h) => ({ at: atOf.get(h.mechanic) ?? 0 }));
-  const found = new Map<string, MpShort>();
-  for (const r of mp.refused) {
-    const hit = short.find((h) => h.at >= r.at && h.at - r.at <= SHORT_WITHIN_MS);
-    if (hit) found.set(`${r.player}:${hit.at}`, { player: r.player, at: hit.at });
-  }
-  return [...found.values()].sort((a, b) => a.at - b.at);
-}
-
-// Whether the plan keeps a player alive at a moment: their HP with it then.
-export function aliveIn(plan: Plan) {
-  return (player: number, at: number) => {
-    const points = plan.hp.find((h) => h.player === player)?.points ?? [];
-    const hp = [...points].reverse().find((p) => p.at <= at)?.hp;
-    return hp !== undefined && hp > 0;
-  };
 }
 
 // Whether the log's MP dropped for this Edge (not one Dark Arts paid for).

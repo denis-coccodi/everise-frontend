@@ -1,4 +1,5 @@
-import { MpModel, mpShortOf } from './mp';
+import { MpModel } from './mp';
+import { mpShortOf } from './mp-short';
 import { action, catalog, heal, pull } from './scheduler-fixtures';
 import { Plan } from './plan.model';
 
@@ -123,6 +124,35 @@ describe("a replanned healer's MP", () => {
     expect(mp.dropped(1, tbn)).toEqual([5_000]);
     // A second needs 3,000 more, and the other Edge frees nothing.
     expect(mp.affordable(1, TBN, 45_000, tbn)).toBe(false);
+  });
+
+  it("counts the Edges of Shadow more than played a Dark Knight's MP pays for, none it would run out for", () => {
+    const TBN = 7393;
+    const EDGE = 16470;
+    const timeline = pull([]);
+    // The paladin (1) as a Dark Knight, at 4,000 MP throughout.
+    timeline.players = timeline.players.map((p) =>
+      p.id === 1
+        ? {
+            ...p,
+            job: 'DRK',
+            maxMp: 10_000,
+            mp: [
+              { at: 0, mp: 4_000 },
+              { at: 10_000, mp: 4_000 },
+              { at: 40_000, mp: 4_000 },
+            ],
+          }
+        : p,
+    );
+    const c = catalog();
+    c.actions.push(action(TBN, 'The Blackest Night', ['DRK'], 15, [], { mpCost: 3_000 }));
+    c.actions.push(action(EDGE, 'Edge of Shadow', ['DRK'], 1, [], { mpCost: 3_000 }));
+    const mp = MpModel.of(timeline, c, [1], new Set());
+
+    // One more, at once; none where a Blackest Night (that won't break) needs the MP at 30s.
+    expect(mp.plannedMp([1], [])[0].gained).toEqual([0]);
+    expect(mp.plannedMp([1], [{ player: 1, action: TBN, at: 30_000 }])[0].gained).toEqual([]);
   });
 
   it('makes the spell right after a planned Thin Air free', () => {
