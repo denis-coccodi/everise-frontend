@@ -6,6 +6,9 @@ export interface PlannedMp {
   points: { at: number; mp: number }[];
   // A Dark Knight's Edges of Shadow as played that the plan drops for MP.
   dropped: number[];
+  // The Edges of Shadow more than played their MP pays for with the plan
+  // (Dark Arts, MP it saves), each at the earliest moment it fits.
+  gained: number[];
 }
 
 // What the MP model counts besides the log's MP (`mpExtras`):
