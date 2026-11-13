@@ -1,6 +1,7 @@
 import { reaches } from './coverage';
 import type { Mechanic, MechanicHit, MitigationTool, PlannedUse } from './plan.model';
 import type { MpModel } from './mp';
+import type { TakeBackChecks } from './mitigation-plan.model';
 import { RESERVE } from './heal-refill';
 
 // What a use taken back adds to a hit still comes off the same player's
@@ -8,13 +9,6 @@ import { RESERVE } from './heal-refill';
 const CARRY_MS = 10_000;
 // A GCD whose healer goes below the MP reserve this long after it drains them.
 const DRAIN_MS = 30_000;
-
-// What a hit does with the uses up, and the most it may do (`limit`: the
-// HP it lands on less the margin).
-export interface TakeBackChecks {
-  hit: (m: Mechanic, h: MechanicHit) => { damage: number; invulnerable: boolean };
-  limit: (m: Mechanic, h: MechanicHit) => number;
-}
 
 // Takes back the GCDs (Succor, Adloquium...) after which their healer goes
 // below the MP reserve (within `DRAIN_MS`) and that the uses picked after
