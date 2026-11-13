@@ -150,7 +150,7 @@ export class HpChartComponent {
     return `${hit.action}, ${pullClock(hit.at)}: ${TIER_NAMES[hit.tier]}`;
   }
 
-  protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
+  protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'crushing'];
   protected readonly TIER_NAMES = TIER_NAMES;
 
   protected point(event: PointerEvent) {

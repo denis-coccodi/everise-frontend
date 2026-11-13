@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { SeverityTier } from '@everise/planner/scheduler';
 
-const TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
+const TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'crushing'];
 
 // How hard an attack hits, drawn: five bars growing in height, as many
 // filled in the tier's colour as its rank (two for Moderate), so the colour
