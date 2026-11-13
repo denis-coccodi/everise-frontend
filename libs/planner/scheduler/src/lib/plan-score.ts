@@ -21,9 +21,9 @@ export function atLowestHp(plan: Plan, lowest: Map<string, number>): Plan {
   const hits = plan.hits.map((h) => {
     if (h.hpBefore === null) return h;
     const key = `${h.mechanic}:${h.player}`;
-    const hp = Math.min(lowest.get(key) ?? Infinity, h.hpBefore);
+    const hp = Math.min(lowest.get(key) ?? Infinity, h.hpNeeded ?? h.hpBefore);
     lowest.set(key, hp);
-    return { ...h, hpBefore: hp };
+    return { ...h, hpBefore: hp, hpNeeded: hp };
   });
   return { ...plan, hits };
 }

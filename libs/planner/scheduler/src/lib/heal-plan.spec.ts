@@ -56,6 +56,44 @@ describe('planHeals', () => {
     expect(plan.hits[1].hpBefore).toBe(65_000);
   });
 
+  it('refills a player to full before a hit as healers do, with what the needs leave', () => {
+    // The tank lands on 60,000 after the first buster: enough for the
+    // second's 30,000 and the margin, so no heal is needed; the plan still
+    // refills them with Lustrate, without counting on it (`hpNeeded`).
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 40_000],
+        [60, 'Buster', 1, 30_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, catalog());
+    const heals = healTools(timeline.players, catalog(), [], power).filter((t) => t.name === 'Lustrate');
+    const options = { margin: 0.1 };
+    const planned = (refill: boolean) =>
+      planHeals(
+        planMitigation(mechanicsOf(timeline), [], maxHp, options),
+        timeline,
+        [],
+        heals,
+        maxHp,
+        options,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        refill,
+      );
+
+    expect(planned(false).uses).toEqual([]);
+    const refilled = planned(true);
+    expect(refilled.uses).toEqual([expect.objectContaining({ name: 'Lustrate', target: 1 })]);
+    expect(refilled.hits[1]).toMatchObject({ hpNeeded: 60_000, safe: true });
+    expect(refilled.hits[1].hpBefore).toBeGreaterThan(60_000);
+  });
+
   it('heals for more under a healing buff', () => {
     // The tank lands on 15,000 after the first buster, with +20% healing
     // received from 20s as played: one Lustrate heals 72,000 instead of

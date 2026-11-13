@@ -198,6 +198,15 @@ export class MpModel {
     return false;
   }
 
+  // The player's MP with these uses at any moment, as a share of their max
+  // (1 for one without MP).
+  shares(player: number, uses: Use[]): (at: number) => number {
+    const max = this.players.get(player)?.max;
+    if (!max) return () => 1;
+    const points = this.curve(player, uses);
+    return (at) => ([...points].reverse().find((p) => p.at <= at)?.mp ?? max) / max;
+  }
+
   // The player's MP with these uses, at each change.
   curve(player: number, uses: Use[]): Change[] {
     const { dropped } = this.withDrops(player, uses, -Infinity);

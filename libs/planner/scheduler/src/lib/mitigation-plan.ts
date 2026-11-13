@@ -48,7 +48,7 @@ export function planMitigation(
   // The HP each hit lands on, by "<mechanic>:<player>".
   const hpAt = new Map<string, number>();
   for (const hit of from?.hits ?? [])
-    if (hit.hpBefore !== null) hpAt.set(`${hit.mechanic}:${hit.player}`, hit.hpBefore);
+    if (hit.hpBefore !== null) hpAt.set(`${hit.mechanic}:${hit.player}`, hit.hpNeeded ?? hit.hpBefore);
   const toolOf = new Map<PlannedUse, MitigationTool>();
   const tool = (use: PlannedUse) => toolOf.get(use) as MitigationTool;
   // A use that Recitation made critical: its shields as a critical heal's.

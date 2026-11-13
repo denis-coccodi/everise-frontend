@@ -283,6 +283,10 @@ export interface PlannedHit {
   // Their HP when it lands, with the plan's heals; null when the pull
   // doesn't say their max HP.
   hpBefore: number | null;
+  // Their HP when it lands with only the heals the hits need, before the
+  // plan refills everyone: what the next round's mitigations plan for, as
+  // refills are what the uses leave, not something to count on.
+  hpNeeded?: number;
   // The planned damage as a share of their max HP (null: unknown max HP).
   share: number | null;
   // Whether it leaves at least the margin of their HP, or can't kill them
