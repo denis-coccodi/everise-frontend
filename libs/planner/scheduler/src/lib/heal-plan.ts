@@ -1,12 +1,21 @@
 import { PullTimeline } from '@everise/core/api-types';
 import type { MpModel } from './mp';
-import { DPS_HEALS, HOROSCOPE, KARDIA, KARDIA_HEAL, KARDIA_HEALS, TICK_MS } from './heal-tools';
+import { DPS_HEALS, HOROSCOPE, KARDIA } from './heal-tools';
 import { projected, pullFacts, reaches } from './coverage';
 import { AutoDamage } from './auto-damage';
 import { delayedEvents } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
-import { NO_ROOM_MS, aheadOf, best, better, kardiaBack, madeUp, waitsForBiggerNeed } from './heal-candidates';
-import { pairingsFor } from './paired-heals';
+import {
+  NO_ROOM_MS,
+  aheadOf,
+  best,
+  better,
+  kardiaBack,
+  madeUp,
+  movedAway,
+  waitsForBiggerNeed,
+} from './heal-candidates';
+import { bonded, pairingsFor } from './paired-heals';
 import { MISERY, miserySpent, spareHeals } from './spare-heals';
 import { WEAVE_MS, Weaving } from './weaving';
 import { guardsOf, naturalRegen, pullEvents } from './hp-events';
@@ -20,7 +29,6 @@ import {
   MitigationTool,
   Plan,
   PlanOptions,
-  PlannedHit,
   PlannedUse,
 } from './plan.model';
 import { AUTOMATIC } from './tools';
@@ -29,6 +37,8 @@ import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
 import { hitDamage } from './hit-damage';
+import { hpBefores, judgedHits } from './judged-hits';
+import { mpShares, refillWorth } from './heal-refill';
 
 // How soon after its Helios lands Horoscope is read at the latest.
 const READ_MS = 5_000;
@@ -58,6 +68,7 @@ export function planHeals(
   pairings: HealPairing[] = [],
   fairy: FairyHealing = { events: [], recalculated: [] },
   mp?: MpModel,
+  refill = false,
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -92,28 +103,7 @@ export function planHeals(
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
   const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => {
     const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
-    return [...own, ...movedAway(tool, use), ...bonded(tool, use, own)];
-  };
-  // A heal spell in a Synastry's 20s (planned, or already in the plan) heals its bond its share too.
-  const bonded = (tool: HealTool, use: PlannedUse, own: HpEvent[]): HpEvent[] => {
-    const p = pairings.find((o) => o.bond && o.player === use.player && o.heals.includes(tool.action));
-    const mine = (u: PlannedUse) => p && u.action === p.action && u.player === use.player && u.at <= use.at;
-    const bond = p && (uses.find(mine) ?? plan.uses.find(mine));
-    if (!p || !bond || bond.target === null || use.at > bond.at + p.withinMs || !own.length) return [];
-    const lands = Math.min(...own.map((e) => e.at));
-    const healed = use.target ?? use.player;
-    return own
-      .filter((e) => e.at === lands && e.player === healed)
-      .map((e) => ({ at: lands, player: bond.target as number, amount: e.amount * p.bond }));
-  };
-  // Kardia moved: the Kardion heals its holder had as played meanwhile.
-  const movedAway = (tool: HealTool, use: PlannedUse): HpEvent[] => {
-    if (tool.action !== KARDIA) return [];
-    const to = use.at + KARDIA_HEALS * TICK_MS;
-    return timeline.heals
-      .filter((h) => h.source === use.player && h.status === KARDIA_HEAL && h.target !== use.target)
-      .filter((h) => h.at > use.at && h.at <= to)
-      .map((h) => ({ at: h.at, player: h.target, amount: -h.amount }));
+    return [...own, ...movedAway(timeline, tool, use), ...bonded(pairings, [...uses, ...plan.uses], tool, use, own)];
   };
   const spent: Spent[] = [];
   const uses: PlannedUse[] = [];
@@ -175,168 +165,172 @@ export function planHeals(
     }
   };
 
-  for (const m of mechanics) {
-    // Healing from after the last mechanic there was time to heal after (`anchors`: not others' checks).
-    const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS && anchors(m, o)).at(-1)?.at ?? -1;
-    // What those `o` hits lack before it, from the anchor on (none under an invulnerability).
-    const shortOf = (o: Mechanic) => {
-      const checkpoints = o.hits
-        .filter((h) => !invulnerable.has(`${o.id}:${h.player}`))
-        .map((h) => track.checkpoint(h.player, anchor))
-        .filter((c): c is HpCheckpoint => c !== null);
-      return (extra: HpEvent[] = []) =>
-        new Map(
-          checkpoints.map((c) => {
-            const max = maxHp.get(c.player) as number;
-            const hit = o.hits.find((h) => h.player === c.player) as MechanicHit;
-            const need = Math.min(max, damageOf(o, hit) + options.margin * max);
-            return [c.player, need + together(o, c.player) - track.before(c, o.at, extra)];
-          }),
-        );
-    };
-    const [deficits, ...later] = [m, ...aheadOf(m, mechanics)].map(shortOf);
-
-    for (let n = 0; n < HEALS_PER_MECHANIC; n++) {
-      const [short, ...laterShort] = [deficits, ...later].map((f) => f());
-      if (![...short.values()].some((d) => d > 0)) break;
-      const ahead = (events: HpEvent[]) => laterShort.reduce((sum, s, i) => sum + madeUp(s, later[i](events)), 0);
-      const candidateOf = (tool: HealTool) => {
-        const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
-        const pairWith = (use: PlannedUse, events: HpEvent[]) =>
-          pairingsFor(
-            pairings,
-            tool,
-            use,
-            events,
-            spent.filter((s) => s.player === use.player),
-            (group) => spent.filter((s) => s.group === group).map((s) => s.at),
-            weaving,
-            maxHp,
-            (pairing, paired) => {
-              const own = healOf.get(key(pairing));
-              return own ? eventsFor(own, paired, 0) : [];
-            },
-            short,
+  const mpShare = mpShares(mp);
+  // What the healers use anyway: the heals on cooldown, and the lily that would overcap.
+  const spareOnes = () => {
+    const spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, (t, u) => eventsFor(t, u, 0));
+    track.add(spare.events);
+    uses.push(...spare.uses);
+  };
+  // First what keeps every hit above the margin, and the heals used anyway; then (`refill`) everyone
+  // refilled to full before each of the pull's mechanics, with what all those leave and MP to spare.
+  let needed: Map<string, number> | undefined;
+  for (const full of refill ? [false, true] : [false]) {
+    if (full) {
+      spareOnes();
+      needed = hpBefores(plan, track, together);
+    }
+    for (const m of mechanics) {
+      if (full && m.id < 0) continue;
+      // Healing from after the last mechanic there was time to heal after (`anchors`: not others' checks).
+      const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS && anchors(m, o)).at(-1)?.at ?? -1;
+      // What those `o` hits lack before it, from the anchor on (none under an invulnerability): to
+      // leave the margin, or (`full`) to land on full HP.
+      const shortOf = (o: Mechanic, full = false) => {
+        const checkpoints = o.hits
+          .filter((h) => !invulnerable.has(`${o.id}:${h.player}`))
+          .map((h) => track.checkpoint(h.player, anchor))
+          .filter((c): c is HpCheckpoint => c !== null);
+        return (extra: HpEvent[] = []) =>
+          new Map(
+            checkpoints.map((c) => {
+              const max = maxHp.get(c.player) as number;
+              const hit = o.hits.find((h) => h.player === c.player) as MechanicHit;
+              const need = full ? max : Math.min(max, damageOf(o, hit) + options.margin * max);
+              return [c.player, need + together(o, c.player) - track.before(c, o.at, extra)];
+            }),
           );
-        const own = spent.filter((s) => s.player === tool.player);
-        const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
-        return best(tool, m, anchor, short, spent, eventsOf, deficits, weaving, pairWith, favourOf, affordable, ahead);
       };
-      const among = (tools: HealTool[]) =>
-        tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
-      // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
-      const waits = (t: HealTool) => !firstNeed && waitsForBiggerNeed(t, m, mechanics, needOf);
-      const pick = among(planned.filter((t) => !waits(t))) ?? among(planned);
-      if (!pick) break;
-      track.add(pick.events);
-      uses.push(pick.use);
-      boosts.add(pick.use);
-      // A shield Emergency Tactics turns into healing goes up as none.
-      const mitigates = mitigationOf.get(key(pick.use));
-      if (mitigates && !pick.paired?.pairing.converts) mitigate(pick.use, mitigates);
-      if (pick.paired) {
-        const { use, pairing } = pick.paired;
-        uses.push(use);
-        boosts.add(use);
-        const confession = mitigationOf.get(key(use));
-        if (confession) mitigate(use, confession);
-        // Neutral Sect's barrier, a shield for the hits after.
-        const { barrier } = pick.paired;
-        if (barrier) {
-          mitigationOf.set(key(barrier.use), barrier.tool);
-          mitigate(barrier.use, barrier.tool);
-        }
-        spent.push({
-          player: use.player,
-          action: use.action,
-          at: use.at,
-          group: pairing.group,
-          pool: null,
-          gcd: false,
-          castMs: 0,
-        });
-      }
-      // A delayed heal set off sooner than it goes off on its own.
-      const { delayed } = pick.tool;
-      if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
-        const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
-        uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
-        // Its weave slot.
-        const release = { action: delayed.release.action, group: `release:${pick.use.player}`, pool: null };
-        spent.push({ player: pick.use.player, ...release, at: lands, gcd: false, castMs: 0 });
-      }
-      const { group, pool, gcd, castMs } = pick.tool;
-      spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
-      // Horoscope Helios heals when read: Horoscope pressed again, as the
-      // Helios lands.
-      if (pick.paired?.pairing.action === HOROSCOPE) {
-        const { player } = pick.use;
-        const lands = pick.use.at + pick.tool.castMs;
-        const mine = spent.filter((s) => s.player === player);
-        const read = weaving.ogcdAfter(player, lands, lands + READ_MS, mine);
-        if (read !== null) {
-          uses.push({ ...pick.paired.use, at: read, target: null, again: 'horoscope' });
-          spent.push({
-            player,
-            action: HOROSCOPE,
-            at: read,
-            group: `read:${player}`,
-            pool: null,
-            gcd: false,
-            castMs: 0,
-          });
-        }
-      }
-      // A moved Kardia goes back on its holder afterwards: another press.
-      if (pick.tool.action === KARDIA) {
-        const { player, at } = pick.use;
-        const holder = pick.tool.kardion?.find((s) => s.from <= at && at < s.to)?.player ?? null;
-        const back = kardiaBack(
-          player,
-          at,
-          weaving,
-          spent.filter((s) => s.player === player),
-        );
-        if (back !== null) {
-          uses.push({ ...pick.use, at: back, target: holder, covers: [], again: 'kardia' });
-          spent.push({ player, action: KARDIA, at: back, group: `back:${player}`, pool: null, gcd: false, castMs: 0 });
+      {
+        const [deficits, ...later] = [m, ...(full ? [] : aheadOf(m, mechanics))].map((o) => shortOf(o, full));
+
+        for (let n = 0; n < HEALS_PER_MECHANIC; n++) {
+          const [short, ...laterShort] = [deficits, ...later].map((f) => f());
+          if (![...short.values()].some((d) => d > 0)) break;
+          const ahead = (events: HpEvent[]) => laterShort.reduce((sum, s, i) => sum + madeUp(s, later[i](events)), 0);
+          const candidateOf = (tool: HealTool) => {
+            const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
+            const pairWith = (use: PlannedUse, events: HpEvent[]) =>
+              pairingsFor(
+                pairings,
+                tool,
+                use,
+                events,
+                spent.filter((s) => s.player === use.player),
+                (group) => spent.filter((s) => s.group === group).map((s) => s.at),
+                weaving,
+                maxHp,
+                (pairing, paired) => {
+                  const own = healOf.get(key(pairing));
+                  return own ? eventsFor(own, paired, 0) : [];
+                },
+                short,
+              );
+            const own = spent.filter((s) => s.player === tool.player);
+            const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
+            const mpWorth = (at: number) => (full ? refillWorth(mpShare(tool.player, own)(at)) : 1);
+            const args = [deficits, weaving, pairWith, favourOf, affordable, ahead, mpWorth] as const;
+            return best(tool, m, anchor, short, spent, eventsOf, ...args);
+          };
+          const among = (tools: HealTool[]) =>
+            tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
+          // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
+          const waits = (t: HealTool) => !firstNeed && waitsForBiggerNeed(t, m, mechanics, needOf);
+          const pick = full ? among(planned) : (among(planned.filter((t) => !waits(t))) ?? among(planned));
+          if (!pick) break;
+          track.add(pick.events);
+          uses.push(pick.use);
+          boosts.add(pick.use);
+          // A shield Emergency Tactics turns into healing goes up as none.
+          const mitigates = mitigationOf.get(key(pick.use));
+          if (mitigates && !pick.paired?.pairing.converts) mitigate(pick.use, mitigates);
+          if (pick.paired) {
+            const { use, pairing } = pick.paired;
+            uses.push(use);
+            boosts.add(use);
+            const confession = mitigationOf.get(key(use));
+            if (confession) mitigate(use, confession);
+            // Neutral Sect's barrier, a shield for the hits after.
+            const { barrier } = pick.paired;
+            if (barrier) {
+              mitigationOf.set(key(barrier.use), barrier.tool);
+              mitigate(barrier.use, barrier.tool);
+            }
+            spent.push({
+              player: use.player,
+              action: use.action,
+              at: use.at,
+              group: pairing.group,
+              pool: null,
+              gcd: false,
+              castMs: 0,
+            });
+          }
+          // A delayed heal set off sooner than it goes off on its own.
+          const { delayed } = pick.tool;
+          if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
+            const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
+            uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
+            // Its weave slot.
+            const release = { action: delayed.release.action, group: `release:${pick.use.player}`, pool: null };
+            spent.push({ player: pick.use.player, ...release, at: lands, gcd: false, castMs: 0 });
+          }
+          const { group, pool, gcd, castMs } = pick.tool;
+          spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
+          // Horoscope Helios heals when read: Horoscope pressed again, as the
+          // Helios lands.
+          if (pick.paired?.pairing.action === HOROSCOPE) {
+            const { player } = pick.use;
+            const lands = pick.use.at + pick.tool.castMs;
+            const mine = spent.filter((s) => s.player === player);
+            const read = weaving.ogcdAfter(player, lands, lands + READ_MS, mine);
+            if (read !== null) {
+              uses.push({ ...pick.paired.use, at: read, target: null, again: 'horoscope' });
+              spent.push({
+                player,
+                action: HOROSCOPE,
+                at: read,
+                group: `read:${player}`,
+                pool: null,
+                gcd: false,
+                castMs: 0,
+              });
+            }
+          }
+          // A moved Kardia goes back on its holder afterwards: another press.
+          if (pick.tool.action === KARDIA) {
+            const { player, at } = pick.use;
+            const holder = pick.tool.kardion?.find((s) => s.from <= at && at < s.to)?.player ?? null;
+            const back = kardiaBack(
+              player,
+              at,
+              weaving,
+              spent.filter((s) => s.player === player),
+            );
+            if (back !== null) {
+              uses.push({ ...pick.use, at: back, target: holder, covers: [], again: 'kardia' });
+              spent.push({
+                player,
+                action: KARDIA,
+                at: back,
+                group: `back:${player}`,
+                pool: null,
+                gcd: false,
+                castMs: 0,
+              });
+            }
+          }
         }
       }
     }
   }
+  if (!refill) spareOnes();
 
-  // What the healers use anyway: the heals on cooldown, and the lily that
-  // would overcap.
-  const spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, (tool, use) =>
-    eventsFor(tool, use, 0),
-  );
-  track.add(spare.events);
-  uses.push(...spare.uses);
-
-  const mechanicOf = new Map(plan.mechanics.map((m) => [m.id, m]));
-  // A hit a heal's mitigation lowered, projected again with every
-  // mitigation up.
-  const lowered = (hit: PlannedHit): PlannedHit => {
-    const m = mechanicOf.get(hit.mechanic) as Mechanic;
-    const mechanicHit = m.hits.find((h) => h.player === hit.player) as MechanicHit;
-    const projection = projected(m, mechanicHit, mitigating, toolOfUse, facts);
-    const { damage: planned, absorbed, statuses, invulnerable } = projection;
-    const max = maxHp.get(hit.player);
-    return { ...hit, planned, absorbed, invulnerable, covers: statuses, share: max ? planned / max : null };
-  };
-  const hits = plan.hits.map((planned) => {
-    const changed = damage.get(`${planned.mechanic}:${planned.player}`) !== planned.planned;
-    const hit = changed ? lowered(planned) : planned;
-    const start = track.checkpoint(hit.player, -1);
-    if (!start) return hit;
-    const max = maxHp.get(hit.player) as number;
-    const m = mechanicOf.get(hit.mechanic) as Mechanic;
-    const hpBefore = Math.round(track.before(start, m.at) - together(m, hit.player));
-    // Under Living Dead, one the tank isn't healed full after dies.
-    const dead = deads.find((d) => d.trigger.id === hit.mechanic && d.player === hit.player);
-    const healed = !dead || track.before(start, dead.check.at + 1) >= max - 1;
-    const safe = (hit.invulnerable && healed) || hit.avoidable || hpBefore - hit.planned >= options.margin * max - 1;
-    return { ...hit, hpBefore, safe };
+  const hits = judgedHits(plan, maxHp, options.margin, track, deads, damage, together, {
+    uses: mitigating,
+    toolOf: toolOfUse,
+    facts,
+    needed,
   });
   // A heal for Walking Dead is for the hit that set it off.
   for (const use of uses) use.covers = coveredMechanics(use.covers, deads);

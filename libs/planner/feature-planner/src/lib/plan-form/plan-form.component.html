@@ -3,7 +3,7 @@
     label="HP margin (%)"
     for="planner-margin"
     required
-    hint="The share of max HP each hit must leave, at least."
+    hint="Dangerously low HP: no hit may take a player below this share of their max HP."
   >
     <input id="planner-margin" type="number" cdtInput inputmode="numeric" [formField]="form.margin" />
     <cdt-input-errors [field]="form.margin" />
@@ -48,8 +48,9 @@
 </div>
 <p class="scope">
   Plans the mitigations, shields and invulnerabilities of the players ticked on their tabs, the biggest hits first, then
-  their heals in time order: when to use each one so every hit leaves the margin of the HP its player has then, with
-  GCDs only where nothing else will do. Everyone else's actions stay as they were played.
+  their heals: first so that no hit takes anyone below the margin, then to refill everyone to full before each mechanic
+  with what that leaves, as healers do. GCD heals go only where nothing else will do, or to a healer with MP to spare.
+  Everyone else's actions stay as they were played.
 </p>
 <cdt-message [tone]="plans.replan().length ? 'status' : 'warning'">{{
   plans.replan().length ? summary() : 'Tick who to replan on their tab, or replan everyone.'

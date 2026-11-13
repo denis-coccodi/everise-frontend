@@ -122,3 +122,22 @@ function barrierOf(pairing: HealPairing, tool: HealTool, use: PlannedUse, landed
   const at = Math.min(...landed.map((e) => e.at));
   return { use: { ...use, action: barrier.action, name: barrier.name, at, covers: [] }, tool: barrier };
 }
+
+// A heal spell in a Synastry's 20s (among `uses`, the ones planned first)
+// heals its bond its share too.
+export function bonded(
+  pairings: HealPairing[],
+  uses: PlannedUse[],
+  tool: HealTool,
+  use: PlannedUse,
+  own: HpEvent[],
+): HpEvent[] {
+  const p = pairings.find((o) => o.bond && o.player === use.player && o.heals.includes(tool.action));
+  const bond = p && uses.find((u) => u.action === p.action && u.player === use.player && u.at <= use.at);
+  if (!p || !bond || bond.target === null || use.at > bond.at + p.withinMs || !own.length) return [];
+  const lands = Math.min(...own.map((e) => e.at));
+  const healed = use.target ?? use.player;
+  return own
+    .filter((e) => e.at === lands && e.player === healed)
+    .map((e) => ({ at: lands, player: bond.target as number, amount: e.amount * p.bond }));
+}

@@ -1,5 +1,6 @@
 import { fitsGrant, fitsPool, fitsRecast, isAway, poolFull } from './coverage';
-import { KARDIA, KARDIA_HEALS, SOTERIA, TICK_MS } from './heal-tools';
+import type { PullTimeline } from '@everise/core/api-types';
+import { KARDIA, KARDIA_HEAL, KARDIA_HEALS, SOTERIA, TICK_MS } from './heal-tools';
 import { Favour, HealCost, HealTool, Mechanic, PlannedUse } from './plan.model';
 import { cutsUnion } from './fairy-heals';
 import { Weaving } from './weaving';
@@ -98,6 +99,8 @@ export function best(
   affordable: (at: number) => boolean = () => true,
   // What it makes up of the deficits at the hits after (`aheadOf`).
   ahead: (events: HpEvent[]) => number = () => 0,
+  // What a GCD heal's healing is worth for its healer's MP then (a refill's: `refillWorth`).
+  mpWorth: (at: number) => number = () => 1,
 ): Candidate | null {
   const latest = m.at - LEAD_MS;
   const earliest = Math.min(latest, Math.max(0, anchor + AFTER_MS));
@@ -179,6 +182,7 @@ export function best(
         tool.pool,
       );
     const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][tool.cost];
+    const spends = tool.cost === 'gcd' ? mpWorth(at) : 1;
     // On its own, or with each oGCD that can go with it.
     const alone = eventsOf(use, delayMs);
     const options = [
@@ -188,7 +192,7 @@ export function best(
     for (const { events, paired } of options) {
       let value = madeUp(short, deficits(events));
       if (value > 0) value += AHEAD_WORTH * ahead(events);
-      value *= worth;
+      value *= worth * spends;
       if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs, paired };
     }
   }
@@ -200,4 +204,14 @@ export function best(
 export function better(a: Candidate, b: Candidate) {
   const back = (c: Candidate) => Math.max(c.tool.recastMs, c.tool.pool?.gainMs ?? 0);
   return a.value > b.value || (a.value === b.value && back(a) < back(b));
+}
+
+// Kardia moved: the Kardion heals its holder had as played meanwhile, taken away.
+export function movedAway(timeline: PullTimeline, tool: HealTool, use: PlannedUse): HpEvent[] {
+  if (tool.action !== KARDIA) return [];
+  const to = use.at + KARDIA_HEALS * TICK_MS;
+  return timeline.heals
+    .filter((h) => h.source === use.player && h.status === KARDIA_HEAL && h.target !== use.target)
+    .filter((h) => h.at > use.at && h.at <= to)
+    .map((h) => ({ at: h.at, player: h.target, amount: -h.amount }));
 }

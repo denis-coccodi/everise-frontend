@@ -393,9 +393,10 @@ describe('PlannerScheduler', () => {
 
       expect(p.hits[0]).toMatchObject({ planned: 0, safe: true });
       // 50,000 left of their 100,000 (not 1 HP, as before 7.1): enough, with
-      // the mitigations, for the next buster without a heal.
-      expect(p.uses.filter((u) => u.name === 'Lustrate' && u.at > 60_000 && u.at < 80_000)).toEqual([]);
-      expect(p.hits[1]).toMatchObject({ hpBefore: 50_000, safe: true });
+      // the mitigations, for the next buster without a heal it needs; the
+      // plan still refills them (Lustrate) before it, as healers do.
+      expect(p.hits[1]).toMatchObject({ hpNeeded: 50_000, safe: true });
+      expect(p.hits[1].hpBefore).toBeGreaterThan(50_000);
     });
 
     describe('where the group has them', () => {

@@ -21,5 +21,6 @@ Player names in this picture are replaced with "Player 1", "Player 2" and so on.
 4. **Adjust:** choose who to replan, and add or remove skills. The plan rebuilds around your changes.
 {: .steps}
 
+- **HP margin:** the HP that counts as dangerously low. The plan makes sure no hit takes anyone below it, then refills everyone to full before each mechanic with the healing that's left, as healers do.
 - **Guests:** they can plan too, up to 10 new reports and 10 new pulls an hour.
 - **Wipes:** a wipe is planned through to the end of the fight, with the mechanics the party never reached.

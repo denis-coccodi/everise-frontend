@@ -198,6 +198,7 @@ export class PullPlanner {
         pairings,
         healing,
         mp,
+        true,
       );
       return { ...planned, mpShort: mpShortOf(mp, planned) };
     };
