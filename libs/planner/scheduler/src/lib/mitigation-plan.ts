@@ -5,6 +5,7 @@ import { AUTOMATIC } from './tools';
 import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, reachMs, waitsForBigger } from './mitigation-moments';
 import { plannedHits } from './mitigation-hits';
+import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
 import type { PullTimeline } from '@everise/core/api-types';
@@ -95,6 +96,7 @@ export function planMitigation(
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }
+  const first = uses.length;
   // When the player can use `t` for `m`, at `at` or before it while it
   // still covers `m`; null when they can't.
   const fit = (m: Mechanic, t: MitigationTool, at: number) => {
@@ -324,11 +326,10 @@ export function planMitigation(
     if (saves.length) fill(m, free);
     lastResort(m, tried, free);
   }
-  // What a cooldown waited for may not have needed it: any hit still short
-  // gets every tool.
+  // What a cooldown waited for may not have needed it: hits still short get every tool.
   for (const m of order) fill(m);
-  // The oGCDs left, where they add the most margin: on the hits still
-  // taking more than half of what the margin allows.
+  takeBackGcds(uses, first, tool, mechanics, { hit: (m, h) => project(m, h, uses), limit }, mp);
+  // The oGCDs left where they add the most margin: hits still taking over half of what the margin allows.
   const spare = others.filter((t) => !t.gcd);
   for (const m of order) {
     const heavy = (h: MechanicHit) => {
@@ -341,7 +342,6 @@ export function planMitigation(
       add(pick);
     }
   }
-
   const hits = plannedHits(mechanics, (m, h) => project(m, h, uses), limit, maxHp);
   for (const use of uses) {
     use.covers = mechanics.filter((m) => m.hits.some((h) => reaches(tool(use), use, m, h).length)).map((m) => m.id);
