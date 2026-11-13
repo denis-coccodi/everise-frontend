@@ -2,7 +2,7 @@ import type { MpModel } from './mp';
 import type { Spent } from './heal-plan.model';
 
 // Below this share of their max MP, a healer casts no GCD heal just to refill.
-const RESERVE = 0.3;
+export const RESERVE = 0.3;
 
 // What a GCD heal refilling the players is worth for its healer's MP then
 // (`share` of their max): the healer with MP to spare casts it rather than
