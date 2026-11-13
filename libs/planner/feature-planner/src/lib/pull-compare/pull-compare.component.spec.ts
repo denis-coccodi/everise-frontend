@@ -108,7 +108,7 @@ describe('PullCompareComponent', () => {
       'Moderate: Some mitigation, or a heal after.',
       'Heavy: Party mitigation or a shield.',
       'Lethal: Kills without mitigation: stack it.',
-      'Overkill: Stack everything, or an invulnerability.',
+      'Crushing: Stack everything, or an invulnerability.',
     ]);
   });
 

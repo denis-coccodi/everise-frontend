@@ -3,7 +3,7 @@ import { mechanicsOf } from './mechanics';
 import type { Mechanic } from './plan.model';
 import type { Severity, SeverityTier } from './severity.model';
 
-const TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
+const TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'crushing'];
 // Where each tier starts, as a share of max HP before any mitigation: for
 // the party (30%, 60%, 90%: lethal unmitigated, 120%), and for a tank
 // buster, measured on tank HP before the tanks' own mitigation (set from

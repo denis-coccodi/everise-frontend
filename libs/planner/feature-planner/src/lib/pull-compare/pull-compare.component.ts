@@ -70,7 +70,7 @@ export class PullCompareComponent {
     return `${TIER_NAMES[s.tier]}: about ${share} of max HP before mitigation${together}. ${TIER_HINTS[s.tier]}`;
   }
   protected readonly anySeverity = computed(() => this.rows().some((r) => r.severity));
-  protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'overkill'];
+  protected readonly TIERS: SeverityTier[] = ['light', 'moderate', 'heavy', 'lethal', 'crushing'];
   protected readonly TIER_HINTS = TIER_HINTS;
   protected readonly rows = computed(() => compareLog(this.played(), this.planned() ?? []));
   // The first row of the completed part, which a heading row starts.

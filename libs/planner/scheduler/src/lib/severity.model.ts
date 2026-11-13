@@ -1,7 +1,7 @@
 // How hard a boss attack hits, for how much mitigation it calls for: by its
 // damage before any mitigation, as a share of the max HP of each player it
 // hits.
-export type SeverityTier = 'light' | 'moderate' | 'heavy' | 'lethal' | 'overkill';
+export type SeverityTier = 'light' | 'moderate' | 'heavy' | 'lethal' | 'crushing';
 
 export interface Severity {
   tier: SeverityTier;

@@ -24,7 +24,7 @@ const mechanic = (kind: Mechanic['kind'], hits: [number, number, boolean?][]): M
 const tier = (m: Mechanic) => severityOf(m, maxHp)?.tier;
 
 describe('how hard an attack hits', () => {
-  it('goes by the damage before mitigation, as a share of each max HP: light to overkill', () => {
+  it('goes by the damage before mitigation, as a share of each max HP: light to crushing', () => {
     const raidwide = (each: number) =>
       mechanic(
         'raidwide',
@@ -35,7 +35,7 @@ describe('how hard an attack hits', () => {
     expect(tier(raidwide(45_000))).toBe('moderate');
     expect(tier(raidwide(75_000))).toBe('heavy');
     expect(tier(raidwide(100_000))).toBe('lethal');
-    expect(tier(raidwide(150_000))).toBe('overkill');
+    expect(tier(raidwide(150_000))).toBe('crushing');
   });
 
   it('measures a raidwide per player, not summed over the party', () => {
@@ -51,8 +51,8 @@ describe('how hard an attack hits', () => {
   it("measures a tank buster on the tank's own scale", () => {
     // 130% of the tank's max HP: half of real tank busters hit that hard.
     expect(tier(mechanic('tankbuster', [[1, 390_000]]))).toBe('heavy');
-    // The same share on the party scale would be overkill.
-    expect(tier(mechanic('targeted', [[2, 130_000]]))).toBe('overkill');
+    // The same share on the party scale would be crushing.
+    expect(tier(mechanic('targeted', [[2, 130_000]]))).toBe('crushing');
   });
 
   it('counts the attacks right before and after on the same players with it', () => {

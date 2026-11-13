@@ -6,14 +6,14 @@ export const TIER_NAMES: Record<SeverityTier, string> = {
   moderate: 'Moderate',
   heavy: 'Heavy',
   lethal: 'Lethal',
-  overkill: 'Overkill',
+  crushing: 'Crushing',
 };
 export const TIER_HINTS: Record<SeverityTier, string> = {
   light: 'Healing covers it.',
   moderate: 'Some mitigation, or a heal after.',
   heavy: 'Party mitigation or a shield.',
   lethal: 'Kills without mitigation: stack it.',
-  overkill: 'Stack everything, or an invulnerability.',
+  crushing: 'Stack everything, or an invulnerability.',
 };
 // Physical and magic mitigation each take off their share; nothing takes
 // off special (unique) damage.
