@@ -23,8 +23,8 @@
   --pip: var(--color-severity-lethal);
 }
 
-:host(.overkill) {
-  --pip: var(--color-severity-overkill);
+:host(.crushing) {
+  --pip: var(--color-severity-crushing);
 }
 
 // An unfilled bar: an outline, so the five still show.

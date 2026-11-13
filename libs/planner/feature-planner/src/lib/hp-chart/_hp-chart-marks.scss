@@ -75,8 +75,8 @@
     --tier-share: 0.8;
   }
 
-  &.overkill {
-    background: var(--color-severity-overkill);
+  &.crushing {
+    background: var(--color-severity-crushing);
     --tier-share: 1;
   }
 }

@@ -138,7 +138,7 @@ describe('HpChartComponent', () => {
       'Moderate',
       'Heavy',
       'Lethal',
-      'Overkill',
+      'Crushing',
     ]);
   });
 
