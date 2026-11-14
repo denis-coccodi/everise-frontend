@@ -40,6 +40,10 @@ const WORTH: Record<Favour, Record<HealCost, number>> = {
   healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8, fallback: 0.2 },
 };
 const FULL_WORTH = 1.05;
+// A last-resort heal played as a follow-up: Helios while its caster's Helios
+// Conjunction (or Aspected Helios) regen is still up, where another would
+// only overwrite it. In 63 ultimate kills, 89% of Helios casts were that.
+const FOLLOW_UPS = new Map([[3600, { after: new Set([37030, 3601]), withinMs: 15_000 }]]);
 // A heal this long to come back is a big cooldown (Seraphism, Temperance,
 // Liturgy of the Bell): it waits for a stretch taking the party this many
 // times as much within its recast, while anything else can heal.
@@ -52,6 +56,12 @@ const BIGGER_NEED = 1.5;
 // heal still has to help with the mechanic itself.
 const AHEAD_MS = 15_000;
 const AHEAD_WORTH = 0.5;
+
+// Whether `tool` at `at` follows up (`FOLLOW_UPS`) one of its player's `own` uses.
+export function followsUp(tool: HealTool, at: number, own: Spent[]) {
+  const follow = FOLLOW_UPS.get(tool.action);
+  return !!follow && own.some((s) => follow.after.has(s.action) && s.at < at && at - s.at < follow.withinMs);
+}
 
 // The mechanics after `m` whose hits count for its heals.
 export function aheadOf(m: Mechanic, mechanics: Mechanic[]) {
@@ -182,8 +192,9 @@ export function best(
         at,
         tool.pool,
       );
-    const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][tool.cost];
-    const spends = tool.cost === 'gcd' || tool.cost === 'fallback' ? mpWorth(at) : 1;
+    const cost = followsUp(tool, at, occupied) ? 'gcd' : tool.cost;
+    const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][cost];
+    const spends = cost === 'gcd' || cost === 'fallback' ? mpWorth(at) : 1;
     // On its own, or with each oGCD that can go with it.
     const alone = eventsOf(use, delayMs);
     const options = [
