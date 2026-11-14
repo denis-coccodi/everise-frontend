@@ -65,3 +65,16 @@ export function rhythmFrom(
   }
   return out;
 }
+
+// A GCD this much sooner than the player's usual one after the last only
+// landed then: its cast bar began earlier.
+const LANDED_SHARE = 0.75;
+
+// Which of a player's GCDs as played (in time order) only landed then: an
+// instant one sooner than three quarters of their usual GCD before the
+// next, its cast begun earlier (in the countdown).
+export function landedGcds(gcds: { at: number; castMs: number | null }[]) {
+  const gaps = gcds.slice(1).map((g, i) => g.at - gcds[i].at);
+  const usual = [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)];
+  return gcds.flatMap((g, i) => (!g.castMs && i < gaps.length && gaps[i] < usual * LANDED_SHARE ? [i] : []));
+}

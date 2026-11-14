@@ -1,7 +1,7 @@
 import { ActionCatalog, PullTimeline, TimelineAura } from '@everise/core/api-types';
 import { EUKRASIA, EUKRASIA_MS } from './tools';
 import type { GcdCast, Occupied } from './weaving.model';
-import { rhythmFrom, rhythmOf, withRhythm } from './weaving-rhythm';
+import { landedGcds, rhythmFrom, rhythmOf, withRhythm } from './weaving-rhythm';
 import { RELEASED } from './heal-tools';
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
@@ -12,9 +12,7 @@ export const WEAVE_MS = 700;
 const INSTANT_LOCK_MS = 600;
 // A player the pull has no GCDs of: one GCD at a time, this far apart.
 const GCD_MS = 2500;
-// A GCD this much sooner than the player's usual one after the last only
-// landed then: its cast bar began earlier, about this long before.
-const LANDED_SHARE = 0.75;
+// A GCD that only landed (`landedGcds`) began its cast bar about this long before.
 const CAST_BAR_MS = 1500;
 // Lightspeed: every spell cast in it is instant (2.5s off each cast).
 const LIGHTSPEED = 841;
@@ -142,6 +140,14 @@ export class Weaving {
   // oGCDs do, a GCD the GCD of theirs it's at.
   keep(uses: ({ player: number } & Occupied)[]) {
     for (const { player, ...use } of uses) push(this.fixed, player, use);
+  }
+  // Those kept that the plan gives up again (Rhizomata it drops).
+  release(uses: ({ player: number } & Occupied)[]) {
+    for (const { player, at } of uses)
+      this.fixed.set(
+        player,
+        (this.fixed.get(player) ?? []).filter((u) => u.at !== at),
+      );
   }
   // A player's Lightspeeds as the plan has them, in place of their own: a
   // spell begun in one is 2.5s shorter (instant, for most), its cast's weave
@@ -324,15 +330,6 @@ export function withoutFollowUps(casts: PullTimeline['playerCasts'], catalog: Ac
       const last = lastGcd.get(cast.source);
       return !(action && !action.gcd && last?.name === action.name && cast.at - last.at <= FOLLOW_UP_MS);
     });
-}
-
-// Which of a player's GCDs as played (in time order) only landed then: an
-// instant one sooner than three quarters of their usual GCD before the
-// next, its cast begun earlier (in the countdown).
-export function landedGcds(gcds: { at: number; castMs: number | null }[]) {
-  const gaps = gcds.slice(1).map((g, i) => g.at - gcds[i].at);
-  const usual = [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)];
-  return gcds.flatMap((g, i) => (!g.castMs && i < gaps.length && gaps[i] < usual * LANDED_SHARE ? [i] : []));
 }
 
 // The first of `candidates` where an action this long overlaps nothing busy.

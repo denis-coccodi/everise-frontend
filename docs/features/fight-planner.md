@@ -32,7 +32,7 @@ The flow, in `pull-planner.ts`:
 6. **Resources:**
    - each healer's MP (`mp.ts`, Lucid Dreaming, Thin Air);
    - a Dark Knight's MP: The Blackest Night costs nothing in the end when it breaks, as Dark Arts makes the next Edge of Shadow free (`dark-arts.ts`: it breaks once its target takes a quarter of their max HP in its 7s, as played). One that won't break costs an Edge, so it's planned only where a hit needs it, never for spare margin. One on the autos needs the MP only as it goes up. The Dark Knight's tab counts their Edges of Shadow against the log: those as played the plan drops for The Blackest Night's MP, and those more than played its MP pays for (Dark Arts, MP it saves; `dark-knight-edges.ts`: each at the earliest moment it never runs their MP out later), and the difference;
-   - gauges (Aetherflow, Addersgall with Rhizomata, the astrologian's cards);
+   - gauges (Aetherflow, Addersgall with Rhizomata, the astrologian's cards). A sage uses Rhizomata once a spend leaves fewer than two stacks (`rhizomata.ts`); the heals are planned again with its stacks, and if that comes out worse, with only those a heavy mechanic follows within 15s (as the logs' sages use it), else none, their stacks and weave slots given back;
    - each replanned player's burst windows.
 7. **Strategies:** the whole plan is made several ways, and the one with the fewest deaths is kept (`strategies.ts`). The ways: the plain one, the party waiting for bigger hits, big heals first, tank-buster chains, healers favouring healing, and Macrocosmos on cooldown.
 8. **Death repair:** each death left is retried with one big cooldown held back so it's up for that hit; a replan with fewer deaths is kept (`death-repair.ts`).

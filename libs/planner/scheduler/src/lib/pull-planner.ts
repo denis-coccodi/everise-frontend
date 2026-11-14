@@ -27,7 +27,8 @@ import { macrocosmosUses } from './macrocosmos';
 import { burstActions, burstUses, placeLightspeed } from './burst';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
-import { RHIZOMATA, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
+import { RHIZOMATA, beforeHeavy, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
+import { heavyMechanics } from './hit-damage';
 import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
 import { upkeepCasts, withUpkeep } from './completion-upkeep';
@@ -231,15 +232,28 @@ export class PullPlanner {
     }
     // A replanned sage uses Rhizomata where the plan's heals leave their
     // Addersgall low; the heals are planned again with its stacks, unless
-    // that comes out worse.
+    // that comes out worse: then with only those a heavy mechanic follows
+    // soon, else none (their stacks and slots given back).
     const sageTools = [...mitigation, ...heals];
-    for (const s of sages) bonus.set(s.id, rhizomataOf(s.id, best.uses, sageTools, weaving, byId, timeline.durationMs));
-    let rhizomata = [...bonus].flatMap(([player, times]) => times.map((at) => rhizomataUse(player, at)));
-    if (rhizomata.length) {
-      weaving.keep(rhizomata.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
+    const all = new Map(
+      sages.map((s) => [s.id, rhizomataOf(s.id, best.uses, sageTools, weaving, byId, timeline.durationMs)]),
+    );
+    let rhizomata: PlannedUse[] = [];
+    let tries = 0;
+    for (const times of [all, beforeHeavy(all, best.mechanics, heavyMechanics(best, maxHp))]) {
+      const tried = [...times].flatMap(([player, list]) => list.map((at) => rhizomataUse(player, at)));
+      if (!tried.length || tried.length === tries) break;
+      tries = tried.length;
+      const slots = tried.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 }));
+      for (const [sage, list] of times) bonus.set(sage, list);
+      weaving.keep(slots);
       const next = once(best);
-      if (better(best, next, maxHp, options)) rhizomata = [];
-      else best = next;
+      if (!better(best, next, maxHp, options)) {
+        [best, rhizomata] = [next, tried];
+        break;
+      }
+      bonus.clear();
+      weaving.release(slots);
     }
     // Seraph casts her Veils herself: they're no use to list. The openers'
     // other steps (Energy Drains, Chain Stratagem...) show with it, but for

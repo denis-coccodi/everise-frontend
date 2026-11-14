@@ -1,5 +1,6 @@
 import { fitsPool } from './coverage';
-import { rhizomataTimes } from './rhizomata';
+import { beforeHeavy, rhizomataTimes } from './rhizomata';
+import type { Mechanic } from './plan.model';
 import { Weaving } from './weaving';
 
 describe('rhizomataTimes', () => {
@@ -31,5 +32,25 @@ describe('rhizomataTimes', () => {
     const uses = [10_000, 10_500, 11_000];
     expect(fitsPool(uses, 12_000, pool)).toBe(false);
     expect(fitsPool(uses, 12_000, { ...pool, bonus: [11_500] })).toBe(true);
+  });
+});
+
+describe('beforeHeavy', () => {
+  const mechanic = (id: number, at: number): Mechanic => ({
+    id,
+    at,
+    action: id,
+    name: `M${id}`,
+    kind: 'raidwide',
+    damageType: 'magic',
+    hits: [],
+  });
+
+  it('keeps the Rhizomata a heavy mechanic follows within 15s, as the logs have it', () => {
+    const mechanics = [mechanic(1, 20_000), mechanic(2, 120_000), mechanic(3, 230_000)];
+    const times = new Map([[5, [10_000, 100_000, 200_000]]]);
+
+    // A heavy one 10s after the first, 20s after the second (too late); the third's is light.
+    expect(beforeHeavy(times, mechanics, new Set([1, 2]))).toEqual(new Map([[5, [10_000]]]));
   });
 });

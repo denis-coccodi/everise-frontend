@@ -1,6 +1,6 @@
 import { poolLevel } from './coverage';
 import type { CatalogAction } from '@everise/core/api-types';
-import type { PlannedUse, ToolPool } from './plan.model';
+import type { Mechanic, PlannedUse, ToolPool } from './plan.model';
 import type { Occupied } from './weaving.model';
 import type { Weaving } from './weaving';
 
@@ -83,3 +83,13 @@ export const rhizomataUse = (player: number, at: number): PlannedUse => ({
   covers: [],
   refill: true,
 });
+
+// How soon before a heavy mechanic the logs' sages use Rhizomata, mostly:
+// right after spending into a hit, for the next (64% within 15s of a raidwide).
+const BEFORE_HEAVY_MS = 15_000;
+
+// Of each sage's Rhizomata `times`, the ones a heavy mechanic follows soon.
+export function beforeHeavy(times: Map<number, number[]>, mechanics: Mechanic[], heavy: Set<number>) {
+  const soon = (at: number) => mechanics.some((m) => heavy.has(m.id) && m.at > at && m.at - at <= BEFORE_HEAVY_MS);
+  return new Map([...times].map(([sage, list]) => [sage, list.filter(soon)]));
+}
