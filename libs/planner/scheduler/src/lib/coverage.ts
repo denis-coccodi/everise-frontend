@@ -11,6 +11,7 @@ import {
   ToolPool,
 } from './plan.model';
 import type { PullFacts } from './coverage.model';
+import { FIRST_STAYS } from './tools';
 
 // What a hit the fight doesn't let kill shows among what was up for it.
 export const LEAVES_ONE_HP = 'Leaves 1 HP';
@@ -53,7 +54,7 @@ export function projected(
   facts: PullFacts,
 ): { damage: number; absorbed: number; statuses: string[]; invulnerable: boolean } {
   const strongest = new Map<string, { share: number; status: string }>();
-  const shields = new Map<string, { hp: number; status: string }>();
+  const shields = new Map<string, { hp: number; status: string; at: number }>();
   let invulnerable: MitigationEffect | null = null;
   for (const use of uses) {
     for (const effect of reaches(toolOf(use), use, mechanic, hit)) {
@@ -64,7 +65,11 @@ export function projected(
         // A GCD's shield grows with its caster's healing potency buffs.
         const times = toolOf(use).gcd ? facts.shieldTimes(use, uses) : 1;
         const hp = shieldHp(effect.shield, hit.player, facts) * times;
-        if (hp > (shields.get(effect.stack)?.hp ?? 0)) shields.set(effect.stack, { hp, status: effect.status });
+        const at = landsAt(toolOf(use), use);
+        const up = shields.get(effect.stack);
+        // The one up first stays (`FIRST_STAYS`), else the biggest counts.
+        const wins = !up || (FIRST_STAYS.has(effect.stack) && at !== up.at ? at < up.at : hp > up.hp);
+        if (wins) shields.set(effect.stack, { hp, status: effect.status, at });
       } else {
         const share = shareAgainst(effect, mechanic.damageType);
         if (share > (strongest.get(effect.stack)?.share ?? 0))
