@@ -22,6 +22,6 @@ Player names in this picture are replaced with "Player 1", "Player 2" and so on.
 {: .steps}
 
 - **HP margin:** the HP that counts as dangerously low. The plan makes sure no hit takes anyone below it. Before a heavy hit (40% of a player's HP or more) it tops everyone up to full, as healers do; before lighter ones it only uses healing that costs no damage, and doesn't spend GCD heals just to top people up.
-- **Healing:** free oGCDs and gauges come first, then the GCD heals healers play (the Afflatus heals, Medica III, Helios Conjunction, Aspected Benefic, Regen). Cure, Medica, Benefic, Helios, Physick, Diagnosis and Prognosis are a last resort, as in the guides.
+- **Healing:** free oGCDs and gauges come first, then the GCD heals healers play (the Afflatus heals, Medica III, Helios Conjunction, Aspected Benefic, Regen). Cure, Medica, Benefic, Helios, Physick, Diagnosis and Prognosis are a last resort, as in the guides, except Helios right after a Helios Conjunction, as astrologians play it.
 - **Guests:** they can plan too, up to 10 new reports and 10 new pulls an hour.
 - **Wipes:** a wipe is planned through to the end of the fight, with the mechanics the party never reached.
