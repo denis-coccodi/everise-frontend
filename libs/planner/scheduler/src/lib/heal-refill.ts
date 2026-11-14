@@ -1,4 +1,5 @@
 import type { MpModel } from './mp';
+import type { HealTool } from './plan.model';
 import type { Spent } from './heal-plan.model';
 
 // Below this share of their max MP, a healer casts no GCD heal just to refill.
@@ -23,4 +24,12 @@ export function mpShares(mp?: MpModel) {
     known.set(player, { uses: own.length, at });
     return at;
   };
+}
+
+// Whether a heal may refill everyone to full before mechanic `id`: any
+// before a heavy one (`heavyMechanics`), else only what costs no damage
+// (oGCDs, the Afflatus heals, Pneuma); any at all with `everywhere`.
+export function refillsBefore(heavy: Set<number>, everywhere = false) {
+  return (id: number, tool: HealTool) =>
+    everywhere || heavy.has(id) || (tool.cost !== 'gcd' && tool.cost !== 'fallback');
 }

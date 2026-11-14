@@ -30,13 +30,14 @@ const PREPULL_MS = 15_000;
 const EARTHLY_STAR = 7439;
 // What a heal's healing is worth for what it costs (`HealCost`): a free
 // oGCD first, then one spending Aetherflow, a GCD that costs no damage
-// (Afflatus Solace), then any other GCD, which costs a GCD of damage. One
+// (Afflatus Solace), then any other GCD, which costs a GCD of damage, and
+// last the GCD heals kept for when nothing better is up (`fallback`). One
 // whose pool is full costs nothing, so it goes before the free ones: lilies
 // and Addersgall are spent rather than left to overcap. A healer favouring
 // healing over damage (`Favour`) minds a GCD's damage less.
 const WORTH: Record<Favour, Record<HealCost, number>> = {
-  dps: { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4 },
-  healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8 },
+  dps: { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4, fallback: 0.1 },
+  healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8, fallback: 0.2 },
 };
 const FULL_WORTH = 1.05;
 // A heal this long to come back is a big cooldown (Seraphism, Temperance,
@@ -182,7 +183,7 @@ export function best(
         tool.pool,
       );
     const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][tool.cost];
-    const spends = tool.cost === 'gcd' ? mpWorth(at) : 1;
+    const spends = tool.cost === 'gcd' || tool.cost === 'fallback' ? mpWorth(at) : 1;
     // On its own, or with each oGCD that can go with it.
     const alone = eventsOf(use, delayMs);
     const options = [

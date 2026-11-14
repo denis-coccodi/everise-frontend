@@ -36,9 +36,9 @@ import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
-import { hitDamage } from './hit-damage';
+import { heavyMechanics, hitDamage } from './hit-damage';
 import { hpBefores, judgedHits } from './judged-hits';
-import { mpShares, refillWorth } from './heal-refill';
+import { mpShares, refillsBefore, refillWorth } from './heal-refill';
 
 // How soon after its Helios lands Horoscope is read at the latest.
 const READ_MS = 5_000;
@@ -142,6 +142,8 @@ export function planHeals(
   const need = new Map<number, number>();
   for (const h of plan.hits) if (!h.avoidable) need.set(h.mechanic, (need.get(h.mechanic) ?? 0) + (h.share ?? 0));
   const needOf = (m: Mechanic) => need.get(m.id) ?? 0;
+  // What may refill to full before each mechanic.
+  const refills = refillsBefore(heavyMechanics(plan, maxHp), options.refillEverywhere);
 
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
@@ -236,7 +238,9 @@ export function planHeals(
             tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
           // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
           const waits = (t: HealTool) => !firstNeed && waitsForBiggerNeed(t, m, mechanics, needOf);
-          const pick = full ? among(planned) : (among(planned.filter((t) => !waits(t))) ?? among(planned));
+          const pick = full
+            ? among(planned.filter((t) => refills(m.id, t)))
+            : (among(planned.filter((t) => !waits(t))) ?? among(planned));
           if (!pick) break;
           track.add(pick.events);
           uses.push(pick.use);

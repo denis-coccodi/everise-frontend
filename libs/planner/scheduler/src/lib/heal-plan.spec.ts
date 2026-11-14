@@ -468,7 +468,7 @@ describe('planHeals', () => {
     ]);
     expect(heals.map((t) => [t.name, t.cost])).toEqual([
       ['Adloquium', 'gcd'],
-      ['Cure II', 'gcd'],
+      ['Cure II', 'fallback'],
       ['Afflatus Solace', 'neutral'],
     ]);
     // Favouring damage: Misery first, then the third lily spent as it comes
@@ -500,6 +500,72 @@ describe('planHeals', () => {
     const solaces = after.filter((u) => u.name === 'Afflatus Solace').map((u) => u.at);
     const next = after.find((u) => u.name === 'Afflatus Misery' && u.at > 90_000)?.at ?? Infinity;
     expect(solaces.filter((s) => s < next)).toHaveLength(3);
+  });
+
+  it('heals with a GCD heal the guides play (Medica III) before a last-resort one (Medica), even a bigger one', () => {
+    // The scholar as a white mage: the tank needs 60,000 more for the second
+    // buster; Medica heals more, but the guides keep it for when the healer
+    // is out of MP.
+    const cat = catalog();
+    cat.actions.push(
+      action(124, 'Medica', ['SCH'], 2.5, [{ ...heal(900), target: 'party' }], { gcd: true, castMs: 2000 }),
+      action(37010, 'Medica III', ['SCH'], 2.5, [{ ...heal(800), target: 'party' }], { gcd: true, castMs: 2000 }),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 85_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const heals = healTools(timeline.players, cat, [], power).filter((t) => t.name.startsWith('Medica'));
+    const options = { margin: 0.1 };
+    const plan = planHeals(
+      planMitigation(mechanicsOf(timeline), [], maxHp, options),
+      timeline,
+      [],
+      heals,
+      maxHp,
+      options,
+    );
+
+    expect(heals.map((t) => [t.name, t.cost])).toEqual([
+      ['Medica', 'fallback'],
+      ['Medica III', 'gcd'],
+    ]);
+    expect(plan.uses.map((u) => u.name)).toEqual(['Medica III']);
+  });
+
+  it('refills to full with a GCD heal only before a heavy hit, as the logs show healers do', () => {
+    // The tank lands on 60,000 after the first buster, enough for the
+    // second and the margin either way: a light second buster (30%) gets no
+    // GCD to refill, a heavy one (50%, on one player) does.
+    const cat = catalog();
+    cat.actions.push(
+      action(37010, 'Medica III', ['SCH'], 2.5, [{ ...heal(800), target: 'party' }], { gcd: true, castMs: 2000 }),
+    );
+    const planned = (second: number) => {
+      const timeline = pull(
+        [
+          [30, 'Buster', 1, 40_000],
+          [60, 'Buster', 1, second],
+        ],
+        [[1, 2, 189, 60_000]],
+      );
+      const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+      const heals = healTools(timeline.players, cat, [], healPower(timeline, cat)).filter(
+        (t) => t.name === 'Medica III',
+      );
+      const options = { margin: 0.1 };
+      const mitigated = planMitigation(mechanicsOf(timeline), [], maxHp, options);
+      const args = [undefined, undefined, undefined, undefined, undefined, true] as const;
+      return planHeals(mitigated, timeline, [], heals, maxHp, options, ...args).uses.map((u) => u.name);
+    };
+
+    expect(planned(30_000)).toEqual([]);
+    expect(planned(50_000)).toEqual(['Medica III']);
   });
 
   it('credits a heal for what it still heals toward the next hits: a regen over a heal as big', () => {

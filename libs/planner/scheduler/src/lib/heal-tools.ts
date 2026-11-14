@@ -21,6 +21,13 @@ export const TICK_MS = 3000;
 // Pneuma (a damage spell that heals).
 const NEUTRAL_GCDS = new Set([16531, 16534, 24318]);
 
+// GCD heals The Balance's skill overviews (7.4) keep as a last resort: for
+// when the healer is out of MP, or every better heal is down (Cure, Cure
+// II, Medica, Benefic, Benefic II, Helios, Physick, Diagnosis, Prognosis).
+// The ones played are Afflatus Solace and Rapture, Medica III, Regen,
+// Aspected Benefic, Helios Conjunction and the shields.
+const FALLBACK_GCDS = new Set([120, 135, 124, 3594, 3610, 3600, 190, 16230, 24284, 24286]);
+
 // A DPS's heals the plan has them use when it replans them, those that cost
 // no damage: Second Wind, Curing Waltz, Lux Solaris, Earth's Reply.
 // (Vercure and Physick would take a damage GCD; Improvisation stops them to
@@ -242,7 +249,7 @@ export function healTools(
 }
 
 function costOf(action: CatalogAction): HealCost {
-  if (action.gcd) return NEUTRAL_GCDS.has(action.id) ? 'neutral' : 'gcd';
+  if (action.gcd) return NEUTRAL_GCDS.has(action.id) ? 'neutral' : FALLBACK_GCDS.has(action.id) ? 'fallback' : 'gcd';
   // The Faerie Gauge comes from Aetherflow actions.
   const pool = POOLS[action.id]?.name;
   return pool === 'Aetherflow' || pool === 'Faerie Gauge' ? 'resource' : 'free';
