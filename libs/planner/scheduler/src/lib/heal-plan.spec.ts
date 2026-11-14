@@ -1,4 +1,5 @@
 import { ActionEffect } from '@everise/core/api-types';
+import type { PlannedUse } from './plan.model';
 import { startingAt } from './completion-plan';
 import { planHeals } from './heal-plan';
 import { healPower } from './heal-power';
@@ -500,6 +501,39 @@ describe('planHeals', () => {
     const solaces = after.filter((u) => u.name === 'Afflatus Solace').map((u) => u.at);
     const next = after.find((u) => u.name === 'Afflatus Misery' && u.at > 90_000)?.at ?? Infinity;
     expect(solaces.filter((s) => s < next)).toHaveLength(3);
+  });
+
+  it("weighs a GCD shield's barrier with its heal: Adloquium over a bigger heal, unless a barrier is up", () => {
+    // The tank lands on 5,000 and needs 65,000 more for the second buster.
+    // Medica III heals 50,000; Adloquium 30,000, and its Galvanize (54,000)
+    // takes that much off the buster. With a Galvanize already up (whose
+    // heal leaves the tank 35,000 short), a second one saves nothing.
+    const cat = catalog();
+    cat.actions.push(
+      action(37010, 'Medica III', ['SCH'], 2.5, [{ ...heal(500), target: 'party' }], { gcd: true, castMs: 2000 }),
+    );
+    const timeline = pull(
+      [
+        [30, 'Buster', 1, 95_000],
+        [40, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const mitigation = mitigationTools(timeline.players, cat, power).filter((t) => t.name === 'Adloquium');
+    const heals = healTools(timeline.players, cat, mitigation, power).filter((t) =>
+      /^(Adloquium|Medica III)$/.test(t.name),
+    );
+    const options = { margin: 0.1 };
+    const planned = (uses: PlannedUse[]) => {
+      const mitigated = planMitigation(mechanicsOf(timeline), [], maxHp, options);
+      return planHeals({ ...mitigated, uses }, timeline, mitigation, heals, maxHp, options).uses.map((u) => u.name);
+    };
+    const galvanize = { player: 2, action: 185, name: 'Adloquium', at: 31_000, target: 1, covers: [] };
+
+    expect(planned([])).toEqual(['Adloquium']);
+    expect(planned([galvanize])).toEqual(['Adloquium', 'Medica III']);
   });
 
   it('heals with a GCD heal the guides play (Medica III) before a last-resort one (Medica), even a bigger one', () => {
