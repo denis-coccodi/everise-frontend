@@ -27,7 +27,7 @@ import { macrocosmosUses } from './macrocosmos';
 import { burstActions, burstUses, placeLightspeed } from './burst';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
-import { RHIZOMATA, beforeHeavy, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
+import { RHIZOMATA, beforeHeavy, rhizomataAhead, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
 import { heavyMechanics } from './hit-damage';
 import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
@@ -233,17 +233,35 @@ export class PullPlanner {
     // A replanned sage uses Rhizomata where the plan's heals leave their
     // Addersgall low; the heals are planned again with its stacks, unless
     // that comes out worse: then with only those a heavy mechanic follows
-    // soon, else none (their stacks and slots given back).
+    // soon, then before the heaviest stretches (`rhizomataAhead`), else
+    // none (their stacks and slots given back).
     const sageTools = [...mitigation, ...heals];
     const all = new Map(
       sages.map((s) => [s.id, rhizomataOf(s.id, best.uses, sageTools, weaving, byId, timeline.durationMs)]),
     );
+    const slotsOf = (sage: number) =>
+      best.uses
+        .filter((u) => u.player === sage)
+        .map((u) => ({ at: u.at, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 }));
+    const ahead = () =>
+      new Map(
+        sages.map((s) => [
+          s.id,
+          rhizomataAhead(s.id, best.mechanics, maxHp, weaving, slotsOf(s.id), timeline.durationMs),
+        ]),
+      );
     let rhizomata: PlannedUse[] = [];
-    let tries = 0;
-    for (const times of [all, beforeHeavy(all, best.mechanics, heavyMechanics(best, maxHp))]) {
+    const seen = new Set<string>();
+    // None where the gauge never runs low.
+    const ways = [...all.values()].some((l) => l.length)
+      ? [() => all, () => beforeHeavy(all, best.mechanics, heavyMechanics(best, maxHp)), ahead]
+      : [];
+    for (const get of ways) {
+      const times = get();
       const tried = [...times].flatMap(([player, list]) => list.map((at) => rhizomataUse(player, at)));
-      if (!tried.length || tried.length === tries) break;
-      tries = tried.length;
+      const id = JSON.stringify([...times]);
+      if (!tried.length || seen.has(id)) continue;
+      seen.add(id);
       const slots = tried.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 }));
       for (const [sage, list] of times) bonus.set(sage, list);
       weaving.keep(slots);

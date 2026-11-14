@@ -93,3 +93,43 @@ export function beforeHeavy(times: Map<number, number[]>, mechanics: Mechanic[],
   const soon = (at: number) => mechanics.some((m) => heavy.has(m.id) && m.at > at && m.at - at <= BEFORE_HEAVY_MS);
   return new Map([...times].map(([sage, list]) => [sage, list.filter(soon)]));
 }
+
+// How far the damage counts toward a stretch Rhizomata goes before.
+const STRETCH_MS = 30_000;
+// A big hit: one taking half its target's max HP or more, before mitigation.
+const BIG_SHARE = 0.5;
+
+// Where a sage uses Rhizomata from the damage ahead rather than the gauge:
+// before the heaviest stretches first (the big hits' damage, as shares of
+// their targets' max HP, over the 30s from one), in the first weave slot
+// of the 15s before it (`occupied`: what the plan has them use), each 90s
+// from the others.
+export function rhizomataAhead(
+  sage: number,
+  mechanics: Mechanic[],
+  maxHp: Map<number, number>,
+  weaving: Weaving,
+  occupied: Occupied[],
+  durationMs: number,
+): number[] {
+  const shareOf = (m: Mechanic) =>
+    m.hits
+      .filter((h) => !h.avoidable)
+      .map((h) => h.unmitigated / (maxHp.get(h.player) ?? Infinity))
+      .filter((s) => s >= BIG_SHARE);
+  const big = mechanics.filter((m) => m.at <= durationMs && shareOf(m).length);
+  const weight = (m: Mechanic) =>
+    big
+      .filter((o) => o.at >= m.at && o.at < m.at + STRETCH_MS)
+      .reduce((sum, o) => sum + shareOf(o).reduce((a, b) => a + b, 0), 0);
+  const times: number[] = [];
+  for (const m of [...big].sort((a, b) => weight(b) - weight(a) || a.at - b.at)) {
+    const from = Math.max(m.at - BEFORE_HEAVY_MS, 0);
+    if (from >= m.at) continue;
+    const taken = [...occupied, ...times.map((at) => ({ at, gcd: false, castMs: 0 }))];
+    const at = weaving.ogcdAfter(sage, from, m.at - 1, taken);
+    if (at === null || times.some((t) => Math.abs(t - at) < RHIZOMATA_MS)) continue;
+    times.push(at);
+  }
+  return times.sort((a, b) => a - b);
+}
