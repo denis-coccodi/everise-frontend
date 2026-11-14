@@ -1,5 +1,5 @@
 import { fitsPool } from './coverage';
-import { beforeHeavy, rhizomataTimes } from './rhizomata';
+import { beforeHeavy, rhizomataAhead, rhizomataTimes } from './rhizomata';
 import type { Mechanic } from './plan.model';
 import { Weaving } from './weaving';
 
@@ -52,5 +52,28 @@ describe('beforeHeavy', () => {
 
     // A heavy one 10s after the first, 20s after the second (too late); the third's is light.
     expect(beforeHeavy(times, mechanics, new Set([1, 2]))).toEqual(new Map([[5, [10_000]]]));
+  });
+});
+
+describe('rhizomataAhead', () => {
+  const mechanic = (id: number, at: number, unmitigated: number, avoidable = false): Mechanic => ({
+    id,
+    at,
+    action: id,
+    name: `M${id}`,
+    kind: 'raidwide',
+    damageType: 'magic',
+    hits: [{ player: 1, unmitigated, asPlayed: unmitigated, avoidable }],
+  });
+  const maxHp = new Map([[1, 100_000]]);
+
+  it('goes in the 15s before the heaviest stretches first, 90s apart', () => {
+    // Big hits at 20s, then 60s and 70s together (the heavier stretch), and
+    // 160s; the one at 100s is small, the one at 130s avoided. The 60s
+    // stretch goes first, which leaves no room for the 20s one; 160s is 90s after it.
+    const mechanics = [mechanic(1, 20_000, 60_000), mechanic(2, 60_000, 70_000), mechanic(3, 70_000, 60_000)];
+    mechanics.push(mechanic(4, 100_000, 30_000), mechanic(5, 130_000, 90_000, true), mechanic(6, 160_000, 50_000));
+
+    expect(rhizomataAhead(5, mechanics, maxHp, new Weaving(), [], 300_000)).toEqual([45_000, 145_000]);
   });
 });
