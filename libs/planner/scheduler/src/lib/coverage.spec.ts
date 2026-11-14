@@ -141,6 +141,20 @@ describe('projected', () => {
     // Renewed once.
     expect(project(12_000, tools, [use('Haima', 9_000)])).toMatchObject({ absorbed: 10_000 });
   });
+
+  it('keeps the Galvanize or Eukrasian barrier up first, as the game does; else the biggest of a stack counts', () => {
+    const family = 'Galvanize or a Eukrasian barrier';
+    const tools = [
+      tool('Galvanize', { shield: { hp: 20_000 }, stack: family }),
+      tool('Eukrasian Prognosis', { shield: { hp: 50_000 }, stack: family }),
+      tool('Small', { shield: { hp: 20_000 }, stack: 'other' }),
+      tool('Big', { shield: { hp: 50_000 }, stack: 'other' }),
+    ];
+    const first = [use('Galvanize', 8_000), use('Eukrasian Prognosis', 9_000)];
+
+    expect(project(10_000, tools, first)).toMatchObject({ absorbed: 20_000, statuses: ['Galvanize'] });
+    expect(project(10_000, tools, [use('Small', 8_000), use('Big', 9_000)])).toMatchObject({ absorbed: 50_000 });
+  });
 });
 
 describe('projected with a GCD shield', () => {

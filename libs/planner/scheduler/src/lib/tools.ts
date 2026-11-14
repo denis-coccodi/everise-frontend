@@ -33,6 +33,9 @@ const SAME_STACK: Record<string, string> = {
   'Eukrasian Diagnosis': 'Galvanize or a Eukrasian barrier',
   'Eukrasian Prognosis': 'Galvanize or a Eukrasian barrier',
 };
+// Barriers of which the one up stays: another lands on no one who has one,
+// whatever its size (63 ultimate kills: none of 2,853 did).
+export const FIRST_STAYS = new Set(['Galvanize or a Eukrasian barrier']);
 
 // What really limits some actions, rather than their recast: the Oath
 // gauge (50 of it about every 25 seconds of auto-attacks, up to 100),
