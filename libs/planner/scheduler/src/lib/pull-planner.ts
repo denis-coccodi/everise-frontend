@@ -68,8 +68,21 @@ export class PullPlanner {
   // landed at full HP; where a hit is still short, again around the lowest
   // HP any round's heals left it, then the heals again, the best plan kept.
   // Only the players `asked` to replan are planned, with their
-  // edits; the others as they played.
+  // edits; the others as they played. GCD heals refill to full only before
+  // the heavy mechanics, as the logs' healers do; where that leaves a hit
+  // short, everything refills everywhere, whichever plan comes out better.
   private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+    const plan = this.planOnce(given, full, asked);
+    const short = plan.deaths?.length || plan.hits.some((h) => !h.safe && !h.avoidable);
+    if (asked.refillEverywhere || !short) return plan;
+    const everywhere = this.planOnce(given, full, { ...asked, refillEverywhere: true });
+    const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
+    const [died, diedEverywhere] = [plan, everywhere].map((p) => p.deaths?.length ?? 0);
+    if (died !== diedEverywhere) return diedEverywhere < died ? everywhere : plan;
+    return better(everywhere, plan, maxHp, asked) ? everywhere : plan;
+  }
+
+  private planOnce(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     // The actions as the pull's level has them (its traits).
     const catalog = catalogAtLevel(full, pullLevel(given));
     const [late, stops] = [lateStarts(given, asked), castsStopAt(given)];
@@ -92,7 +105,11 @@ export class PullPlanner {
     // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
     const mitigation = startingAt(opened(mitigationTools(timeline.players, catalog, power)), late);
     // The others' heals stay in the pull's healing, as played.
-    const heals = startingAt(opened(healTools(timeline.players, catalog, mitigation, power).filter(replanned)), late);
+    const ownHeals = healTools(timeline.players, catalog, mitigation, power)
+      .filter(replanned)
+      // Refilling everywhere, the last-resort heals count as any GCD heal.
+      .map((t) => (asked.refillEverywhere && t.cost === 'fallback' ? { ...t, cost: 'gcd' as const } : t));
+    const heals = startingAt(opened(ownHeals), late);
     // An opener's heals and mitigations (The Blackest Night) stay as it has them.
     const tools = new Set([...heals, ...mitigation.filter(replanned)].map((t) => t.player + ':' + t.action));
     // The user's added skills stay where they put them, as the opener's do,

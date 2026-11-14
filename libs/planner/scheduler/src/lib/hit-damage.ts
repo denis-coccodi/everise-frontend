@@ -38,3 +38,25 @@ export function sameMoment(
     return damage;
   };
 }
+
+// A heavy mechanic's hit takes, mitigated but before shields, this share of
+// its target's max HP: the logs' healers top everyone up before those (63
+// ultimate kills: HP full from 40%, near 90% before lighter raidwides).
+const HEAVY_SHARE = 0.4;
+// The share when it lands on fewer players (busters, stacks): full from 50%.
+const HEAVY_FEW_SHARE = 0.5;
+const HEAVY_TARGETS = 4;
+
+// The plan's heavy mechanics (ids): the ones healers top everyone up for.
+export function heavyMechanics(plan: Plan, maxHp: Map<number, number>): Set<number> {
+  const targets = new Map<number, number>();
+  for (const h of plan.hits) if (!h.avoidable) targets.set(h.mechanic, (targets.get(h.mechanic) ?? 0) + 1);
+  const heavy = new Set<number>();
+  for (const h of plan.hits) {
+    const max = maxHp.get(h.player);
+    if (h.avoidable || h.invulnerable || !max) continue;
+    const share = (targets.get(h.mechanic) ?? 0) >= HEAVY_TARGETS ? HEAVY_SHARE : HEAVY_FEW_SHARE;
+    if (h.planned + h.absorbed >= share * max) heavy.add(h.mechanic);
+  }
+  return heavy;
+}

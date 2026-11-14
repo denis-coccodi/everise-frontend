@@ -34,6 +34,10 @@ export interface PlanOptions {
   strategy?: Strategy;
   // Big cooldowns kept for a death (`repairDeaths`), the planner's own.
   holds?: Hold[];
+  // Every heal refills to full before every mechanic, not only before the
+  // heavy ones, and the last-resort heals count as any GCD heal: the
+  // planner's own, where a plan leaves a hit short or someone dead.
+  refillEverywhere?: boolean;
 }
 
 // Favouring damage, a healer spends what would overcap on damage and keeps
@@ -152,8 +156,9 @@ export interface HealTool {
 // oGCD spending Aetherflow, which Energy Drain would otherwise turn into
 // damage); a GCD that deals or gives back its damage (Afflatus Solace and
 // Rapture, refunded by Afflatus Misery; Pneuma); a GCD of damage (any other
-// GCD heal).
-export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd';
+// GCD heal); a last resort (`fallback`: one the guides keep for when the
+// healer is out of MP or nothing better is up, as Cure or Diagnosis).
+export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd' | 'fallback';
 
 // An oGCD that only pays with one of its user's heals after it (Plenary
 // Indulgence before a Medica, Zoe, Neutral Sect, Krasis...): the plan uses it
