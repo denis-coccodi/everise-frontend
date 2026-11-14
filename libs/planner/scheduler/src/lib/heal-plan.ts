@@ -1,6 +1,7 @@
 import { PullTimeline } from '@everise/core/api-types';
 import type { MpModel } from './mp';
-import { DPS_HEALS, HOROSCOPE, KARDIA } from './heal-tools';
+import { DPS_HEALS, KARDIA } from './heal-tools';
+import { readHoroscope } from './horoscope-read';
 import { projected, pullFacts, reaches } from './coverage';
 import { AutoDamage } from './auto-damage';
 import { delayedEvents } from './delayed-heals';
@@ -39,9 +40,8 @@ import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
 import { heavyMechanics, hitDamage } from './hit-damage';
 import { hpBefores, judgedHits } from './judged-hits';
 import { mpShares, refillsBefore, refillWorth } from './heal-refill';
+import { barrierWorth, healOnly, pairedWithBarrier } from './barrier-worth';
 
-// How soon after its Helios lands Horoscope is read at the latest.
-const READ_MS = 5_000;
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
 const MACROCOSMOS = 25874;
@@ -167,6 +167,8 @@ export function planHeals(
     }
   };
 
+  // A GCD shield is weighed with what its barrier saves.
+  const barrierOf = barrierWorth(mitigationOf, plan.mechanics, mitigating, toolOfUse, facts);
   const mpShare = mpShares(mp);
   // What the healers use anyway: the heals on cooldown, and the lily that would overcap.
   const spareOnes = () => {
@@ -211,22 +213,27 @@ export function planHeals(
           if (![...short.values()].some((d) => d > 0)) break;
           const ahead = (events: HpEvent[]) => laterShort.reduce((sum, s, i) => sum + madeUp(s, later[i](events)), 0);
           const candidateOf = (tool: HealTool) => {
-            const eventsOf = (use: PlannedUse, delayMs: number) => eventsFor(tool, use, delayMs);
+            const eventsOf = (use: PlannedUse, delayMs: number) => [
+              ...eventsFor(tool, use, delayMs),
+              ...barrierOf(tool, use),
+            ];
             const pairWith = (use: PlannedUse, events: HpEvent[]) =>
-              pairingsFor(
-                pairings,
-                tool,
-                use,
-                events,
-                spent.filter((s) => s.player === use.player),
-                (group) => spent.filter((s) => s.group === group).map((s) => s.at),
-                weaving,
-                maxHp,
-                (pairing, paired) => {
-                  const own = healOf.get(key(pairing));
-                  return own ? eventsFor(own, paired, 0) : [];
-                },
-                short,
+              pairedWithBarrier(events, (healing) =>
+                pairingsFor(
+                  pairings,
+                  tool,
+                  use,
+                  healing,
+                  spent.filter((s) => s.player === use.player),
+                  (group) => spent.filter((s) => s.group === group).map((s) => s.at),
+                  weaving,
+                  maxHp,
+                  (pairing, paired) => {
+                    const own = healOf.get(key(pairing));
+                    return own ? eventsFor(own, paired, 0) : [];
+                  },
+                  short,
+                ),
               );
             const own = spent.filter((s) => s.player === tool.player);
             const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
@@ -242,7 +249,7 @@ export function planHeals(
             ? among(planned.filter((t) => refills(m.id, t)))
             : (among(planned.filter((t) => !waits(t))) ?? among(planned));
           if (!pick) break;
-          track.add(pick.events);
+          track.add(healOnly(pick.events));
           uses.push(pick.use);
           boosts.add(pick.use);
           // A shield Emergency Tactics turns into healing goes up as none.
@@ -281,26 +288,7 @@ export function planHeals(
           }
           const { group, pool, gcd, castMs } = pick.tool;
           spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
-          // Horoscope Helios heals when read: Horoscope pressed again, as the
-          // Helios lands.
-          if (pick.paired?.pairing.action === HOROSCOPE) {
-            const { player } = pick.use;
-            const lands = pick.use.at + pick.tool.castMs;
-            const mine = spent.filter((s) => s.player === player);
-            const read = weaving.ogcdAfter(player, lands, lands + READ_MS, mine);
-            if (read !== null) {
-              uses.push({ ...pick.paired.use, at: read, target: null, again: 'horoscope' });
-              spent.push({
-                player,
-                action: HOROSCOPE,
-                at: read,
-                group: `read:${player}`,
-                pool: null,
-                gcd: false,
-                castMs: 0,
-              });
-            }
-          }
+          readHoroscope(pick, uses, spent, weaving);
           // A moved Kardia goes back on its holder afterwards: another press.
           if (pick.tool.action === KARDIA) {
             const { player, at } = pick.use;
