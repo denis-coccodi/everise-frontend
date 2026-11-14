@@ -45,7 +45,7 @@ export const heal = (potency: number): ActionEffect => ({
   durationMs: null,
 });
 
-const shield = (
+export const shield = (
   target: ActionEffect['target'],
   status: string,
   seconds: number,

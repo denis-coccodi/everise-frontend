@@ -78,17 +78,27 @@ export class PullPlanner {
   // HP any round's heals left it, then the heals again, the best plan kept.
   // Only the players `asked` to replan are planned, with their
   // edits; the others as they played. GCD heals refill to full only before
-  // the heavy mechanics, as the logs' healers do; where that leaves a hit
-  // short, everything refills everywhere, whichever plan comes out better.
+  // the heavy mechanics, as the logs' healers do, and shield everyone for
+  // the heavy raidwides; where that leaves a hit short, everything refills
+  // everywhere, and where that's still short, no shields go up just for the
+  // raidwides: whichever plan comes out better (fewer deaths first).
   private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
-    const plan = this.planOnce(given, full, asked);
-    const short = plan.deaths?.length || plan.hits.some((h) => !h.safe && !h.avoidable);
-    if (asked.refillEverywhere || !short) return plan;
-    const everywhere = this.planOnce(given, full, { ...asked, refillEverywhere: true });
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
-    const [died, diedEverywhere] = [plan, everywhere].map((p) => p.deaths?.length ?? 0);
-    if (died !== diedEverywhere) return diedEverywhere < died ? everywhere : plan;
-    return better(everywhere, plan, maxHp, asked) ? everywhere : plan;
+    const short = (p: Plan) => p.deaths?.length || p.hits.some((h) => !h.safe && !h.avoidable);
+    const deaths = (p: Plan) => p.deaths?.length ?? 0;
+    const variants: PlanOptions[] = [
+      { ...asked, refillEverywhere: true },
+      { ...asked, noRaidwideShields: true },
+    ];
+    let plan = this.planOnce(given, full, asked);
+    if (asked.refillEverywhere || asked.noRaidwideShields) return plan;
+    for (const variant of variants) {
+      if (!short(plan)) break;
+      const next = this.planOnce(given, full, variant);
+      const wins = deaths(next) !== deaths(plan) ? deaths(next) < deaths(plan) : better(next, plan, maxHp, asked);
+      if (wins) plan = next;
+    }
+    return plan;
   }
 
   private planOnce(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {

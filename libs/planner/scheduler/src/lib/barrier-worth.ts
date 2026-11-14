@@ -39,6 +39,14 @@ export function barrierWorth(
   };
 }
 
+// What the barriers among `events` save `player` of the hit at `at`.
+export function barrierFor(events: HpEvent[], player: number, at: number) {
+  return events.reduce(
+    (sum, e) => (BARRIER.has(e) && e.player === player && e.at === at - 1 ? sum + e.amount : sum),
+    0,
+  );
+}
+
 // The events that heal, without a barrier's weighing ones.
 export const healOnly = (events: HpEvent[]) => events.filter((e) => !BARRIER.has(e));
 
