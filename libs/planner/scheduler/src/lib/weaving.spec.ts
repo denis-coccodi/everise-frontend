@@ -157,6 +157,16 @@ describe('Weaving', () => {
     expect(opened.ogcdAfter(1, 10_000, 12_500, [])).toBe(11_300);
   });
 
+  it('gives back the slots of oGCDs it kept and then dropped (a Rhizomata)', () => {
+    const woven = new Weaving([cast(10_000, 9), cast(12_500, 9)], gcdOf);
+    const rhizomata = [{ player: 1, at: 10_600, gcd: false, castMs: 0 }];
+    woven.keep(rhizomata);
+    expect(woven.ogcdAfter(1, 10_600, 12_500, [])).toBe(11_300);
+
+    woven.release(rhizomata);
+    expect(woven.ogcdAfter(1, 10_600, 12_500, [])).toBe(10_600);
+  });
+
   it("places GCDs freely after a player's GCDs as played stop, where asked", () => {
     // Nothing played after 20s: no GCD slot there, but from 22.5s once free.
     const casts = [cast(10_000, 9), cast(12_500, 9), cast(20_000, 9)];
