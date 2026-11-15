@@ -18,9 +18,10 @@ export function barrierWorth(
   toolOfUse: (use: PlannedUse) => MitigationTool,
   facts: PullFacts,
 ) {
-  return (tool: HealTool, use: PlannedUse): HpEvent[] => {
-    const shield = mitigationOf.get(`${tool.player}:${tool.action}`);
-    if (!tool.gcd || !shield?.effects.some((e) => e.shield)) return [];
+  // A pairing's barrier (Neutral Sect's with a Helios Conjunction) is weighed alike (`shieldOf`).
+  return (tool: HealTool, use: PlannedUse, shieldOf?: MitigationTool): HpEvent[] => {
+    const shield = shieldOf ?? mitigationOf.get(`${tool.player}:${tool.action}`);
+    if (!(tool.gcd || shieldOf) || !shield?.effects.some((e) => e.shield)) return [];
     const events: HpEvent[] = [];
     const toolOf = (u: PlannedUse) => (u === use ? shield : toolOfUse(u));
     for (const m of mechanics) {
@@ -61,4 +62,13 @@ export function pairedWithBarrier<T extends { pairing: HealPairing; events: HpEv
   return pair(healOnly(events)).map((p) =>
     p.pairing.converts || !barrier.length ? p : { ...p, events: [...p.events, ...barrier] },
   );
+}
+
+// A pairing's options weighed with what each one's barrier saves too.
+export function withBarriers(
+  worth: (tool: HealTool, use: PlannedUse, shieldOf?: MitigationTool) => HpEvent[],
+  tool: HealTool,
+) {
+  return <T extends { events: HpEvent[]; barrier: { use: PlannedUse; tool: MitigationTool } | null }>(found: T[]) =>
+    found.map((p) => (p.barrier ? { ...p, events: [...p.events, ...worth(tool, p.barrier.use, p.barrier.tool)] } : p));
 }

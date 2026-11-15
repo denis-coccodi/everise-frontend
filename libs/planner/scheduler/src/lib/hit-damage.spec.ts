@@ -1,4 +1,4 @@
-import { hitDamage } from './hit-damage';
+import { hitDamage, sectRaidwides } from './hit-damage';
 import type { Mechanic, Plan, PlannedHit } from './plan.model';
 
 const mechanic = (id: number, at: number, players: number[]): Mechanic => ({
@@ -41,5 +41,22 @@ describe('hitDamage', () => {
     damage.set('1:1', 20_000);
 
     expect(together(dark, 1)).toBe(20_000);
+  });
+});
+
+describe('sectRaidwides', () => {
+  // A raidwide 5s and one 30s after an astrologian's (player 5) Neutral Sect, and a tank buster in it.
+  const party = [1, 2, 3, 4];
+  const [soon, late, buster] = [mechanic(1, 15_000, party), mechanic(2, 40_000, party), mechanic(3, 16_000, [1])];
+  const plan = {
+    mechanics: [soon, late, buster],
+    hits: [...party.map((p) => hit(1, p, 30_000)), ...party.map((p) => hit(2, p, 30_000)), hit(3, 1, 60_000)],
+    uses: [{ player: 5, action: 16559, name: 'Neutral Sect', at: 10_000, target: null, covers: [] }],
+  } as unknown as Plan;
+
+  it("are the raidwides in a replanned caster's 20s of Neutral Sect", () => {
+    expect([...sectRaidwides(plan, [5])]).toEqual([1]);
+    // Not replanned: as played, nothing to plan for it.
+    expect([...sectRaidwides(plan, [6])]).toEqual([]);
   });
 });

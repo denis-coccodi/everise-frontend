@@ -37,10 +37,11 @@ import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
-import { heavyMechanics, heavyRaidwides, hitDamage } from './hit-damage';
+import { hitDamage } from './hit-damage';
+import { raidwideShields } from './raidwide-shields';
 import { hpBefores, judgedHits } from './judged-hits';
 import { mpShares, refillsBefore, refillWorth } from './heal-refill';
-import { barrierFor, barrierWorth, healOnly, pairedWithBarrier } from './barrier-worth';
+import { barrierFor, barrierWorth, healOnly, pairedWithBarrier, withBarriers } from './barrier-worth';
 
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
@@ -142,20 +143,20 @@ export function planHeals(
   const need = new Map<number, number>();
   for (const h of plan.hits) if (!h.avoidable) need.set(h.mechanic, (need.get(h.mechanic) ?? 0) + (h.share ?? 0));
   const needOf = (m: Mechanic) => need.get(m.id) ?? 0;
-  // What may refill to full before each mechanic.
-  const refills = refillsBefore(heavyMechanics(plan, maxHp), options.refillEverywhere);
-  // Which get everyone shielded as well (`unshielded`).
-  const shieldFor = options.noRaidwideShields ? new Set<number>() : heavyRaidwides(plan, maxHp);
-
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
   const mitigating = plan.uses.filter((u) => mitigationOf.has(key(u)));
   const toolOfUse = (u: PlannedUse) => mitigationOf.get(key(u)) as MitigationTool;
+  // What may refill to full before each mechanic, and the raidwides that want shields too.
+  const casters = heals.map((t) => t.player);
+  const up = (o: Mechanic, hit: MechanicHit) => projected(o, hit, mitigating, toolOfUse, facts);
+  const shields = raidwideShields(plan, maxHp, casters, options, damageOf, up);
+  const { refills, shieldFor, unshielded, forget } = shields;
   // Such a heal lowers the hits it reaches, and the HP track gets back what
   // they no longer take.
   const mitigate = (use: PlannedUse, tool: MitigationTool) => {
     mitigating.push(use);
-    shielded.clear();
+    forget();
     track.add(autos.add(use));
     for (const m of plan.mechanics) {
       for (const h of m.hits) {
@@ -170,16 +171,8 @@ export function planHeals(
     }
   };
 
-  // A GCD shield is weighed with what its barrier saves.
+  // A GCD shield is weighed with what its barrier saves, a pairing's barrier too.
   const barrierOf = barrierWorth(mitigationOf, plan.mechanics, mitigating, toolOfUse, facts);
-  // A hit no shield takes any of yet: its damage, less what `extra`'s barriers would save of it.
-  // Whether one does changes only as something mitigates (`mitigate` forgets it).
-  const shielded = new Map<string, boolean>();
-  const unshielded = (o: Mechanic, hit: MechanicHit, extra: HpEvent[]) => {
-    const id = `${o.id}:${hit.player}`;
-    if (!shielded.has(id)) shielded.set(id, projected(o, hit, mitigating, toolOfUse, facts).absorbed > 0);
-    return shielded.get(id) ? 0 : Math.max(0, damageOf(o, hit) - barrierFor(extra, hit.player, o.at));
-  };
   const mpShare = mpShares(mp);
   // What the healers use anyway: the heals on cooldown, and the lily that would overcap.
   const spareOnes = () => {
@@ -231,20 +224,25 @@ export function planHeals(
             ];
             const pairWith = (use: PlannedUse, events: HpEvent[]) =>
               pairedWithBarrier(events, (healing) =>
-                pairingsFor(
-                  pairings,
+                withBarriers(
+                  barrierOf,
                   tool,
-                  use,
-                  healing,
-                  spent.filter((s) => s.player === use.player),
-                  (group) => spent.filter((s) => s.group === group).map((s) => s.at),
-                  weaving,
-                  maxHp,
-                  (pairing, paired) => {
-                    const own = healOf.get(key(pairing));
-                    return own ? eventsFor(own, paired, 0) : [];
-                  },
-                  short,
+                )(
+                  pairingsFor(
+                    pairings,
+                    tool,
+                    use,
+                    healing,
+                    spent.filter((s) => s.player === use.player),
+                    (group) => spent.filter((s) => s.group === group).map((s) => s.at),
+                    weaving,
+                    maxHp,
+                    (pairing, paired) => {
+                      const own = healOf.get(key(pairing));
+                      return own ? eventsFor(own, paired, 0) : [];
+                    },
+                    short,
+                  ),
                 ),
               );
             const own = spent.filter((s) => s.player === tool.player);
@@ -268,17 +266,19 @@ export function planHeals(
           const mitigates = mitigationOf.get(key(pick.use));
           if (mitigates && !pick.paired?.pairing.converts) mitigate(pick.use, mitigates);
           if (pick.paired) {
+            const { barrier } = pick.paired;
+            // Neutral Sect's barrier, a shield for the hits after.
+            if (barrier) {
+              mitigationOf.set(key(barrier.use), barrier.tool);
+              mitigate(barrier.use, barrier.tool);
+            }
+          }
+          if (pick.paired && !pick.paired.open) {
             const { use, pairing } = pick.paired;
             uses.push(use);
             boosts.add(use);
             const confession = mitigationOf.get(key(use));
             if (confession) mitigate(use, confession);
-            // Neutral Sect's barrier, a shield for the hits after.
-            const { barrier } = pick.paired;
-            if (barrier) {
-              mitigationOf.set(key(barrier.use), barrier.tool);
-              mitigate(barrier.use, barrier.tool);
-            }
             spent.push({
               player: use.player,
               action: use.action,

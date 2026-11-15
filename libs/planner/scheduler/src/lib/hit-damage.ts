@@ -67,6 +67,21 @@ export function heavyMechanics(plan: Plan, maxHp: Map<number, number>): Set<numb
   return heavy;
 }
 
+// Neutral Sect, its barrier's status, and how long after it a Helios Conjunction leaves one.
+const NEUTRAL_SECT = 16559;
+export const SECT = 'Neutral Sect';
+const SECT_MS = 20_000;
+
+// The raidwides (on 4 players or more) in the Neutral Sect of one of
+// `casters` (the replanned astrologians): the logs' astrologians shield the
+// party for them with Helios Conjunction, about 1.5 for each Neutral Sect.
+export function sectRaidwides(plan: Plan, casters: number[]): Set<number> {
+  const targets = targetsOf(plan);
+  const sects = plan.uses.filter((u) => u.action === NEUTRAL_SECT && casters.includes(u.player)).map((u) => u.at);
+  const inSect = (m: { at: number }) => sects.some((at) => m.at > at && m.at <= at + SECT_MS);
+  return new Set(plan.mechanics.filter((m) => (targets.get(m.id) ?? 0) >= HEAVY_TARGETS && inSect(m)).map((m) => m.id));
+}
+
 // The heavy raidwides (on 4 players or more): the logs' healers go into
 // them with everyone full and shielded.
 export function heavyRaidwides(plan: Plan, maxHp: Map<number, number>): Set<number> {

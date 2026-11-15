@@ -32,6 +32,23 @@ export function pairingsFor(
   const found: Paired[] = [];
   for (const pairing of pairings) {
     if (pairing.player !== use.player || !pairing.heals.includes(use.action)) continue;
+    // In the window of one already up (Neutral Sect, for Sun Sign or an
+    // earlier heal): the heal leaves its barrier too, nothing more to press
+    // (its potency buff counts already).
+    const up = pairing.barriers[use.action]
+      ? groupTimes(pairing.group).find((t) => t < use.at && use.at - t <= pairing.withinMs)
+      : undefined;
+    if (up !== undefined) {
+      const open = { player: use.player, action: pairing.action, name: pairing.name, at: up, target: null, covers: [] };
+      const barrier = barrierOf(
+        pairing,
+        tool,
+        use,
+        events.filter((e) => e.at === lands),
+      );
+      if (barrier) found.push({ use: open, pairing, events, barrier, open: true });
+      continue;
+    }
     const at = weaving.ogcdBefore(use.player, use.at - 1, use.at - pairing.withinMs + tool.castMs, around);
     if (at === null || at < 0 || !fitsRecast(groupTimes(pairing.group), at, pairing.recastMs, pairing.charges)) {
       continue;
