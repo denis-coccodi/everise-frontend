@@ -139,3 +139,58 @@ describe('pairingsFor', () => {
     expect(pair({ ...zoe, heals: [124] })).toEqual([]);
   });
 });
+
+describe('pairingsFor in a window already up', () => {
+  // An astrologian's Neutral Sect (its barrier 125% of what a Helios Conjunction heals each member).
+  const sect: HealPairing = {
+    player: 2,
+    action: 16559,
+    name: 'Neutral Sect',
+    recastMs: 120_000,
+    charges: 1,
+    group: '2:sect',
+    heals: [37030],
+    withinMs: 20_000,
+    times: 1.2,
+    extra: null,
+    barriers: { 37030: 1.25 },
+    onTarget: false,
+    own: false,
+    converts: false,
+    bond: 0,
+  };
+  const helios = {
+    player: 2,
+    action: 37030,
+    gcd: true,
+    castMs: 1500,
+    effects: [{ target: 'party' }],
+  } as unknown as HealTool;
+  const cast = (at: number): PlannedUse => ({
+    player: 2,
+    action: 37030,
+    name: 'Helios Conjunction',
+    at,
+    target: null,
+    covers: [],
+  });
+  const healed = (at: number) => [1, 3].map((player) => ({ at: at + 1500, player, amount: 10_000 }));
+
+  it('leaves its barrier with the heal, pressing nothing new, the heal as it is', () => {
+    const [paired] = pairingsFor(
+      [sect],
+      helios,
+      cast(15_000),
+      healed(15_000),
+      [],
+      () => [10_000],
+      new Weaving(),
+      new Map(),
+    );
+
+    expect(paired.open).toBe(true);
+    expect(paired.use).toMatchObject({ action: 16559, at: 10_000 });
+    expect(paired.events.map((e) => e.amount)).toEqual([10_000, 10_000]);
+    expect(paired.barrier?.tool.effects[0].shield).toEqual({ hp: 12_500 });
+  });
+});

@@ -87,7 +87,7 @@ const ON_HIT = /^each time the .+ takes damage$/;
 // heal 50% bigger (Pneuma, the Eukrasian ones) in 30s; Neutral Sect, an
 // Aspected Benefic's or Helios Conjunction's 20% in 20s (their barriers
 // meanwhile: 250% of the heal for an Aspected Benefic, 125% for a Helios
-// Conjunction, for 30s); Krasis, the next 10s of a Sage's heal on one member
+// Conjunction, or for an Aspected Helios below level 96, for 30s); Krasis, the next 10s of a Sage's heal on one member
 // (Druochole, Taurochole, Diagnosis, Eukrasian Diagnosis), 20% on them;
 // Physis II before any of a Sage's heals in its 15s (its own regen, and 10%
 // more), as the guides have it go first; Recitation before an Adloquium,
@@ -117,7 +117,13 @@ const PAIRED: Record<
 > = {
   7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
   24300: { heals: [24318, 24292, 37034, 24291], withinMs: 30_000, times: 1.5, potency: 0 },
-  16559: { heals: [3595, 37030], withinMs: 20_000, times: 1.2, potency: 0, barriers: { 3595: 2.5, 37030: 1.25 } },
+  16559: {
+    heals: [3595, 37030, 3601],
+    withinMs: 20_000,
+    times: 1.2,
+    potency: 0,
+    barriers: { 3595: 2.5, 37030: 1.25, 3601: 1.25 },
+  },
   24317: { heals: [24296, 24303, 24284, 24291], withinMs: 10_000, times: 1.2, potency: 0, onTarget: true },
   24302: {
     heals: [24296, 24298, 24299, 24303, 24310, 24318, 24292, 37034, 24291, 24284, 24286],

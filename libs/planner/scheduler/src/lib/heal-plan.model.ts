@@ -32,6 +32,8 @@ export interface Paired {
   pairing: HealPairing;
   events: HpEvent[];
   barrier: { use: PlannedUse; tool: MitigationTool } | null;
+  // In the window of the pairing's use already planned (`use`): nothing new is pressed.
+  open?: boolean;
 }
 
 // The fairy's own heals, worked out for the plan (`events`), and the
