@@ -81,7 +81,8 @@ export class PullPlanner {
   // the heavy mechanics, as the logs' healers do, and shield everyone for
   // the heavy raidwides; where that leaves a hit short, everything refills
   // everywhere, and where that's still short, no shields go up just for the
-  // raidwides: whichever plan comes out better (fewer deaths first).
+  // raidwides, then neither: whichever plan comes out better (fewer deaths
+  // first).
   private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     const short = (p: Plan) => p.deaths?.length || p.hits.some((h) => !h.safe && !h.avoidable);
@@ -89,6 +90,7 @@ export class PullPlanner {
     const variants: PlanOptions[] = [
       { ...asked, refillEverywhere: true },
       { ...asked, noRaidwideShields: true },
+      { ...asked, refillEverywhere: true, noRaidwideShields: true },
     ];
     let plan = this.planOnce(given, full, asked);
     if (asked.refillEverywhere || asked.noRaidwideShields) return plan;
