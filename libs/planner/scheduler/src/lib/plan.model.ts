@@ -34,6 +34,10 @@ export interface PlanOptions {
   strategy?: Strategy;
   // Big cooldowns kept for a death (`repairDeaths`), the planner's own.
   holds?: Hold[];
+  // Made one way (`strategy`), its deaths then mended a cooldown at a time
+  // (`repairDeaths`), as a plan made the best way is: the page asks for it
+  // once it has found the best strategy.
+  repairDeaths?: boolean;
   // Every heal refills to full before every mechanic, not only before the
   // heavy ones, and the last-resort heals count as any GCD heal: the
   // planner's own, where a plan leaves a hit short or someone dead.

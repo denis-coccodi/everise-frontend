@@ -24,17 +24,27 @@ export function betterPlan(a: Plan, b: Plan, maxHp: Map<number, number>, options
 // healers healing first): the others only moved deaths around.
 const FOR_SHORT_HITS: Strategy[] = [{ partyWaits: true }, { healersHeal: true }];
 
+// Whether a player dies to a mechanic's hit in the plan.
+export const diesToMechanic = (p: Plan) => !!p.deaths?.some((d) => d.mechanic !== null);
+
+// Whether another strategy could still make the plan better: players die
+// to a mechanic's hit, or a hit is left short. The strategies change where
+// the cooldowns go, which deaths to a damage-over-time tick or an
+// auto-attack don't turn on (heals cover those), and each costs a whole
+// plan's time.
+export const worthImproving = (p: Plan) => diesToMechanic(p) || p.hits.some((h) => !h.safe && !h.avoidable);
+
+// The strategies tried after the plain plan `first`, in order, while the
+// best plan is `worthImproving`: every other while players die to a
+// mechanic, else those that mend short hits.
+export const strategiesAfter = (first: Plan) => (diesToMechanic(first) ? STRATEGIES.slice(1) : FOR_SHORT_HITS);
+
 // The best of the plans `planWith` makes with each strategy (`better`).
-// The others are only tried while players die to a mechanic's hit, or (only
-// `FOR_SHORT_HITS`) while a hit is left short: they change where the
-// cooldowns go, which deaths to a damage-over-time tick or an auto-attack
-// don't turn on (heals cover those), and each costs a whole plan's time.
+// The page makes them side by side instead (`refinePlans`), by the same rules.
 export function bestOfStrategies(planWith: (strategy: Strategy) => Plan, better: (a: Plan, b: Plan) => boolean): Plan {
-  const dies = (p: Plan) => !!p.deaths?.some((d) => d.mechanic !== null);
-  const short = (p: Plan) => p.hits.some((h) => !h.safe && !h.avoidable);
   let best = planWith(STRATEGIES[0]);
-  for (const strategy of dies(best) ? STRATEGIES.slice(1) : FOR_SHORT_HITS) {
-    if (!dies(best) && !short(best)) break;
+  for (const strategy of strategiesAfter(best)) {
+    if (!worthImproving(best)) break;
     const next = planWith(strategy);
     if (better(next, best)) best = next;
   }

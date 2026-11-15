@@ -5,7 +5,7 @@ import type { OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/sched
 import { STOPPED, STRATEGIES, type Strategy } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import { INITIAL_PLAN_STATE, type FailedMechanics, type PlanPlayer, type PlanState } from './plan.model';
-import { refinePlans } from './plan-refine';
+import { refinePlans, refines } from './plan-refine';
 import { progressOf } from './plan-progress';
 import { characterKey, saveReplan, storedReplan } from './plan-replan';
 
@@ -70,11 +70,12 @@ export const PlanStore = signalStore(
         const edits = store.edits();
         const edited = edits.added.length + edits.removed.length > 0;
         // The plan with the edits, and the one without (kept while its options stay), made one way.
-        const planWith = async (strategy: Strategy) => {
-          const baseKey = JSON.stringify({ pullId, ...options, strategy });
+        const planWith = async (strategy: Strategy, repairDeaths = false) => {
+          const baseKey = JSON.stringify({ pullId, ...options, strategy, repairDeaths });
           const kept = store.baseKey() === baseKey ? store.basePlan() : null;
+          const asked = { ...options, strategy, repairDeaths };
           const made = (key: string, own: { edits?: PlanEdits }) =>
-            progress.track(key, (report) => pool.plan(timeline, catalog, { ...options, strategy, ...own }, report));
+            progress.track(key, (report) => pool.plan(timeline, catalog, { ...asked, ...own }, report));
           const [plan, base] = await Promise.all([
             made(baseKey + ':edited', { edits }),
             edited ? (kept ?? made(baseKey, {})) : null,
@@ -86,13 +87,15 @@ export const PlanStore = signalStore(
         if (!latest()) return;
         const before = store.pullId() === pullId ? store.plan() : null;
         const sameAsBefore = !!before && samePlan(before, first.plan);
-        const improving = !!first.plan.deaths?.length;
+        const improving = refines(first.plan);
         patchState(store, { ...first, timeline, pullId, planning: false, sameAsBefore, improving });
         progress.clear();
         const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp ?? 0]));
-        await refinePlans(first, planWith, (best) => patchState(store, best), latest, { ...options, maxHp });
+        // Once the strategies are weighed, those still being made aren't needed.
+        const weighed = () => (pool.stop(), progress.clear());
+        const keep = (best: typeof first) => patchState(store, best);
+        await refinePlans(first, planWith, keep, latest, { ...options, maxHp }, weighed);
         if (!latest()) return;
-        // Those still being made when nobody died any more aren't needed.
         pool.stop();
         patchState(store, { improving: false });
       } catch (e) {
