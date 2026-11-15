@@ -1,5 +1,5 @@
 import { fitsPool } from './coverage';
-import { beforeHeavy, rhizomataAhead, rhizomataTimes } from './rhizomata';
+import { beforeHeavy, neededRhizomata, rhizomataAhead, rhizomataTimes } from './rhizomata';
 import type { Mechanic } from './plan.model';
 import { Weaving } from './weaving';
 
@@ -75,5 +75,21 @@ describe('rhizomataAhead', () => {
     mechanics.push(mechanic(4, 100_000, 30_000), mechanic(5, 130_000, 90_000, true), mechanic(6, 160_000, 50_000));
 
     expect(rhizomataAhead(5, mechanics, maxHp, new Weaving(), [], 300_000)).toEqual([45_000, 145_000]);
+  });
+});
+
+describe('neededRhizomata', () => {
+  // Addersgall: one every 20s, up to 3, full at the pull.
+  const pool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
+
+  it('keeps only the Rhizomata whose stack a spend needs', () => {
+    // Four spends in 2s need one more stack than the three the pull starts
+    // with: the first Rhizomata, between them, gives it; the second, at
+    // 100s, nothing spends.
+    expect(neededRhizomata([10_800, 100_000], [10_000, 10_500, 11_000, 11_500], pool)).toEqual([10_800]);
+  });
+
+  it('keeps none where the gauge alone covers the spends', () => {
+    expect(neededRhizomata([5_000], [10_000, 60_000], pool)).toEqual([]);
   });
 });

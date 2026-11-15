@@ -1,4 +1,4 @@
-import { poolLevel } from './coverage';
+import { fitsPool, poolLevel } from './coverage';
 import type { CatalogAction } from '@everise/core/api-types';
 import type { Mechanic, PlannedUse, ToolPool } from './plan.model';
 import type { Occupied } from './weaving.model';
@@ -132,4 +132,43 @@ export function rhizomataAhead(
     times.push(at);
   }
   return times.sort((a, b) => a - b);
+}
+
+// Of a sage's Rhizomata `times`, those their Addersgall `spends` need,
+// as the logs' sages use it only for the heals (141 in 40 kills, against
+// 320 when kept wherever the gauge ran low): earliest first, each dropped
+// where every spend still fits the gauge without its stack.
+export function neededRhizomata(times: number[], spends: number[], pool: ToolPool): number[] {
+  const fits = (bonus: number[]) => !spends.length || fitsPool(spends.slice(1), spends[0], { ...pool, bonus });
+  let kept = [...times].sort((a, b) => a - b);
+  for (const at of [...kept]) {
+    const without = kept.filter((t) => t !== at);
+    if (fits(without)) kept = without;
+  }
+  return kept;
+}
+
+// Of the Rhizomata `tried`, those the plan's Addersgall spends (in
+// `uses`) need (`neededRhizomata`): the others' stacks and slots given back.
+export function keepNeeded(
+  tried: PlannedUse[],
+  uses: PlannedUse[],
+  tools: { player: number; action: number; pool: ToolPool | null }[],
+  bonus: Map<number, number[]>,
+  weaving: Weaving,
+): PlannedUse[] {
+  const kept: PlannedUse[] = [];
+  for (const [sage, list] of bonus) {
+    const mine = tools.filter((t) => t.player === sage && t.pool?.name === 'Addersgall');
+    const pool = mine[0]?.pool;
+    const actions = new Set(mine.map((t) => t.action));
+    const spends = uses.filter((u) => u.player === sage && actions.has(u.action)).map((u) => u.at);
+    const times = pool ? neededRhizomata(list, spends, pool) : list;
+    bonus.set(sage, times);
+    for (const use of tried.filter((u) => u.player === sage)) {
+      if (times.includes(use.at)) kept.push(use);
+      else weaving.release([{ player: sage, at: use.at, gcd: false, castMs: 0 }]);
+    }
+  }
+  return kept;
 }
