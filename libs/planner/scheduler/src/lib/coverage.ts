@@ -57,6 +57,8 @@ export function projected(
   const shields = new Map<string, { hp: number; status: string; at: number }>();
   let invulnerable: MitigationEffect | null = null;
   for (const use of uses) {
+    // One used after the hit lands after it too (`landsAt`).
+    if (use.at > mechanic.at) continue;
     for (const effect of reaches(toolOf(use), use, mechanic, hit)) {
       if (effect.invulnerable) {
         if (!invulnerable?.invulnerable || landsUnder(invulnerable.invulnerable)) invulnerable = effect;

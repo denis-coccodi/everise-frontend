@@ -31,7 +31,8 @@ export function healingBuffsOf(catalog: ActionCatalog, conditional = false): Map
 // schedules (`planned`, "player:action") as it uses them, every other as it
 // was played (Mantra, Nature's Minne, a Neutral Sect).
 export class HealingBuffs {
-  private readonly spans: BuffSpan[] = [];
+  // The spans by player and kind ("player:kind").
+  private readonly spans = new Map<string, BuffSpan[]>();
 
   constructor(
     private readonly byAction: Map<number, HealingBuff[]>,
@@ -44,13 +45,13 @@ export class HealingBuffs {
     for (const aura of timeline.auras) {
       const buff = byStatus.get(aura.status);
       if (!buff || (aura.source !== null && planned.has(`${aura.source}:${buff.action}`))) continue;
-      this.spans.push({ player: aura.target, buff, from: aura.from, to: aura.to });
+      this.push({ player: aura.target, buff, from: aura.from, to: aura.to });
     }
   }
 
   // A planned use's buffs, on whoever they go on.
   add(use: PlannedUse) {
-    this.spans.push(...this.spansOf(use));
+    for (const span of this.spansOf(use)) this.push(span);
   }
 
   // What a spell's healing potency is multiplied by for its caster at `at`:
@@ -61,7 +62,7 @@ export class HealingBuffs {
       player,
       at,
       'potency',
-      uses.flatMap((u) => this.spansOf(u)),
+      uses.flatMap((u) => (this.byAction.has(u.action) ? this.spansOf(u) : [])),
     );
   }
 
@@ -84,13 +85,20 @@ export class HealingBuffs {
 
   private multiplier(player: number, at: number, kind: HealingBuff['kind'], extra: BuffSpan[] = []) {
     const strongest = new Map<string, number>();
-    for (const { buff, ...span } of [...this.spans, ...extra]) {
+    for (const { buff, ...span } of [...(this.spans.get(`${player}:${kind}`) ?? []), ...extra]) {
       if (span.player !== player || buff.kind !== kind || at < span.from || at > span.to) continue;
       strongest.set(buff.status, Math.max(strongest.get(buff.status) ?? 0, buff.share));
     }
     let multiplier = 1;
     for (const share of strongest.values()) multiplier *= 1 + share;
     return multiplier;
+  }
+
+  private push(span: BuffSpan) {
+    const key = `${span.player}:${span.buff.kind}`;
+    const list = this.spans.get(key);
+    if (list) list.push(span);
+    else this.spans.set(key, [span]);
   }
 }
 
