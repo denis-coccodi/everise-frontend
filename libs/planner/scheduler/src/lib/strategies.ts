@@ -19,15 +19,22 @@ export function betterPlan(a: Plan, b: Plan, maxHp: Map<number, number>, options
   return x < y || (x === y && better(a, b, maxHp, options));
 }
 
+// Where nobody dies to a mechanic but hits are left short, the strategies
+// that have mended those on the bench (the party's cooldowns waiting, the
+// healers healing first): the others only moved deaths around.
+const FOR_SHORT_HITS: Strategy[] = [{ partyWaits: true }, { healersHeal: true }];
+
 // The best of the plans `planWith` makes with each strategy (`better`).
-// The others are only tried while players die to a mechanic's hit: they
-// change where the cooldowns go, which deaths to a damage-over-time tick
-// or an auto-attack don't turn on (heals cover those), and each costs a
-// whole plan's time.
+// The others are only tried while players die to a mechanic's hit, or (only
+// `FOR_SHORT_HITS`) while a hit is left short: they change where the
+// cooldowns go, which deaths to a damage-over-time tick or an auto-attack
+// don't turn on (heals cover those), and each costs a whole plan's time.
 export function bestOfStrategies(planWith: (strategy: Strategy) => Plan, better: (a: Plan, b: Plan) => boolean): Plan {
+  const dies = (p: Plan) => !!p.deaths?.some((d) => d.mechanic !== null);
+  const short = (p: Plan) => p.hits.some((h) => !h.safe && !h.avoidable);
   let best = planWith(STRATEGIES[0]);
-  for (const strategy of STRATEGIES.slice(1)) {
-    if (!best.deaths?.some((d) => d.mechanic !== null)) break;
+  for (const strategy of dies(best) ? STRATEGIES.slice(1) : FOR_SHORT_HITS) {
+    if (!dies(best) && !short(best)) break;
     const next = planWith(strategy);
     if (better(next, best)) best = next;
   }
