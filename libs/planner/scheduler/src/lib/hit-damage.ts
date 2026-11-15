@@ -47,10 +47,16 @@ const HEAVY_SHARE = 0.4;
 const HEAVY_FEW_SHARE = 0.5;
 const HEAVY_TARGETS = 4;
 
-// The plan's heavy mechanics (ids): the ones healers top everyone up for.
-export function heavyMechanics(plan: Plan, maxHp: Map<number, number>): Set<number> {
+// How many players each mechanic hits (avoided hits left out).
+function targetsOf(plan: Plan) {
   const targets = new Map<number, number>();
   for (const h of plan.hits) if (!h.avoidable) targets.set(h.mechanic, (targets.get(h.mechanic) ?? 0) + 1);
+  return targets;
+}
+
+// The plan's heavy mechanics (ids): the ones healers top everyone up for.
+export function heavyMechanics(plan: Plan, maxHp: Map<number, number>): Set<number> {
+  const targets = targetsOf(plan);
   const heavy = new Set<number>();
   for (const h of plan.hits) {
     const max = maxHp.get(h.player);
@@ -59,4 +65,11 @@ export function heavyMechanics(plan: Plan, maxHp: Map<number, number>): Set<numb
     if (h.planned + h.absorbed >= share * max) heavy.add(h.mechanic);
   }
   return heavy;
+}
+
+// The heavy raidwides (on 4 players or more): the logs' healers go into
+// them with everyone full and shielded.
+export function heavyRaidwides(plan: Plan, maxHp: Map<number, number>): Set<number> {
+  const targets = targetsOf(plan);
+  return new Set([...heavyMechanics(plan, maxHp)].filter((id) => (targets.get(id) ?? 0) >= HEAVY_TARGETS));
 }

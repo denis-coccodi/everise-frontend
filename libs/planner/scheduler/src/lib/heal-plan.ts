@@ -37,10 +37,10 @@ import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
 import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
-import { heavyMechanics, hitDamage } from './hit-damage';
+import { heavyMechanics, heavyRaidwides, hitDamage } from './hit-damage';
 import { hpBefores, judgedHits } from './judged-hits';
 import { mpShares, refillsBefore, refillWorth } from './heal-refill';
-import { barrierWorth, healOnly, pairedWithBarrier } from './barrier-worth';
+import { barrierFor, barrierWorth, healOnly, pairedWithBarrier } from './barrier-worth';
 
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
@@ -144,6 +144,8 @@ export function planHeals(
   const needOf = (m: Mechanic) => need.get(m.id) ?? 0;
   // What may refill to full before each mechanic.
   const refills = refillsBefore(heavyMechanics(plan, maxHp), options.refillEverywhere);
+  // Which get everyone shielded as well (`unshielded`).
+  const shieldFor = options.noRaidwideShields ? new Set<number>() : heavyRaidwides(plan, maxHp);
 
   // The mitigations up: the plan's, and the heals picked here that also
   // mitigate (Kerachole, Holos, Temperance).
@@ -153,6 +155,7 @@ export function planHeals(
   // they no longer take.
   const mitigate = (use: PlannedUse, tool: MitigationTool) => {
     mitigating.push(use);
+    shielded.clear();
     track.add(autos.add(use));
     for (const m of plan.mechanics) {
       for (const h of m.hits) {
@@ -169,6 +172,14 @@ export function planHeals(
 
   // A GCD shield is weighed with what its barrier saves.
   const barrierOf = barrierWorth(mitigationOf, plan.mechanics, mitigating, toolOfUse, facts);
+  // A hit no shield takes any of yet: its damage, less what `extra`'s barriers would save of it.
+  // Whether one does changes only as something mitigates (`mitigate` forgets it).
+  const shielded = new Map<string, boolean>();
+  const unshielded = (o: Mechanic, hit: MechanicHit, extra: HpEvent[]) => {
+    const id = `${o.id}:${hit.player}`;
+    if (!shielded.has(id)) shielded.set(id, projected(o, hit, mitigating, toolOfUse, facts).absorbed > 0);
+    return shielded.get(id) ? 0 : Math.max(0, damageOf(o, hit) - barrierFor(extra, hit.player, o.at));
+  };
   const mpShare = mpShares(mp);
   // What the healers use anyway: the heals on cooldown, and the lily that would overcap.
   const spareOnes = () => {
@@ -189,7 +200,7 @@ export function planHeals(
       // Healing from after the last mechanic there was time to heal after (`anchors`: not others' checks).
       const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS && anchors(m, o)).at(-1)?.at ?? -1;
       // What those `o` hits lack before it, from the anchor on (none under an invulnerability): to
-      // leave the margin, or (`full`) to land on full HP.
+      // leave the margin, or (`full`) to land on full HP, and shielded before a heavy raidwide.
       const shortOf = (o: Mechanic, full = false) => {
         const checkpoints = o.hits
           .filter((h) => !invulnerable.has(`${o.id}:${h.player}`))
@@ -201,7 +212,8 @@ export function planHeals(
               const max = maxHp.get(c.player) as number;
               const hit = o.hits.find((h) => h.player === c.player) as MechanicHit;
               const need = full ? max : Math.min(max, damageOf(o, hit) + options.margin * max);
-              return [c.player, need + together(o, c.player) - track.before(c, o.at, extra)];
+              const bare = full && shieldFor.has(o.id) ? unshielded(o, hit, extra) : 0;
+              return [c.player, need + together(o, c.player) - track.before(c, o.at, extra) + bare];
             }),
           );
       };
