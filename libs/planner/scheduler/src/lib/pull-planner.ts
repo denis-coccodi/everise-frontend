@@ -27,7 +27,15 @@ import { macrocosmosUses } from './macrocosmos';
 import { burstActions, burstUses, placeLightspeed } from './burst';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
-import { RHIZOMATA, beforeHeavy, rhizomataAhead, rhizomataOf, rhizomataUse, withRhizomata } from './rhizomata';
+import {
+  RHIZOMATA,
+  beforeHeavy,
+  keepNeeded,
+  rhizomataAhead,
+  rhizomataOf,
+  rhizomataUse,
+  withRhizomata,
+} from './rhizomata';
 import { heavyMechanics } from './hit-damage';
 import { ENERGY_DRAIN } from './opener-presets';
 import { castsStopAt, earlyUses, lateStarts, startingAt } from './completion-plan';
@@ -267,7 +275,8 @@ export class PullPlanner {
       weaving.keep(slots);
       const next = once(best);
       if (!better(best, next, maxHp, options)) {
-        [best, rhizomata] = [next, tried];
+        best = next;
+        rhizomata = keepNeeded(tried, best.uses, sageTools, bonus, weaving);
         break;
       }
       bonus.clear();
