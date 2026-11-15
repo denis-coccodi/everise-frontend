@@ -40,7 +40,7 @@ The flow, in `pull-planner.ts`:
 
 **Wipes:** a pull that wiped is completed with the mechanics the party never reached, from the fight's script (`completion-*.ts`). Players are planned from the wipe point on.
 
-**Workers:** planning runs in web workers (`plan.worker.ts`, `plan-pool.service.ts`), so the page stays usable while it plans.
+**Workers:** planning runs in web workers (`plan.worker.ts`, `plan-pool.service.ts`), so the page stays usable while it plans. A bar under the plan button shows how far it has got: each worker reports its plan's share done as it goes (`plan-progress.ts`: the first pass fills 60% of it, the passes tried after it the rest), and the bar shows the plans being made together, the plan with the user's edits and the one without, or the other ways tried while it looks for a better plan.
 
 ## Planning rules
 

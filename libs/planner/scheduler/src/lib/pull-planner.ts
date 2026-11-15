@@ -43,6 +43,7 @@ import { upkeepCasts, withUpkeep } from './completion-upkeep';
 import { mpExtras } from './mp-extras';
 import { withoutRepeatedDots } from './combined-dots';
 import { autoCooldowns, autoTimes } from './tank-autos';
+import { PlanProgress } from './plan-progress';
 
 // Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
@@ -50,12 +51,14 @@ const ROUNDS = 3;
 // Plans a pull: in a worker of its own (`plan.worker.ts`), else for the
 // page itself (`PlannerScheduler`).
 export class PullPlanner {
-  // The plan of the pull made the way `asked` says (`strategy`), else the
-  // best of the ways it can be made (`STRATEGIES`), its deaths then
-  // mended a big cooldown at a time where that saves someone.
-  plan(pull: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
+  private progress = new PlanProgress();
+  // The plan of the pull made the way `asked` says (`strategy`; `report`
+  // hears how far it has got, 0 to 1), else the best of the ways it can be
+  // made (`STRATEGIES`), its deaths then mended a cooldown at a time.
+  plan(pull: PullTimeline, full: ActionCatalog, asked: PlanOptions, report?: (share: number) => void): Plan {
     // Each damage-over-time tick once, as the game dealt it.
     const given = withoutRepeatedDots(pull);
+    this.progress = new PlanProgress(asked.strategy ? report : undefined);
     if (asked.strategy) return this.planWith(given, full, asked);
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     const score = (a: Plan, b: Plan) => betterPlan(a, b, maxHp, asked);
@@ -76,29 +79,27 @@ export class PullPlanner {
   // cooldowns allow. The mitigations are planned first as if every hit
   // landed at full HP; where a hit is still short, again around the lowest
   // HP any round's heals left it, then the heals again, the best plan kept.
-  // Only the players `asked` to replan are planned, with their
-  // edits; the others as they played. GCD heals refill to full only before
-  // the heavy mechanics, as the logs' healers do, and shield everyone for
-  // the heavy raidwides; where that leaves a hit short, everything refills
-  // everywhere, and where that's still short, no shields go up just for the
-  // raidwides, then neither: whichever plan comes out better (fewer deaths
-  // first).
+  // Only the players `asked` to replan are planned, with their edits; the
+  // others as they played. GCD heals refill to full only before the heavy
+  // mechanics, as the logs' healers do, and shield everyone for the heavy
+  // raidwides; where a hit is left short, everything refills everywhere,
+  // then no shields go up just for the raidwides, then neither: the better
+  // plan kept (fewer deaths first).
   private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     const short = (p: Plan) => p.deaths?.length || p.hits.some((h) => !h.safe && !h.avoidable);
-    const deaths = (p: Plan) => p.deaths?.length ?? 0;
     const variants: PlanOptions[] = [
       { ...asked, refillEverywhere: true },
       { ...asked, noRaidwideShields: true },
       { ...asked, refillEverywhere: true, noRaidwideShields: true },
     ];
+    this.progress.begin(1 + variants.length);
     let plan = this.planOnce(given, full, asked);
     if (asked.refillEverywhere || asked.noRaidwideShields) return plan;
     for (const variant of variants) {
       if (!short(plan)) break;
       const next = this.planOnce(given, full, variant);
-      const wins = deaths(next) !== deaths(plan) ? deaths(next) < deaths(plan) : better(next, plan, maxHp, asked);
-      if (wins) plan = next;
+      if (betterPlan(next, plan, maxHp, asked)) plan = next;
     }
     return plan;
   }
@@ -238,8 +239,10 @@ export class PullPlanner {
         mp,
         true,
       );
+      this.progress.stepDone();
       return { ...planned, mpShort: mpShortOf(mp, planned) };
     };
+    this.progress.nextPass(ROUNDS + [scholars, sages, healers].filter((l) => l.length).length);
 
     let best = once();
     // The fairy's heals from the plan's own HP replace hers as played,

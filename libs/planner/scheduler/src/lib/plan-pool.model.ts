@@ -9,5 +9,6 @@ export interface PlanJob {
   options: PlanOptions;
 }
 
-// What it sends back: the plan, or why there's none.
-export type PlanReply = { plan: Plan } | { error: string };
+// What it sends back: how far the plan has got (0 to 1) while it plans,
+// then the plan, or why there's none.
+export type PlanReply = { progress: number } | { plan: Plan } | { error: string };

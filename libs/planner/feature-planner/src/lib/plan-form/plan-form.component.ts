@@ -2,7 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
 import { InputErrorsComponent } from '@everise/core/forms';
 import { MARGIN_RANGE, PlanStore, PlannerStore, deathsText, pullClock, unsafeHits } from '@everise/planner/data-access';
-import { ButtonComponent, FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
+import {
+  ButtonComponent,
+  FieldComponent,
+  InputComponent,
+  MessageComponent,
+  ProgressComponent,
+} from '@everise/ui/components';
 import { PlanExportComponent } from '../plan-export/plan-export.component';
 
 // Planning the pull open, for everyone: the HP margin to keep, who to
@@ -19,6 +25,7 @@ import { PlanExportComponent } from '../plan-export/plan-export.component';
     InputComponent,
     InputErrorsComponent,
     MessageComponent,
+    ProgressComponent,
     PlanExportComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

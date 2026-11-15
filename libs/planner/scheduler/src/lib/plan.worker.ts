@@ -5,6 +5,7 @@ import { PullPlanner } from './pull-planner';
 // A planning worker (`PlanPool`): plans the pull it was last sent, off the
 // page, so the page stays usable while it plans.
 const planner = new PullPlanner();
+const progress = (share: number) => postMessage({ progress: share } satisfies PlanReply);
 let timeline: PullTimeline | null = null;
 let catalog: ActionCatalog | null = null;
 
@@ -14,7 +15,7 @@ addEventListener('message', ({ data }: MessageEvent<PlanJob>) => {
   let reply: PlanReply;
   try {
     if (!timeline || !catalog) throw new Error('No pull to plan.');
-    reply = { plan: planner.plan(timeline, catalog, data.options) };
+    reply = { plan: planner.plan(timeline, catalog, data.options, progress) };
   } catch (e) {
     reply = { error: e instanceof Error ? e.message : String(e) };
   }
