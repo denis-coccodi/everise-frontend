@@ -70,7 +70,7 @@ Use these first:
 - **Controls:** buttons and button links (`cdtButton`), fields (`cdtInput`, `<cdt-field>`), `<cdt-checkbox>`, `<cdt-switch>`, `<cdt-tooltip>`.
 - **Containers:** windows (`<cdt-panel>`), `<cdt-card>`, `<cdt-banner>`, `<cdt-dialog>`, `<cdt-menu>`.
 - **Navigation:** tabs (`cdtTabs`/`cdtTab`), tags (`cdtTag`), `<cdt-pager>`.
-- **Content:** `<cdt-icon>`, `<cdt-avatar>`, `<cdt-message>`, `<cdt-byline>`, `<cdt-duty-card>`.
+- **Content:** `<cdt-icon>`, `<cdt-avatar>`, `<cdt-message>`, `<cdt-progress>`, `<cdt-byline>`, `<cdt-duty-card>`.
 - **Special-purpose:** `<cdt-turnstile>`, `<cdt-image-cropper>`, and others listed in `building-blocks.md`.
 
 Building blocks on native elements (`cdtButton`, `cdtInput`, `cdtTabs`, `cdtTag`, `cdtMenuItem`) are components with attribute selectors, as Angular Material does. They keep native semantics, forms and accessibility, and can still carry their own styles.

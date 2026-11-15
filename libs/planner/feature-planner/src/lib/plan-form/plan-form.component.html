@@ -38,6 +38,13 @@
     }}
   </button>
 </form>
+@if (plans.planning() || plans.improving()) {
+  <cdt-progress
+    class="progress"
+    [value]="plans.progress()"
+    [label]="plans.planning() ? 'Planning' : 'Looking for a better plan'"
+  />
+}
 @if (completionNote(); as note) {
   <cdt-message class="completion">{{ note }}</cdt-message>
 }

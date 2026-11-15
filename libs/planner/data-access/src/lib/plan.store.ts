@@ -1,86 +1,25 @@
 import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import type { InvulnerabilityOptions, OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
-import { STOPPED, STRATEGIES, type ReferencedTimeline, type Strategy } from '@everise/planner/scheduler';
+import type { OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
+import { STOPPED, STRATEGIES, type Strategy } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
-import type { FailedMechanics, PlanPlayer } from './plan.model';
+import { INITIAL_PLAN_STATE, type FailedMechanics, type PlanPlayer, type PlanState } from './plan.model';
 import { refinePlans } from './plan-refine';
+import { progressOf } from './plan-progress';
 import { characterKey, saveReplan, storedReplan } from './plan-replan';
-
-// The HP margin a plan starts with (percent of max HP), and the range a
-// person may set.
-export const DEFAULT_MARGIN = 10;
-export const MARGIN_RANGE = { min: 0, max: 50 };
 
 // Whether two plans have the same uses and hits.
 const samePlan = (a: Plan, b: Plan) => JSON.stringify([a.uses, a.hits]) === JSON.stringify([b.uses, b.hits]);
 
 const LOAD_ERROR = "The planner couldn't be loaded. Check your connection, then try again.";
 
-interface PlanState {
-  // The HP each hit must leave, in percent of max HP.
-  margin: number;
-  // Failed mechanics: covered like any other hit, or taken as avoided.
-  failedMechanics: FailedMechanics;
-  // For the pull open: the players to replan (ids).
-  preparedFor: number | null;
-  players: PlanPlayer[];
-  replan: number[];
-  // A replanned astrologian's other Lightspeed charge, by id: as played
-  // (left out) or planned.
-  lightspeed: Record<number, 'logged' | 'replan'>;
-  // The opener each player starts with, the standard one (left out) or
-  // another (`OPENERS`), by id.
-  openers: Record<number, OpenerId>;
-  invulnerabilityOptions: InvulnerabilityOptions | null;
-  // The user's edits to the pull's plan, the key they're remembered by, and
-  // the hits they leave short that the plan without them doesn't.
-  edits: PlanEdits;
-  editsKey: string;
-  editWarning: string;
-  // The plan without the edits, and the options it was made with, to
-  // compare against (made again only when those change).
-  basePlan: Plan | null;
-  baseKey: string;
-  // The last plan, the pull and timeline it's for, and whether planning again changed nothing.
-  plan: Plan | null;
-  timeline: ReferencedTimeline | null;
-  sameAsBefore: boolean;
-  pullId: number | null;
-  planning: boolean;
-  // Shown, and looking for a better plan made another way (`refinePlans`).
-  improving: boolean;
-  error: string;
-}
-
 // The fight planner's plan for the pull open, and its options: the
 // scheduler runs in the browser, loaded only once the page is idle or a plan
 // is asked for, so it stays out of the page's own bundle. Provided by the
 // tool.
 export const PlanStore = signalStore(
-  withState<PlanState>({
-    margin: DEFAULT_MARGIN,
-    failedMechanics: 'cover',
-    preparedFor: null,
-    players: [],
-    replan: [],
-    lightspeed: {},
-    openers: {},
-    invulnerabilityOptions: null,
-    edits: NO_EDITS,
-    editsKey: '',
-    editWarning: '',
-    basePlan: null,
-    baseKey: '',
-    plan: null,
-    timeline: null,
-    sameAsBefore: false,
-    pullId: null,
-    planning: false,
-    improving: false,
-    error: '',
-  }),
+  withState<PlanState>(INITIAL_PLAN_STATE),
   withProps(() => ({
     _scheduler: injectAsync(() => import('@everise/planner/scheduler').then((m) => m.PlannerScheduler), {
       prefetch: onIdle,
@@ -108,7 +47,15 @@ export const PlanStore = signalStore(
     const run = async (pullId: number, timeline: PullTimeline, catalog: ActionCatalog) => {
       const runId = ++runs;
       const latest = () => runId === runs;
-      patchState(store, { planning: true, improving: false, error: '', editWarning: '', sameAsBefore: false });
+      patchState(store, {
+        planning: true,
+        improving: false,
+        progress: 0,
+        error: '',
+        editWarning: '',
+        sameAsBefore: false,
+      });
+      const progress = progressOf((share) => latest() && patchState(store, { progress: share }));
       try {
         // Planned in workers, off the page; an older run's plans are dropped.
         const pool = await store._pool();
@@ -126,9 +73,11 @@ export const PlanStore = signalStore(
         const planWith = async (strategy: Strategy) => {
           const baseKey = JSON.stringify({ pullId, ...options, strategy });
           const kept = store.baseKey() === baseKey ? store.basePlan() : null;
+          const made = (key: string, own: { edits?: PlanEdits }) =>
+            progress.track(key, (report) => pool.plan(timeline, catalog, { ...options, strategy, ...own }, report));
           const [plan, base] = await Promise.all([
-            pool.plan(timeline, catalog, { ...options, edits, strategy }),
-            edited ? (kept ?? pool.plan(timeline, catalog, { ...options, strategy })) : null,
+            made(baseKey + ':edited', { edits }),
+            edited ? (kept ?? made(baseKey, {})) : null,
           ]);
           const basePlan = base ?? plan;
           return { plan, basePlan, baseKey, editWarning: edited ? editWarningFor(basePlan, plan) : '' };
@@ -139,6 +88,7 @@ export const PlanStore = signalStore(
         const sameAsBefore = !!before && samePlan(before, first.plan);
         const improving = !!first.plan.deaths?.length;
         patchState(store, { ...first, timeline, pullId, planning: false, sameAsBefore, improving });
+        progress.clear();
         const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp ?? 0]));
         await refinePlans(first, planWith, (best) => patchState(store, best), latest, { ...options, maxHp });
         if (!latest()) return;

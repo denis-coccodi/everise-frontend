@@ -73,6 +73,20 @@ describe('PlanPool', () => {
     ]);
   });
 
+  it('passes on how far the worker has got, until the plan comes', async () => {
+    vi.stubGlobal('Worker', FakeWorker);
+    const pool = new PlanPool();
+    const shares: number[] = [];
+
+    const asked = pool.plan(timeline, catalog, options(1), (share) => shares.push(share));
+    FakeWorker.made[0].answer({ progress: 0.3 });
+    FakeWorker.made[0].answer({ progress: 0.6 });
+    FakeWorker.made[0].answer({ plan: planned(1) });
+
+    expect(await asked).toEqual(planned(1));
+    expect(shares).toEqual([0.3, 0.6]);
+  });
+
   it('fails a plan with the reason the worker gives', async () => {
     vi.stubGlobal('Worker', FakeWorker);
     const pool = new PlanPool();

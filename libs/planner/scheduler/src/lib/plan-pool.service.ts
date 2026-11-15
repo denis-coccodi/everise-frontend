@@ -20,6 +20,7 @@ interface Asked {
   options: PlanOptions;
   done: (plan: Plan) => void;
   failed: (reason: unknown) => void;
+  progress?: (share: number) => void;
 }
 
 // A worker (none where the browser has none: the page plans), the pull and
@@ -50,10 +51,11 @@ export class PlanPool {
     this.slots = Array.from({ length: size }, () => ({ worker: null, holds: '', busy: null }));
   }
 
-  // The plan of the pull made as `options` say, once a worker is free.
-  plan(timeline: PullTimeline, catalog: ActionCatalog, options: PlanOptions) {
+  // The plan of the pull made as `options` say, once a worker is free;
+  // `progress` hears how far a worker has got with it (0 to 1).
+  plan(timeline: PullTimeline, catalog: ActionCatalog, options: PlanOptions, progress?: (share: number) => void) {
     return new Promise<Plan>((done, failed) => {
-      this.queue.push({ timeline, catalog, options, done, failed });
+      this.queue.push({ timeline, catalog, options, done, failed, progress });
       this.next();
     });
   }
@@ -94,6 +96,7 @@ export class PlanPool {
   private started(slot: Slot) {
     const worker = new Worker(new URL('./plan.worker', import.meta.url), { type: 'module' });
     worker.onmessage = ({ data }: MessageEvent<PlanReply>) => {
+      if ('progress' in data) return slot.busy?.progress?.(data.progress);
       const asked = this.finish(slot);
       if ('plan' in data) asked?.done(data.plan);
       else asked?.failed(new Error(data.error));
@@ -114,7 +117,7 @@ export class PlanPool {
       // Stopped meanwhile.
       if (slot.busy !== asked) return;
       try {
-        const plan = this.local.plan(asked.timeline, asked.catalog, asked.options);
+        const plan = this.local.plan(asked.timeline, asked.catalog, asked.options, asked.progress);
         this.finish(slot);
         asked.done(plan);
       } catch (e) {

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { watchState } from '@ngrx/signals';
 import { actionCatalog, pullTimeline } from './planner-fixtures';
 import { PlanStore } from './plan.store';
 
@@ -16,6 +17,20 @@ describe('PlanStore', { timeout: 20_000 }, () => {
     expect(store.sameAsBefore()).toBe(false);
     await store.run(1, timeline, catalog);
     expect(store.sameAsBefore()).toBe(true);
+  });
+  it('says how far planning has got, from nothing to done, never going back', async () => {
+    const store = setup();
+    const shares: number[] = [];
+    TestBed.runInInjectionContext(() =>
+      watchState(store, ({ progress, planning }) => planning && shares.push(progress)),
+    );
+
+    await store.run(1, pullTimeline(), actionCatalog());
+
+    expect(shares[0]).toBe(0);
+    expect(shares.at(-1)).toBe(1);
+    expect(shares).toEqual([...shares].sort((a, b) => a - b));
+    expect(store.planning()).toBe(false);
   });
   it('keeps the timeline it planned, a completed wipe or as logged, for the view to show', async () => {
     const store = setup();
