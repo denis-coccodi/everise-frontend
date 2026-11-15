@@ -88,7 +88,7 @@ export function planHeals(
   const boosts = new HealingBuffs(buffs, party, timeline, scheduled);
   for (const use of plan.uses) boosts.add(use);
   // A GCD shield grows with its caster's healing potency buffs. The autos take the plan's mitigations and shields.
-  const facts = pullFacts(plan.mechanics, maxHp, (use) => boosts.potencyAt(use.player, use.at, []));
+  const facts = pullFacts(plan.mechanics, maxHp, (use) => boosts.potencyAt(use.player, use.at, []) * (use.boost ?? 1));
   const guards = guardsOf(plan.uses, (u) => mitigationOf.get(key(u)));
   const autos = new AutoDamage(timeline, plan.uses, (u) => mitigationOf.get(key(u)), facts);
   const dealt = autos.amountOf;
@@ -263,6 +263,7 @@ export function planHeals(
           uses.push(pick.use);
           boosts.add(pick.use);
           // A shield Emergency Tactics turns into healing goes up as none.
+          if (pick.paired?.pairing.shields) pick.use.boost = pick.paired.pairing.times;
           const mitigates = mitigationOf.get(key(pick.use));
           if (mitigates && !pick.paired?.pairing.converts) mitigate(pick.use, mitigates);
           if (pick.paired) {

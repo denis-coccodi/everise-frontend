@@ -20,6 +20,7 @@ describe('pairingsFor', () => {
     onTarget: false,
     own: false,
     converts: false,
+    shields: false,
     bond: 0,
   };
   const pneuma = { player: 2, action: 24318, gcd: true, castMs: 1500, effects: [] } as unknown as HealTool;
@@ -157,6 +158,7 @@ describe('pairingsFor in a window already up', () => {
     onTarget: false,
     own: false,
     converts: false,
+    shields: false,
     bond: 0,
   };
   const helios = {
@@ -192,5 +194,33 @@ describe('pairingsFor in a window already up', () => {
     expect(paired.use).toMatchObject({ action: 16559, at: 10_000 });
     expect(paired.events.map((e) => e.amount)).toEqual([10_000, 10_000]);
     expect(paired.barrier?.tool.effects[0].shield).toEqual({ hp: 12_500 });
+  });
+
+  it('gives that barrier to the heal with Horoscope too: one Helios sets off both', () => {
+    const horoscope: HealPairing = {
+      ...sect,
+      action: 16557,
+      name: 'Horoscope',
+      group: '2:horoscope',
+      recastMs: 60_000,
+      withinMs: 30_000,
+      times: 1,
+      barriers: {},
+    };
+
+    const found = pairingsFor(
+      [sect, horoscope],
+      helios,
+      cast(15_000),
+      healed(15_000),
+      [],
+      (group) => (group === '2:sect' ? [10_000] : []),
+      new Weaving(),
+      new Map(),
+    );
+    const withHoroscope = found.find((p) => p.pairing.name === 'Horoscope');
+
+    expect(withHoroscope?.open).toBeFalsy();
+    expect(withHoroscope?.barrier?.tool.effects[0].shield).toEqual({ hp: 12_500 });
   });
 });

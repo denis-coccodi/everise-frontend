@@ -30,6 +30,8 @@ export function pairingsFor(
   const lands = Math.min(...events.map((e) => e.at));
   const reached = [...new Set(events.filter((e) => e.at === lands).map((e) => e.player))];
   const found: Paired[] = [];
+  // A barrier the heal leaves anyway, in a window already up (Neutral Sect).
+  let upBarrier: Paired['barrier'] = null;
   for (const pairing of pairings) {
     if (pairing.player !== use.player || !pairing.heals.includes(use.action)) continue;
     // In the window of one already up (Neutral Sect, for Sun Sign or an
@@ -47,6 +49,7 @@ export function pairingsFor(
         events.filter((e) => e.at === lands),
       );
       if (barrier) found.push({ use: open, pairing, events, barrier, open: true });
+      upBarrier = barrier;
       continue;
     }
     const at = weaving.ogcdBefore(use.player, use.at - 1, use.at - pairing.withinMs + tool.castMs, around);
@@ -97,7 +100,9 @@ export function pairingsFor(
       ),
     });
   }
-  return found;
+  // With another pairing (Horoscope before the Helios that also takes Neutral
+  // Sect's barrier) the barrier comes too: one Helios sets off both.
+  return upBarrier ? found.map((p) => (p.barrier || p.open ? p : { ...p, barrier: upBarrier })) : found;
 }
 
 // How long a pairing's barrier lasts.

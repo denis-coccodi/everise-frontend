@@ -83,6 +83,7 @@ export function mostEndangered(
     const share = project(m, hit, uses).damage / hpOf(m, hit);
     if (t && ON_OTHERS.has(t.action) && hit.player === t.player) continue;
     if (t?.action === NASCENT_FLASH && m.kind === 'raidwide' && !needed) continue;
+    if (t?.onlyOn && !t.onlyOn.includes(hit.player) && !needed) continue;
     if (!worst || share > worst.share) worst = { player: hit.player, share };
   }
   return worst?.player ?? null;

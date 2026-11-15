@@ -31,14 +31,15 @@ export function barrierWorth(
         const saved = without - projected(m, h, [...mitigating, use], toolOf, facts).damage;
         if (saved <= 0) continue;
         // Just before the hit, where the HP it must land on is judged.
-        const event = { at: m.at - 1, player: h.player, amount: saved };
-        BARRIER.add(event);
-        events.push(event);
+        events.push(asBarrier({ at: m.at - 1, player: h.player, amount: saved }));
       }
     }
     return events;
   };
 }
+
+// An event marked as a barrier's weighing one.
+export const asBarrier = (event: HpEvent) => (BARRIER.add(event), event);
 
 // What the barriers among `events` save `player` of the hit at `at`.
 export function barrierFor(events: HpEvent[], player: number, at: number) {
@@ -59,8 +60,12 @@ export function pairedWithBarrier<T extends { pairing: HealPairing; events: HpEv
   pair: (healing: HpEvent[]) => T[],
 ): T[] {
   const barrier = events.filter((e) => BARRIER.has(e));
+  // Bigger with a pairing that makes the shield bigger (Zoe).
+  const times = (n: number) => barrier.map((e) => (n === 1 ? e : asBarrier({ ...e, amount: e.amount * n })));
   return pair(healOnly(events)).map((p) =>
-    p.pairing.converts || !barrier.length ? p : { ...p, events: [...p.events, ...barrier] },
+    p.pairing.converts || !barrier.length
+      ? p
+      : { ...p, events: [...p.events, ...times(p.pairing.shields ? p.pairing.times : 1)] },
   );
 }
 

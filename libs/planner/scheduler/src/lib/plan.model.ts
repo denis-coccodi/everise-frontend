@@ -83,6 +83,8 @@ export interface MitigationTool {
   // Its effects as a critical heal (Adloquium after Recitation: a bigger
   // Galvanize, and Catalyze), and Deployment Tactics spreading that.
   whenCritical?: MitigationEffect[];
+  // The members it goes on unless needed (`mostEndangered`): the tanks, for Celestial Intersection.
+  onlyOn?: number[];
   // A tank's Limit Break: kept where the group used it, never planned.
   limitBreak?: true;
 }
@@ -156,6 +158,7 @@ export interface HealTool {
   delayed: DelayedHeal | null;
   // Who has the sage's Kardion as played, by span (Soteria's, Kardia's).
   kardion?: { from: number; to: number; player: number }[];
+  onlyOn?: number[]; // As a mitigation tool's.
 }
 
 // What a heal costs, as the healers' guides rank them: nothing (an oGCD,
@@ -189,6 +192,8 @@ export interface HealPairing {
   own: boolean;
   // The heal's shield heals instead (Emergency Tactics): none goes up.
   converts: boolean;
+  // `times` makes its shield bigger too (Zoe: the healing buffs leave it out).
+  shields: boolean;
   // The share of each such heal meanwhile another member gets (Synastry's).
   bond: number;
   extra: ShieldSize | null;
@@ -258,6 +263,8 @@ export interface PlannedUse {
   damage?: boolean;
   // A heal Recitation makes critical, or Deployment Tactics spreading one.
   critical?: boolean;
+  // What a pairing multiplies its shield by (Zoe's 50%).
+  boost?: number;
   // A lily spent because the lilies are full (favouring damage), so none
   // goes to waste and the Blood Lily charges the next Misery.
   overcap?: boolean;

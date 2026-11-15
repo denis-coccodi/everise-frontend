@@ -80,6 +80,13 @@ describe('mostEndangered', () => {
     const targeted = mechanic(5, 40_000, 'targeted', [[3, 50_000]]);
     expect(mostEndangered(targeted, [], project, hp, nascent)).toBe(3);
   });
+
+  it('keeps Celestial Intersection on the tanks, someone else only where they need it', () => {
+    const intersection = { ...tool('self', 30), player: 2, action: 16556, name: 'Celestial Intersection', onlyOn: [1] };
+
+    expect(mostEndangered(raidwide, [], project, hp, intersection)).toBe(1);
+    expect(mostEndangered(raidwide, [], project, hp, intersection, true)).toBe(3);
+  });
 });
 
 describe('reachMs', () => {
