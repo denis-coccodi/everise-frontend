@@ -50,6 +50,7 @@ const mechanic = (at: number): Mechanic => ({
 const facts: PullFacts = {
   maxHp: new Map([[2, 200_000]]),
   hitsBetween: (_player, from, to) => [10_000, 12_000].filter((at) => at >= from && at < to).length,
+  walkingDeadEnd: (_player, from) => from,
   shieldTimes: () => 1,
 };
 const project = (at: number, tools: MitigationTool[], uses: PlannedUse[]) => {
@@ -205,6 +206,20 @@ describe('projected under an invulnerability', () => {
       invulnerable: true,
     });
     expect(project(30_000, tools, [use('Hallowed Ground', 5_000)]).invulnerable).toBe(false);
+  });
+
+  it("keeps Living Dead's user alive past its 10s, to the end of the Walking Dead it set off", () => {
+    const livingDead = tool('Living Dead', { target: 'self', durationMs: 10_000, invulnerable: 'walkingDead' });
+    const cast = { ...use('Living Dead', 5_000), player: 2 };
+    // Its first hit at 10s sets off Walking Dead, to 20s.
+    const until = { ...facts, walkingDeadEnd: (_player: number, from: number) => (from <= 10_000 ? 20_000 : from) };
+    const at = (ms: number) => {
+      const m = mechanic(ms);
+      return projected(m, m.hits[0], [cast], () => livingDead, until).invulnerable;
+    };
+
+    expect(at(17_000)).toBe(true);
+    expect(at(21_000)).toBe(false);
   });
 });
 

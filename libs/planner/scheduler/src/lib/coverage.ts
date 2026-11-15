@@ -12,6 +12,7 @@ import {
 } from './plan.model';
 import type { PullFacts } from './coverage.model';
 import { FIRST_STAYS } from './tools';
+import { WALKING_DEAD_MS } from './walking-dead';
 
 // What a hit the fight doesn't let kill shows among what was up for it.
 export const LEAVES_ONE_HP = 'Leaves 1 HP';
@@ -59,7 +60,10 @@ export function projected(
   for (const use of uses) {
     // One used after the hit lands after it too (`landsAt`).
     if (use.at > mechanic.at) continue;
-    for (const effect of reaches(toolOf(use), use, mechanic, hit)) {
+    for (const effect of [
+      ...reaches(toolOf(use), use, mechanic, hit),
+      ...stillUndead(toolOf(use), use, mechanic, hit, facts),
+    ]) {
       if (effect.invulnerable) {
         if (!invulnerable?.invulnerable || landsUnder(invulnerable.invulnerable)) invulnerable = effect;
       } else if (effect.shield) {
@@ -101,6 +105,20 @@ export function projected(
   };
 }
 
+// Living Dead's invulnerability on a hit after its own 10s, while the
+// Walking Dead it set off still keeps its user alive (`walkingDeadEnd`): in
+// the game, Walking Dead and the Undead Rebirth that healing it makes do.
+function stillUndead(tool: MitigationTool, use: PlannedUse, mechanic: Mechanic, hit: MechanicHit, facts: PullFacts) {
+  const from = landsAt(tool, use);
+  return tool.effects.filter(
+    (e) =>
+      e.invulnerable === 'walkingDead' &&
+      hit.player === use.player &&
+      mechanic.at > from + e.durationMs + SNAPSHOT_MS &&
+      mechanic.at <= facts.walkingDeadEnd(use.player, from),
+  );
+}
+
 // Whether hits land under an invulnerability, only kept from taking the
 // last HP (Holmgang, Living Dead).
 export function landsUnder(invulnerability: Invulnerability) {
@@ -124,12 +142,20 @@ export function pullFacts(
   shieldTimes: PullFacts['shieldTimes'] = () => 1,
 ): PullFacts {
   const times = new Map<number, number[]>();
+  // The hits that can set off Walking Dead (`walkingDeads`): not avoided.
+  const taken = new Map<number, number[]>();
   for (const m of mechanics) {
     for (const hit of m.hits) times.set(hit.player, [...(times.get(hit.player) ?? []), m.at]);
+    for (const hit of m.hits.filter((h) => !h.avoidable))
+      taken.set(hit.player, [...(taken.get(hit.player) ?? []), m.at]);
   }
   return {
     maxHp,
     hitsBetween: (player, from, to) => (times.get(player) ?? []).filter((at) => at >= from && at < to).length,
+    walkingDeadEnd: (player, from) => {
+      const first = (taken.get(player) ?? []).filter((at) => at >= from).sort((a, b) => a - b)[0];
+      return first === undefined ? from : first + WALKING_DEAD_MS;
+    },
     shieldTimes,
   };
 }
