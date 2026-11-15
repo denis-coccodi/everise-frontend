@@ -3,6 +3,10 @@ import { EUKRASIA, EUKRASIA_MS } from './tools';
 import type { GcdCast, Occupied } from './weaving.model';
 import { landedGcds, rhythmFrom, rhythmOf, withRhythm } from './weaving-rhythm';
 import { RELEASED } from './heal-tools';
+import { withoutFollowUps } from './weaving-follow-ups';
+import { near, nearSorted } from './weaving-near';
+
+export { withoutFollowUps };
 
 // An oGCD locks its user out of other actions this long: 0.5s, and the
 // round trip to the server. Two fit after an instant GCD of 2.5s, one after
@@ -22,8 +26,6 @@ const LIGHTSPEED_CUT_MS = 2_500;
 const EUKRASIA_SLACK_MS = 500;
 // A GCD this much later than the player's rhythm came late.
 const LATE_SLACK_MS = 200;
-// A GCD's follow-up shows in the log this soon after it, under its name.
-const FOLLOW_UP_MS = 1_500;
 
 // A stretch of a player's time an action takes.
 interface Busy {
@@ -50,6 +52,8 @@ export class Weaving {
   private readonly fixed = new Map<number, Occupied[]>();
   // Each player's usual GCD, as played.
   private readonly rhythm = new Map<number, number>();
+  // Each player's GCDs as played by when they start (the first at each).
+  private readonly byAt = new Map<number, Map<number, GcdCast>>();
 
   // Players' casts, the GCDs among their actions, and which the plan
   // schedules; with none, everyone acts freely. `castOf` gives each
@@ -99,7 +103,14 @@ export class Weaving {
       const rhythm = rhythmOf(list);
       this.rhythm.set(player, rhythm.every);
       const free = freeFrom.get(player);
-      this.gcds.set(player, [...withRhythm(list, downtime, died), ...rhythmFrom(list, rhythm, free, endsAt, downtime)]);
+      const all = [...withRhythm(list, downtime, died), ...rhythmFrom(list, rhythm, free, endsAt, downtime)];
+      this.gcds.set(
+        player,
+        all.sort((a, b) => a.at - b.at),
+      );
+      const byAt = new Map<number, GcdCast>();
+      for (const g of all) if (!byAt.has(g.at)) byAt.set(g.at, g);
+      this.byAt.set(player, byAt);
     }
     for (const [player, times] of this.kept) {
       const gcds = (this.gcds.get(player) ?? []).map((g) => g.at).sort((a, b) => a - b);
@@ -168,7 +179,7 @@ export class Weaving {
   // How long a GCD of this cast takes at one of the player's GCDs: none
   // where theirs was instant by a buff.
   castAt(player: number, at: number, castMs: number) {
-    return this.gcds.get(player)?.find((g) => g.at === at)?.instant ? 0 : castMs;
+    return this.byAt.get(player)?.get(at)?.instant ? 0 : castMs;
   }
 
   // When the player's GCDs as played start, from `from` to `to`.
@@ -185,7 +196,7 @@ export class Weaving {
   // The latest moment from `from` to `at` the player can use an oGCD;
   // null when there's none.
   ogcdBefore(player: number, at: number, from: number, occupied: Occupied[]) {
-    const busy = this.all(player, this.with(player, occupied));
+    const busy = this.all(player, this.with(player, occupied), from, at);
     const candidates = [at, ...busy.map((b) => b.from - WEAVE_MS), ...busy.map((b) => b.to)];
     return pick(
       candidates.filter((t) => t >= from && t <= at).sort((a, b) => b - a),
@@ -197,7 +208,7 @@ export class Weaving {
   // The earliest moment from `at` to `to` the player can use an oGCD; null
   // when there's none.
   ogcdAfter(player: number, at: number, to: number, occupied: Occupied[]) {
-    const busy = this.all(player, this.with(player, occupied));
+    const busy = this.all(player, this.with(player, occupied), at, to);
     const candidates = [at, ...busy.map((b) => b.to)];
     return pick(
       candidates.filter((t) => t >= at && t <= to).sort((a, b) => a - b),
@@ -217,6 +228,7 @@ export class Weaving {
       (t) => t >= from && t <= at,
       (a, b) => b - a,
       at,
+      [from, at],
     );
   }
 
@@ -228,6 +240,7 @@ export class Weaving {
       (t) => t >= at && t <= to,
       (a, b) => a - b,
       at,
+      [at, to],
     );
   }
 
@@ -238,19 +251,22 @@ export class Weaving {
     within: (t: number) => boolean,
     order: (a: number, b: number) => number,
     at: number,
+    [lo, hi]: [number, number],
   ) {
     const lock = (t: number) => Math.max(this.castAt(player, t, castMs), INSTANT_LOCK_MS);
-    const { ogcds } = this.busy(player, occupied);
+    occupied = near(occupied, lo, hi);
+    const { ogcds } = this.busy(player, occupied, lo, hi);
     const clear = (t: number) => !ogcds.some((b) => b.from < t + lock(t) && b.to > t);
     const free = this.freeFrom.get(player);
-    const played = this.gcds.get(player) ?? [];
+    const everyGcd = this.gcds.get(player) ?? [];
+    const played = nearSorted(this.gcds.get(player) ?? [], lo, hi);
     const taken = new Set(occupied.filter((o) => o.gcd).map((o) => o.at));
     const theirs = played
       .filter((g) => !g.landed && (free === undefined || g.at < free || g.filled))
       .map((g) => g.at)
       .filter((t) => within(t) && !taken.has(t) && clear(t));
     // In the countdown, they're free to act: a GCD from their others.
-    if (played.length && free === undefined && at >= 0) return theirs.sort(order)[0] ?? null;
+    if (everyGcd.length && free === undefined && at >= 0) return theirs.sort(order)[0] ?? null;
     const gcds = [...occupied.filter((o) => o.gcd).map((o) => o.at), ...played.map((g) => g.at)];
     const apart = (t: number) => gcds.every((g) => Math.abs(g - t) >= GCD_MS);
     // Where asked, a GCD from the others, or just after or before an oGCD.
@@ -259,7 +275,7 @@ export class Weaving {
       ...gcds.flatMap((g) => [g - GCD_MS, g + GCD_MS]),
       ...ogcds.flatMap((b) => [b.to, b.from - Math.max(castMs, INSTANT_LOCK_MS)]),
     ];
-    const countdown = (t: number) => t < 0 || !played.length || free !== undefined;
+    const countdown = (t: number) => t < 0 || !everyGcd.length || free !== undefined;
     const freely = candidates.filter(
       (t) => within(t) && apart(t) && clear(t) && t >= (free ?? -Infinity) && countdown(t),
     );
@@ -268,20 +284,20 @@ export class Weaving {
 
   // What already takes the player's time: their GCDs (the plan's in place
   // of theirs) to the end of the cast bar or lock, and the oGCDs kept and
-  // planned.
-  private busy(player: number, occupied: Occupied[]): { gcds: Busy[]; ogcds: Busy[] } {
+  // planned: those near `lo` to `hi`.
+  private busy(player: number, occupied: Occupied[], lo: number, hi: number): { gcds: Busy[]; ogcds: Busy[] } {
+    occupied = near(occupied, lo, hi);
     const planned = new Map(occupied.filter((o) => o.gcd).map((o) => [o.at, o.castMs]));
-    const played = this.gcds.get(player) ?? [];
+    const played = nearSorted(this.gcds.get(player) ?? [], lo, hi);
+    const playedAt = new Set(played.map((g) => g.at));
     const gcds = [
       ...played.map((g) => {
         const mine = planned.get(g.at);
         return { at: g.at, castMs: mine === undefined ? g.castMs : g.instant ? 0 : mine, landed: g.landed };
       }),
-      ...[...planned]
-        .filter(([at]) => !played.some((g) => g.at === at))
-        .map(([at, castMs]) => ({ at, castMs, landed: false })),
+      ...[...planned].filter(([at]) => !playedAt.has(at)).map(([at, castMs]) => ({ at, castMs, landed: false })),
     ];
-    const kept = this.keptBusy.get(player) ?? [];
+    const kept = near(this.keptBusy.get(player) ?? [], lo, hi, (b) => b.from);
     const ogcds = [...kept, ...occupied.filter((o) => !o.gcd).map((o) => ({ from: o.at, to: o.at + WEAVE_MS }))];
     // A GCD that came late leaves no more weave room than one on time: the
     // rest is the player being slow, not free time (an oGCD always comes
@@ -310,26 +326,10 @@ export class Weaving {
     return [...(this.fixed.get(player) ?? []), ...occupied];
   }
 
-  private all(player: number, occupied: Occupied[]) {
-    const { gcds, ogcds } = this.busy(player, occupied);
+  private all(player: number, occupied: Occupied[], lo: number, hi: number) {
+    const { gcds, ogcds } = this.busy(player, occupied, lo, hi);
     return [...gcds, ...ogcds];
   }
-}
-
-// A player's casts without the follow-ups the log has of a GCD: a non-GCD
-// of the same name, by its own id, soon after (Pneuma's heal, Star Prism's,
-// Technical Finish's). Nobody pressed them, so they take no weave slot.
-export function withoutFollowUps(casts: PullTimeline['playerCasts'], catalog: ActionCatalog) {
-  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-  const lastGcd = new Map<number, { at: number; name: string }>();
-  return [...casts]
-    .sort((a, b) => a.at - b.at)
-    .filter((cast) => {
-      const action = byId.get(cast.action);
-      if (action?.gcd) lastGcd.set(cast.source, { at: cast.at, name: action.name });
-      const last = lastGcd.get(cast.source);
-      return !(action && !action.gcd && last?.name === action.name && cast.at - last.at <= FOLLOW_UP_MS);
-    });
 }
 
 // The first of `candidates` where an action this long overlaps nothing busy.
