@@ -37,4 +37,29 @@ describe('bestOfStrategies', () => {
     expect(tried).toEqual(STRATEGIES.slice(0, 3));
     expect(best.scheduled).toEqual(['#2']);
   });
+
+  it('tries the party waiting, then the healers healing, while a hit is left short, though nobody dies', () => {
+    const short = { ...plan(0, 'plain'), hits: [{ safe: false, avoidable: false } as never] };
+    const tried: Strategy[] = [];
+    bestOfStrategies(
+      (s) => (tried.push(s), short),
+      () => false,
+    );
+
+    expect(tried).toEqual([STRATEGIES[0], { partyWaits: true }, { healersHeal: true }]);
+  });
+
+  it('stops at the first plan that leaves no hit short', () => {
+    // The plain plan leaves a hit short, the next none: it's kept.
+    const short = { ...plan(0, 'plain'), hits: [{ safe: false, avoidable: false } as never] };
+    const tried: Strategy[] = [];
+    const leftShort = (p: Plan) => p.hits.filter((h) => !h.safe).length;
+    const best = bestOfStrategies(
+      (s) => (tried.push(s), tried.length === 1 ? short : plan(0, 'next')),
+      (a, b) => leftShort(a) < leftShort(b),
+    );
+
+    expect(tried).toEqual(STRATEGIES.slice(0, 2));
+    expect(best.scheduled).toEqual(['next']);
+  });
 });
