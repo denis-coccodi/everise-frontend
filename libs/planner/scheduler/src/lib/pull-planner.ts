@@ -2,7 +2,8 @@ import { withDeaths } from './plan-deaths';
 import { atLowestHp, better } from './plan-score';
 import { bestOfStrategies, betterPlan } from './strategies';
 import type { Strategy } from './strategy.model';
-import { repairDeaths } from './death-repair';
+import { REPAIR_TRIES, repairDeaths } from './death-repair';
+import { planVariants } from './plan-variants';
 import { MpModel } from './mp';
 import { aliveIn, mpShortOf } from './mp-short';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
@@ -53,24 +54,35 @@ const ROUNDS = 3;
 export class PullPlanner {
   private progress = new PlanProgress();
   // The plan of the pull made the way `asked` says (`strategy`; `report`
-  // hears how far it has got, 0 to 1), else the best of the ways it can be
-  // made (`STRATEGIES`), its deaths then mended a cooldown at a time.
+  // hears how far it has got, 0 to 1), its deaths mended only if asked
+  // (`repairDeaths`); else the best of the ways it can be made
+  // (`STRATEGIES`), its deaths then mended a cooldown at a time.
   plan(pull: PullTimeline, full: ActionCatalog, asked: PlanOptions, report?: (share: number) => void): Plan {
     // Each damage-over-time tick once, as the game dealt it.
     const given = withoutRepeatedDots(pull);
-    this.progress = new PlanProgress(asked.strategy ? report : undefined);
-    if (asked.strategy) return this.planWith(given, full, asked);
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     const score = (a: Plan, b: Plan) => betterPlan(a, b, maxHp, asked);
+    // The bar: the plan, then each replan for a death, an equal part of it.
+    const parts = asked.repairDeaths ? 1 + REPAIR_TRIES : 1;
+    let part = 0;
+    const nextPart = (i = part++) =>
+      (this.progress = new PlanProgress(asked.strategy && report ? (s) => report((i + s) / parts) : undefined));
+    nextPart();
     const ways = new WeakMap<Plan, Strategy>();
-    const best = bestOfStrategies((strategy) => {
-      const plan = this.planWith(given, full, { ...asked, strategy });
-      ways.set(plan, strategy);
-      return plan;
-    }, score);
+    const best = asked.strategy
+      ? this.planWith(given, full, asked)
+      : bestOfStrategies((strategy) => {
+          const plan = this.planWith(given, full, { ...asked, strategy });
+          ways.set(plan, strategy);
+          return plan;
+        }, score);
+    if (asked.strategy && !asked.repairDeaths) return best;
     const recasts = new Map(full.actions.map((a) => [a.id, a.recastMs]));
-    const strategy = ways.get(best) ?? {};
-    const replanWith = (holds: PlanOptions['holds']) => this.planWith(given, full, { ...asked, strategy, holds });
+    const strategy = asked.strategy ?? ways.get(best) ?? {};
+    const replanWith = (holds: PlanOptions['holds']) => {
+      nextPart();
+      return this.planWith(given, full, { ...asked, strategy, holds });
+    };
     return repairDeaths(best, replanWith, (action) => recasts.get(action) ?? 0, score);
   }
 
@@ -80,28 +92,16 @@ export class PullPlanner {
   // landed at full HP; where a hit is still short, again around the lowest
   // HP any round's heals left it, then the heals again, the best plan kept.
   // Only the players `asked` to replan are planned, with their edits; the
-  // others as they played. GCD heals refill to full only before the heavy
-  // mechanics, as the logs' healers do, and shield everyone for the heavy
-  // raidwides; where a hit is left short, everything refills everywhere,
-  // then no shields go up just for the raidwides, then neither: the better
-  // plan kept (fewer deaths first).
+  // others as they played. Tried again other ways where that leaves a hit
+  // short (`planVariants`).
   private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
-    const short = (p: Plan) => p.deaths?.length || p.hits.some((h) => !h.safe && !h.avoidable);
-    const variants: PlanOptions[] = [
-      { ...asked, refillEverywhere: true },
-      { ...asked, noRaidwideShields: true },
-      { ...asked, refillEverywhere: true, noRaidwideShields: true },
-    ];
-    this.progress.begin(1 + variants.length);
-    let plan = this.planOnce(given, full, asked);
-    if (asked.refillEverywhere || asked.noRaidwideShields) return plan;
-    for (const variant of variants) {
-      if (!short(plan)) break;
-      const next = this.planOnce(given, full, variant);
-      if (betterPlan(next, plan, maxHp, asked)) plan = next;
-    }
-    return plan;
+    return planVariants(
+      asked,
+      (options) => this.planOnce(given, full, options),
+      (a, b) => betterPlan(a, b, maxHp, asked),
+      (passes) => this.progress.begin(passes),
+    );
   }
 
   private planOnce(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {

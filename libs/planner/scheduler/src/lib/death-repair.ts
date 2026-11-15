@@ -8,7 +8,7 @@ const BIG_RECAST_MS = 60_000;
 // 10 to 20s): it stays.
 const COVERS_MS = 15_000;
 // Plans tried at most, so a pull with deaths takes a few plans' time more.
-const TRIES = 6;
+export const REPAIR_TRIES = 6;
 
 // The plan with its deaths repaired where moving one big cooldown saves
 // someone: a use spent shortly before a death, still recasting when it
@@ -26,11 +26,11 @@ export function repairDeaths(
   let best = plan;
   let holds: Hold[] = [];
   const tried = new Set<string>();
-  for (let tries = 0; best.deaths?.length && tries < TRIES;) {
+  for (let tries = 0; best.deaths?.length && tries < REPAIR_TRIES;) {
     const next = heldFor(best, recastOf).filter((h) => !tried.has(holdKey(h)));
     if (!next.length) break;
     let kept = false;
-    for (const hold of next.slice(0, TRIES - tries)) {
+    for (const hold of next.slice(0, REPAIR_TRIES - tries)) {
       tried.add(holdKey(hold));
       tries++;
       const replanned = replanWith([...holds, hold]);
