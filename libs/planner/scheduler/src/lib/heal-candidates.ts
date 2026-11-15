@@ -125,7 +125,9 @@ export function best(
   // Kardion holder, Kardia moved to anyone else.
   const holder = tool.kardion?.find((s) => s.from <= m.at && m.at < s.to)?.player;
   if (tool.kardion && holder === undefined) return null;
-  const others = [...short].filter(([p]) => tool.action !== KARDIA || p !== holder);
+  const others = [...short].filter(
+    ([p]) => (tool.action !== KARDIA || p !== holder) && (!tool.onlyOn || tool.onlyOn.includes(p)),
+  );
   if (!others.length) return null;
   const target =
     tool.action === SOTERIA

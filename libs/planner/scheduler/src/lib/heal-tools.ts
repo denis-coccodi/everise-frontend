@@ -7,6 +7,7 @@ import {
   FEY_UNION_TICKS,
   GRANTED,
   POOLS,
+  TANK_SHIELDS,
   castMsOf,
   criticalTimes,
   playerActions,
@@ -27,6 +28,14 @@ const NEUTRAL_GCDS = new Set([16531, 16534, 24318]);
 // The ones played are Afflatus Solace and Rapture, Medica III, Regen,
 // Aspected Benefic, Helios Conjunction and the shields.
 const FALLBACK_GCDS = new Set([120, 135, 124, 3594, 3610, 3600, 190, 16230, 24284, 24286]);
+
+// Last-resort heals another of the job's outdoes: Cure II and Benefic II heal
+// the same member more for the same GCD. Kept, they won every tie (a deficit
+// either fills), and the plan cast Cure 7 times as often as the logs did.
+const OUTDONE = new Map([
+  [120, 135],
+  [3594, 3610],
+]);
 
 // A DPS's heals the plan has them use when it replans them, those that cost
 // no damage: Second Wind, Curing Waltz, Lux Solaris, Earth's Reply.
@@ -113,10 +122,11 @@ const PAIRED: Record<
     critical?: boolean;
     converts?: boolean;
     bond?: number;
+    shields?: boolean;
   }
 > = {
   7433: { heals: [124, 37010, 131, 16534], withinMs: 10_000, times: 1, potency: 200 },
-  24300: { heals: [24318, 24292, 37034, 24291], withinMs: 30_000, times: 1.5, potency: 0 },
+  24300: { heals: [24318, 24292, 37034, 24291], withinMs: 30_000, times: 1.5, potency: 0, shields: true },
   16559: {
     heals: [3595, 37030, 3601],
     withinMs: 20_000,
@@ -167,6 +177,7 @@ export function healPairings(
         onTarget: paired.onTarget ?? false,
         own: paired.own ?? false,
         converts: paired.converts ?? false,
+        shields: paired.shields ?? false,
         bond: paired.bond ?? 0,
       });
     }
@@ -189,7 +200,10 @@ export function healTools(
   const planned = new Set(mitigation.map((t) => `${t.player}:${t.action}`));
   const tools: HealTool[] = [];
   for (const player of players) {
-    for (const action of playerActions(player, catalog)) {
+    const actions = playerActions(player, catalog);
+    const ids = new Set(actions.map((a) => a.id));
+    for (const action of actions) {
+      if (ids.has(OUTDONE.get(action.id) ?? -1)) continue;
       const dps = player.role !== 'healer' && player.role !== 'tank' && DPS_HEALS.has(action.id);
       if (player.role !== 'healer' && !dps && !planned.has(`${player.id}:${action.id}`)) continue;
       if (AUTOMATIC.has(action.id)) continue;
@@ -248,6 +262,7 @@ export function healTools(
         cost: costOf(action),
         effects,
         delayed,
+        ...(TANK_SHIELDS.has(action.id) ? { onlyOn: players.filter((p) => p.role === 'tank').map((p) => p.id) } : {}),
       });
     }
   }

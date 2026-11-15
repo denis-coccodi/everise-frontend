@@ -79,6 +79,26 @@ describe('healTools', () => {
     ]);
   });
 
+  it('leaves out Cure where the healer has Cure II, which heals the same member more', () => {
+    const c = catalog();
+    c.actions.push(action(120, 'Cure', ['SCH'], 2.5, [heal(500)], { gcd: true }));
+    const names = () => healTools(party(), c, [], power).map((t) => t.name);
+
+    expect(names()).toContain('Cure');
+    c.actions.push(action(135, 'Cure II', ['SCH'], 2.5, [heal(800)], { gcd: true }));
+    expect(names()).toContain('Cure II');
+    expect(names()).not.toContain('Cure');
+  });
+
+  it('puts Celestial Intersection on the tanks only', () => {
+    const c = catalog();
+    c.actions.push(action(16556, 'Celestial Intersection', ['SCH'], 30, [heal(200)]));
+
+    const intersection = healTools(party(), c, [], power).find((t) => t.name === 'Celestial Intersection');
+
+    expect(intersection?.onlyOn).toEqual([1]);
+  });
+
   it("counts a DPS's heals that cost no damage (Second Wind), not a tank's", () => {
     const c = catalog();
     c.actions.push(action(7541, 'Second Wind', ['BRD', 'PLD'], 120, [{ ...heal(800), target: 'self' }]));
@@ -240,6 +260,15 @@ describe('healPairings', () => {
     // Seraphism (1s), its Manifestation's and Accession's.
     expect(tactics).toMatchObject({ recastMs: 15_000, times: 2.8, converts: true, heals: [185, 37013] });
     expect(underSeraphism).toMatchObject({ recastMs: 1000, times: 2.8, converts: true, heals: [37015, 37016] });
+  });
+
+  it("has Zoe make the next heal's shield 50% bigger too, not only its healing", () => {
+    const cat = catalog();
+    cat.actions.push(action(24300, 'Zoe', ['SCH'], 90, []));
+
+    const zoe = healPairings(party(), cat, new Map([[2, 100]])).find((p) => p.name === 'Zoe');
+
+    expect(zoe).toMatchObject({ times: 1.5, shields: true });
   });
 
   it("has Synastry's bond add 40% to an astrologian's heal on one member", () => {

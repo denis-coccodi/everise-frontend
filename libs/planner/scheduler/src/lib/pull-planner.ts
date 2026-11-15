@@ -194,7 +194,7 @@ export class PullPlanner {
     // A GCD shield grows with its caster's potency buffs: the plan's, the rest as played.
     const party = timeline.players.map((p) => p.id);
     const potency = new HealingBuffs(buffs, party, timeline, new Set([...mitigation, ...heals, ...pairings].map(key)));
-    const shieldTimes = (use: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(use.player, use.at, uses);
+    const shieldTimes = (u: PlannedUse, uses: PlannedUse[]) => potency.potencyAt(u.player, u.at, uses) * (u.boost ?? 1);
     // A replanned scholar's fairy heals on her own; Seraph's Seraphic Veils, for their barriers.
     const { veils, fairy } = scholarFairies(timeline, scholars, catalog, power, maxHp, opening.dissipations);
     // A sage's Addersgall with their Rhizomata's stacks, once planned (below).

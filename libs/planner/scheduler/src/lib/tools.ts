@@ -194,6 +194,9 @@ const FEY_UNION_HELD = 'while held, using the Faerie Gauge';
 // one given in potency or as a share of a heal. With `automatic`, only
 // what a pet casts by herself (Seraphic Veil's barrier, which the plan
 // places where Seraph would cast it).
+// Celestial Intersection goes on a tank unless someone else needs it, as in the logs.
+export const TANK_SHIELDS = new Set([16556]);
+
 export function mitigationTools(
   players: TimelinePlayer[],
   catalog: ActionCatalog,
@@ -235,6 +238,7 @@ export function mitigationTools(
         ...(recitation ? { critical: criticalTimes(player) } : {}),
         ...(recited ? { whenCritical: [...others, ...shields(criticalTimes(player))] } : {}),
         ...(action.limitBreak ? { limitBreak: true as const } : {}),
+        ...(TANK_SHIELDS.has(action.id) ? { onlyOn: players.filter((p) => p.role === 'tank').map((p) => p.id) } : {}),
       });
     }
   }
