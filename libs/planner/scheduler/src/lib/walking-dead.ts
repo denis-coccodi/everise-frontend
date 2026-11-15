@@ -3,7 +3,7 @@ import { Weaving } from './weaving';
 import type { WalkingDead } from './walking-dead.model';
 
 // How long Walking Dead lasts: the tank must be healed by their max HP in it.
-const WALKING_DEAD_MS = 10_000;
+export const WALKING_DEAD_MS = 10_000;
 
 // Each Living Dead in the plan with the hit that sets it off, and the heals
 // of the tank's own GCDs (as played) while it and Walking Dead last: the

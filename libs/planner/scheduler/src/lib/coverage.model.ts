@@ -7,5 +7,8 @@ import type { PlannedUse } from './plan.model';
 export interface PullFacts {
   maxHp: Map<number, number>;
   hitsBetween(player: number, from: number, to: number): number;
+  // When a Living Dead landing at `from` stops keeping its user alive: Walking
+  // Dead's end, 10s after their first hit (`walkingDeads`); never before `from`.
+  walkingDeadEnd(player: number, from: number): number;
   shieldTimes(use: PlannedUse, uses: PlannedUse[]): number;
 }
