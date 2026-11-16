@@ -27,4 +27,9 @@ describe('refillsBefore', () => {
     expect(may(2, tool('resource', 'Faerie Gauge'))).toBe(true);
     expect(refillsBefore(new Set(), true)(2, tool('resource', 'Aetherflow'))).toBe(true);
   });
+
+  it("never refills with a DPS's Second Wind, even everywhere", () => {
+    expect(may(1, tool('self'))).toBe(false);
+    expect(refillsBefore(new Set([1]), true)(1, tool('self'))).toBe(false);
+  });
 });

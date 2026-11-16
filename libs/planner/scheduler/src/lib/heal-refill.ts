@@ -31,9 +31,11 @@ export function mpShares(mp?: MpModel) {
 // (oGCDs, the Afflatus heals, Pneuma); any at all with `everywhere`.
 // An Aetherflow stack (Lustrate, Indomitability...) costs the Energy Drain
 // it would have been, so it refills only before heavy ones, as a GCD does.
+// A DPS's Second Wind (`self`) never refills: it's for their emergencies.
 export function refillsBefore(heavy: Set<number>, everywhere = false) {
   return (id: number, tool: HealTool) =>
-    everywhere ||
-    heavy.has(id) ||
-    (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow');
+    tool.cost !== 'self' &&
+    (everywhere ||
+      heavy.has(id) ||
+      (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow'));
 }

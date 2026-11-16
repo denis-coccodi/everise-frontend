@@ -34,10 +34,11 @@ const EARTHLY_STAR = 7439;
 // last the GCD heals kept for when nothing better is up (`fallback`). One
 // whose pool is full costs nothing, so it goes before the free ones: lilies
 // and Addersgall are spent rather than left to overcap. A healer favouring
-// healing over damage (`Favour`) minds a GCD's damage less.
+// healing over damage (`Favour`) minds a GCD's damage less. A DPS's Second
+// Wind (`self`) comes after all of them.
 const WORTH: Record<Favour, Record<HealCost, number>> = {
-  dps: { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4, fallback: 0.1 },
-  healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8, fallback: 0.2 },
+  dps: { free: 1, resource: 0.85, neutral: 0.8, gcd: 0.4, fallback: 0.1, self: 0.05 },
+  healing: { free: 1, resource: 0.95, neutral: 0.9, gcd: 0.8, fallback: 0.2, self: 0.05 },
 };
 const FULL_WORTH = 1.05;
 // A last-resort heal played as a follow-up: Helios while its caster's Helios

@@ -166,8 +166,9 @@ export interface HealTool {
 // damage); a GCD that deals or gives back its damage (Afflatus Solace and
 // Rapture, refunded by Afflatus Misery; Pneuma); a GCD of damage (any other
 // GCD heal); a last resort (`fallback`: one the guides keep for when the
-// healer is out of MP or nothing better is up, as Cure or Diagnosis).
-export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd' | 'fallback';
+// healer is out of MP or nothing better is up, as Cure or Diagnosis); a
+// DPS's own emergency heal (`self`: Second Wind, after every healer's).
+export type HealCost = 'free' | 'resource' | 'neutral' | 'gcd' | 'fallback' | 'self';
 
 // An oGCD that only pays with one of its user's heals after it (Plenary
 // Indulgence before a Medica, Zoe, Neutral Sect, Krasis...): the plan uses it
