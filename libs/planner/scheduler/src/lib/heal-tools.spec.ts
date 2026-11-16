@@ -55,7 +55,7 @@ describe('healTools', () => {
     expect(byName.get('Lustrate')?.effects).toEqual([
       { target: 'target', size: { hp: 60_000 }, ticks: 1, status: null, statusId: null },
     ]);
-    expect(byName.get('Physick')).toMatchObject({ gcd: true, castMs: 1500 });
+    expect(byName.get('Physick')).toBeUndefined();
     expect(byName.get('Whispering Dawn')?.effects).toEqual([
       { target: 'party', size: { hp: 10_000 }, ticks: 7, status: 'Whispering Dawn', statusId: 315 },
     ]);

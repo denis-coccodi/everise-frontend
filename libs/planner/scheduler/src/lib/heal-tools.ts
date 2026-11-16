@@ -35,6 +35,10 @@ const OUTDONE = new Map([
   [120, 135],
   [3594, 3610],
 ]);
+// Heals never planned: Physick, a scholar's weakest heal, which Adloquium
+// and the Aetherflow heals do better. As a last resort the plan still cast it
+// 4 times as often as the logs did (37 to 9 in 54 kills).
+const NEVER = new Set([190]);
 
 // A DPS's heals the plan has them use when it replans them, those that cost
 // no damage: Second Wind, Curing Waltz, Lux Solaris, Earth's Reply.
@@ -202,7 +206,7 @@ export function healTools(
     const actions = playerActions(player, catalog);
     const ids = new Set(actions.map((a) => a.id));
     for (const action of actions) {
-      if (ids.has(OUTDONE.get(action.id) ?? -1)) continue;
+      if (NEVER.has(action.id) || ids.has(OUTDONE.get(action.id) ?? -1)) continue;
       const dps = player.role !== 'healer' && player.role !== 'tank' && DPS_HEALS.has(action.id);
       if (player.role !== 'healer' && !dps && !planned.has(`${player.id}:${action.id}`)) continue;
       if (AUTOMATIC.has(action.id)) continue;
