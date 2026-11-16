@@ -18,7 +18,7 @@ import {
   waitsForBiggerNeed,
 } from './heal-candidates';
 import { bonded, pairingsFor } from './paired-heals';
-import { MISERY, miserySpent, spareHeals } from './spare-heals';
+import { MISERY, aimedHeals, miserySpent, spareHeals } from './spare-heals';
 import { WEAVE_MS, Weaving } from './weaving';
 import { guardsOf, naturalRegen, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
@@ -144,8 +144,7 @@ export function planHeals(
   const need = new Map<number, number>();
   for (const h of plan.hits) if (!h.avoidable) need.set(h.mechanic, (need.get(h.mechanic) ?? 0) + (h.share ?? 0));
   const needOf = (m: Mechanic) => need.get(m.id) ?? 0;
-  // The mitigations up: the plan's, and the heals picked here that also
-  // mitigate (Kerachole, Holos, Temperance).
+  // The mitigations up: the plan's, and the heals picked here that also mitigate (Kerachole, Holos, Temperance).
   const mitigating = plan.uses.filter((u) => mitigationOf.has(key(u)));
   const toolOfUse = (u: PlannedUse) => mitigationOf.get(key(u)) as MitigationTool;
   // What may refill to full before each mechanic, and the raidwides that want shields too.
@@ -153,8 +152,7 @@ export function planHeals(
   const up = (o: Mechanic, hit: MechanicHit) => projected(o, hit, mitigating, toolOfUse, facts);
   const shields = raidwideShields(plan, maxHp, casters, options, damageOf, up);
   const { refills, shieldFor, unshielded, forget } = shields;
-  // Such a heal lowers the hits it reaches, and the HP track gets back what
-  // they no longer take.
+  // Such a heal lowers the hits it reaches, and the HP track gets back what they no longer take.
   const mitigate = (use: PlannedUse, tool: MitigationTool) => {
     mitigating.push(use);
     forget();
@@ -175,14 +173,13 @@ export function planHeals(
   // A GCD shield is weighed with what its barrier saves, a pairing's barrier too.
   const barrierOf = barrierWorth(mitigationOf, plan.mechanics, mitigating, toolOfUse, facts);
   const mpShare = mpShares(mp);
-  // What the healers use anyway: the heals on cooldown, and the lily that would overcap.
-  const spareOnes = () => {
-    const spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, (t, u) => eventsFor(t, u, 0));
+  // What the healers use anyway: the heals on cooldown, and the lily that would overcap (`aimedHeals`: last of all).
+  const eventsOf = (t: HealTool, u: PlannedUse, delayMs = 0) => eventsFor(t, u, delayMs);
+  const spareOnes = (spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, eventsOf)) => {
     track.add(spare.events);
     uses.push(...spare.uses);
   };
-  // First what keeps every hit above the margin, and the heals used anyway; then (`refill`) everyone
-  // refilled to full before each of the pull's mechanics, with what all those leave and MP to spare.
+  // First what keeps every hit above the margin, and the heals used anyway; then (`refill`) everyone refilled to full before each of the pull's mechanics, with what all those leave and MP to spare.
   let needed: Map<string, number> | undefined;
   for (const full of refill ? [false, true] : [false]) {
     if (full) {
@@ -331,6 +328,7 @@ export function planHeals(
     }
   }
   if (!refill) spareOnes();
+  spareOnes(aimedHeals(planned, spent, weaving, eventsOf, plan.mechanics));
 
   const hits = judgedHits(plan, maxHp, options.margin, track, deads, damage, together, {
     uses: mitigating,
