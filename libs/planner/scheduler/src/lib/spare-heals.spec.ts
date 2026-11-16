@@ -1,5 +1,5 @@
-import { HealTool } from './plan.model';
-import { spareHeals } from './spare-heals';
+import { HealTool, Mechanic } from './plan.model';
+import { aimedHeals, spareHeals } from './spare-heals';
 import { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
 
@@ -79,5 +79,56 @@ describe('spareHeals', () => {
     const used: Spent = { player: 2, action: 3571, at: 50_000, group: '2:assize', pool: null, gcd: false, castMs: 0 };
 
     expect(run([used])).toEqual([0, 90_000]);
+  });
+});
+
+describe('aimedHeals', () => {
+  const star = {
+    player: 2,
+    action: 7439,
+    name: 'Earthly Star',
+    recastMs: 60_000,
+    charges: 1,
+    gcd: false,
+    castMs: 0,
+    group: '2:star',
+    pool: null,
+    cost: 'free',
+    effects: [{ target: 'party' }],
+    delayed: { delaysMs: [20_000, 10_000] },
+  } as unknown as HealTool;
+  const raidwide = (id: number, s: number, unmitigated: number) =>
+    ({
+      id,
+      at: s * 1000,
+      kind: 'raidwide',
+      hits: [{ player: 1, unmitigated, avoidable: false }],
+    }) as unknown as Mechanic;
+
+  it('places it on cooldown to go off grown just before the heaviest raidwide within a minute', () => {
+    const delays: number[] = [];
+    const { uses } = aimedHeals(
+      [star],
+      [],
+      new Weaving(),
+      (_tool, _use, delayMs) => {
+        delays.push(delayMs);
+        return [];
+      },
+      [raidwide(1, 30, 10_000), raidwide(2, 50, 90_000), raidwide(3, 150, 50_000)],
+    );
+
+    expect(uses.map((u) => u.at)).toEqual([29_000, 129_000]);
+    expect(delays).toEqual([20_000, 20_000]);
+  });
+
+  it('waits for the next raidwide where its recast is still running', () => {
+    const spent: Spent[] = [{ player: 2, action: 7439, at: 0, group: '2:star', pool: null, gcd: false, castMs: 0 }];
+    const { uses } = aimedHeals([star], spent, new Weaving(), () => [], [
+      raidwide(1, 50, 90_000),
+      raidwide(2, 100, 90_000),
+    ]);
+
+    expect(uses.map((u) => u.at)).toEqual([79_000]);
   });
 });

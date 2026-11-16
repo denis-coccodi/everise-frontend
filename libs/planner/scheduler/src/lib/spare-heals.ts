@@ -1,6 +1,6 @@
 import { fitsPool, fitsRecast, isAway, poolLevel } from './coverage';
 import { cutsUnion } from './fairy-heals';
-import { Favour, HealTool, PlannedUse } from './plan.model';
+import { Favour, HealTool, Mechanic, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
@@ -9,6 +9,18 @@ import type { HpEvent } from './hp-track.model';
 // damage), Celestial Opposition (a strong heal on a short cooldown), Lux
 // Solaris (free, in each Refulgent Lux).
 const ON_COOLDOWN = new Set([3571, 16553, 36997]);
+// The heals used on cooldown aimed at the raidwides, as the logs' players use
+// them, by how long before the hit they're used: Earthly Star, placed to go
+// off grown just before it, 20s on. (Macrocosmos aimed the same way, in a GCD
+// slot no heal took, cost deaths: four in an FRU kill, to Burnished Glory's
+// bleed, even planned last.)
+const AIMED = new Map([[7439, 20_000]]);
+// Back from its recast, one waits for the raidwide taking the party the most
+// this soon after, and goes in this long before it at least, else as early
+// as `AIM_WINDOW_MS` before then.
+const AIM_WITHIN_MS = 60_000;
+const AIM_LEAD_MS = 1_000;
+const AIM_WINDOW_MS = 8_000;
 // What another grants a few uses of, lost when the window ends: Seraph's
 // two Consolations, both used before she leaves.
 const SPEND_BEFORE_LOST = new Set([16546]);
@@ -154,4 +166,55 @@ export function miserySpent(player: number, at: number): Spent {
     gcd: true,
     castMs: MISERY_CAST_MS,
   };
+}
+
+// The heals used on cooldown aimed at the raidwides (`AIMED`), planned once
+// every other heal is: back from its recast, each goes in the free slot that
+// lands it just before the raidwide taking the party the most within
+// `AIM_WITHIN_MS`. On top of all the plan's healing, they take no heal's
+// recast or slot. `spent` takes the uses.
+export function aimedHeals(
+  tools: HealTool[],
+  spent: Spent[],
+  weaving: Weaving,
+  eventsFor: (tool: HealTool, use: PlannedUse, delayMs: number) => HpEvent[],
+  mechanics: Mechanic[],
+): { uses: PlannedUse[]; events: HpEvent[] } {
+  const uses: PlannedUse[] = [];
+  const events: HpEvent[] = [];
+  const raidwides = mechanics.filter((m) => m.kind === 'raidwide' && !m.wipe && m.hits.some((h) => !h.avoidable));
+  const heavy = (m: Mechanic) => m.hits.reduce((sum, h) => sum + (h.avoidable ? 0 : h.unmitigated), 0);
+  for (const tool of tools.filter((t) => AIMED.has(t.action))) {
+    const before = (AIMED.get(tool.action) ?? 0) + AIM_LEAD_MS + tool.castMs;
+    const groupTimes = () => spent.filter((s) => s.group === tool.group).map((s) => s.at);
+    for (let due = 0; ;) {
+      const ahead = raidwides.filter((r) => r.at - before >= due);
+      if (!ahead.length) break;
+      const m = ahead.filter((r) => r.at < ahead[0].at + AIM_WITHIN_MS).reduce((a, b) => (heavy(b) > heavy(a) ? b : a));
+      const latest = m.at - before;
+      const from = Math.max(due, latest - AIM_WINDOW_MS);
+      const own = spent.filter((s) => s.player === tool.player);
+      const at = tool.gcd
+        ? weaving.gcdBefore(tool.player, latest, from, tool.castMs, own)
+        : weaving.ogcdBefore(tool.player, latest, from, own);
+      if (at === null || isAway(tool, at) || !fitsRecast(groupTimes(), at, tool.recastMs, tool.charges)) {
+        due = m.at;
+        continue;
+      }
+      const use: PlannedUse = {
+        player: tool.player,
+        action: tool.action,
+        name: tool.name,
+        at,
+        target: null,
+        covers: [],
+      };
+      uses.push(use);
+      events.push(...eventsFor(tool, use, tool.delayed?.delaysMs[0] ?? 0));
+      const { player, action, group, pool, gcd, castMs } = tool;
+      spent.push({ player, action, at, group, pool, gcd, castMs });
+      due = at + tool.recastMs;
+    }
+  }
+  return { uses, events };
 }
