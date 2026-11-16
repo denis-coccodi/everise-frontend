@@ -1,3 +1,4 @@
+import type { PullTimeline } from '@everise/core/api-types';
 import type { MpModel } from './mp';
 import type { HealTool } from './plan.model';
 import type { Spent } from './heal-plan.model';
@@ -38,4 +39,21 @@ export function refillsBefore(heavy: Set<number>, everywhere = false) {
     (everywhere ||
       heavy.has(id) ||
       (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow'));
+}
+
+// Past this many players missing HP, healers top the party up with heals on
+// everyone, not one member at a time.
+const SINGLE_AT_MOST = 2;
+
+// What a refill (`short`, by player) leaves a heal on one member to make up:
+// all of it while only a few are missing HP, else only the tanks'. In 54
+// kills' logs healers topped up the DPS with party heals and kept their heals
+// on one member for the tanks (Essential Dignity 54 times on a DPS to 173 on
+// a tank; Tetragrammaton 29 to 131). The party heals take over as they count
+// the hits after (`PARTY_AHEAD_WORTH` in heal-candidates.ts).
+export function refillTargets(short: Map<number, number>, tool: HealTool, timeline: PullTimeline) {
+  const missing = [...short].filter(([, d]) => d > 0);
+  if (missing.length <= SINGLE_AT_MOST || !tool.effects.some((e) => e.target === 'target')) return short;
+  const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
+  return new Map([...short].filter(([p]) => tanks.has(p)));
 }

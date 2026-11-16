@@ -41,7 +41,7 @@ import { anchors, coveredMechanics, healCheckpoints } from './damage-checks';
 import { hitDamage } from './hit-damage';
 import { raidwideShields } from './raidwide-shields';
 import { hpBefores, judgedHits } from './judged-hits';
-import { mpShares, refillsBefore, refillWorth } from './heal-refill';
+import { mpShares, refillTargets, refillsBefore, refillWorth } from './heal-refill';
 import { barrierFor, barrierWorth, healOnly, pairedWithBarrier, withBarriers } from './barrier-worth';
 
 // The heals planned for one mechanic, at most.
@@ -250,7 +250,7 @@ export function planHeals(
             const affordable = (at: number) => !mp || mp.affordable(tool.player, tool.action, at, own);
             const mpWorth = (at: number) => (full ? refillWorth(mpShare(tool.player, own)(at)) : 1);
             const args = [deficits, weaving, pairWith, favourOf, affordable, ahead, mpWorth] as const;
-            return best(tool, m, anchor, short, spent, eventsOf, ...args);
+            return best(tool, m, anchor, full ? refillTargets(short, tool, timeline) : short, spent, eventsOf, ...args);
           };
           const among = (tools: HealTool[]) =>
             tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
