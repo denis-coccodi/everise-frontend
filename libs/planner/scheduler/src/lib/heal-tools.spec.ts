@@ -101,7 +101,7 @@ describe('healTools', () => {
     expect(benison?.onlyOn).toEqual([1]);
   });
 
-  it("counts a DPS's heals that cost no damage (Second Wind), not a tank's", () => {
+  it("counts a DPS's Second Wind as their own last resort (`self`), not a tank's", () => {
     const c = catalog();
     c.actions.push(action(7541, 'Second Wind', ['BRD', 'PLD'], 120, [{ ...heal(800), target: 'self' }]));
 
@@ -115,7 +115,7 @@ describe('healTools', () => {
       ]),
     ).filter((t) => t.name === 'Second Wind');
 
-    expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[3, 'free', { hp: 16_000 }]]);
+    expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[3, 'self', { hp: 16_000 }]]);
   });
 
   it('counts the grown Earthly Star as a delayed heal, set off by Stellar Detonation', () => {

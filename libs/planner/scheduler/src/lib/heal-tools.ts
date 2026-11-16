@@ -45,6 +45,10 @@ const NEVER = new Set([190]);
 // (Vercure and Physick would take a damage GCD; Improvisation stops them to
 // dance; Star Prism is a damage spell of their burst, kept as played.)
 export const DPS_HEALS = new Set([7541, 16015, 36997, 36944]);
+// Second Wind: what a DPS presses to save themselves where a healer would
+// be too late, not a heal for the healers to count on. Planned last
+// (`self`), and never to top anyone up.
+export const SECOND_WIND = 7541;
 
 // Soteria: the next four Kardion heals 70% bigger, 119 potency more each on
 // whoever has Kardion (`withKardion`), one about each GCD of the sage's.
@@ -272,6 +276,7 @@ export function healTools(
 }
 
 function costOf(action: CatalogAction): HealCost {
+  if (action.id === SECOND_WIND) return 'self';
   if (action.gcd) return NEUTRAL_GCDS.has(action.id) ? 'neutral' : FALLBACK_GCDS.has(action.id) ? 'fallback' : 'gcd';
   // The Faerie Gauge comes from Aetherflow actions.
   const pool = POOLS[action.id]?.name;
