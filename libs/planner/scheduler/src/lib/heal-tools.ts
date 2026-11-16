@@ -12,6 +12,7 @@ import {
   playerActions,
   recastMsOf,
 } from './tools';
+import { SECOND_WIND, roleHeal } from './role-heals';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
@@ -39,15 +40,6 @@ const OUTDONE = new Map([
 // and the Aetherflow heals do better. As a last resort the plan still cast it
 // 4 times as often as the logs did (37 to 9 in 54 kills).
 const NEVER = new Set([190]);
-
-// A DPS's heals the plan has them use when it replans them, those that cost
-// no damage: Second Wind, Curing Waltz, Lux Solaris, Earth's Reply.
-// (Vercure and Physick would take a damage GCD; Improvisation stops them to
-// dance; Star Prism is a damage spell of their burst, kept as played.)
-export const DPS_HEALS = new Set([7541, 16015, 36997, 36944]);
-// Second Wind: a DPS saving themselves where a healer would be too late, not
-// a heal for the healers to count on. Planned last (`self`), never to refill.
-export const SECOND_WIND = 7541;
 
 // Soteria: the next four Kardion heals 70% bigger, 119 potency more each on
 // whoever has Kardion (`withKardion`), one about each GCD of the sage's.
@@ -192,9 +184,9 @@ export function healPairings(
 }
 
 // The heals the plan can count on: every heal of the healers' actions, a
-// DPS's that cost no damage (`DPS_HEALS`), and the heals of the
-// mitigations the plan has anyone use. Everyone else's healing (a tank's
-// own sustain, Holy Spirit) stays as it was played. Heals that depend on what happens later count when they're one of
+// DPS's that cost no damage and a tank's own oGCD heals (`roleHeal`), and
+// the heals of the mitigations the plan has anyone use. Everyone else's
+// healing (Holy Spirit, Bloodwhetting's) stays as it was played. Heals that depend on what happens later count when they're one of
 // the delayed or waiting ones above (Kardia isn't). Sizes come from the
 // caster's `power` (HP a potency heals) or the target's max HP.
 export function healTools(
@@ -210,8 +202,7 @@ export function healTools(
     const ids = new Set(actions.map((a) => a.id));
     for (const action of actions) {
       if (NEVER.has(action.id) || ids.has(OUTDONE.get(action.id) ?? -1)) continue;
-      const dps = player.role !== 'healer' && player.role !== 'tank' && DPS_HEALS.has(action.id);
-      if (player.role !== 'healer' && !dps && !planned.has(`${player.id}:${action.id}`)) continue;
+      if (!roleHeal(player.role, action.id) && !planned.has(`${player.id}:${action.id}`)) continue;
       if (AUTOMATIC.has(action.id)) continue;
       const own = power.get(player.id) ?? null;
       const star = DELAYED[action.id];
