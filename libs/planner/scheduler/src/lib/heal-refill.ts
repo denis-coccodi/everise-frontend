@@ -29,7 +29,11 @@ export function mpShares(mp?: MpModel) {
 // Whether a heal may refill everyone to full before mechanic `id`: any
 // before a heavy one (`heavyMechanics`), else only what costs no damage
 // (oGCDs, the Afflatus heals, Pneuma); any at all with `everywhere`.
+// An Aetherflow stack (Lustrate, Indomitability...) costs the Energy Drain
+// it would have been, so it refills only before heavy ones, as a GCD does.
 export function refillsBefore(heavy: Set<number>, everywhere = false) {
   return (id: number, tool: HealTool) =>
-    everywhere || heavy.has(id) || (tool.cost !== 'gcd' && tool.cost !== 'fallback');
+    everywhere ||
+    heavy.has(id) ||
+    (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow');
 }
