@@ -11,8 +11,8 @@ describe('refillWorth', () => {
 });
 
 describe('refillsBefore', () => {
-  const tool = (cost: HealTool['cost'], pool: string | null = null) =>
-    ({ cost, pool: pool && { name: pool, gainMs: 60_000, max: 3 } }) as HealTool;
+  const tool = (cost: HealTool['cost'], pool: string | null = null, target = 'party') =>
+    ({ cost, pool: pool && { name: pool, gainMs: 60_000, max: 3 }, effects: [{ target }] }) as HealTool;
   const may = refillsBefore(new Set([1]));
 
   it('refills with anything before a heavy mechanic, only with what costs no damage before the rest', () => {
@@ -29,6 +29,12 @@ describe('refillsBefore', () => {
     expect(refillsBefore(new Set(), true)(2, tool('resource', 'Aetherflow'))).toBe(true);
   });
 
+  it('keeps a free heal on one member (Essential Dignity) for the heavy mechanics', () => {
+    expect(may(1, tool('free', null, 'target'))).toBe(true);
+    expect(may(2, tool('free', null, 'target'))).toBe(false);
+    expect(may(2, tool('free', null, 'self'))).toBe(true);
+  });
+
   it("never refills with a DPS's Second Wind, even everywhere", () => {
     expect(may(1, tool('self'))).toBe(false);
     expect(refillsBefore(new Set([1]), true)(1, tool('self'))).toBe(false);
@@ -36,29 +42,33 @@ describe('refillsBefore', () => {
 });
 
 describe('refillTargets', () => {
-  // Player 1 a tank, the rest DPS.
+  // Player 1 a tank, the rest DPS, each with 100,000 HP.
   const timeline = {
-    players: [1, 2, 3, 4].map((id) => ({ id, role: id === 1 ? 'tank' : 'melee' })),
+    players: [1, 2, 3, 4, 5].map((id) => ({ id, role: id === 1 ? 'tank' : 'melee', maxHp: 100_000 })),
   } as unknown as PullTimeline;
   const single = { effects: [{ target: 'target' }] } as HealTool;
   const party = { effects: [{ target: 'party' }] } as HealTool;
 
-  it('leaves a heal on one member anyone while at most two are missing HP', () => {
+  it('leaves a heal on one member a tank, and anyone else missing a fifth of their HP or more', () => {
     const short = new Map([
-      [2, 5_000],
-      [3, 4_000],
-      [4, 0],
+      [1, 5_000],
+      [2, 25_000],
+      [3, 15_000],
     ]);
-    expect(refillTargets(short, single, timeline)).toBe(short);
+    expect([...refillTargets(short, single, timeline)]).toEqual([
+      [1, 5_000],
+      [2, 25_000],
+    ]);
+    expect(refillTargets(short, party, timeline)).toBe(short);
   });
 
-  it('leaves it only the tanks once three or more are missing HP, and a party heal everyone', () => {
+  it('leaves it only the tanks once three or more of those are missing HP', () => {
     const short = new Map([
-      [1, 9_000],
-      [2, 5_000],
-      [3, 4_000],
+      [1, 30_000],
+      [2, 25_000],
+      [3, 40_000],
+      [4, 5_000],
     ]);
-    expect([...refillTargets(short, single, timeline)]).toEqual([[1, 9_000]]);
-    expect(refillTargets(short, party, timeline)).toBe(short);
+    expect([...refillTargets(short, single, timeline)]).toEqual([[1, 30_000]]);
   });
 });
