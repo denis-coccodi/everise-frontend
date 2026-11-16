@@ -45,9 +45,8 @@ const NEVER = new Set([190]);
 // (Vercure and Physick would take a damage GCD; Improvisation stops them to
 // dance; Star Prism is a damage spell of their burst, kept as played.)
 export const DPS_HEALS = new Set([7541, 16015, 36997, 36944]);
-// Second Wind: what a DPS presses to save themselves where a healer would
-// be too late, not a heal for the healers to count on. Planned last
-// (`self`), and never to top anyone up.
+// Second Wind: a DPS saving themselves where a healer would be too late, not
+// a heal for the healers to count on. Planned last (`self`), never to refill.
 export const SECOND_WIND = 7541;
 
 // Soteria: the next four Kardion heals 70% bigger, 119 potency more each on
