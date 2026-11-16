@@ -54,9 +54,13 @@ const BIGGER_NEED = 1.5;
 // The hits this soon after a mechanic count for the heals planned for it
 // too (a regen's ticks after the hit, what a big heal leaves over, toward
 // the next hits), at this share: later heals could still see to them. A
-// heal still has to help with the mechanic itself.
-const AHEAD_MS = 15_000;
+// heal still has to help with the mechanic itself. A party heal counts them
+// in full: one heal on everyone that also covers the hits after is what
+// healers cast instead of a heal on each member (in 54 kills' logs, Medica
+// III 295 times, Essential Dignity on a DPS 54).
+const AHEAD_MS = 30_000;
 const AHEAD_WORTH = 0.5;
+const PARTY_AHEAD_WORTH = 1;
 
 // Whether `tool` at `at` follows up (`FOLLOW_UPS`) one of its player's `own` uses.
 export function followsUp(tool: HealTool, at: number, own: Spent[]) {
@@ -197,6 +201,7 @@ export function best(
     const worth = full ? FULL_WORTH : WORTH[favourOf(tool.player)][cost];
     const spends = cost === 'gcd' || cost === 'fallback' ? mpWorth(at) : 1;
     // On its own, or with each oGCD that can go with it.
+    const onParty = tool.effects.some((e) => e.target === 'party');
     const alone = eventsOf(use, delayMs);
     const options = [
       { events: alone, paired: null },
@@ -204,7 +209,7 @@ export function best(
     ];
     for (const { events, paired } of options) {
       let value = madeUp(short, deficits(events));
-      if (value > 0) value += AHEAD_WORTH * ahead(events);
+      if (value > 0) value += (onParty ? PARTY_AHEAD_WORTH : AHEAD_WORTH) * ahead(events);
       value *= worth * spends;
       if (value > 0 && (!found || value > found.value)) found = { use, tool, events, value, delayMs, paired };
     }

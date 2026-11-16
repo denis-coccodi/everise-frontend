@@ -1,5 +1,6 @@
+import type { PullTimeline } from '@everise/core/api-types';
 import type { HealTool } from './plan.model';
-import { refillWorth, refillsBefore } from './heal-refill';
+import { refillTargets, refillWorth, refillsBefore } from './heal-refill';
 
 describe('refillWorth', () => {
   it('lets the healer with MP to spare refill with a GCD heal, none below the reserve', () => {
@@ -31,5 +32,33 @@ describe('refillsBefore', () => {
   it("never refills with a DPS's Second Wind, even everywhere", () => {
     expect(may(1, tool('self'))).toBe(false);
     expect(refillsBefore(new Set([1]), true)(1, tool('self'))).toBe(false);
+  });
+});
+
+describe('refillTargets', () => {
+  // Player 1 a tank, the rest DPS.
+  const timeline = {
+    players: [1, 2, 3, 4].map((id) => ({ id, role: id === 1 ? 'tank' : 'melee' })),
+  } as unknown as PullTimeline;
+  const single = { effects: [{ target: 'target' }] } as HealTool;
+  const party = { effects: [{ target: 'party' }] } as HealTool;
+
+  it('leaves a heal on one member anyone while at most two are missing HP', () => {
+    const short = new Map([
+      [2, 5_000],
+      [3, 4_000],
+      [4, 0],
+    ]);
+    expect(refillTargets(short, single, timeline)).toBe(short);
+  });
+
+  it('leaves it only the tanks once three or more are missing HP, and a party heal everyone', () => {
+    const short = new Map([
+      [1, 9_000],
+      [2, 5_000],
+      [3, 4_000],
+    ]);
+    expect([...refillTargets(short, single, timeline)]).toEqual([[1, 9_000]]);
+    expect(refillTargets(short, party, timeline)).toBe(short);
   });
 });
