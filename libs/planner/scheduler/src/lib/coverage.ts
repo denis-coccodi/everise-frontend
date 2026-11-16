@@ -47,6 +47,13 @@ export function reaches(tool: MitigationTool, use: PlannedUse, mechanic: Mechani
 // took, which statuses were up, and whether an invulnerability was: under
 // one that keeps the last HP (Holmgang) the hit still lands; under any
 // other it does nothing.
+// No use reaches a hit this long after it: four times the longest effect
+// (shields and mitigations last 30s at most, Excogitation 45s), its delay
+// and Walking Dead included. Skipping older ones keeps planning quick: the
+// mitigation step projects every hit for each candidate (86% of a long
+// ultimate's planning, most of it on uses long gone).
+const REACH_MS = 120_000;
+
 export function projected(
   mechanic: Mechanic,
   hit: MechanicHit,
@@ -58,8 +65,8 @@ export function projected(
   const shields = new Map<string, { hp: number; status: string; at: number }>();
   let invulnerable: MitigationEffect | null = null;
   for (const use of uses) {
-    // One used after the hit lands after it too (`landsAt`).
-    if (use.at > mechanic.at) continue;
+    // One used after the hit lands after it too (`landsAt`); one long before has worn off.
+    if (use.at > mechanic.at || mechanic.at - use.at > REACH_MS) continue;
     for (const effect of [
       ...reaches(toolOf(use), use, mechanic, hit),
       ...stillUndead(toolOf(use), use, mechanic, hit, facts),
