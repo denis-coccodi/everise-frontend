@@ -33,27 +33,41 @@ export function mpShares(mp?: MpModel) {
 // An Aetherflow stack (Lustrate, Indomitability...) costs the Energy Drain
 // it would have been, so it refills only before heavy ones, as a GCD does.
 // A DPS's Second Wind (`self`) never refills: it's for their emergencies.
+// Nor does a heal on one member before a light one: healers keep those
+// cooldowns for the hits that need them, and leave the rest to their party
+// heals (see `refillTargets`).
 export function refillsBefore(heavy: Set<number>, everywhere = false) {
   return (id: number, tool: HealTool) =>
     tool.cost !== 'self' &&
     (everywhere ||
       heavy.has(id) ||
-      (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow'));
+      (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow' && !onOne(tool)));
 }
+
+// A heal on one member (Essential Dignity, Tetragrammaton, Druochole...).
+const onOne = (tool: HealTool) => tool.effects.some((e) => e.target === 'target');
 
 // Past this many players missing HP, healers top the party up with heals on
 // everyone, not one member at a time.
 const SINGLE_AT_MOST = 2;
+// What someone not a tank must be missing, of their max HP, for a heal on
+// them alone.
+const SINGLE_MISSING = 0.2;
 
-// What a refill (`short`, by player) leaves a heal on one member to make up:
-// all of it while only a few are missing HP, else only the tanks'. In 54
-// kills' logs healers topped up the DPS with party heals and kept their heals
-// on one member for the tanks (Essential Dignity 54 times on a DPS to 173 on
-// a tank; Tetragrammaton 29 to 131). The party heals take over as they count
-// the hits after (`PARTY_AHEAD_WORTH` in heal-candidates.ts).
+// What a refill (`short`, by player) leaves a heal on one member to make up.
+// A tank's missing HP; anyone else's only from a fifth of their max HP; and
+// once more than `SINGLE_AT_MOST` of those are left, only the tanks'. In 54
+// kills' logs, two thirds of the heals on one DPS went in with them missing
+// 30% or more, 22 of 177 under 10%: healers top up the rest with party heals,
+// which take over as they count the hits after (`PARTY_AHEAD_WORTH` in
+// heal-candidates.ts). Refilling to full, the plan had put 416 of its 738 on
+// a DPS missing under 10%.
 export function refillTargets(short: Map<number, number>, tool: HealTool, timeline: PullTimeline) {
-  const missing = [...short].filter(([, d]) => d > 0);
-  if (missing.length <= SINGLE_AT_MOST || !tool.effects.some((e) => e.target === 'target')) return short;
-  const tanks = new Set(timeline.players.filter((p) => p.role === 'tank').map((p) => p.id));
-  return new Map([...short].filter(([p]) => tanks.has(p)));
+  if (!onOne(tool)) return short;
+  const player = (id: number) => timeline.players.find((p) => p.id === id);
+  const worth = (id: number, missing: number) =>
+    player(id)?.role === 'tank' || missing >= SINGLE_MISSING * (player(id)?.maxHp ?? Infinity);
+  const left = new Map([...short].filter(([id, missing]) => worth(id, missing)));
+  if ([...left.values()].filter((d) => d > 0).length <= SINGLE_AT_MOST) return left;
+  return new Map([...left].filter(([id]) => player(id)?.role === 'tank'));
 }
