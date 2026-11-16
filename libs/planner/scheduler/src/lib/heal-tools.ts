@@ -7,7 +7,6 @@ import {
   FEY_UNION_TICKS,
   GRANTED,
   POOLS,
-  TANK_SHIELDS,
   castMsOf,
   criticalTimes,
   playerActions,
@@ -262,7 +261,6 @@ export function healTools(
         cost: costOf(action),
         effects,
         delayed,
-        ...(TANK_SHIELDS.has(action.id) ? { onlyOn: players.filter((p) => p.role === 'tank').map((p) => p.id) } : {}),
       });
     }
   }

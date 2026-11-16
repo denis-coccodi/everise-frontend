@@ -81,10 +81,11 @@ describe('mostEndangered', () => {
     expect(mostEndangered(targeted, [], project, hp, nascent)).toBe(3);
   });
 
-  it('keeps Celestial Intersection on the tanks, someone else only where they need it', () => {
+  it('keeps a tank shield (Celestial Intersection) for the busters: on a raidwide only where needed', () => {
     const intersection = { ...tool('self', 30), player: 2, action: 16556, name: 'Celestial Intersection', onlyOn: [1] };
 
-    expect(mostEndangered(raidwide, [], project, hp, intersection)).toBe(1);
+    expect(mostEndangered(buster, [], project, hp, intersection)).toBe(1);
+    expect(mostEndangered(raidwide, [], project, hp, intersection)).toBeNull();
     expect(mostEndangered(raidwide, [], project, hp, intersection, true)).toBe(3);
   });
 });

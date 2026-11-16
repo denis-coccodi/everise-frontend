@@ -1,6 +1,6 @@
 import { ActionCatalog } from '@everise/core/api-types';
 import { healPairings, healTools } from './heal-tools';
-import { action, catalog, heal, party } from './scheduler-fixtures';
+import { action, catalog, heal, party, shield } from './scheduler-fixtures';
 import { mitigationTools } from './tools';
 
 describe('healTools', () => {
@@ -90,13 +90,15 @@ describe('healTools', () => {
     expect(names()).not.toContain('Cure');
   });
 
-  it('puts Celestial Intersection on the tanks only', () => {
+  it('keeps the tank shields (Divine Benison) for the tanks as mitigations', () => {
     const c = catalog();
-    c.actions.push(action(16556, 'Celestial Intersection', ['SCH'], 30, [heal(200)]));
+    c.actions.push(
+      action(7432, 'Divine Benison', ['SCH'], 30, [shield('target', 'Divine Benison', 15, { potency: 500 })]),
+    );
 
-    const intersection = healTools(party(), c, [], power).find((t) => t.name === 'Celestial Intersection');
+    const benison = mitigationTools(party(), c, power).find((t) => t.name === 'Divine Benison');
 
-    expect(intersection?.onlyOn).toEqual([1]);
+    expect(benison?.onlyOn).toEqual([1]);
   });
 
   it("counts a DPS's heals that cost no damage (Second Wind), not a tank's", () => {

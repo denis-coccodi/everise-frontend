@@ -158,7 +158,6 @@ export interface HealTool {
   delayed: DelayedHeal | null;
   // Who has the sage's Kardion as played, by span (Soteria's, Kardia's).
   kardion?: { from: number; to: number; player: number }[];
-  onlyOn?: number[]; // As a mitigation tool's.
 }
 
 // What a heal costs, as the healers' guides rank them: nothing (an oGCD,
