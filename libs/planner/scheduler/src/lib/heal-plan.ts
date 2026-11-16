@@ -1,6 +1,7 @@
 import { PullTimeline } from '@everise/core/api-types';
 import type { MpModel } from './mp';
-import { DPS_HEALS, KARDIA } from './heal-tools';
+import { KARDIA } from './heal-tools';
+import { ROLE_HEALS } from './role-heals';
 import { readHoroscope } from './horoscope-read';
 import { projected, pullFacts, reaches } from './coverage';
 import { AutoDamage } from './auto-damage';
@@ -76,11 +77,11 @@ export function planHeals(
   const mitigationOf = new Map(mitigation.map((t) => [key(t), t]));
   const party = timeline.players.map((p) => p.id);
   const healers = new Set(timeline.players.filter((p) => p.role === 'healer').map((p) => p.id));
-  // The healers' heals and a replanned DPS's (Lux Solaris...); a tank's (Nascent Flash) are its mitigation's.
+  // The healers' heals, a DPS's (Lux Solaris...) and a tank's own (Equilibrium...); Nascent Flash's are its mitigation's.
   // Healing at first need (`healsFirstNeed`), Macrocosmos counts as the damage spell it is.
   const firstNeed = !!options.strategy?.healsFirstNeed;
   const planned = heals
-    .filter((t) => healers.has(t.player) || DPS_HEALS.has(t.action))
+    .filter((t) => healers.has(t.player) || ROLE_HEALS.has(t.action))
     .map((t) => (firstNeed && t.action === MACROCOSMOS ? { ...t, cost: 'neutral' as const } : t));
   // Every healer favours healing where the strategy says so (`healersHeal`), else damage.
   const favourOf = (): Favour => (options.strategy?.healersHeal ? 'healing' : 'dps');

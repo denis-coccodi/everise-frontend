@@ -118,6 +118,15 @@ describe('healTools', () => {
     expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[3, 'self', { hp: 16_000 }]]);
   });
 
+  it("counts a tank's own oGCD heals (Equilibrium) as free heals, not a DPS's", () => {
+    const c = catalog();
+    c.actions.push(action(3552, 'Equilibrium', ['BRD', 'PLD'], 60, [{ ...heal(1200), target: 'self' }]));
+
+    const own = healTools(party(), c, [], new Map([[1, 50]])).filter((t) => t.name === 'Equilibrium');
+
+    expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[1, 'free', { hp: 60_000 }]]);
+  });
+
   it('counts the grown Earthly Star as a delayed heal, set off by Stellar Detonation', () => {
     const c = withHeals();
     c.actions.push(
