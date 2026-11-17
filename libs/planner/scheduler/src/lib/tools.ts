@@ -220,8 +220,8 @@ export function mitigationTools(
           : shieldEffects(action, player, own, times);
       const others = [...mitigationEffects(action), ...invulnerableEffects(action, own)];
       const effects = [...others, ...shields()];
-      const recitation = action.id === RECITATION;
-      if (!effects.length && !recitation && !GRANTING.has(action.id)) continue;
+      const recitation = action.id === RECITATION; // Zoe (24300), with no effects either, boosts a shield: zoe-shields.ts.
+      if (!effects.length && !recitation && action.id !== 24300 && !GRANTING.has(action.id)) continue;
       const recited = RECITED.includes(from?.id ?? action.id);
       tools.push({
         player: player.id,
