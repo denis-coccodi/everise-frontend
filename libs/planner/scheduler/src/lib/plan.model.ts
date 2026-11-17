@@ -42,9 +42,9 @@ export interface PlanOptions {
   // heavy ones, and the last-resort heals count as any GCD heal: the
   // planner's own, where a plan leaves a hit short or someone dead.
   refillEverywhere?: boolean;
-  // No GCD shield goes up just to have everyone shielded for a heavy
-  // raidwide: the planner's own, where the shields leave a hit short.
-  noRaidwideShields?: boolean;
+  // No GCD shield goes up just to have everyone shielded for a raidwide
+  // (`'light'`: but the heavy ones): the planner's own, where they leave a hit short.
+  noRaidwideShields?: boolean | 'light';
 }
 
 // Favouring damage, a healer spends what would overcap on damage and keeps
