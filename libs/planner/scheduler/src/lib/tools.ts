@@ -119,8 +119,7 @@ export function withGrantedCovers(uses: PlannedUse[]): PlannedUse[] {
     return { ...g, covers: [...new Set(granted.flatMap((u) => u.covers))] };
   });
 }
-// What a pet casts on its own, never ordered (Seraphic Veil): the plan
-// works it out with the fairy's other healing (fairy-heals.ts).
+// What a pet casts on its own, never ordered (Seraphic Veil): see fairy-heals.ts.
 export const AUTOMATIC = new Set([SERAPHIC_VEIL]);
 export const notAutomatic = (u: { action: number }) => !AUTOMATIC.has(u.action);
 
@@ -142,8 +141,9 @@ export const EUKRASIA = 24290;
 export const EUKRASIA_MS = 1000;
 const EUKRASIAN = [24291, 24292, 37034];
 const EUKRASIAN_LEAD_MS = EUKRASIA_MS + 600;
-// What a player presses before an action, for the plan to say.
-export const pressedFirst = (action: number) => (EUKRASIAN.includes(action) ? 'Eukrasia' : null);
+// What a player presses before an action, for the plan to say: Tempera Coat before Tempera Grassa, which removes it.
+export const pressedFirst = (action: number) =>
+  EUKRASIAN.includes(action) ? 'Eukrasia' : action === 34686 ? 'Tempera Coat' : null;
 // How long after its start an action lands, as the plan counts it.
 export const castMsOf = (action: CatalogAction) => (EUKRASIAN.includes(action.id) ? EUKRASIAN_LEAD_MS : action.castMs);
 // The longest recast a GCD has with no cooldown of its own: the GCD.
