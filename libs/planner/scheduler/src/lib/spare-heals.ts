@@ -10,11 +10,13 @@ import type { HpEvent } from './hp-track.model';
 // Solaris (free, in each Refulgent Lux).
 const ON_COOLDOWN = new Set([3571, 16553, 36997]);
 // The heals used on cooldown aimed at the raidwides, as the logs' players use
-// them, by how long before the hit they're used: Earthly Star, placed to go
-// off grown just before it, 20s on. (Macrocosmos aimed the same way, in a GCD
-// slot no heal took, cost deaths: four in an FRU kill, to Burnished Glory's
-// bleed, even planned last.)
-const AIMED = new Map([[7439, 20_000]]);
+// them, by how long before the hit they're used: Earthly Star (placed to go
+// off grown just before it, 20s on) and Macrocosmos (cast just before it, in
+// a GCD slot no heal took: a damage spell, it costs no damage).
+const AIMED = new Map([
+  [7439, 20_000],
+  [25874, 0],
+]);
 // Back from its recast, one waits for the raidwide taking the party the most
 // this soon after, and goes in this long before it at least, else as early
 // as `AIM_WINDOW_MS` before then.
