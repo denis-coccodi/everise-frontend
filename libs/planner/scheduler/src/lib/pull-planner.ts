@@ -53,10 +53,8 @@ const ROUNDS = 3;
 // page itself (`PlannerScheduler`).
 export class PullPlanner {
   private progress = new PlanProgress();
-  // The plan of the pull made the way `asked` says (`strategy`; `report`
-  // hears how far it has got, 0 to 1), its deaths mended only if asked
-  // (`repairDeaths`); else the best of the ways it can be made
-  // (`STRATEGIES`), its deaths then mended a cooldown at a time.
+  // The plan of the pull made the way `asked` says (`strategy`; `report` hears how far it has got, 0 to 1), its deaths
+  // mended only if asked (`repairDeaths`); else the best of the ways it can be made (`STRATEGIES`), its deaths then mended a cooldown at a time.
   plan(pull: PullTimeline, full: ActionCatalog, asked: PlanOptions, report?: (share: number) => void): Plan {
     // Each damage-over-time tick once, as the game dealt it.
     const given = withoutRepeatedDots(pull);
@@ -86,14 +84,11 @@ export class PullPlanner {
     return repairDeaths(best, replanWith, (action) => recasts.get(action) ?? 0, score);
   }
 
-  // The party's mitigations and shields over the pull, then the healers'
-  // heals, every hit left the margin of the player's HP where the party's
-  // cooldowns allow. The mitigations are planned first as if every hit
-  // landed at full HP; where a hit is still short, again around the lowest
-  // HP any round's heals left it, then the heals again, the best plan kept.
-  // Only the players `asked` to replan are planned, with their edits; the
-  // others as they played. Tried again other ways where that leaves a hit
-  // short (`planVariants`).
+  // The party's mitigations and shields over the pull, then the healers' heals, every hit left the margin of the player's HP
+  // where the party's cooldowns allow. The mitigations are planned first as if every hit landed at full HP; where a hit is
+  // still short, again around the lowest HP any round's heals left it, then the heals again, the best plan kept. Only the
+  // players `asked` to replan are planned, with their edits; the others as they played. Tried again other ways where that
+  // leaves a hit short (`planVariants`).
   private planWith(given: PullTimeline, full: ActionCatalog, asked: PlanOptions): Plan {
     const maxHp = new Map(given.players.map((p) => [p.id, p.maxHp ?? 0]));
     return planVariants(
@@ -114,10 +109,8 @@ export class PullPlanner {
     const replanned = (t: { player: number }) => !asked.replan || asked.replan.includes(t.player) || late.has(t.player);
     const edits = ownEdits(asked.edits, replanned);
     const power = healPower(timeline, catalog);
-    // A replanned player starts with their opener (the standard one unless
-    // asked otherwise): a scholar's says when their Aetherflow stacks come
-    // and their fairy goes away for Dissipation, an astrologian's when their
-    // cards come; its heals are planned where it has them.
+    // A replanned player starts with their opener (the standard one unless asked otherwise): a scholar's says when their
+    // Aetherflow stacks come and their fairy goes away for Dissipation, an astrologian's when their cards come; its heals are planned where it has them.
     const replannedPlayers = timeline.players.filter((p) => replanned({ player: p.id }) && !late.has(p.id));
     const scholars = replannedPlayers.filter((p) => p.job === 'SCH');
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
@@ -206,7 +199,8 @@ export class PullPlanner {
     const mpModel = (from?: Plan) => MpModel.of(timeline, catalog, mpIds, current(), from && aliveIn(from), past);
     // The tanks' short cooldowns go on the autos they take too.
     const [autos, short] = [autoTimes(timeline), alone.filter((t) => !asPlayed(t))];
-    const once = (from?: Plan) => {
+    const sources = new WeakMap<Plan, Plan | undefined>();
+    const once = (from?: Plan, aimed = false) => {
       const mp = mpModel(from);
       const { healing, casts } = fairy(from);
       const mitigated = planMitigation(
@@ -238,9 +232,12 @@ export class PullPlanner {
         healing,
         mp,
         true,
+        aimed,
       );
       this.progress.stepDone();
-      return { ...planned, mpShort: mpShortOf(mp, planned) };
+      const done = { ...planned, mpShort: mpShortOf(mp, planned) };
+      sources.set(done, from);
+      return done;
     };
     this.progress.nextPass(ROUNDS + [scholars, sages, healers].filter((l) => l.length).length);
 
@@ -297,6 +294,9 @@ export class PullPlanner {
       bonus.clear();
       weaving.release(slots);
     }
+    // Last, the heals aimed at the raidwides (`aimedHeals`) on the plan picked: its heal pass again (from `sources`) with them, kept unless worse. Left out of the passes before: they made the rounds plan fewer shields.
+    const aimedPlan = sources.has(best) ? once(sources.get(best), true) : best;
+    if (!better(best, aimedPlan, maxHp, options)) best = aimedPlan;
     // Seraph casts her Veils herself: they're no use to list. The openers'
     // other steps (Energy Drains, Chain Stratagem...) show with it, but for
     // the Energy Drains whose stacks the heals took.

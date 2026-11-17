@@ -71,6 +71,7 @@ export function planHeals(
   fairy: FairyHealing = { events: [], recalculated: [] },
   mp?: MpModel,
   refill = false,
+  aimed = false,
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -173,7 +174,7 @@ export function planHeals(
   // A GCD shield is weighed with what its barrier saves, a pairing's barrier too.
   const barrierOf = barrierWorth(mitigationOf, plan.mechanics, mitigating, toolOfUse, facts);
   const mpShare = mpShares(mp);
-  // What the healers use anyway: the heals on cooldown, and the lily that would overcap (`aimedHeals`: last of all).
+  // What the healers use anyway: the heals on cooldown, and the lily that would overcap (`aimedHeals`: in the last pass, `aimed`).
   const eventsOf = (t: HealTool, u: PlannedUse, delayMs = 0) => eventsFor(t, u, delayMs);
   const spareOnes = (spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, eventsOf)) => {
     track.add(spare.events);
@@ -328,7 +329,7 @@ export function planHeals(
     }
   }
   if (!refill) spareOnes();
-  spareOnes(aimedHeals(planned, spent, weaving, eventsOf, plan.mechanics));
+  if (aimed) spareOnes(aimedHeals(planned, spent, weaving, eventsOf, plan.mechanics));
 
   const hits = judgedHits(plan, maxHp, options.margin, track, deads, damage, together, {
     uses: mitigating,
