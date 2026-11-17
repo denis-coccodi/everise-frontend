@@ -71,7 +71,10 @@ const ON_OTHERS = new Set([7382, NASCENT_FLASH]);
 // a raidwide it goes only where a hit is short of the margin (`needed`:
 // Forsaken, lining up every cooldown), never for spare margin. So do the
 // tank shields (`onlyOn`: Divine Benison, Taurochole...), kept for the
-// busters, and on someone not a tank only where needed.
+// busters: on any other hit (a raidwide, or one on a few: FRU's Path of
+// Light) and on someone not a tank only where needed. In 54 kills' logs 45
+// went on a tank for a hit on a few, to the plan's 656. On the plan made
+// the old way (`raidwidesOnly`, a fallback), only raidwides are kept from.
 export function mostEndangered(
   m: Mechanic,
   uses: PlannedUse[],
@@ -79,13 +82,15 @@ export function mostEndangered(
   hpOf: (m: Mechanic, h: MechanicHit) => number,
   t?: MitigationTool,
   needed = false,
+  raidwidesOnly = false,
 ) {
   let worst: { player: number; share: number } | null = null;
   for (const hit of m.hits) {
     const share = project(m, hit, uses).damage / hpOf(m, hit);
     if (t && ON_OTHERS.has(t.action) && hit.player === t.player) continue;
-    const kept = t?.action === NASCENT_FLASH || t?.onlyOn;
-    if (kept && m.kind === 'raidwide' && !needed) continue;
+    if (t?.action === NASCENT_FLASH && m.kind === 'raidwide' && !needed) continue;
+    const kept = raidwidesOnly ? m.kind === 'raidwide' : m.kind !== 'tankbuster';
+    if (t?.onlyOn && kept && !needed) continue;
     if (t?.onlyOn && !t.onlyOn.includes(hit.player) && !needed) continue;
     if (!worst || share > worst.share) worst = { player: hit.player, share };
   }

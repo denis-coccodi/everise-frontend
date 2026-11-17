@@ -88,6 +88,16 @@ describe('mostEndangered', () => {
     expect(mostEndangered(raidwide, [], project, hp, intersection)).toBeNull();
     expect(mostEndangered(raidwide, [], project, hp, intersection, true)).toBe(3);
   });
+
+  it('keeps it from a hit on a few (FRU Path of Light) too, unless needed; the old way, only from raidwides', () => {
+    const intersection = { ...tool('self', 30), player: 2, action: 16556, name: 'Celestial Intersection', onlyOn: [1] };
+    const few = { ...raidwide, kind: 'targeted' as const };
+
+    expect(mostEndangered(few, [], project, hp, intersection)).toBeNull();
+    expect(mostEndangered(few, [], project, hp, intersection, true)).toBe(3);
+    expect(mostEndangered(few, [], project, hp, intersection, false, true)).toBe(1);
+    expect(mostEndangered(raidwide, [], project, hp, intersection, false, true)).toBeNull();
+  });
 });
 
 describe('reachMs', () => {
