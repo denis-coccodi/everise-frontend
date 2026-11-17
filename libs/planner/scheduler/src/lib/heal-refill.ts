@@ -35,13 +35,17 @@ export function mpShares(mp?: MpModel) {
 // A DPS's Second Wind (`self`) never refills: it's for their emergencies.
 // Nor does a heal on one member before a light one: healers keep those
 // cooldowns for the hits that need them, and leave the rest to their party
-// heals (see `refillTargets`).
+// heals (see `refillTargets`). Nor Lustrate, but with `everywhere`: scholars
+// keep its stack for Energy Drain unless a hit needs it (in 54 kills' logs,
+// 23 on a tank to the plan's 113).
+const LUSTRATE = 189;
 export function refillsBefore(heavy: Set<number>, everywhere = false) {
   return (id: number, tool: HealTool) =>
     tool.cost !== 'self' &&
     (everywhere ||
-      heavy.has(id) ||
-      (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow' && !onOne(tool)));
+      (tool.action !== LUSTRATE &&
+        (heavy.has(id) ||
+          (tool.cost !== 'gcd' && tool.cost !== 'fallback' && tool.pool?.name !== 'Aetherflow' && !onOne(tool)))));
 }
 
 // A heal on one member (Essential Dignity, Tetragrammaton, Druochole...).

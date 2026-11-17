@@ -98,6 +98,15 @@ describe('mostEndangered', () => {
     expect(mostEndangered(few, [], project, hp, intersection, false, true)).toBe(1);
     expect(mostEndangered(raidwide, [], project, hp, intersection, false, true)).toBeNull();
   });
+
+  it('keeps the Spire for the tanks too, but the old way puts it on anyone, as it did', () => {
+    const spire = { ...tool('self', 30), player: 2, action: 37025, name: 'the Spire', onlyOn: [1] };
+    const few = { ...raidwide, kind: 'targeted' as const };
+
+    expect(mostEndangered(few, [], project, hp, spire)).toBeNull();
+    expect(mostEndangered(few, [], project, hp, spire, false, true)).toBe(3);
+    expect(mostEndangered(raidwide, [], project, hp, spire, false, true)).toBe(3);
+  });
 });
 
 describe('reachMs', () => {

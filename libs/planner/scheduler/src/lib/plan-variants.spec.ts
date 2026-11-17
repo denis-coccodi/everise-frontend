@@ -1,12 +1,13 @@
 import { planVariants } from './plan-variants';
 import type { Plan, PlanOptions } from './plan.model';
 
-// A plan this many hits short, named after the options it was made with.
-const planOf = (short: number, made: PlanOptions) =>
+// A plan this many hits short (and with `dead` players dying), named after the options it was made with.
+const planOf = (short: number, made: PlanOptions, dead = 0) =>
   ({
     made,
     deaths: [],
     hits: Array.from({ length: short }, () => ({ safe: false, avoidable: false })),
+    hp: Array.from({ length: dead }, () => ({ points: [{ at: 0, hp: 0 }] })),
   }) as unknown as Plan & { made: PlanOptions };
 
 const kind = (o: PlanOptions) =>
@@ -14,13 +15,13 @@ const kind = (o: PlanOptions) =>
     (o.refillEverywhere ? 'R' : '') +
     (o.noRaidwideShields === true ? 'N' : '') || 'plain';
 
-function plan(shortBy: Record<string, number>) {
+function plan(shortBy: Record<string, number>, deadBy: Record<string, number> = {}) {
   const tried: string[] = [];
   const made = planVariants(
     { margin: 0.1 },
     (o) => {
       tried.push(kind(o));
-      return planOf(shortBy[kind(o)], o);
+      return planOf(shortBy[kind(o)], o, deadBy[kind(o)] ?? 0);
     },
     (a, b) => a.hits.length < b.hits.length,
     () => undefined,
@@ -41,5 +42,10 @@ describe('planVariants', () => {
     expect(plan({ plain: 4, L: 3, R: 2, N: 2, RN: 0 })).toEqual({ tried: ['plain', 'L', 'R', 'N'], kept: 'R' });
     expect(plan({ plain: 3, L: 4, R: 0, N: 0, RN: 0 })).toEqual({ tried: ['plain', 'L'], kept: 'plain' });
     expect(plan({ plain: 3, L: 2, R: 4, N: 0, RN: 0 })).toEqual({ tried: ['plain', 'L', 'R'], kept: 'L' });
+  });
+
+  it('keeps the way with fewer players dying (a bleed tick too) first, whatever its hits', () => {
+    expect(plan({ plain: 1, L: 2, R: 2 }, { plain: 2 })).toEqual({ tried: ['plain', 'L', 'R'], kept: 'L' });
+    expect(plan({ plain: 3, L: 1 }, { L: 1 })).toEqual({ tried: ['plain', 'L'], kept: 'plain' });
   });
 });
