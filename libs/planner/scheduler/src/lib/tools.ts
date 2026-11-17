@@ -45,16 +45,15 @@ export const FIRST_STAYS = new Set(['Galvanize or a Eukrasian barrier']);
 // Astrologian's cards (Astral and Umbral Draw take turns every 55 seconds,
 // each giving one of its own, so a card comes every 110), Tempera Coat (which Tempera Grassa uses up; back in 60
 // to 120 seconds), the Lily gauge (one every 20 seconds, up to 3), Lady of
-// Crowns (Umbral Draw's Minor Arcana, every 110 seconds) and Improvisation's finish (every 120
-// seconds: Improvisation itself isn't planned). One a use, as the planner
-// counts them.
+// Crowns (Umbral Draw's Minor Arcana, every 110 seconds) and Improvisation's finish (every 360
+// seconds, not its 120: dancing costs damage, so dancers dance about every 6 minutes in the logs). One a use.
 const OATH: ToolPool = { name: 'Oath Gauge', gainMs: 25_000, max: 2 };
 const AETHERFLOW: ToolPool = { name: 'Aetherflow', gainMs: 20_000, max: 3 };
 const ADDERSGALL: ToolPool = { name: 'Addersgall', gainMs: 20_000, max: 3 };
 const card = (name: string): ToolPool => ({ name, gainMs: 110_000, max: 1 });
 const TEMPERA: ToolPool = { name: 'Tempera Coat', gainMs: 90_000, max: 1 };
 const LILY: ToolPool = { name: 'Lily', gainMs: 20_000, max: 3 };
-const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 120_000, max: 1 };
+const IMPROVISATION: ToolPool = { name: 'Improvisation', gainMs: 360_000, max: 1 };
 // The Faerie Gauge: empty at the pull, 10 for each Aetherflow stack spent
 // (about 4 a minute; aetherflow.ts has them as played), up to 100; a Fey
 // Union as the plan has it (FEY_UNION_TICKS) takes 50.
