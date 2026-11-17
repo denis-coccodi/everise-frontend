@@ -62,6 +62,35 @@ describe('mitigationTools', () => {
     ]);
   });
 
+  it('counts a mitigation of the next attack only where one as big follows for the hits after (Tengentsu)', () => {
+    const mit = (status: string, s: number, condition: string) => ({
+      ...heal(0),
+      kind: 'mitigation' as const,
+      target: 'self' as const,
+      status,
+      potency: null,
+      percent: 10,
+      durationMs: s * 1000,
+      condition,
+    });
+    const cat = {
+      ...catalog(),
+      actions: [
+        action(36962, 'Tengentsu', ['BRD'], 15, [
+          mit('Tengentsu', 4, 'next attack'),
+          mit("Tengentsu's Foresight", 9, 'when hit'),
+        ]),
+        action(7498, 'Third Eye', ['PLD'], 15, [mit('Third Eye', 4, 'next attack')]),
+      ],
+    };
+
+    const tools = mitigationTools(party(), cat);
+
+    expect(tools.map((t) => [t.name, t.effects.map((e) => [e.status, e.durationMs])])).toEqual([
+      ['Tengentsu', [['Tengentsu', 4_000]]],
+    ]);
+  });
+
   it("sizes shields from the caster's heal power or max HP, and marks GCDs", () => {
     const tools = mitigationTools(party(), catalog(), new Map([[2, 100]]));
     const adloquium = tools.find((t) => t.name === 'Adloquium');
