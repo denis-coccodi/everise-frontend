@@ -223,7 +223,7 @@ export function planMitigation(
       ? uses.filter((u) => u.player === t.player && tool(u).pool?.name === t.pool?.name).map((u) => u.at)
       : [];
     const target = t.effects.some((e) => e.target === 'target')
-      ? mostEndangered(m, uses, project, hpOf, t, drop)
+      ? mostEndangered(m, uses, project, hpOf, t, drop, options.noRaidwideShields === 'light')
       : null;
     const lasts = Math.max(...t.effects.map((e) => e.durationMs));
     const own = [...fixed, ...uses].filter((u) => u.player === t.player);
