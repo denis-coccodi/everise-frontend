@@ -131,4 +131,26 @@ describe('aimedHeals', () => {
 
     expect(uses.map((u) => u.at)).toEqual([79_000]);
   });
+
+  it("casts a sage's Pneuma, a GCD, just before the heaviest raidwide, on cooldown", () => {
+    const pneuma = {
+      ...star,
+      action: 24318,
+      name: 'Pneuma',
+      recastMs: 120_000,
+      gcd: true,
+      castMs: 1_500,
+      group: '2:pneuma',
+      delayed: null,
+    } as unknown as HealTool;
+    const { uses } = aimedHeals([pneuma], [], new Weaving(), () => [], [
+      raidwide(1, 50, 90_000),
+      raidwide(2, 200, 90_000),
+    ]);
+
+    expect(uses.map((u) => [u.name, u.at])).toEqual([
+      ['Pneuma', 47_500],
+      ['Pneuma', 197_500],
+    ]);
+  });
 });
