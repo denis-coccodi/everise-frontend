@@ -34,6 +34,7 @@ import {
   PlannedUse,
 } from './plan.model';
 import { AUTOMATIC } from './tools';
+import { tankBuffs } from './tank-buffs';
 import type { Candidate, FairyHealing, Spent } from './heal-plan.model';
 import type { HealingBuff } from './healing-buffs.model';
 import type { HpCheckpoint, HpEvent } from './hp-track.model';
@@ -48,16 +49,12 @@ import { barrierFor, barrierWorth, healOnly, pairedWithBarrier, withBarriers } f
 const HEALS_PER_MECHANIC = 8;
 const MACROCOSMOS = 25874;
 
-// The healers' heals planned over the pull, after the mitigations and
-// shields: in time order, before each mechanic, enough heals that every hit
-// leaves the margin of the HP its player has then (as far as the healers'
-// cooldowns allow), oGCDs first, each heal times the healing `buffs` (by
-// action) up for it, and where its healer can act (`weaving`): an oGCD in a
-// weave slot, a GCD in place of one of theirs. A GCD heal can go with the
-// oGCD that pays only with one (`pairings`: Plenary Indulgence before a
-// Medica), the two planned together. A replanned scholar's fairy heals as
-// `fairy` works out, in place of hers in the pull. Then each hit is judged
-// by the HP it leaves.
+// The healers' heals planned over the pull, after the mitigations and shields: in time order, before each mechanic,
+// enough heals that every hit leaves the margin of the HP its player has then (as far as the healers' cooldowns
+// allow), oGCDs first, each heal times the healing `buffs` (by action) up for it, and where its healer can act
+// (`weaving`): an oGCD in a weave slot, a GCD in place of one of theirs. A GCD heal can go with the oGCD that pays
+// only with one (`pairings`: Plenary Indulgence before a Medica), the two planned together. A replanned scholar's
+// fairy heals as `fairy` works out, in place of hers in the pull. Then each hit is judged by the HP it leaves.
 export function planHeals(
   plan: Plan,
   timeline: PullTimeline,
@@ -136,6 +133,9 @@ export function planHeals(
     // A mitigation that heals later (Exaltation) heals when it ends.
     if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
   }
+  // The healing buffs on the tanks (the Arrow, Protraction) first: the heals after count them.
+  uses.push(...tankBuffs(planned, spent, weaving, plan.mechanics, timeline.players));
+  for (const use of uses) boosts.add(use);
   // What each hit takes, which need no healing for, and what lands with each.
   const { invulnerable, damage, damageOf, together } = hitDamage(plan);
   // The mechanics, with Living Dead's and the damage outside them (damage over time, auto-attacks).
@@ -330,6 +330,7 @@ export function planHeals(
   }
   if (!refill) spareOnes();
   if (aimed) spareOnes(aimedHeals(planned, spent, weaving, eventsOf, plan.mechanics));
+  if (aimed) uses.push(...tankBuffs(planned, spent, weaving, plan.mechanics, timeline.players, true));
 
   const hits = judgedHits(plan, maxHp, options.margin, track, deads, damage, together, {
     uses: mitigating,
