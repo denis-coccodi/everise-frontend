@@ -11,11 +11,13 @@ import type { HpEvent } from './hp-track.model';
 const ON_COOLDOWN = new Set([3571, 16553, 36997]);
 // The heals used on cooldown aimed at the raidwides, as the logs' players use
 // them, by how long before the hit they're used: Earthly Star (placed to go
-// off grown just before it, 20s on) and Macrocosmos (cast just before it, in
-// a GCD slot no heal took: a damage spell, it costs no damage).
+// off grown just before it, 20s on), and Macrocosmos and a sage's Pneuma
+// (cast just before it, in a GCD slot no heal took: damage spells, they cost
+// no damage; the logs' sages cast Pneuma 139 times in 50 kills, the plan 65).
 const AIMED = new Map([
   [7439, 20_000],
   [25874, 0],
+  [24318, 0],
 ]);
 // Back from its recast, one waits for the raidwide taking the party the most
 // this soon after, and goes in this long before it at least, else as early
