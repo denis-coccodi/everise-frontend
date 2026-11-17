@@ -35,6 +35,13 @@ describe('refillsBefore', () => {
     expect(may(2, tool('free', null, 'self'))).toBe(true);
   });
 
+  it('keeps Lustrate for the hits that need it, refilling only everywhere', () => {
+    const lustrate = { ...tool('resource', 'Aetherflow', 'target'), action: 189 } as HealTool;
+
+    expect(may(1, lustrate)).toBe(false);
+    expect(refillsBefore(new Set([1]), true)(1, lustrate)).toBe(true);
+  });
+
   it("never refills with a DPS's Second Wind, even everywhere", () => {
     expect(may(1, tool('self'))).toBe(false);
     expect(refillsBefore(new Set([1]), true)(1, tool('self'))).toBe(false);

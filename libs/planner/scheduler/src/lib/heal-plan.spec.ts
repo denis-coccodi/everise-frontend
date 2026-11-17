@@ -60,7 +60,8 @@ describe('planHeals', () => {
   it('refills a player to full before a hit as healers do, with what the needs leave', () => {
     // The tank lands on 70,000 after the first buster: enough for the
     // second's 55,000 and the margin, so no heal is needed; the plan still
-    // refills them with Lustrate, without counting on it (`hpNeeded`), as
+    // refills them with an Aetherflow heal (Excogitation, landing at once
+    // here: Lustrate never refills), without counting on it (`hpNeeded`), as
     // the second is heavy (55% of their HP). Before a light one it keeps
     // the Aetherflow stack for Energy Drain.
     const pullWith = (second: number) =>
@@ -74,7 +75,9 @@ describe('planHeals', () => {
     const timeline = pullWith(55_000);
     const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
     const power = healPower(timeline, catalog());
-    const heals = healTools(timeline.players, catalog(), [], power).filter((t) => t.name === 'Lustrate');
+    const heals = healTools(timeline.players, catalog(), [], power)
+      .filter((t) => t.name === 'Lustrate')
+      .map((t) => ({ ...t, action: 7434, name: 'Excogitation' }));
     const options = { margin: 0.1 };
     const planned = (refill: boolean, t = timeline) =>
       planHeals(
@@ -94,7 +97,7 @@ describe('planHeals', () => {
 
     expect(planned(false).uses).toEqual([]);
     const refilled = planned(true);
-    expect(refilled.uses).toEqual([expect.objectContaining({ name: 'Lustrate', target: 1 })]);
+    expect(refilled.uses).toEqual([expect.objectContaining({ name: 'Excogitation', target: 1 })]);
     expect(refilled.hits[1]).toMatchObject({ hpNeeded: 70_000, safe: true });
     expect(refilled.hits[1].hpBefore).toBeGreaterThan(70_000);
     expect(planned(true, pullWith(30_000)).uses).toEqual([]);

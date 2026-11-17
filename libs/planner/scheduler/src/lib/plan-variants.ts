@@ -1,3 +1,4 @@
+import { deadIn } from './plan-score';
 import type { Plan, PlanOptions } from './plan.model';
 
 // A plan made one way (`asked`), by `planOnce`, in passes (`begin` hears how
@@ -6,7 +7,8 @@ import type { Plan, PlanOptions } from './plan.model';
 // for every raidwide; where a hit is left short or someone dead, only the
 // heavy raidwides get shields, then everything refills everywhere, then no
 // shields go up just for the raidwides, then neither:
-// the `better` plan kept, stopping at the first that isn't better (on the
+// the plan with fewer players dying kept (to any damage: a damage-over-time
+// tick too), else the `better` one, stopping at the first that isn't (on the
 // bench's 18 slowest kills, the same plans in 23% less time).
 export function planVariants(
   asked: PlanOptions,
@@ -27,7 +29,8 @@ export function planVariants(
   for (const variant of variants) {
     if (!short(plan)) break;
     const next = planOnce(variant);
-    if (!better(next, plan)) break;
+    const [now, was] = [deadIn(next), deadIn(plan)];
+    if (now > was || (now === was && !better(next, plan))) break;
     plan = next;
   }
   return plan;

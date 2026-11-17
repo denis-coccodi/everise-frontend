@@ -63,6 +63,7 @@ export function momentsFor(m: Mechanic, t: MitigationTool, mechanics: Mechanic[]
 // The cooldowns cast on someone else only: Intervention, Nascent Flash.
 const NASCENT_FLASH = 16464;
 const ON_OTHERS = new Set([7382, NASCENT_FLASH]);
+const THE_SPIRE = 37025;
 
 // The hit of `m` the plan so far leaves taking the most of the HP it lands
 // on, among those `t` may go on: never its user's for one cast on someone
@@ -74,7 +75,8 @@ const ON_OTHERS = new Set([7382, NASCENT_FLASH]);
 // busters: on any other hit (a raidwide, or one on a few: FRU's Path of
 // Light) and on someone not a tank only where needed. In 54 kills' logs 45
 // went on a tank for a hit on a few, to the plan's 656. On the plan made
-// the old way (`raidwidesOnly`, a fallback), only raidwides are kept from.
+// the old way (`raidwidesOnly`, a fallback), only raidwides are kept from,
+// and the Spire (a card, free) goes on anyone, as it did.
 export function mostEndangered(
   m: Mechanic,
   uses: PlannedUse[],
@@ -90,8 +92,9 @@ export function mostEndangered(
     if (t && ON_OTHERS.has(t.action) && hit.player === t.player) continue;
     if (t?.action === NASCENT_FLASH && m.kind === 'raidwide' && !needed) continue;
     const kept = raidwidesOnly ? m.kind === 'raidwide' : m.kind !== 'tankbuster';
-    if (t?.onlyOn && kept && !needed) continue;
-    if (t?.onlyOn && !t.onlyOn.includes(hit.player) && !needed) continue;
+    const onlyOn = raidwidesOnly && t?.action === THE_SPIRE ? undefined : t?.onlyOn;
+    if (onlyOn && kept && !needed) continue;
+    if (onlyOn && !onlyOn.includes(hit.player) && !needed) continue;
     if (!worst || share > worst.share) worst = { player: hit.player, share };
   }
   return worst?.player ?? null;
