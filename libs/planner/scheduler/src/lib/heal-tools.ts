@@ -13,6 +13,7 @@ import {
   recastMsOf,
 } from './tools';
 import { SECOND_WIND, roleHeal } from './role-heals';
+import { TANK_BUFFS } from './tank-buffs';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
@@ -243,7 +244,7 @@ export function healTools(
           },
         ];
       }
-      if (!effects.length) continue;
+      if (!effects.length && !TANK_BUFFS.has(action.id)) continue;
       tools.push({
         player: player.id,
         action: action.id,
