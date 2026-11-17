@@ -9,6 +9,7 @@ describe('Eukrasia', () => {
     expect(pressedFirst(37034)).toBe('Eukrasia');
     expect(castMsOf(action(24284, 'Diagnosis', ['SGE'], 2.5, [], { castMs: 1500 }))).toBe(1500);
     expect(pressedFirst(24284)).toBeNull();
+    expect(pressedFirst(34686)).toBe('Tempera Coat');
   });
 });
 
