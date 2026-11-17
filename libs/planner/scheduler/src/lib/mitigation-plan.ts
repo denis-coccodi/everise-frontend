@@ -1,3 +1,4 @@
+import { zoeOptions } from './zoe-shields';
 import { fitsGrant, fitsPool, fitsRecast, isAway, projected, pullFacts, reaches } from './coverage';
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { cutsUnion } from './fairy-heals';
@@ -22,16 +23,12 @@ const GCD_WORTH = 0.4;
 // How long before a heal Recitation can go up for it.
 const RECITATION_MS = 15_000;
 
-// The party's mitigations and shields planned over the pull: the most
-// dangerous mechanics first, each given them until every hit leaves the
-// margin, so big cooldowns aren't spent early on small hits; then the oGCDs
-// left where they add the most. A GCD (Succor...) costs damage, so it
-// counts for less and isn't spent on spare margin. Each hit is planned at
-// full HP, or `from` an earlier plan, at the HP its heals left. Only the
-// replanned players' tools are planned; the `fixed` uses stay. Each use
-// goes where its player can act (`weaving`), within their MP (`mp`). A GCD
-// shield grows with its caster's potency buffs (`shieldTimes`). The
-// `automatic` uses (Seraph's Seraphic Veils) are given, never planned.
+// The party's mitigations and shields planned over the pull: the most dangerous mechanics first, each given them until every
+// hit leaves the margin, so big cooldowns aren't spent early on small hits; then the oGCDs left where they add the most. A
+// GCD (Succor...) costs damage, so it counts for less and isn't spent on spare margin. Each hit is planned at full HP, or
+// `from` an earlier plan, at the HP its heals left. Only the replanned players' tools are planned; the `fixed` uses stay.
+// Each use goes where its player can act (`weaving`), within their MP (`mp`). A GCD shield grows with its caster's potency
+// buffs (`shieldTimes`), a sage's by half with Zoe (`zoeOptions`). The `automatic` uses (Seraphic Veils) are given.
 export function planMitigation(
   mechanics: Mechanic[],
   tools: MitigationTool[],
@@ -142,6 +139,7 @@ export function planMitigation(
     uses
       .filter((u) => u.player === player && !AUTOMATIC.has(u.action))
       .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
+  const zoeFor = zoeOptions(plannable, uses, tool, occupiedBy, weaving, options);
 
   // The damage `added` uses take off the hits `wanted` of `m` (and, in a
   // burst, the earlier hits on those players, which leave them the HP they
@@ -237,11 +235,12 @@ export function planMitigation(
       if (mp && !mp.affordable(t.player, t.action, at, own, drop ? 'need' : 'spare', target)) continue;
       const needs =
         t.grantedBy && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy);
-      for (const option of needs ? granting(m, t, at) : [{ granted: [], tool: t }]) {
+      for (const option of needs ? granting(m, t, at) : [{ granted: [], tool: t }, ...zoeFor(t, at)]) {
         const { granted } = option;
         const crit = option.tool !== t;
         const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
         if (crit) use.critical = true;
+        if ('boost' in option) use.boost = option.boost as number;
         const added = [{ use, tool: option.tool }, ...granted];
         const start = Math.min(at, ...granted.map((g) => g.use.at));
         let value = valueOf(m, added, start, lasts + (at - start), wanted);
