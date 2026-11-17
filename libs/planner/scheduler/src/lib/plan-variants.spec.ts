@@ -9,7 +9,10 @@ const planOf = (short: number, made: PlanOptions) =>
     hits: Array.from({ length: short }, () => ({ safe: false, avoidable: false })),
   }) as unknown as Plan & { made: PlanOptions };
 
-const kind = (o: PlanOptions) => (o.refillEverywhere ? 'R' : '') + (o.noRaidwideShields ? 'N' : '') || 'plain';
+const kind = (o: PlanOptions) =>
+  (o.noRaidwideShields === 'light' ? 'L' : '') +
+    (o.refillEverywhere ? 'R' : '') +
+    (o.noRaidwideShields === true ? 'N' : '') || 'plain';
 
 function plan(shortBy: Record<string, number>) {
   const tried: string[] = [];
@@ -31,11 +34,12 @@ describe('planVariants', () => {
   });
 
   it('tries the next way while each one is better, the best kept', () => {
-    expect(plan({ plain: 3, R: 2, N: 1, RN: 0 })).toEqual({ tried: ['plain', 'R', 'N', 'RN'], kept: 'RN' });
+    expect(plan({ plain: 4, L: 3, R: 2, N: 1, RN: 0 })).toEqual({ tried: ['plain', 'L', 'R', 'N', 'RN'], kept: 'RN' });
   });
 
   it('stops at the first way that is no better', () => {
-    expect(plan({ plain: 3, R: 2, N: 2, RN: 0 })).toEqual({ tried: ['plain', 'R', 'N'], kept: 'R' });
-    expect(plan({ plain: 3, R: 4, N: 0, RN: 0 })).toEqual({ tried: ['plain', 'R'], kept: 'plain' });
+    expect(plan({ plain: 4, L: 3, R: 2, N: 2, RN: 0 })).toEqual({ tried: ['plain', 'L', 'R', 'N'], kept: 'R' });
+    expect(plan({ plain: 3, L: 4, R: 0, N: 0, RN: 0 })).toEqual({ tried: ['plain', 'L'], kept: 'plain' });
+    expect(plan({ plain: 3, L: 2, R: 4, N: 0, RN: 0 })).toEqual({ tried: ['plain', 'L', 'R'], kept: 'L' });
   });
 });

@@ -5,9 +5,12 @@ import type { HpEvent } from './hp-track.model';
 import type { Mechanic, MechanicHit, Plan, PlanOptions } from './plan.model';
 
 // What the heal step (`planHeals`) may refill to full before each mechanic
-// (`refills`), and the raidwides everyone goes into shielded as well: the
-// heavy ones, and those in a replanned astrologian's Neutral Sect
-// (`casters`). `unshielded` says what of a hit no shield takes yet: its
+// (`refills`), and the raidwides everyone goes into shielded as well: every
+// raidwide on 4 players or more, whatever its size, as the logs' healers
+// shield 60-67% of an ultimate's raidwides with a GCD shield, the light ones
+// as often as the heavy (only the heavy ones with `noRaidwideShields:
+// 'light'`, none with `true`), and those in a replanned astrologian's
+// Neutral Sect (`casters`). `unshielded` says what of a hit no shield takes yet: its
 // damage (`damageOf`), less what `extra`'s barriers would save of it;
 // nothing once a shield is up (`up` says what the shields up absorb, and
 // which), in a Neutral Sect once its barrier is, as it stacks with the
@@ -21,8 +24,11 @@ export function raidwideShields(
   up: (o: Mechanic, hit: MechanicHit) => { absorbed: number; statuses: string[] },
 ) {
   const sect = sectRaidwides(plan, casters);
-  const refills = refillsBefore(new Set([...heavyMechanics(plan, maxHp), ...sect]), options.refillEverywhere);
-  const shieldFor = new Set(options.noRaidwideShields ? [] : [...heavyRaidwides(plan, maxHp), ...sect]);
+  const all = options.noRaidwideShields ? [] : everyRaidwide(plan);
+  const refills = refillsBefore(new Set([...heavyMechanics(plan, maxHp), ...sect, ...all]), options.refillEverywhere);
+  const shieldFor = new Set(
+    options.noRaidwideShields === true ? [] : [...heavyRaidwides(plan, maxHp), ...sect, ...all],
+  );
   const shielded = new Map<string, boolean>();
   const unshielded = (o: Mechanic, hit: MechanicHit, extra: HpEvent[]) => {
     const id = `${o.id}:${hit.player}`;
@@ -32,3 +38,9 @@ export function raidwideShields(
   };
   return { refills, shieldFor, unshielded, forget: () => shielded.clear() };
 }
+
+// The raidwides: the mechanics hitting 4 players or more.
+const everyRaidwide = (plan: Plan) =>
+  plan.mechanics
+    .filter((m) => m.kind === 'raidwide' && m.hits.filter((h) => !h.avoidable).length >= 4)
+    .map((m) => m.id);

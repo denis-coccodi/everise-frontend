@@ -607,9 +607,10 @@ describe('planHeals', () => {
     expect(planned(50_000)).toEqual(['Medica III']);
   });
 
-  it('shields everyone before a heavy raidwide, as the logs show healers do, even on full HP', () => {
-    // Four players on full HP: a light raidwide (30%) gets nothing, a heavy
-    // one (50%) a Concitation (Succor), whose Galvanize takes some of it off everyone.
+  it('shields everyone before a raidwide, light or heavy, as the logs show healers do, even on full HP', () => {
+    // Four players on full HP: a raidwide, light (30%) or heavy (50%), gets a
+    // Concitation (Succor), whose Galvanize takes some of it off everyone;
+    // with shields only for the heavy ones (a fallback), the light one none.
     const cat = catalog();
     cat.actions.push(
       action(
@@ -621,7 +622,7 @@ describe('planHeals', () => {
         { gcd: true, castMs: 2000 },
       ),
     );
-    const planned = (damage: number) => {
+    const planned = (damage: number, only?: 'light') => {
       const hits = [1, 2, 3, 4].map((target): [number, string, number, number] => [60, 'Raidwide', target, damage]);
       const base = pull(hits, [[1, 2, 189, 60_000]]);
       const timeline = { ...base, players: [...base.players, { ...base.players[2], id: 4, name: 'Fourth' }] };
@@ -629,14 +630,16 @@ describe('planHeals', () => {
       const power = healPower(timeline, cat);
       const mitigation = mitigationTools(timeline.players, cat, power).filter((t) => t.name === 'Concitation');
       const heals = healTools(timeline.players, cat, mitigation, power).filter((t) => t.name === 'Concitation');
-      const options = { margin: 0.1 };
+      const options = { margin: 0.1, noRaidwideShields: only };
       const mitigated = planMitigation(mechanicsOf(timeline), [], maxHp, options);
       const args = [undefined, undefined, undefined, undefined, undefined, true] as const;
       return planHeals(mitigated, timeline, mitigation, heals, maxHp, options, ...args).uses.map((u) => u.name);
     };
 
-    expect(planned(30_000)).toEqual([]);
+    expect(planned(30_000)).toEqual(['Concitation']);
     expect(planned(50_000)).toEqual(['Concitation']);
+    expect(planned(30_000, 'light')).toEqual([]);
+    expect(planned(50_000, 'light')).toEqual(['Concitation']);
   });
 
   it('credits a heal for what it still heals toward the next hits: a regen over a heal as big', () => {
