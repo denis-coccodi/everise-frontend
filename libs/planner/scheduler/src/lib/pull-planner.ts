@@ -1,5 +1,5 @@
 import { withDeaths } from './plan-deaths';
-import { atLowestHp, better } from './plan-score';
+import { atLowestHp, better, deadIn } from './plan-score';
 import { bestOfStrategies, betterPlan } from './strategies';
 import type { Strategy } from './strategy.model';
 import { REPAIR_TRIES, repairDeaths } from './death-repair';
@@ -250,11 +250,9 @@ export class PullPlanner {
       last = once(atLowestHp(last, lowest));
       if (better(last, best, maxHp, options)) best = last;
     }
-    // A replanned sage uses Rhizomata where the plan's heals leave their
-    // Addersgall low; the heals are planned again with its stacks, unless
-    // that comes out worse: then with only those a heavy mechanic follows
-    // soon, then before the heaviest stretches (`rhizomataAhead`), else
-    // none (their stacks and slots given back).
+    // A replanned sage uses Rhizomata where the plan's heals leave their Addersgall low; the heals are planned again with its
+    // stacks, unless that comes out worse: then with only those a heavy mechanic follows soon, then before the heaviest
+    // stretches (`rhizomataAhead`), else none (their stacks and slots given back).
     const sageTools = [...mitigation, ...heals];
     const all = new Map(
       sages.map((s) => [s.id, rhizomataOf(s.id, best.uses, sageTools, weaving, byId, timeline.durationMs)]),
@@ -294,12 +292,8 @@ export class PullPlanner {
       bonus.clear();
       weaving.release(slots);
     }
-    // Last, the heals aimed at the raidwides (`aimedHeals`) on the plan picked: its heal pass again (from `sources`) with them, kept unless worse. Left out of the passes before: they made the rounds plan fewer shields.
-    const aimedPlan = sources.has(best) ? once(sources.get(best), true) : best;
-    if (!better(best, aimedPlan, maxHp, options)) best = aimedPlan;
-    // Seraph casts her Veils herself: they're no use to list. The openers'
-    // other steps (Energy Drains, Chain Stratagem...) show with it, but for
-    // the Energy Drains whose stacks the heals took.
+    // Seraph casts her Veils herself: they're no use to list. The openers' other steps (Energy Drains, Chain Stratagem...)
+    // show with it, but for the Energy Drains whose stacks the heals took.
     const stackTools = new Set([...mitigation, ...heals].filter((t) => t.pool?.name === 'Aetherflow').map(key));
     const shown = shownSteps(opening, placed, (player) =>
       best.uses.filter((u) => u.player === player && stackTools.has(key(u))).map((u) => u.at),
@@ -320,8 +314,14 @@ export class PullPlanner {
     if (lucid.length) {
       weaving.keep(lucid.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
       const next = once(best);
-      best = better(best, next, maxHp, options) ? { ...best, uses: [...best.uses, ...lucid] } : next;
+      const kept = { ...best, uses: [...best.uses, ...lucid] };
+      sources.set(kept, sources.get(best));
+      best = better(best, next, maxHp, options) ? kept : next;
     }
+    // Last, the heals aimed at the raidwides (`aimedHeals`) on the plan picked: its heal pass again (from `sources`) with them,
+    // kept unless worse (no more deaths, to any damage, nor hits short). Left out of every pass before, Lucid's too: they made those plan fewer shields.
+    const aimedPlan = sources.has(best) ? once(sources.get(best), true) : best;
+    if (deadIn(aimedPlan) <= deadIn(best) && !better(best, aimedPlan, maxHp, options)) best = aimedPlan;
     // A replanned white mage's Thin Air: a charge for each raise, the rest on costly spells.
     const thinAir = whms.flatMap((w) =>
       thinAirTimes(w, timeline, best.uses, weaving, byId).map((at) => thinAirUse(w, at)),

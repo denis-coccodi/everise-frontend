@@ -14,6 +14,11 @@ export function better(a: Plan, b: Plan, maxHp: Map<number, number>, options: Pl
   return x.count < y.count || (x.count === y.count && x.by < y.by);
 }
 
+// How many players the plan's HP has dying at some point (to any damage, a damage-over-time tick too).
+export function deadIn(plan: Plan): number {
+  return plan.hp.filter((h) => h.points.some((p) => p.hp <= 0)).length;
+}
+
 // The plan with each hit's HP the lowest any round so far landed it on
 // (`lowest`, kept up to date): the next round's mitigations plan for that,
 // not for HP that heals planned again may not give it.
