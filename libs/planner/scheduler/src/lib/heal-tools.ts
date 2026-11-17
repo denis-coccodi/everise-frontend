@@ -274,11 +274,15 @@ function costOf(action: CatalogAction): HealCost {
   return pool === 'Aetherflow' || pool === 'Faerie Gauge' ? 'resource' : 'free';
 }
 
-// A delayed heal's condition is when it lands, which the plan picks.
+// A delayed heal's condition is when it lands, which the plan picks. A
+// condition naming a bigger heal under a status (Earth's Reply: "500 under
+// Earth's Resolve") leaves the catalog's own potency as the heal's.
+const STRONGER = /^\d+ under /;
 function healEffects(action: CatalogAction, power: number | null, delayed: boolean): HealEffect[] {
   const effects: HealEffect[] = [];
   for (const e of action.effects) {
-    if (e.target === 'enemies' || (e.condition && !delayed && !ASSUMED(e.condition))) continue;
+    if (e.target === 'enemies' || (e.condition && !delayed && !ASSUMED(e.condition) && !STRONGER.test(e.condition)))
+      continue;
     const size = sizeOf(e, power);
     if (!size) continue;
     if (e.kind === 'heal') effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null });

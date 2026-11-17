@@ -127,6 +127,19 @@ describe('healTools', () => {
     expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[1, 'free', { hp: 60_000 }]]);
   });
 
+  it("keeps a heal's own potency where its condition only names a bigger one (Earth's Reply)", () => {
+    const c = catalog();
+    c.actions.push(
+      action(36944, "Earth's Reply", ['BRD'], 1, [
+        { ...heal(300), target: 'party', condition: "500 under Earth's Resolve" },
+      ]),
+    );
+
+    const reply = healTools(party(), c, [], new Map([[3, 20]])).find((t) => t.name === "Earth's Reply");
+
+    expect(reply?.effects).toEqual([{ target: 'party', size: { hp: 6_000 }, ticks: 1, status: null, statusId: null }]);
+  });
+
   it('counts the grown Earthly Star as a delayed heal, set off by Stellar Detonation', () => {
     const c = withHeals();
     c.actions.push(
