@@ -10,12 +10,14 @@ import type { HpEvent } from './hp-track.model';
 // Solaris (free, in each Refulgent Lux).
 const ON_COOLDOWN = new Set([3571, 16553, 36997]);
 // The heals used on cooldown aimed at the raidwides, as the logs' players use
-// them, by how long before the hit they're used: Earthly Star (placed to go
-// off grown just before it, 20s on), and Macrocosmos and a sage's Pneuma
+// them, by how long before the hit they're used: Earthly Star (placed 10s
+// before it at least, to be grown, and set off with Stellar Detonation just
+// after it: in 54 kills' logs 216 of 302 detonations landed 0-10s after a
+// raidwide, 67 before), and Macrocosmos and a sage's Pneuma
 // (cast just before it, in a GCD slot no heal took: damage spells, they cost
 // no damage; the logs' sages cast Pneuma 139 times in 50 kills, the plan 65).
 const AIMED = new Map([
-  [7439, 20_000],
+  [7439, 9_000],
   [25874, 0],
   [24318, 0],
 ]);
@@ -25,6 +27,8 @@ const AIMED = new Map([
 const AIM_WITHIN_MS = 60_000;
 const AIM_LEAD_MS = 1_000;
 const AIM_WINDOW_MS = 8_000;
+// How long after the hit a delayed heal is set off (Earthly Star's).
+const SET_OFF_MS = 1_000;
 // What another grants a few uses of, lost when the window ends: Seraph's
 // two Consolations, both used before she leaves.
 const SPEND_BEFORE_LOST = new Set([16546]);
@@ -214,9 +218,28 @@ export function aimedHeals(
         covers: [],
       };
       uses.push(use);
-      events.push(...eventsFor(tool, use, tool.delayed?.delaysMs[0] ?? 0));
       const { player, action, group, pool, gcd, castMs } = tool;
       spent.push({ player, action, at, group, pool, gcd, castMs });
+      // Set off just after the hit, in a weave slot before it'd go off on its own.
+      const { delayed } = tool;
+      let delayMs = delayed?.delaysMs[0] ?? 0;
+      const set =
+        delayed?.release &&
+        weaving.ogcdAfter(player, m.at + SET_OFF_MS, at + castMs + delayMs - 1, [...own, spent[spent.length - 1]]);
+      if (delayed?.release && set) {
+        delayMs = set - at - castMs;
+        uses.push({ ...use, ...delayed.release, at: set, covers: [] });
+        spent.push({
+          player,
+          ...delayed.release,
+          group: `release:${player}`,
+          at: set,
+          pool: null,
+          gcd: false,
+          castMs: 0,
+        });
+      }
+      events.push(...eventsFor(tool, use, delayMs));
       due = at + tool.recastMs;
     }
   }

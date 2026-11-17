@@ -95,7 +95,7 @@ describe('aimedHeals', () => {
     pool: null,
     cost: 'free',
     effects: [{ target: 'party' }],
-    delayed: { delaysMs: [20_000, 10_000] },
+    delayed: { delaysMs: [20_000, 10_000], release: { action: 8324, name: 'Stellar Detonation' } },
   } as unknown as HealTool;
   const raidwide = (id: number, s: number, unmitigated: number) =>
     ({
@@ -105,7 +105,7 @@ describe('aimedHeals', () => {
       hits: [{ player: 1, unmitigated, avoidable: false }],
     }) as unknown as Mechanic;
 
-  it('places it on cooldown to go off grown just before the heaviest raidwide within a minute', () => {
+  it('places it on cooldown grown by the heaviest raidwide within a minute, set off just after it', () => {
     const delays: number[] = [];
     const { uses } = aimedHeals(
       [star],
@@ -118,8 +118,40 @@ describe('aimedHeals', () => {
       [raidwide(1, 30, 10_000), raidwide(2, 50, 90_000), raidwide(3, 150, 50_000)],
     );
 
-    expect(uses.map((u) => u.at)).toEqual([29_000, 129_000]);
-    expect(delays).toEqual([20_000, 20_000]);
+    expect(uses.map((u) => [u.name, u.at])).toEqual([
+      ['Earthly Star', 40_000],
+      ['Stellar Detonation', 51_000],
+      ['Earthly Star', 140_000],
+      ['Stellar Detonation', 151_000],
+    ]);
+    expect(delays).toEqual([11_000, 11_000]);
+  });
+
+  it('lets it go off by itself where no weave slot is free to set it off', () => {
+    const delays: number[] = [];
+    const busy = (at: number): Spent => ({
+      player: 2,
+      action: 7434,
+      at,
+      group: '2:x',
+      pool: null,
+      gcd: false,
+      castMs: 0,
+    });
+    const spent = Array.from({ length: 20 }, (_, i) => busy(50_500 + i * 500));
+    const { uses } = aimedHeals(
+      [star],
+      spent,
+      new Weaving(),
+      (_tool, _use, delayMs) => {
+        delays.push(delayMs);
+        return [];
+      },
+      [raidwide(1, 50, 90_000)],
+    );
+
+    expect(uses.map((u) => u.name)).toEqual(['Earthly Star']);
+    expect(delays).toEqual([20_000]);
   });
 
   it('waits for the next raidwide where its recast is still running', () => {
@@ -129,7 +161,7 @@ describe('aimedHeals', () => {
       raidwide(2, 100, 90_000),
     ]);
 
-    expect(uses.map((u) => u.at)).toEqual([79_000]);
+    expect(uses.filter((u) => u.name === 'Earthly Star').map((u) => u.at)).toEqual([90_000]);
   });
 
   it("casts a sage's Pneuma, a GCD, just before the heaviest raidwide, on cooldown", () => {
