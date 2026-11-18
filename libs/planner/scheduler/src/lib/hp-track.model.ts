@@ -1,4 +1,4 @@
-import type { Invulnerability } from './plan.model';
+import type { HealEffect, Invulnerability } from './plan.model';
 
 // A change to one player's HP: damage taken (negative) or healing.
 export interface HpEvent {
@@ -9,6 +9,8 @@ export interface HpEvent {
   floor?: number;
   // Damage a mitigation planned later takes back off a hit, as it lands: no heal.
   back?: boolean;
+  // A heal that grows as its target has less HP (`HealEffect.lowHp`).
+  lowHp?: HealEffect['lowHp'];
 }
 
 // A player's HP once everything up to `at` (inclusive) has happened, and
