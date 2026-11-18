@@ -63,7 +63,7 @@ export class AutoDamage {
       const before = (this.autos.get(player) ?? []).map((a) => a.amount);
       this.project(player);
       return (this.autos.get(player) ?? [])
-        .map((a, i) => ({ at: a.hit.at, player, amount: before[i] - a.amount }))
+        .map((a, i) => ({ at: a.hit.at, player, amount: before[i] - a.amount, back: true }))
         .filter((e) => e.amount !== 0);
     });
   }

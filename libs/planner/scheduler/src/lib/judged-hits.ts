@@ -21,7 +21,9 @@ export function hpBefores(plan: Plan, track: HpTrack, together: (m: Mechanic, pl
 // it, `together`), and whether it leaves the margin. One a heal's
 // mitigation lowered (its damage no longer `damage` has: Kerachole...) is
 // projected again with every mitigation up (`mitigating`). Under Living
-// Dead, one the tank isn't healed full after dies. `needed`: the HP each
+// Dead, one the tank isn't healed by their max HP after, before Walking
+// Dead ends, dies: as in the game, healed by that much in all (Undead
+// Rebirth), whatever hits them meanwhile. `needed`: the HP each
 // landed on before the plan refilled everyone (`hpNeeded`).
 export function judgedHits(
   plan: Plan,
@@ -56,7 +58,9 @@ export function judgedHits(
     const m = mechanicOf.get(hit.mechanic) as Mechanic;
     const hpBefore = Math.round(track.before(start, m.at) - together(m, hit.player));
     const dead = deads.find((d) => d.trigger.id === hit.mechanic && d.player === hit.player);
-    const healed = !dead || track.before(start, dead.check.at + 1) >= max - 1;
+    // A hit that leaves them HP sets off no Walking Dead: healed back to full from there will do.
+    const left = Math.max(0, hpBefore - hit.planned);
+    const healed = !dead || track.restoredBetween(hit.player, m.at, dead.check.at) >= max - left - 1;
     const safe = (hit.invulnerable && healed) || hit.avoidable || hpBefore - hit.planned >= margin * max - 1;
     const needed = mitigation.needed?.get(`${hit.mechanic}:${hit.player}`);
     return { ...hit, hpBefore, safe, hpNeeded: needed };

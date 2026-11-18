@@ -167,7 +167,7 @@ export function planHeals(
         const now = projected(m, h, mitigating, toolOfUse, facts).damage;
         if (now >= was) continue;
         damage.set(`${m.id}:${h.player}`, now);
-        track.add([{ at: m.at, player: h.player, amount: was - now }]);
+        track.add([{ at: m.at, player: h.player, amount: was - now, back: true }]);
         if (!use.covers.includes(m.id)) use.covers.push(m.id);
       }
     }

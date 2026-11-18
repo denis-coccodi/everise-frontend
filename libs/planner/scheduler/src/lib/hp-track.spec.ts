@@ -62,4 +62,24 @@ describe('HpTrack', () => {
     expect(t.firstAtOrBelow(1, 0, 5000, 50_000)).toBeNull();
     expect(t.firstAtOrBelow(2, 0, 60_000, 50_000)).toBeNull();
   });
+  it('counts what healing gave back in a stretch, whatever hits meanwhile', () => {
+    const t = new HpTrack(new Map([[1, 100_000]]), [
+      { at: 10_000, player: 1, amount: -99_999, floor: 1 },
+      { at: 12_000, player: 1, amount: 60_000 },
+      // A hit back down to 1 HP: what was healed still counts.
+      { at: 13_000, player: 1, amount: -200_000, floor: 1 },
+      { at: 15_000, player: 1, amount: 30_000 },
+      // A hit, and what a mitigation took back off it: no heal.
+      { at: 16_000, player: 1, amount: -20_000 },
+      { at: 16_000, player: 1, amount: 10_000, back: true },
+      // Over max HP: only what it gave back.
+      { at: 18_000, player: 1, amount: 500_000 },
+      { at: 25_000, player: 1, amount: 5_000 },
+    ]);
+
+    expect(t.restoredBetween(1, 10_000, 20_000)).toBe(60_000 + 30_000 + (100_000 - 20_001));
+    expect(t.restoredBetween(1, 13_000, 15_000)).toBe(30_000);
+    expect(t.restoredBetween(1, 16_000, 17_000)).toBe(0);
+    expect(t.restoredBetween(2, 0, 60_000)).toBe(0);
+  });
 });

@@ -7,6 +7,8 @@ export interface HpEvent {
   amount: number;
   // The least HP it can leave (1 under Holmgang); 0 when not given.
   floor?: number;
+  // Damage a mitigation planned later takes back off a hit, as it lands: no heal.
+  back?: boolean;
 }
 
 // A player's HP once everything up to `at` (inclusive) has happened, and
