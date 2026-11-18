@@ -44,6 +44,7 @@ import { raidwideShields } from './raidwide-shields';
 import { hpBefores, judgedHits } from './judged-hits';
 import { mpShares, refillTargets, refillsBefore, refillWorth } from './heal-refill';
 import { barrierFor, barrierWorth, healOnly, pairedWithBarrier, withBarriers } from './barrier-worth';
+import { inPlanningOrder } from './hard-first';
 
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
@@ -54,7 +55,8 @@ const MACROCOSMOS = 25874;
 // allow), oGCDs first, each heal times the healing `buffs` (by action) up for it, and where its healer can act
 // (`weaving`): an oGCD in a weave slot, a GCD in place of one of theirs. A GCD heal can go with the oGCD that pays
 // only with one (`pairings`: Plenary Indulgence before a Medica), the two planned together. A replanned scholar's
-// fairy heals as `fairy` works out, in place of hers in the pull. Then each hit is judged by the HP it leaves.
+// fairy heals as `fairy` works out, in place of hers in the pull. The mechanics `first` (`hardFirst`) are healed
+// before the others, every tool open to them. Then each hit is judged by the HP it leaves.
 export function planHeals(
   plan: Plan,
   timeline: PullTimeline,
@@ -69,6 +71,7 @@ export function planHeals(
   mp?: MpModel,
   refill = false,
   aimed = false,
+  first = new Set<number>(),
 ): Plan {
   const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
   const healOf = new Map(heals.map((t) => [key(t), t]));
@@ -109,8 +112,7 @@ export function planHeals(
   const uses: PlannedUse[] = [];
   for (const use of plan.uses) {
     const mitigationTool = mitigationOf.get(key(use));
-    // A heal an opener has (Assize) counts too.
-    const tool = mitigationTool ?? healOf.get(key(use));
+    const tool = mitigationTool ?? healOf.get(key(use)); // A heal an opener has (Assize) counts too.
     // An opener's Afflatus Misery takes its GCD and the Blood Lily.
     if (use.action === MISERY.action) spent.push(miserySpent(use.player, use.at));
     // A pet's own cast (Seraphic Veil) takes none of its owner's time.
@@ -187,7 +189,7 @@ export function planHeals(
       spareOnes();
       needed = hpBefores(plan, track, together);
     }
-    for (const m of mechanics) {
+    for (const m of full ? mechanics : inPlanningOrder(mechanics, first)) {
       if (full && m.id < 0) continue;
       // Healing from after the last mechanic there was time to heal after (`anchors`: not others' checks).
       const anchor = mechanics.filter((o) => o.at <= m.at - NO_ROOM_MS - WEAVE_MS && anchors(m, o)).at(-1)?.at ?? -1;
@@ -253,7 +255,7 @@ export function planHeals(
           const among = (tools: HealTool[]) =>
             tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
           // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
-          const waits = (t: HealTool) => !firstNeed && waitsForBiggerNeed(t, m, mechanics, needOf);
+          const waits = (t: HealTool) => !firstNeed && !first.has(m.id) && waitsForBiggerNeed(t, m, mechanics, needOf);
           const pick = full
             ? among(planned.filter((t) => refills(m.id, t)))
             : (among(planned.filter((t) => !waits(t))) ?? among(planned));
@@ -266,8 +268,7 @@ export function planHeals(
           const mitigates = mitigationOf.get(key(pick.use));
           if (mitigates && !pick.paired?.pairing.converts) mitigate(pick.use, mitigates);
           if (pick.paired) {
-            const { barrier } = pick.paired;
-            // Neutral Sect's barrier, a shield for the hits after.
+            const { barrier } = pick.paired; // Neutral Sect's barrier, a shield for the hits after.
             if (barrier) {
               mitigationOf.set(key(barrier.use), barrier.tool);
               mitigate(barrier.use, barrier.tool);
@@ -294,7 +295,6 @@ export function planHeals(
           if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
             const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
             uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
-            // Its weave slot.
             const release = { action: delayed.release.action, group: `release:${pick.use.player}`, pool: null };
             spent.push({ player: pick.use.player, ...release, at: lands, gcd: false, castMs: 0 });
           }
