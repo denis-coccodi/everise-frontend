@@ -42,6 +42,7 @@ export function planMitigation(
   automatic: PlannedUse[] = [],
   mp?: MpModel,
   limitBreaks: { gauge: PullTimeline['limitBreakGauge']; played: GroupLimitBreak[] } = { gauge: [], played: [] },
+  hard = new Set<number>(), // Planned before any other, however dangerous (`hardFirst`): a plan left them short.
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -74,7 +75,8 @@ export function planMitigation(
   const limit = (m: Mechanic, h: MechanicHit) => hpOf(m, h) - options.margin * max(h);
   const danger = (m: Mechanic) =>
     Math.max(0, ...m.hits.filter((h) => !h.avoidable).map((h) => h.unmitigated / hpOf(m, h)));
-  const order = [...mechanics].sort((a, b) => danger(b) - danger(a) || a.at - b.at);
+  const hardFirst = (a: Mechanic, b: Mechanic) => Number(hard.has(b.id)) - Number(hard.has(a.id));
+  const order = [...mechanics].sort((a, b) => hardFirst(a, b) || danger(b) - danger(a) || a.at - b.at);
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
   const add = (candidate: Candidate) => {
