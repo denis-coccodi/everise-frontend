@@ -116,8 +116,7 @@ export class PullPlanner {
     const opening = openingOf(timeline, catalog, replannedPlayers, asked.openers);
     const mechanics = mechanicsOf(timeline, asked.failedMechanics === 'ignore');
     const opened = toolWindows(timeline, opening, edits, mechanics, asked.holds);
-    // A scholar's fairy orders wait for her while Dissipation has her away;
-    // Lux Solaris waits for the burst that grants it; Soteria heals Kardion's.
+    // Fairy orders wait out Dissipation; Lux Solaris, the burst that grants it; Soteria heals Kardion's.
     const mitigation = startingAt(opened(mitigationTools(timeline.players, catalog, power)), late);
     // The others' heals stay in the pull's healing, as played.
     const ownHeals = healTools(timeline.players, catalog, mitigation, power)
@@ -196,7 +195,7 @@ export class PullPlanner {
     // The tanks' short cooldowns go on the autos they take too.
     const [autos, short] = [autoTimes(timeline), alone.filter((t) => !asPlayed(t))];
     const sources = new WeakMap<Plan, Plan | undefined>();
-    let first = new Set<number>(); // The mechanics healed first (`hardFirst`).
+    let first = new Set<number>(); // The mechanics mitigated and healed first (`hardFirst`).
     const once = (from?: Plan, aimed = false) => {
       const mp = mpModel(from);
       const { healing, casts } = fairy(from);
@@ -212,6 +211,7 @@ export class PullPlanner {
         casts,
         mp,
         { gauge: timeline.limitBreakGauge, played: groupLimitBreaks(timeline) },
+        first,
       );
       mitigated.uses = [...mitigated.uses, ...autoCooldowns(mitigated, short, autos, weaving, mp)].sort(
         (a, b) => a.at - b.at || a.player - b.player,

@@ -42,6 +42,7 @@ export function planMitigation(
   automatic: PlannedUse[] = [],
   mp?: MpModel,
   limitBreaks: { gauge: PullTimeline['limitBreakGauge']; played: GroupLimitBreak[] } = { gauge: [], played: [] },
+  hard = new Set<number>(), // Planned before any other, however dangerous (`hardFirst`): a plan left them short.
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -74,7 +75,8 @@ export function planMitigation(
   const limit = (m: Mechanic, h: MechanicHit) => hpOf(m, h) - options.margin * max(h);
   const danger = (m: Mechanic) =>
     Math.max(0, ...m.hits.filter((h) => !h.avoidable).map((h) => h.unmitigated / hpOf(m, h)));
-  const order = [...mechanics].sort((a, b) => danger(b) - danger(a) || a.at - b.at);
+  const hardFirst = (a: Mechanic, b: Mechanic) => Number(hard.has(b.id)) - Number(hard.has(a.id));
+  const order = [...mechanics].sort((a, b) => hardFirst(a, b) || danger(b) - danger(a) || a.at - b.at);
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
   const add = (candidate: Candidate) => {
@@ -167,10 +169,9 @@ export function planMitigation(
     return value;
   };
 
-  // The uses of the action granting `t` that would let it go up at `at`,
-  // landing before it, each with `t` as it would then be: on its own, and
-  // made critical by Recitation where its user has it up (a bigger
-  // Galvanize to spread); none when there's no tool for it.
+  // The uses of the action granting `t` that would let it go up at `at`, landing before it, each with `t` as it would
+  // then be: on its own, and made critical by Recitation where its user has it up (a bigger Galvanize to spread); none
+  // when there's no tool for it.
   const granting = (m: Mechanic, t: MitigationTool, at: number): { granted: Granted[]; tool: MitigationTool }[] => {
     const grant = t.grantedBy;
     const g = grant && plannable.find((o) => o.player === t.player && o.action === grant.action);
@@ -206,10 +207,9 @@ export function planMitigation(
     ];
   };
 
-  // What one more use of `t` for `m` would add, at its best moment; null
-  // when it can't be used for it. One another grants comes with a use of
-  // that one where it has none, the two worth what they add together, the
-  // other's GCD counted as one.
+  // What one more use of `t` for `m` would add, at its best moment; null when it can't be used for it. One another
+  // grants comes with a use of that one where it has none, the two worth what they add together, the other's GCD
+  // counted as one.
   const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean, drop = true): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const spent = t.pool
