@@ -1,4 +1,4 @@
-import type { CatalogAction, PullTimeline } from '@everise/core/api-types';
+import type { CatalogAction, PullTimeline, TimelineCast } from '@everise/core/api-types';
 import type { MpModel } from './mp';
 import type { PlannedUse } from './plan.model';
 import { THIN_AIR } from './thin-air';
@@ -56,4 +56,11 @@ export function lucidTimes(
 
 export function lucidUse(player: number, at: number): PlannedUse {
   return { player, action: LUCID_DREAMING, name: 'Lucid Dreaming', at, target: null, covers: [] };
+}
+
+// A Lucid Dreaming the plan placed, as the MP model counts it throughout
+// (`MpExtras.fixed`): the MP checks of the passes after see its MP, as
+// they saw the played ones' before.
+export function lucidCast(use: PlannedUse): TimelineCast {
+  return { at: use.at, source: use.player, target: null, action: use.action, castMs: null };
 }
