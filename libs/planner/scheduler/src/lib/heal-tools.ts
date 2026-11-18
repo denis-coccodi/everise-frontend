@@ -274,10 +274,11 @@ function costOf(action: CatalogAction): HealCost {
   return pool === 'Aetherflow' || pool === 'Faerie Gauge' ? 'resource' : 'free';
 }
 
-// A delayed heal's condition is when it lands, which the plan picks. A
-// condition naming a bigger heal under a status (Earth's Reply: "500 under
-// Earth's Resolve") leaves the catalog's own potency as the heal's.
+// A delayed heal's condition is when it lands, which the plan picks. A condition naming a bigger heal under a
+// status (Earth's Reply: "500 under Earth's Resolve") leaves the catalog's potency; one growing as its target
+// has less HP (Essential Dignity: "up to 900 as the target has less HP (most at 30%)") grows so (`lowHp`).
 const STRONGER = /^\d+ under /;
+const LOW_HP = /^up to (\d+) as the target has less HP \(most at (\d+)%\)$/;
 function healEffects(action: CatalogAction, power: number | null, delayed: boolean): HealEffect[] {
   const effects: HealEffect[] = [];
   for (const e of action.effects) {
@@ -285,7 +286,10 @@ function healEffects(action: CatalogAction, power: number | null, delayed: boole
       continue;
     const size = sizeOf(e, power);
     if (!size) continue;
-    if (e.kind === 'heal') effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null });
+    const low = e.potency ? LOW_HP.exec(e.condition ?? '') : null;
+    const lowHp =
+      low && e.potency ? { lowHp: { times: Number(low[1]) / e.potency, fullAt: Number(low[2]) / 100 } } : {};
+    if (e.kind === 'heal') effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null, ...lowHp });
     else if (e.kind === 'regen' && (e.durationMs || action.id === AETHERPACT)) {
       const ticks = e.durationMs ? Math.floor(e.durationMs / TICK_MS) : FEY_UNION_TICKS;
       effects.push({ target: e.target, size, ticks, status: e.status ?? action.name, statusId: e.statusId });

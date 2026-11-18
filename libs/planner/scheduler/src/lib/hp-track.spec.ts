@@ -22,6 +22,24 @@ describe('HpTrack', () => {
     expect(t.checkpoint(2, 0)).toBeNull();
   });
 
+  it('grows a heal as its target has less HP, all of it at its full share or less', () => {
+    const lowHp = { times: 2.25, fullAt: 0.3 };
+    const hpAfter = (damage: number) => {
+      const t = new HpTrack(new Map([[1, 100_000]]), [
+        { at: 10_000, player: 1, amount: -damage },
+        { at: 20_000, player: 1, amount: 10_000, lowHp },
+      ]);
+      const start = t.checkpoint(1, -1);
+      if (!start) throw new Error('no checkpoint');
+      return t.before(start, 25_000);
+    };
+
+    expect(hpAfter(10_000)).toBeCloseTo(100_000);
+    // At 65% HP, halfway to 30%: 1.625 times.
+    expect(hpAfter(35_000)).toBeCloseTo(81_250);
+    expect(hpAfter(80_000)).toBeCloseTo(42_500);
+  });
+
   it("leaves an event's floor at least", () => {
     const t = new HpTrack(new Map([[1, 100_000]]), [{ at: 10_000, player: 1, amount: -150_000, floor: 1 }]);
     const start = t.checkpoint(1, -1);

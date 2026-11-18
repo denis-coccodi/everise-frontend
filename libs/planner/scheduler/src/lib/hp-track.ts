@@ -99,6 +99,8 @@ export class HpTrack {
   }
 
   private step(hp: number, event: HpEvent, max: number) {
-    return Math.min(max, Math.max(event.floor ?? 0, hp + event.amount));
+    const low = event.lowHp;
+    const times = low && max ? 1 + (low.times - 1) * Math.min(1, Math.max(0, (1 - hp / max) / (1 - low.fullAt))) : 1;
+    return Math.min(max, Math.max(event.floor ?? 0, hp + event.amount * times));
   }
 }

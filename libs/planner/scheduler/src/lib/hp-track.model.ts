@@ -1,4 +1,4 @@
-import type { Invulnerability } from './plan.model';
+import type { HealEffect, Invulnerability } from './plan.model';
 
 // A change to one player's HP: damage taken (negative) or healing.
 export interface HpEvent {
@@ -7,6 +7,8 @@ export interface HpEvent {
   amount: number;
   // The least HP it can leave (1 under Holmgang); 0 when not given.
   floor?: number;
+  // A heal that grows as its target has less HP (`HealEffect.lowHp`).
+  lowHp?: HealEffect['lowHp'];
 }
 
 // A player's HP once everything up to `at` (inclusive) has happened, and

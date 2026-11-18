@@ -52,8 +52,7 @@ export interface PlanOptions {
 // `healersHeal` strategy), they don't.
 export type Favour = 'dps' | 'healing';
 
-// A mitigation or shield a player can use: an action and what it lowers or
-// absorbs, for whom.
+// A mitigation or shield a player can use: an action and what it lowers or absorbs, for whom.
 export interface MitigationTool {
   // When it can't be used: a fairy's order while Dissipation has her away.
   away?: { from: number; to: number }[];
@@ -237,8 +236,8 @@ export interface HealStacks {
   perHit: ShieldSize | null;
 }
 
-// A heal, or healing over time: `ticks` heals of `size`, every 3 seconds
-// from 3 seconds after it lands.
+// A heal, or healing over time: `ticks` heals of `size`, every 3 seconds from 3 seconds after it lands;
+// `lowHp`: more as its target has less HP (Essential Dignity: up to 2.25 times, all of it at 30% of max HP).
 export interface HealEffect {
   target: 'self' | 'target' | 'party';
   size: ShieldSize;
@@ -246,6 +245,7 @@ export interface HealEffect {
   // The healing over time's status (its ticks name it in the log).
   status: string | null;
   statusId: number | null;
+  lowHp?: { times: number; fullAt: number };
 }
 
 // When a player should use an action, and the mechanics it covers (or,

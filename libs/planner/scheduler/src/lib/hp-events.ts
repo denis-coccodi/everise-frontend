@@ -141,7 +141,7 @@ export function healEvents(
       effect.target === 'party' ? party : effect.target === 'self' ? [use.player] : [use.target ?? use.player];
     for (const player of players) {
       const amount = 'hp' in effect.size ? effect.size.hp : effect.size.maxHpShare * (maxHp.get(player) ?? 0);
-      if (!effect.status) events.push({ at: lands, player, amount });
+      if (!effect.status) events.push({ at: lands, player, amount, ...(effect.lowHp ? { lowHp: effect.lowHp } : {}) });
       else for (let k = 1; k <= effect.ticks; k++) events.push({ at: lands + k * TICK_MS, player, amount });
     }
   }
