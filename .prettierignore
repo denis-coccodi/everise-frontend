@@ -14,3 +14,6 @@ package-lock.json
 /docs/_layouts
 /docs/_includes
 /docs/_guide
+
+# Worktrees Claude agents work in, each a whole copy of the repo.
+/.claude/worktrees

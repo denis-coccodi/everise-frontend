@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(gh workflow run deploy-production*)",
+      "Bash(npm run deploy*)",
+      "Bash(npx wrangler deploy*)",
+      "Bash(wrangler deploy*)",
+      "PowerShell(gh workflow run deploy-production*)",
+      "PowerShell(npm run deploy*)",
+      "PowerShell(npx wrangler deploy*)",
+      "PowerShell(wrangler deploy*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -45,6 +45,24 @@ node scripts/check-sizes.mjs && node scripts/check-structure.mjs && node scripts
 
 A pre-commit hook runs `nx format:check --affected` (Prettier).
 
+## Claude agents
+
+The repository carries Claude Code agents in `.claude/agents/`:
+
+| Agent           | Does                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `frontend-dev`  | Makes one change (code, tests, affected docs) and opens its PR.                                                           |
+| `docs-writer`   | Docs-only changes to `docs/` and the site guide (`docs/_guide`).                                                          |
+| `reviewer`      | Reviews a PR before it merges. Read-only.                                                                                 |
+| `ci-doctor`     | Finds out why an Actions run failed. Read-only.                                                                           |
+| `planner-bench` | Benchmarks a fight planner change on 88 kills' logs and reports what it does to the plans, deaths added first. Read-only. |
+
+The `orchestrator` lives in `everise-backend` and runs as the main session there (`claude --agent orchestrator --add-dir ../everise-frontend`): it splits a request into one-PR tasks, sends the frontend ones to the Claude window open on this repository, and keeps the work board, `.claude/board.md` in the folder that holds both repositories.
+
+Several sessions work at once, so each change is made in its own git worktree, in `.claude/worktrees/` (ignored by git, Nx, Prettier, ESLint, Vitest and TypeScript). A new worktree needs `npm ci`, and its dev server runs on a port of its own, not 4200.
+
+`.claude/settings.json` runs `.claude/hooks/guard.mjs` before every shell command. It blocks staging everything (`git add -A`, `.`, `-u`), `git stash` without a unique message, discarding all changes (`reset --hard`, `clean -f`, `checkout .`), force pushes, pushes to `main`, commits on `main` or a detached HEAD, and switching branches in a checkout with uncommitted changes. It also asks before any `npm run deploy`, `wrangler deploy` or production deploy workflow run.
+
 ## Branches
 
 - Every change goes through a `feature/`, `bugfix/` or `hotfix/` branch, with Conventional Commits and a pull request to `main`. `main` rejects direct pushes.
