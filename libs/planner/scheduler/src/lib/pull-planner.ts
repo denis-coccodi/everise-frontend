@@ -12,7 +12,7 @@ import { healPower } from './heal-power';
 import { healPairings, healTools } from './heal-tools';
 import { HealingBuffs, healingBuffsOf } from './healing-buffs';
 import { invulnerabilityOptions, playedInvulnerabilities } from './invulnerabilities';
-import { LUCID_DREAMING, lucidTimes, lucidUse, mpTools } from './lucid';
+import { LUCID_DREAMING, lucidCast, lucidTimes, lucidUse, mpTools } from './lucid';
 import { thinAirTimes, thinAirUse } from './thin-air';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
@@ -303,9 +303,8 @@ export class PullPlanner {
       (u) =>
         u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
     );
-    // A replanned healer's Lucid Dreaming where the plan runs their MP low;
-    // the heals are planned again with it, unless that comes out worse: then
-    // they stay, and the Lucids (in slots they leave free, MP only) are added.
+    // A replanned healer's Lucid Dreaming where the plan runs their MP low; the heals are planned again with it (in every MP
+    // check: `fixed`), unless that comes out worse: then they stay, and the Lucids (in slots they leave free, MP only) are added.
     const low = MpModel.of(timeline, catalog, mpIds, scheduled, aliveIn(best), past);
     const withLucid = [...best.uses, ...rhizomata];
     lucid = healers.flatMap((h) =>
@@ -313,6 +312,7 @@ export class PullPlanner {
     );
     if (lucid.length) {
       weaving.keep(lucid.map((u) => ({ player: u.player, at: u.at, gcd: false, castMs: 0 })));
+      past.fixed.push(...lucid.map(lucidCast));
       const next = once(best);
       const kept = { ...best, uses: [...best.uses, ...lucid] };
       sources.set(kept, sources.get(best));
