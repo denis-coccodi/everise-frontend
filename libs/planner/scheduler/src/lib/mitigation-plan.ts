@@ -169,10 +169,9 @@ export function planMitigation(
     return value;
   };
 
-  // The uses of the action granting `t` that would let it go up at `at`,
-  // landing before it, each with `t` as it would then be: on its own, and
-  // made critical by Recitation where its user has it up (a bigger
-  // Galvanize to spread); none when there's no tool for it.
+  // The uses of the action granting `t` that would let it go up at `at`, landing before it, each with `t` as it would
+  // then be: on its own, and made critical by Recitation where its user has it up (a bigger Galvanize to spread); none
+  // when there's no tool for it.
   const granting = (m: Mechanic, t: MitigationTool, at: number): { granted: Granted[]; tool: MitigationTool }[] => {
     const grant = t.grantedBy;
     const g = grant && plannable.find((o) => o.player === t.player && o.action === grant.action);
@@ -208,10 +207,9 @@ export function planMitigation(
     ];
   };
 
-  // What one more use of `t` for `m` would add, at its best moment; null
-  // when it can't be used for it. One another grants comes with a use of
-  // that one where it has none, the two worth what they add together, the
-  // other's GCD counted as one.
+  // What one more use of `t` for `m` would add, at its best moment; null when it can't be used for it. One another
+  // grants comes with a use of that one where it has none, the two worth what they add together, the other's GCD
+  // counted as one.
   const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean, drop = true): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const spent = t.pool
