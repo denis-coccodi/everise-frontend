@@ -221,17 +221,18 @@ describe('PlannerScheduler', () => {
   });
 
   it('heals the player up for the next hit, an auto-attack too, an oGCD before a GCD, and judges each hit by the HP it leaves', () => {
-    // The auto-attack at 45 s, half of it taken off by the buster's mitigations still up, needs a heal before it.
+    // The auto-attack at 50 s, part of it taken off by the buster's mitigations still up (not its long one, Guardian:
+    // gone by then), needs a heal before it.
     const p = plan([
       [30, 'Buster', 1, 95_000],
-      [45, 'Attack', 1, 130_000],
+      [50, 'Attack', 1, 130_000],
       [60, 'Buster', 1, 95_000],
     ]);
 
     const heal = p.uses.find((u) => u.name === 'Lustrate');
     expect(heal).toMatchObject({ player: 2, target: 1 });
     expect(heal?.at).toBeGreaterThan(30_000);
-    expect(heal?.at).toBeLessThan(45_000);
+    expect(heal?.at).toBeLessThan(50_000);
     expect(p.deaths ?? []).toEqual([]);
     expect(p.uses.map((u) => u.name)).not.toContain('Physick');
     const second = p.hits[1];
