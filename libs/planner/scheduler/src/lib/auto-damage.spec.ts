@@ -83,7 +83,7 @@ describe("the autos with the plan's mitigations", () => {
       [],
     );
 
-    expect(damage.add(use(1, 5_000))).toEqual([{ at: 10_000, player: 1, amount: 4_000 }]);
+    expect(damage.add(use(1, 5_000))).toEqual([{ at: 10_000, player: 1, amount: 4_000, back: true }]);
     expect(damage.amountOf(hits[0])).toBe(16_000);
   });
 });

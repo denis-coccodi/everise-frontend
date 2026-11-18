@@ -65,6 +65,20 @@ export class HpTrack {
     return points;
   }
 
+  // The HP healing gave the player back from `from` to `to` (both inclusive): what each heal raised their HP by,
+  // whatever hits them meanwhile (not a hit's damage a mitigation takes back: `back`).
+  restoredBetween(player: number, from: number, to: number) {
+    const max = this.maxHp.get(player);
+    if (max === undefined) return 0;
+    let [hp, restored] = [max, 0];
+    for (const event of this.events.get(player) ?? []) {
+      const next = this.step(hp, event, max);
+      if (event.at >= from && event.at <= to && event.amount > 0 && !event.back) restored += next - hp;
+      hp = next;
+    }
+    return restored;
+  }
+
   checkpoint(player: number, at: number): HpCheckpoint | null {
     const max = this.maxHp.get(player);
     if (max === undefined) return null;

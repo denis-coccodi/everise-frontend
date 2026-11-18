@@ -47,5 +47,6 @@ The flow, in `pull-planner.ts`:
 - Always plan with the latest patch's values. Reports from an earlier expansion aren't planned.
 - Prevent deaths first. If a death can't be prevented, model it and plan a raise.
 - Hits past a wipe's end were never played, so they never count as failed.
+- A Dark Knight under Living Dead survives once healed by their max HP in all before Walking Dead ends, as in the game (Undead Rebirth), whatever hits them meanwhile (`judged-hits.ts`); a hit that leaves them HP sets off no Walking Dead, so healing them back to full is enough. Judged by their HP when Walking Dead ended, 6 of the bench's 10 short hits were tanks the plan had healed out of it.
 - Every oGCD sits under a GCD in the rotation view.
 - Openers come from The Balance, or from Icy Veins when The Balance's guide is older.
