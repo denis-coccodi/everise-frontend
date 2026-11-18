@@ -8,6 +8,7 @@ import { MpModel } from './mp';
 import { aliveIn, mpShortOf } from './mp-short';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { planHeals } from './heal-plan';
+import { hardFirst } from './hard-first';
 import { healPower } from './heal-power';
 import { healPairings, healTools } from './heal-tools';
 import { HealingBuffs, healingBuffsOf } from './healing-buffs';
@@ -49,8 +50,7 @@ import { PlanProgress } from './plan-progress';
 // Plans of the pull, at most: the first, and replans around its heals' HP.
 const ROUNDS = 3;
 
-// Plans a pull: in a worker of its own (`plan.worker.ts`), else for the
-// page itself (`PlannerScheduler`).
+// Plans a pull: in a worker of its own (`plan.worker.ts`), else for the page itself (`PlannerScheduler`).
 export class PullPlanner {
   private progress = new PlanProgress();
   // The plan of the pull made the way `asked` says (`strategy`; `report` hears how far it has got, 0 to 1), its deaths
@@ -152,15 +152,12 @@ export class PullPlanner {
     const pairings = startingAt(healPairings(timeline.players, catalog, power).filter(replanned), late);
     const key = (t: { player: number; action: number }) => `${t.player}:${t.action}`;
     const paired = new Set(pairings.map(key));
-    // A tool without effects of its own goes with what it makes better or
-    // grants, which the mitigations plan: Recitation with a spreadlo's
-    // Adloquium (it goes with a GCD heal too), Neutral Sect with Sun Sign.
+    // A tool without effects of its own goes with what it makes better or grants, which the mitigations plan:
+    // Recitation with a spreadlo's Adloquium (it goes with a GCD heal too), Neutral Sect with Sun Sign.
     const alone = mitigation.filter((t) => !paired.has(key(t)) || !t.effects.length);
-    // Where each player can act: their GCDs as played, and the oGCDs they
-    // used that the plan doesn't schedule, and their opener's steps (but
-    // the Energy Drains, which a heal can take the stacks of). A replanned
-    // player's raid buffs and burst go on cooldown after the opener, in the
-    // slots the heals and mitigations leave.
+    // Where each player can act: their GCDs as played, and the oGCDs they used that the plan doesn't schedule, and
+    // their opener's steps (but the Energy Drains, which a heal can take the stacks of). A replanned player's raid
+    // buffs and burst go on cooldown after the opener, in the slots the heals and mitigations leave.
     const sages = replannedPlayers.filter((p) => p.job === 'SGE');
     const bursts = [
       ...replannedPlayers.flatMap((p) => burstActions(p.job ?? '').map((action) => ({ player: p.id, action }))),
@@ -172,8 +169,7 @@ export class PullPlanner {
     );
     // Replanned from the start: their MP below; kept alive, a death leaves no gap.
     const ids = replannedPlayers.map((p) => p.id);
-    // Their MP, and that of those planned from a completed wipe's wipe point
-    // on: their heals there spend it too.
+    // Their MP, and that of those planned from a completed wipe's wipe point on: their heals there spend it too.
     const mpIds = [...ids, ...late.keys()];
     const past = mpExtras(given, catalog, opening, upkeep, ids);
     const weaving = Weaving.of(timeline, catalog, (p, a) => scheduled.has(`${p}:${a}`), stops, ids);
@@ -200,6 +196,7 @@ export class PullPlanner {
     // The tanks' short cooldowns go on the autos they take too.
     const [autos, short] = [autoTimes(timeline), alone.filter((t) => !asPlayed(t))];
     const sources = new WeakMap<Plan, Plan | undefined>();
+    let first = new Set<number>(); // The mechanics healed first (`hardFirst`).
     const once = (from?: Plan, aimed = false) => {
       const mp = mpModel(from);
       const { healing, casts } = fairy(from);
@@ -233,6 +230,7 @@ export class PullPlanner {
         mp,
         true,
         aimed,
+        first,
       );
       this.progress.stepDone();
       const done = { ...planned, mpShort: mpShortOf(mp, planned) };
@@ -242,14 +240,16 @@ export class PullPlanner {
     this.progress.nextPass(ROUNDS + [scholars, sages, healers].filter((l) => l.length).length);
 
     let best = once();
-    // The fairy's heals from the plan's own HP replace hers as played,
-    // whichever plan comes out better.
+    // The fairy's heals from the plan's own HP replace hers as played, whichever plan comes out better.
     if (scholars.length) best = once(best);
     const lowest = new Map<string, number>();
     for (let round = 1, last = best; round < ROUNDS && best.hits.some((h) => !h.safe); round++) {
       last = once(atLowestHp(last, lowest));
       if (better(last, best, maxHp, options)) best = last;
     }
+    // Where hits are still short, their mechanics are healed first, the rest around them (`hardFirst`).
+    const replan = (set: Set<number>) => ((first = set), once(sources.get(best)));
+    ({ plan: best, first } = hardFirst(best, replan, (a, b) => better(a, b, maxHp, options)));
     // A replanned sage uses Rhizomata where the plan's heals leave their Addersgall low; the heals are planned again with its
     // stacks, unless that comes out worse: then with only those a heavy mechanic follows soon, then before the heaviest
     // stretches (`rhizomataAhead`), else none (their stacks and slots given back).
