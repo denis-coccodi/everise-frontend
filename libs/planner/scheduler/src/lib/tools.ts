@@ -132,11 +132,9 @@ const SPREADS: Record<number, number> = { 3585: 185 };
 // and Adloquium adds Catalyze.
 export const RECITATION = 16542;
 export const RECITED = [185, 37013, 3583, 7434];
-// Eukrasia, pressed before each Eukrasian heal (Diagnosis, Prognosis and
-// Prognosis II): 1s on its own recast, then the heal, an instant GCD with
-// its 0.6s lock. Together one GCD slot, its weave room what's left after
-// the lock; the heal counts as landing with the lock (0.6s later than it
-// does, never sooner).
+// Eukrasia, pressed before each Eukrasian heal (Diagnosis, Prognosis and Prognosis II): 1s on its own
+// recast, then the heal, an instant GCD with its 0.6s lock. Together one GCD slot, its weave room what's
+// left after the lock; the heal counts as landing with the lock (0.6s later than it does, never sooner).
 export const EUKRASIA = 24290;
 export const EUKRASIA_MS = 1000;
 const EUKRASIAN = [24291, 24292, 37034];
@@ -177,9 +175,8 @@ const INVULNERABLE: Record<number, Invulnerability> = {
   3638: 'walkingDead', // Living Dead
 };
 
-// Conditions the planner can take as met: it assumes everyone stands where
-// the effect lands, and counts an effect's least (Improvised Finish at no
-// stacks).
+// Conditions the planner can take as met: it assumes everyone stands where the effect lands,
+// and counts an effect's least (Improvised Finish at no stacks).
 export const ASSUMED = (condition: string) =>
   condition === 'behind the paladin' || condition.startsWith('up to ') || condition === FEY_UNION_HELD;
 // Aetherpact holds a Fey Union while the Faerie Gauge lasts (10 to start,
@@ -259,9 +256,13 @@ export function playerActions(player: TimelinePlayer, catalog: ActionCatalog): C
 
 const usable = (e: ActionEffect) => !!e.durationMs && (!e.condition || ASSUMED(e.condition));
 
+// A mitigation of the next attack followed by one as big for the hits after (Tengentsu's Foresight) covers its window.
+const nextAndAfter = (a: CatalogAction, e: ActionEffect) =>
+  e.condition === 'next attack' &&
+  a.effects.some((o) => o.condition === 'when hit' && o.kind === e.kind && o.percent === e.percent);
 function mitigationEffects(action: CatalogAction): MitigationEffect[] {
   return action.effects
-    .filter((e) => e.kind === 'mitigation' && usable(e))
+    .filter((e) => e.kind === 'mitigation' && (usable(e) || (!!e.durationMs && nextAndAfter(action, e))))
     .map((e) => {
       const status = e.status ?? action.name;
       return {
