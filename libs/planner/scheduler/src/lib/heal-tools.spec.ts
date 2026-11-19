@@ -127,6 +127,21 @@ describe('healTools', () => {
     expect(own.map((t) => [t.player, t.cost, t.effects[0].size])).toEqual([[1, 'free', { hp: 60_000 }]]);
   });
 
+  it('grows Essential Dignity as its target has less HP, up to its most at 30%', () => {
+    const c = catalog();
+    c.actions.push(
+      action(3614, 'Essential Dignity', ['SCH'], 40, [
+        { ...heal(400), condition: 'up to 900 as the target has less HP (most at 30%)' },
+      ]),
+    );
+
+    const dignity = healTools(party(), c, [], power).find((t) => t.name === 'Essential Dignity');
+
+    expect(dignity?.effects).toEqual([
+      expect.objectContaining({ size: { hp: 40_000 }, lowHp: { times: 2.25, fullAt: 0.3 } }),
+    ]);
+  });
+
   it("keeps a heal's own potency where its condition only names a bigger one (Earth's Reply)", () => {
     const c = catalog();
     c.actions.push(
