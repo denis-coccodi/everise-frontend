@@ -3,7 +3,9 @@
 // argument, or in HUSKY_GIT_PARAMS. Git's own messages (merges, reverts, fixup!, squash!, amend!) pass as they are.
 import { readFileSync } from 'node:fs';
 
-const TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert'];
+// The usual types, and `wip` for work set aside on a branch (`wip(planner): half the buster rule`): the spec allows
+// types beyond feat and fix, and the squash merge replaces a branch's commits with the PR's title on main.
+const TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert', 'wip'];
 const CONVENTIONAL = new RegExp(String.raw`^(?:${TYPES.join('|')})(?:\([\w./-]+(?:, ?[\w./-]+)*\))?!?: \S`);
 const FROM_GIT = /^(?:Merge |Revert "|fixup! |squash! |amend! )/;
 
