@@ -23,8 +23,8 @@ describe('tankBuffs', () => {
   const arrow = tool(37024, 'the Arrow', 1_000, { name: 'the Arrow', gainMs: 110_000, max: 1, refills: [0, 110_000] });
   const protraction = tool(25867, 'Protraction', 60_000);
   const players = [
-    { id: 1, role: 'tank' },
-    { id: 2, role: 'tank' },
+    { id: 1, role: 'tank', maxHp: 30_000 },
+    { id: 2, role: 'tank', maxHp: 30_000 },
     { id: 3, role: 'healer' },
   ] as TimelinePlayer[];
   // A hit on each of `hits` ([player, damage]) at `s` seconds.
@@ -49,6 +49,12 @@ describe('tankBuffs', () => {
       ['the Arrow', 39_000, 2],
       ['the Arrow', 129_000, 1],
     ]);
+  });
+
+  it('plays the Arrow only where the tank takes at least 3 times their max HP in its 15s', () => {
+    const light = players.map((p) => (p.role === 'tank' ? { ...p, maxHp: 40_000 } : p));
+
+    expect(tankBuffs([arrow], [], new Weaving(), mechanics, light).map((u) => [u.at, u.target])).toEqual([[39_000, 2]]);
   });
 
   it('places Protraction only in the last pass, as its recast allows, never for a hit on someone not a tank', () => {
