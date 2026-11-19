@@ -645,6 +645,37 @@ describe('planHeals', () => {
     expect(planned(50_000, 'light')).toEqual(['Concitation']);
   });
 
+  it("still shields a raidwide under another barrier (Divine Veil), as the logs' healers do", () => {
+    // Four players on full HP under the paladin's Divine Veil: only a healer's
+    // GCD shield (Galvanize, a Eukrasian barrier) counts as the raidwide's shield.
+    const cat = catalog();
+    cat.actions.push(
+      action(
+        37013,
+        'Concitation',
+        ['SCH'],
+        2.5,
+        [{ ...heal(200), target: 'party' }, shield('party', 'Galvanize', 30, { percent: 160, of: 'healed' })],
+        { gcd: true, castMs: 2000 },
+      ),
+    );
+    const hits = [1, 2, 3, 4].map((target): [number, string, number, number] => [60, 'Raidwide', target, 50_000]);
+    const base = pull(hits, [[1, 2, 189, 60_000]]);
+    const timeline = { ...base, players: [...base.players, { ...base.players[2], id: 4, name: 'Fourth' }] };
+    const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp as number]));
+    const power = healPower(timeline, cat);
+    const tools = mitigationTools(timeline.players, cat, power);
+    const mitigation = tools.filter((t) => t.name === 'Concitation' || t.name === 'Divine Veil');
+    const heals = healTools(timeline.players, cat, mitigation, power).filter((t) => t.name === 'Concitation');
+    const veil: PlannedUse = { player: 1, action: 3540, name: 'Divine Veil', at: 55_000, target: null, covers: [] };
+    const options = { margin: 0.1 };
+    const mitigated = planMitigation(mechanicsOf(timeline), mitigation, maxHp, options, undefined, [veil]);
+    const args = [undefined, undefined, undefined, undefined, undefined, true] as const;
+    const uses = planHeals(mitigated, timeline, mitigation, heals, maxHp, options, ...args).uses.map((u) => u.name);
+
+    expect(uses).toEqual(expect.arrayContaining(['Divine Veil', 'Concitation']));
+  });
+
   it('credits a heal for what it still heals toward the next hits: a regen over a heal as big', () => {
     // Both heal the tank's first buster in full, with the same GCD and cost;
     // only Medica III's regen goes on healing for the second, 6s later.
