@@ -43,7 +43,7 @@ node scripts/check-sizes.mjs && node scripts/check-structure.mjs && node scripts
   && npx nx run everise:build --configuration=staging
 ```
 
-A pre-commit hook runs `nx format:check --affected` (Prettier).
+A pre-commit hook runs `nx format:check --affected` (Prettier), and a commit-msg hook (`scripts/check-commit-msg.mjs`) refuses a message that doesn't start the Conventional Commits way (`fix(events): …`). Both are husky's, installed by `npm install`.
 
 ## Branches
 
