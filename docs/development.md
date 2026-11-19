@@ -47,7 +47,7 @@ A pre-commit hook runs `nx format:check --affected` (Prettier).
 
 ## Claude agents
 
-The repository carries Claude Code agents in `.claude/agents/`:
+The repository carries its own Claude Code agents in `.claude/agents/`:
 
 | Agent           | Does                                                                                                                      |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -57,23 +57,21 @@ The repository carries Claude Code agents in `.claude/agents/`:
 | `ci-doctor`     | Finds out why an Actions run failed. Read-only.                                                                           |
 | `planner-bench` | Benchmarks a fight planner change on 88 kills' logs and reports what it does to the plans, deaths added first. Read-only. |
 
-The `orchestrator` lives in `everise-backend` and runs as the main session there (`claude --agent orchestrator --add-dir ../everise-frontend`): it splits a request into one-PR tasks, sends the frontend ones to the Claude window open on this repository, and keeps the work board, `.claude/board.md` in the folder that holds both repositories.
+What it shares with `everise-backend` comes from the `everise` plugin, in its own repository, [everise-agents](https://github.com/denis-coccodi/everise-agents), switched on in `.claude/settings.json`:
+
+- **`everise:orchestrator`:** plans work across both repositories and hands it to their agents, each in its own worktree; keeps a work board in `.claude/board.md` (ignored by git); merges what the user approved. Edits no code. Run it as the main session from a main checkout with the other repository added, e.g. from here: `claude --agent everise:orchestrator --add-dir ../everise-backend`. The added folder brings that repository's agents and skills along.
+- **`everise:workspace`:** a skill with the rules for working across both repositories: one git worktree per change, who owns a checkout, ports, the order of a change across both.
+- **The guard hook**, before every shell command. It blocks the git commands that trample other sessions' work (`git add -A`, `git stash`, `reset --hard`, force pushes, commits or pushes to `main`), branches not named `feature/`, `bugfix/` or `hotfix/`, production tags not named `prod-YYYY-MM-DD-HHMM`, `gh pr merge` before `test` passed, writes to branch protection, and `prettier --write` on a folder (it rewrites untouched files' line endings). It asks first before a deploy by hand (`npm run deploy`, `wrangler deploy`, the production workflow) or a write to production.
+- **The session-start hook**, which tells each new session its checkout, branch, uncommitted files and the repository's other worktrees.
+
+Committing the settings doesn't install the plugin: on each machine, once per clone, run from the repository's folder:
+
+```sh
+claude plugin marketplace add denis-coccodi/everise-agents --scope project
+claude plugin install everise@everise --scope project
+```
 
 Several sessions work at once, so each change is made in its own git worktree, in `.claude/worktrees/` (ignored by git, Nx, Prettier, ESLint, Vitest and TypeScript). A new worktree needs `npm ci`, and its dev server runs on a port of its own, not 4200.
-
-`.claude/settings.json` runs two hooks. `.claude/hooks/session-start.mjs` tells each new session which checkout and branch it's in, what's uncommitted there, and the repository's other worktrees. `.claude/hooks/guard.mjs` runs before every shell command and blocks:
-
-- staging everything (`git add -A`, `.`, `-u`), and `git stash` without a unique message;
-- discarding all changes (`reset --hard`, `clean -f`, `checkout .`);
-- force pushes, pushes to `main`, and commits on `main` or a detached HEAD;
-- switching branches in a checkout with uncommitted changes;
-- a new or renamed branch not named `feature/`, `bugfix/` or `hotfix/<description>`;
-- a production tag not named `prod-YYYY-MM-DD-HHMM`;
-- `gh pr merge` before the pull request's `test` check has passed;
-- changing branch protection or rulesets (`gh api` writes to them);
-- `prettier --write` on a folder or a glob (it rewrites untouched files' line endings).
-
-It asks first before a write to production (`curl` or `Invoke-RestMethod` sending data to everise.dev or apis.everise.dev; reads and staging stay free), and `settings.json` itself before any `npm run deploy`, `wrangler deploy` or production deploy workflow run.
 
 ## Branches
 
