@@ -1,4 +1,4 @@
-import { mechanicsOf, missingAttacks, referenceDamage } from './mechanics';
+import { doubtfulAttacks, mechanicsOf, missingAttacks, referenceDamage } from './mechanics';
 import { pull } from './scheduler-fixtures';
 
 describe('mechanicsOf', () => {
@@ -287,5 +287,59 @@ describe('mechanicsOf', () => {
     // Without kills (or with the report's own later pulls), the pull alone.
     expect(marked(wipe)).toEqual([]);
     expect(marked({ ...wipe, clears: [kill], clearsFrom: 'report' })).toEqual([]);
+  });
+
+  it("judges a kill's doubtful attack by what other groups' kills say it does", () => {
+    // The bard, late to the safe spot, dies to Assault (1,900,000, its only hit);
+    // in other groups' kills it hits nobody.
+    const kill = pull([
+      [10, 'Assault', 3, 1_900_000],
+      [20, 'Buster', 1, 300_000],
+    ]);
+    kill.deaths = [{ at: 10_500, player: 3, action: 0, source: null }];
+    const avoided = (t: Parameters<typeof mechanicsOf>[0]) =>
+      mechanicsOf(t).flatMap((m) => m.hits.filter((h) => h.avoidable).map((h) => [m.name, h.player]));
+
+    expect(avoided(kill)).toEqual([]);
+    expect(avoided({ ...kill, references: { Assault: { byRole: {}, any: 0 } } })).toEqual([['Assault', 3]]);
+    // What they say of an attack that isn't doubtful (one blocked, or a buster) changes nothing here.
+    expect(avoided({ ...kill, references: { Buster: { byRole: {}, any: 0 } } })).toEqual([]);
+  });
+});
+
+describe('doubtfulAttacks', () => {
+  // The bard (3), or whoever `target` is, takes `damage` from Assault, and dies.
+  const of = (target: number, damage: number, died = true, change = (t: ReturnType<typeof pull>) => t) => {
+    const timeline = pull([[10, 'Assault', target, damage]]);
+    if (died) timeline.deaths = [{ at: 10_500, player: target, action: 0, source: null }];
+    return doubtfulAttacks(change(timeline));
+  };
+
+  it('names an attack on two players or fewer that killed one who is no tank with more than their max HP', () => {
+    expect(of(3, 1_900_000)).toEqual(['Assault']);
+  });
+
+  it('leaves out a tank, a hit they survived or could have, and one under an invulnerability', () => {
+    expect(of(1, 1_900_000)).toEqual([]);
+    expect(of(3, 1_900_000, false)).toEqual([]);
+    expect(of(3, 90_000)).toEqual([]);
+    expect(
+      of(3, 1_900_000, true, (t) => {
+        t.damage[0].statuses = [82];
+        t.statuses = [{ id: 82, name: 'Hallowed Ground' }];
+        return t;
+      }),
+    ).toEqual([]);
+  });
+
+  it('leaves out an attack on more than two players: the pull itself says what it usually does', () => {
+    const timeline = pull([
+      [10, 'Assault', 1, 90_000],
+      [10, 'Assault', 2, 90_000],
+      [10, 'Assault', 3, 1_900_000],
+    ]);
+    timeline.deaths = [{ at: 10_500, player: 3, action: 0, source: null }];
+
+    expect(doubtfulAttacks(timeline)).toEqual([]);
   });
 });

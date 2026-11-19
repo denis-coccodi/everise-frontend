@@ -77,11 +77,13 @@ export class PlannerService {
   }
 
   // What those kills say `attacks` do (those an invulnerability blocked
-  // every time in the pull): read until each is found or none is left.
-  // Empty when none is.
-  references(code: string, pullId: number, attacks: string[]): Observable<ReferenceDamage> {
-    return this.kills(code, pullId, (read) => allFound(referenceDamage(read, attacks), attacks)).pipe(
-      map((read) => referenceDamage(read, attacks)),
+  // every time in the pull, and the `doubtful` ones: `doubtfulAttacks`):
+  // read until each is found or none is left. Empty when none is. A doubtful
+  // one none of the kills read has a hit of does nothing done right (0).
+  references(code: string, pullId: number, attacks: string[], doubtful: string[] = []): Observable<ReferenceDamage> {
+    const asked = [...new Set([...attacks, ...doubtful])];
+    return this.kills(code, pullId, (read) => allFound(referenceDamage(read, asked), asked)).pipe(
+      map((read) => withNothing(referenceDamage(read, asked), doubtful)),
       last(undefined, {} as ReferenceDamage),
     );
   }
@@ -105,6 +107,13 @@ export class PlannerService {
 
 function allFound(references: ReferenceDamage, attacks: string[]) {
   return attacks.every((a) => references[a]);
+}
+
+// The `doubtful` attacks the kills read have no hit of, as doing nothing.
+function withNothing(references: ReferenceDamage, doubtful: string[]): ReferenceDamage {
+  const out = { ...references };
+  for (const name of doubtful) out[name] ??= { byRole: {}, any: 0 };
+  return out;
 }
 
 function notFoundIsThePages() {
