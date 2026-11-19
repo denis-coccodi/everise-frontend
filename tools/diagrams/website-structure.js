@@ -1,6 +1,6 @@
 // Generates docs/website-structure.svg: the pages (routes) of the Everise site,
 // what each shows, where it leads, the navbar, and the site-wide rules.
-// Run: node tools/diagrams/website-structure.js docs/website-structure.svg (then render the PNG, see README).
+// Run: node tools/diagrams/website-structure.js docs/website-structure.svg (then render the PNG: see docs/website-structure.md).
 // The navbar's groups are read from nav-groups.ts; every page the routes
 // lead to (app.routes.ts, and each feature library's <feature>.routes.ts it
 // loads) must be on a card in SECTIONS, or the run fails.

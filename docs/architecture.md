@@ -21,6 +21,11 @@ nav_order: 2
 
 ![Nx apps and libraries by layer](frontend-structure.svg)
 
+The diagram is generated from the Nx project graph and each data-access library's exports:
+`node tools/diagrams/frontend-structure.js docs/frontend-structure.svg`. A new project needs a line in that script's
+`PROJECTS`, or it refuses to generate. Then refresh the PNG copy with a headless browser at the size the script prints,
+as for the [website structure](website-structure.md).
+
 `apps/everise` is a thin shell: routes, guard, page titles, HTTP setup and layout. Everything else lives in `libs/`, grouped by domain: `articles`, `auth`, `events`, `home`, `market`, `media`, `notifications`, `party-finder`, `planner`, `profile`, `relays`, `roulette`, `settings`, `venues`, `waking-sands`, plus `core` and `ui`.
 
 Each domain is split into layers:

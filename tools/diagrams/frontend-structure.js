@@ -1,7 +1,7 @@
 // Generates docs/frontend-structure.svg from the Nx project graph: a lane per
 // domain (its pages and widgets, then its data-access library), the app above,
 // the core and UI libraries below.
-// Run: node tools/diagrams/frontend-structure.js docs/frontend-structure.svg (then render the PNG, see README).
+// Run: node tools/diagrams/frontend-structure.js docs/frontend-structure.svg (then render the PNG: see docs/architecture.md).
 // What each project is for comes from PROJECTS below: a project the graph has
 // and PROJECTS doesn't fails the run, so a new library can't be left out.
 // Arrows join a domain's pages to its own data-access library; every other

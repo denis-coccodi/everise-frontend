@@ -7,7 +7,7 @@ nav_order: 3
 
 ![Pages, what they show, where they lead](website-structure.svg)
 
-The diagram is generated from the routes (`app.routes.ts` and each feature's `<feature>.routes.ts`) and the navbar's groups (`nav-groups.ts`). Regenerate it with `node tools/diagrams/website-structure.js docs/website-structure.svg`. A new route needs a card in that script's `SECTIONS`, or it refuses to generate.
+The diagram is generated from the routes (`app.routes.ts` and each feature's `<feature>.routes.ts`) and the navbar's groups (`nav-groups.ts`). Regenerate it with `node tools/diagrams/website-structure.js docs/website-structure.svg`. A new route needs a card in that script's `SECTIONS`, or it refuses to generate. Then refresh the PNG copy with a headless browser at the size the script prints, e.g. `msedge --headless=new --hide-scrollbars --window-size=1560,2635 --screenshot=docs/website-structure.png docs/website-structure.svg`. Both diagrams (this one and the libraries one in [Architecture](architecture.md)) share their colours, one per domain (`tools/diagrams/colours.js`).
 
 ## Navigation
 
