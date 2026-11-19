@@ -64,10 +64,13 @@ export function mechanicsOf(timeline: ReferencedTimeline, ignore = false): Mecha
   const role = new Map(timeline.players.map((p) => [p.id, p.role]));
   const kills = timeline.clearsFrom === 'kills' ? (timeline.clears ?? []) : [];
   const inKills = referenceDamage(kills, [...usual.keys()]);
+  // A kill's doubtful attacks (`doubtfulAttacks`) are read from other groups' kills too (`references`).
+  const doubtful = new Set(doubtfulAttacks(timeline));
   const usualOf = (hit: TimelineHit) => {
-    const own = usual.get(nameOf(hit)) ?? Infinity;
-    if (!kills.length) return own;
-    const ref = inKills[nameOf(hit)];
+    const name = nameOf(hit);
+    const own = usual.get(name) ?? Infinity;
+    const ref = kills.length ? inKills[name] : doubtful.has(name) ? timeline.references?.[name] : undefined;
+    if (!kills.length && !ref) return own;
     return Math.min(own, ref?.byRole[role.get(hit.target) ?? ''] ?? 0);
   };
   const failed = (hit: TimelineHit) => {
@@ -225,6 +228,32 @@ function blockedHits(timeline: ReferencedTimeline, actionName: Map<number, strin
 export function missingAttacks(timeline: PullTimeline): string[] {
   const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
   return [...blockedHits(timeline, actionName).missing];
+}
+
+// The attacks, by name, that may be a failed mechanic the pull alone can't tell: they hit two players or fewer, and
+// killed one who isn't a tank, with more than their max HP and no invulnerability up. With nothing else to compare,
+// such a hit is its attack's usual damage, never many times it: an M11S samurai late to Assault Evolved's safe spot
+// took 19 times their max HP from it, and it counted as a hit the plan must cover. Other groups' kills say what the
+// attack does done right (in two, nothing).
+export function doubtfulAttacks(timeline: PullTimeline): string[] {
+  const actionName = new Map(timeline.actions.map((a) => [a.id, a.name]));
+  const nameOf = (hit: TimelineHit) => actionName.get(hit.action) ?? String(hit.action);
+  const player = new Map(timeline.players.map((p) => [p.id, p]));
+  const blocking = new Set(timeline.statuses.filter((s) => BLOCKING.has(s.name)).map((s) => s.id));
+  const hits = timeline.damage.filter((hit) => isMechanicHit(hit, actionName) && player.has(hit.target));
+  const died = (hit: TimelineHit) =>
+    timeline.deaths.some((d) => d.player === hit.target && d.at >= hit.at && d.at - hit.at <= DEATH_MS);
+  const doubtful = (hit: TimelineHit) => {
+    const p = player.get(hit.target);
+    if (!p?.maxHp || p.role === 'tank' || hit.statuses.some((id) => blocking.has(id))) return false;
+    return unmitigated(hit) > p.maxHp && died(hit);
+  };
+  const names = new Set<string>();
+  for (const name of new Set(hits.map(nameOf))) {
+    const theirs = hits.filter((h) => nameOf(h) === name);
+    if (new Set(theirs.map((h) => h.target)).size <= 2 && theirs.some(doubtful)) names.add(name);
+  }
+  return [...names];
 }
 
 // What other groups' kills (`timelines`) say each of `attacks` does before

@@ -136,6 +136,36 @@ describe('PlannerStore', () => {
     http.expectNone('/planner/reports/Other0000000000c/pulls/4');
   });
 
+  it("asks other groups' kills about a kill's doubtful attack, and takes one none of them has as doing nothing", async () => {
+    const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '3' });
+    // The healer, late to the safe spot, dies to Assault (3,000,000, its only hit).
+    const timeline = pullTimeline();
+    timeline.actions.push({ id: 998, name: 'Assault' });
+    timeline.damage.push({ ...timeline.damage[0], at: 100_000, target: 2, action: 998, unmitigated: 3_000_000 });
+    timeline.deaths = [{ at: 100_500, player: 2, action: 998, source: 13 }];
+
+    http.expectOne('/planner/reports/aBcD1234eFgH5678').flush(fightReport());
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/3').flush(timeline);
+    http.expectOne('/planner/catalog').flush(actionCatalog());
+    await settled();
+    http.expectOne('/planner/reports/aBcD1234eFgH5678/pulls/3/clears').flush({
+      clears: [
+        { code: 'Other0000000000a', pullId: 7 },
+        { code: 'Other0000000000b', pullId: 2 },
+      ],
+    });
+    await settled();
+    // Neither kill has it: both are read.
+    http.expectOne('/planner/reports/Other0000000000a/pulls/7').flush(pullTimeline());
+    await settled();
+    http.expectOne('/planner/reports/Other0000000000b/pulls/2').flush(pullTimeline());
+    await settled();
+
+    expect((store.pull.value() as ReferencedTimeline | undefined)?.references).toEqual({
+      Assault: { byRole: {}, any: 0 },
+    });
+  });
+
   it("reads every other group's kill that loads for a wipe, archived ones skipped", async () => {
     const { store, http, settled } = setup({ report: 'aBcD1234eFgH5678', pull: '2' });
     const kill = (durationMs: number) => ({ ...pullTimeline(), durationMs });
