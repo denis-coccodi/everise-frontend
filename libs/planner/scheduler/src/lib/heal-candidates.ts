@@ -186,9 +186,10 @@ export function best(
       )
     )
       continue;
-    if (!affordable(at)) continue;
     const { grantedBy } = tool;
     if (grantedBy && !fitsGrant(timesOf(tool.action), timesOf(grantedBy.action), at, grantedBy)) continue;
+    // After the grant: a spell that can't be cast then isn't one MP refused.
+    if (!affordable(at)) continue;
     const use: PlannedUse = { player: tool.player, action: tool.action, name: tool.name, at, target, covers: [m.id] };
     const full =
       tool.pool &&
