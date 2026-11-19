@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nx run everise:serve --host 0.0.0.0 --configuration=debug",
+    "orchestrator": "claude --agent everise:orchestrator --add-dir ../everise-backend",
     "build": "npx nx run everise:build --configuration=production",
     "start-worker": "nx reset && npx nx build everise --configuration=debug && npx wrangler dev",
     "lint": "npx nx affected -t lint",
