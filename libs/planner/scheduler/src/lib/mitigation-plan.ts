@@ -209,7 +209,7 @@ export function planMitigation(
 
   // What one more use of `t` for `m` would add, at its best moment; null when it can't be used for it. One another
   // grants comes with a use of that one where it has none, the two worth what they add together, the other's GCD
-  // counted as one.
+  // counted as one; its MP is checked only where it can be granted, so the refusals are for MP alone.
   const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean, drop = true): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const spent = t.pool
@@ -227,13 +227,11 @@ export function planMitigation(
       if (at === null || at < first || isAway(t, at) || !fitsRecast(times, at, t.recastMs, t.charges)) continue;
       if (cutsUnion(t.action, at, (a) => timesOf(t.player, a))) continue;
       if (t.pool && !fitsPool(spent, at, t.pool)) continue;
-      const needs =
-        t.grantedBy && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, t.grantedBy.action), at, t.grantedBy);
-      const options = needs ? granting(m, t, at) : [{ granted: [], tool: t }, ...zoeFor(t, at)];
-      // After the grant: a spell that can't be cast then isn't one MP refused.
-      if (!options.length) continue;
-      if (mp && !mp.affordable(t.player, t.action, at, own, drop ? 'need' : 'spare', target)) continue;
-      for (const option of options) {
+      const g = t.grantedBy;
+      const needs = g && !fitsGrant(timesOf(t.player, t.action), timesOf(t.player, g.action), at, g);
+      const ways = needs ? granting(m, t, at) : [{ granted: [], tool: t }, ...zoeFor(t, at)];
+      if (!ways[0] || (mp && !mp.affordable(t.player, t.action, at, own, drop ? 'need' : 'spare', target))) continue;
+      for (const option of ways) {
         const { granted } = option;
         const crit = option.tool !== t;
         const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
@@ -271,9 +269,8 @@ export function planMitigation(
     };
   };
 
-  // Every hit within the margin, the most dangerous mechanics first. A
-  // tank's invulnerability only where nothing else will do: the uses tried
-  // for that mechanic then go back, for later ones.
+  // Every hit within the margin, the most dangerous mechanics first. A tank's invulnerability only where nothing else
+  // will do: the uses tried for that mechanic then go back, for later ones.
   const short = (m: Mechanic) => (h: MechanicHit) => {
     const { damage, invulnerable } = project(m, h, uses);
     return !invulnerable && damage > limit(m, h);
