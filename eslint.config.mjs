@@ -2,6 +2,8 @@ import nx from '@nx/eslint-plugin';
 import ngrx from '@ngrx/eslint-plugin';
 
 export default [
+  // Worktrees Claude agents work in, each a whole copy of the repo.
+  { ignores: ['.claude/worktrees/**'] },
   ...nx.configs['flat/base'],
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
