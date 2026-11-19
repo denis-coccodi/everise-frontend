@@ -15,11 +15,19 @@ import type { Spent } from './heal-plan.model';
 // Protraction goes in last (`LAST`, with the aimed heals), in the weave
 // slots the heals leave: placed first, it took the ones a scholar short of
 // them needed (two deaths in a Dancing Mad kill). Its boost isn't counted.
+// An astrologian, busy with their damage too, plays the Arrow only where the
+// tank takes the most: at least `ARROW_LOAD` times their max HP of the
+// mechanics' damage (unmitigated) in its 15s. In 88 kills' logs, the Arrow
+// came from 114 of 223 Astral Draws, little more often before heavy tank
+// damage; played with every card, the plan had 271 (now 111).
 export const TANK_BUFFS = new Set([37024, 25867]);
 const LAST = new Set([25867]);
 const WITHIN_MS = 60_000;
 const LEAD_MS = 1_000;
 const WINDOW_MS = 8_000;
+const THE_ARROW = 37024;
+const ARROW_MS = 15_000;
+const ARROW_LOAD = 2.5;
 
 // The uses, on the `players`' tanks, before the heals are planned (`last`: after); `spent` takes them.
 export function tankBuffs(
@@ -41,6 +49,13 @@ export function tankBuffs(
         null,
       );
   const onTanks = mechanics.filter((m) => !m.wipe && tankHit(m));
+  // The mechanics' damage (unmitigated) `tank` takes from `at` for `ms`, in shares of their max HP.
+  const maxHp = new Map(players.map((p) => [p.id, p.maxHp]));
+  const load = (tank: number, at: number, ms: number) =>
+    onTanks
+      .filter((m) => m.at >= at && m.at < at + ms)
+      .flatMap((m) => m.hits.filter((h) => h.player === tank && !h.avoidable))
+      .reduce((sum, h) => sum + h.unmitigated, 0) / (maxHp.get(tank) || Infinity);
   for (const tool of tools.filter((t) => TANK_BUFFS.has(t.action) && LAST.has(t.action) === last)) {
     const times = (match: (s: Spent) => boolean) => spent.filter(match).map((s) => s.at);
     for (let due = 0; ;) {
@@ -73,6 +88,10 @@ export function tankBuffs(
         continue;
       }
       const target = tankHit(m)?.player ?? null;
+      if (tool.action === THE_ARROW && target !== null && load(target, at, ARROW_MS) < ARROW_LOAD) {
+        due = m.at;
+        continue;
+      }
       uses.push({ player: tool.player, action: tool.action, name: tool.name, at, target, covers: [] });
       const { player, action, group, gcd, castMs } = tool;
       spent.push({ player, action, at, group, pool, gcd, castMs });
