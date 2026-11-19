@@ -61,7 +61,19 @@ The `orchestrator` lives in `everise-backend` and runs as the main session there
 
 Several sessions work at once, so each change is made in its own git worktree, in `.claude/worktrees/` (ignored by git, Nx, Prettier, ESLint, Vitest and TypeScript). A new worktree needs `npm ci`, and its dev server runs on a port of its own, not 4200.
 
-`.claude/settings.json` runs `.claude/hooks/guard.mjs` before every shell command. It blocks staging everything (`git add -A`, `.`, `-u`), `git stash` without a unique message, discarding all changes (`reset --hard`, `clean -f`, `checkout .`), force pushes, pushes to `main`, commits on `main` or a detached HEAD, and switching branches in a checkout with uncommitted changes. It also asks before any `npm run deploy`, `wrangler deploy` or production deploy workflow run.
+`.claude/settings.json` runs two hooks. `.claude/hooks/session-start.mjs` tells each new session which checkout and branch it's in, what's uncommitted there, and the repository's other worktrees. `.claude/hooks/guard.mjs` runs before every shell command and blocks:
+
+- staging everything (`git add -A`, `.`, `-u`), and `git stash` without a unique message;
+- discarding all changes (`reset --hard`, `clean -f`, `checkout .`);
+- force pushes, pushes to `main`, and commits on `main` or a detached HEAD;
+- switching branches in a checkout with uncommitted changes;
+- a new or renamed branch not named `feature/`, `bugfix/` or `hotfix/<description>`;
+- a production tag not named `prod-YYYY-MM-DD-HHMM`;
+- `gh pr merge` before the pull request's `test` check has passed;
+- changing branch protection or rulesets (`gh api` writes to them);
+- `prettier --write` on a folder or a glob (it rewrites untouched files' line endings).
+
+It asks first before a write to production (`curl` or `Invoke-RestMethod` sending data to everise.dev or apis.everise.dev; reads and staging stay free), and `settings.json` itself before any `npm run deploy`, `wrangler deploy` or production deploy workflow run.
 
 ## Branches
 
