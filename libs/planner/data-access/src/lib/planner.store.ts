@@ -5,6 +5,7 @@ import { patchState, signalStore, withComputed, withMethods, withProps, withStat
 import { PullTimeline, ReportPull } from '@everise/core/api-types';
 import { errorMessageOf } from '@everise/core/data-access';
 import {
+  doubtfulAttacks,
   missingAttacks,
   referenceDamage,
   scriptMatches,
@@ -71,11 +72,14 @@ export const PlannerStore = signalStore(
       // add: for a wipe, what completes it (`sources`, and what they say of
       // its blocked attacks) and its fight's script, kept only if it's the
       // fight the log shows; for a kill, what an attack an invulnerability
-      // blocked every time does, read only until it's found.
+      // blocked every time does, and whether one that killed someone with far
+      // more than they could take is a failed mechanic (`doubtfulAttacks`),
+      // read only until it's found.
       stream: ({ params }) =>
         service.pull(params.code, params.id).pipe(
           switchMap((timeline): Observable<ReferencedTimeline> => {
             const missing = missingAttacks(timeline);
+            const doubtful = doubtfulAttacks(timeline);
             const referenced = wiped.pipe(
               switchMap((wipe): Observable<ReferencedTimeline> => {
                 if (wipe)
@@ -88,9 +92,9 @@ export const PlannerStore = signalStore(
                       ...(missing.length ? { references: referenceDamage(clears, missing) } : {}),
                     })),
                   );
-                if (!missing.length) return EMPTY;
+                if (!missing.length && !doubtful.length) return EMPTY;
                 return service
-                  .references(params.code, params.id, missing)
+                  .references(params.code, params.id, missing, doubtful)
                   .pipe(map((references) => ({ ...timeline, references })));
               }),
             );

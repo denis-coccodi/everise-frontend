@@ -8,6 +8,7 @@ import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, reachMs, waits
 import { plannedHits } from './mitigation-hits';
 import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
+import { shortAndLong } from './tank-busters';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
 import type { PullTimeline } from '@everise/core/api-types';
 import type { PullFacts } from './coverage.model';
@@ -41,6 +42,7 @@ export function planMitigation(
   automatic: PlannedUse[] = [],
   mp?: MpModel,
   limitBreaks: { gauge: PullTimeline['limitBreakGauge']; played: GroupLimitBreak[] } = { gauge: [], played: [] },
+  hard = new Set<number>(), // Planned before any other, however dangerous (`hardFirst`): a plan left them short.
 ): Plan {
   const uses: PlannedUse[] = [];
   // The HP each hit lands on, by "<mechanic>:<player>".
@@ -52,16 +54,14 @@ export function planMitigation(
   // A use that Recitation made critical: its shields as a critical heal's.
   const critical = (t: MitigationTool) => ({ ...t, effects: t.whenCritical ?? t.effects });
   const facts = pullFacts(mechanics, maxHp, shieldTimes);
-  // A failed mechanic is taken as avoided: it takes nothing, and nothing is
-  // spent on it.
+  // A failed mechanic is taken as avoided: it takes nothing, and nothing is spent on it.
   const project = (m: Mechanic, h: MechanicHit, list: PlannedUse[], of = tool) =>
     h.avoidable ? AVOIDED : projected(m, h, list, of, facts);
   const max = (h: MechanicHit) => maxHp.get(h.player) ?? Infinity;
   // Whether two mechanics are in one burst, and what lands just before one.
   const { sameBurst, earlier } = chainsOf(mechanics, options.strategy?.tankChains);
-  // The HP a hit lands on (an earlier plan's, with its heals), and the most
-  // it may take and leave the margin. In a burst, with no earlier plan, it
-  // lands on what the burst's hits before it left: there's no time to heal.
+  // The HP a hit lands on (an earlier plan's, with its heals), and the most it may take and leave the margin. In a
+  // burst, with no earlier plan, it lands on what the burst's hits before it left: there's no time to heal.
   const hpOf = (m: Mechanic, h: MechanicHit) => {
     const known = hpAt.get(`${m.id}:${h.player}`);
     if (known !== undefined) return Math.min(max(h), known);
@@ -75,7 +75,8 @@ export function planMitigation(
   const limit = (m: Mechanic, h: MechanicHit) => hpOf(m, h) - options.margin * max(h);
   const danger = (m: Mechanic) =>
     Math.max(0, ...m.hits.filter((h) => !h.avoidable).map((h) => h.unmitigated / hpOf(m, h)));
-  const order = [...mechanics].sort((a, b) => danger(b) - danger(a) || a.at - b.at);
+  const hardFirst = (a: Mechanic, b: Mechanic) => Number(hard.has(b.id)) - Number(hard.has(a.id));
+  const order = [...mechanics].sort((a, b) => hardFirst(a, b) || danger(b) - danger(a) || a.at - b.at);
   // The longest any effect lasts: no use older than this reaches a hit.
   const longest = Math.max(0, ...tools.flatMap((t) => t.effects.map((e) => e.durationMs)));
   const add = (candidate: Candidate) => {
@@ -86,16 +87,14 @@ export function planMitigation(
   // A Limit Break is the group's call: kept where they used it, never planned.
   const ours = (t: MitigationTool) => !options.replan || options.replan.includes(t.player);
   const plannable = tools.filter((t) => !AUTOMATIC.has(t.action) && !t.limitBreak && ours(t));
-  // An earlier plan's mitigations stay: taking one away would leave its hits
-  // bigger, and the HP after them lower than the plan was made for. (It has
-  // the fixed ones already.)
+  // An earlier plan's mitigations stay: taking one away would leave its hits bigger, and the HP after them lower
+  // than the plan was made for. (It has the fixed ones already.)
   for (const use of [...(from?.uses ?? fixed).filter((u) => !AUTOMATIC.has(u.action)), ...automatic]) {
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }
   const first = uses.length;
-  // When the player can use `t` for `m`, at `at` or before it while it
-  // still covers `m`; null when they can't.
+  // When the player can use `t` for `m`, at `at` or before it while it still covers `m`; null when they can't.
   const fit = (m: Mechanic, t: MitigationTool, at: number) => {
     const from = m.at - reachMs(t);
     const occupied = uses
@@ -141,10 +140,8 @@ export function planMitigation(
       .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
   const zoeFor = zoeOptions(plannable, uses, tool, occupiedBy, weaving, options);
 
-  // The damage `added` uses take off the hits `wanted` of `m` (and, in a
-  // burst, the earlier hits on those players, which leave them the HP they
-  // take it on), and a little for every other mechanic in their window, from
-  // `at` for `lasts`.
+  // The damage `added` uses take off the hits `wanted` of `m` (and, in a burst, the earlier hits on those players, which
+  // leave them the HP they take it on), and a little for every other mechanic in their window, from `at` for `lasts`.
   const valueOf = (
     m: Mechanic,
     added: { use: PlannedUse; tool: MitigationTool }[],
@@ -172,10 +169,9 @@ export function planMitigation(
     return value;
   };
 
-  // The uses of the action granting `t` that would let it go up at `at`,
-  // landing before it, each with `t` as it would then be: on its own, and
-  // made critical by Recitation where its user has it up (a bigger
-  // Galvanize to spread); none when there's no tool for it.
+  // The uses of the action granting `t` that would let it go up at `at`, landing before it, each with `t` as it would
+  // then be: on its own, and made critical by Recitation where its user has it up (a bigger Galvanize to spread); none
+  // when there's no tool for it.
   const granting = (m: Mechanic, t: MitigationTool, at: number): { granted: Granted[]; tool: MitigationTool }[] => {
     const grant = t.grantedBy;
     const g = grant && plannable.find((o) => o.player === t.player && o.action === grant.action);
@@ -211,10 +207,9 @@ export function planMitigation(
     ];
   };
 
-  // What one more use of `t` for `m` would add, at its best moment; null
-  // when it can't be used for it. One another grants comes with a use of
-  // that one where it has none, the two worth what they add together, the
-  // other's GCD counted as one.
+  // What one more use of `t` for `m` would add, at its best moment; null when it can't be used for it. One another
+  // grants comes with a use of that one where it has none, the two worth what they add together, the other's GCD
+  // counted as one.
   const best = (m: Mechanic, t: MitigationTool, wanted: (h: MechanicHit) => boolean, drop = true): Candidate | null => {
     const times = uses.filter((u) => tool(u).group === t.group).map((u) => u.at);
     const spent = t.pool
@@ -301,6 +296,12 @@ export function planMitigation(
   const lethal = (m: Mechanic) => m.hits.filter(killing(m)).length;
   const breaks = tools.filter((t) => t.limitBreak && ours(t));
   const lastResort = lastResortFor(breaks, limitBreaks.gauge, limitBreaks.played, { uses, add, fill, lethal });
+  // Each heavy tank buster a short and a long cooldown on its tank first (`shortAndLong`).
+  const covered = (m: Mechanic, h: MechanicHit, actions: Set<number>) =>
+    project(m, h, uses).invulnerable || uses.some((u) => actions.has(u.action) && reaches(tool(u), u, m, h).length > 0);
+  const saved = (m: Mechanic, h: MechanicHit) =>
+    invulnerabilities.some((t) => t.player === h.player && invulnerabilityFor(m, t) !== null);
+  shortAndLong(order, others, maxHp, uses, { covered, best, add, killing, saved });
   // A player's own cooldown waits for their bigger hit still to plan, by its size, not the HP a round left.
   const pending = new Set(order);
   const weight = (_m: Mechanic, h: MechanicHit) => h.unmitigated / max(h);
