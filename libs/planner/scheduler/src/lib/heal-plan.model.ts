@@ -34,6 +34,8 @@ export interface Paired {
   barrier: { use: PlannedUse; tool: MitigationTool } | null;
   // In the window of the pairing's use already planned (`use`): nothing new is pressed.
   open?: boolean;
+  // When its heal on top is read (Horoscope Helios, after the next hit).
+  readAt?: number;
 }
 
 // The fairy's own heals, worked out for the plan (`events`), and the

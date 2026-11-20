@@ -108,6 +108,8 @@ export function planHeals(
     const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
     return [...own, ...movedAway(timeline, tool, use), ...bonded(pairings, [...uses, ...plan.uses], tool, use, own)];
   };
+  // A pairing's own heal (Physis II's regen), at once: none without one.
+  const eventsOfOwn = (own: HealTool | undefined, use: PlannedUse) => (own ? eventsFor(own, use, 0) : []);
   const spent: Spent[] = [];
   const uses: PlannedUse[] = [];
   for (const use of plan.uses) {
@@ -238,11 +240,9 @@ export function planHeals(
                     (group) => spent.filter((s) => s.group === group).map((s) => s.at),
                     weaving,
                     maxHp,
-                    (pairing, paired) => {
-                      const own = healOf.get(key(pairing));
-                      return own ? eventsFor(own, paired, 0) : [];
-                    },
+                    (pairing, paired) => eventsOfOwn(healOf.get(key(pairing)), paired),
                     short,
+                    plan.mechanics,
                   ),
                 ),
               );
