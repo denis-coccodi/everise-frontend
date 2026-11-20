@@ -66,6 +66,7 @@ describe('burstUses', () => {
         opening,
         Weaving.of(t, c, () => true, free),
         opening.uses,
+        true,
       ).map((u) => [u.name, u.at]);
 
     expect(placed()).toEqual([]);
