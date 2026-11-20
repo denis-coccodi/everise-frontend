@@ -1,6 +1,6 @@
 import { TimelineHeal } from '@everise/core/api-types';
-import { guardsOf, healEvents, naturalRegen, pullEvents } from './hp-events';
-import { HealTool, Mechanic, MitigationTool, PlannedHit } from './plan.model';
+import { guardsOf, healEvents, naturalRegen, pairedHealing, pullEvents } from './hp-events';
+import { HealPairing, HealTool, Mechanic, MitigationTool, PlannedHit } from './plan.model';
 import { pull } from './scheduler-fixtures';
 
 describe('pullEvents', () => {
@@ -76,6 +76,34 @@ describe('pullEvents', () => {
       { at: 40_000, player: 1, amount: -5000 },
       { at: 50_000, player: 1, amount: 1500 },
     ]);
+  });
+
+  it("leaves out the played healing of the plan's healing pairings (Horoscope Helios) and the log's other names (Haimatinon)", () => {
+    const timeline = pull([]);
+    timeline.actions.push({ id: 16557, name: 'Horoscope' }, { id: 24305, name: 'Haima' });
+    timeline.statuses.push({ id: 1890, name: 'Horoscope Helios' }, { id: 2642, name: 'Haimatinon' });
+    const healed = (extra: Partial<TimelineHeal>): TimelineHeal => ({
+      at: 50_000,
+      source: 2,
+      pet: null,
+      target: 1,
+      action: null,
+      status: null,
+      amount: 1000,
+      overheal: 0,
+      tick: false,
+      estimated: false,
+      hp: null,
+      ...extra,
+    });
+    timeline.heals = [healed({ action: 16557 }), healed({ status: 1890 }), healed({ status: 2642, amount: 3000 })];
+    const horoscope = { player: 2, action: 16557, name: 'Horoscope', extra: { hp: 20_000 }, bond: 0 } as HealPairing;
+    const haima: HealTool = { ...lustrate, action: 24305, name: 'Haima', effects: [] };
+
+    // As played, both of Horoscope's count, and Haima's under its other name.
+    expect(pullEvents(timeline, [], [], []).map((e) => e.amount)).toEqual([1000, 1000, 3000]);
+    // With the plan's own Horoscope Helios and Haima: none of them.
+    expect(pullEvents(timeline, [], [], [haima], pairedHealing([horoscope]))).toEqual([]);
   });
 
   it("guards against the damage outside the mechanics under the plan's invulnerabilities: none under Hallowed Ground, 1 HP left under Holmgang", () => {

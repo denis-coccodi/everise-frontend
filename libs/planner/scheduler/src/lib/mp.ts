@@ -3,6 +3,7 @@ import type { MpExtras, MpUse, PlannedMp } from './mp.model';
 import { spareEdges } from './dark-knight-edges';
 import { THIN_AIR, THIN_AIR_MS } from './thin-air';
 import { BLACKEST_NIGHT, blackestNightBreaks } from './dark-arts';
+import { replacedSpells } from './mp-replaced';
 
 // The game's MP tick, and the natural one when the log can't tell.
 export const TICK_MS = 3_000;
@@ -90,6 +91,7 @@ export class MpModel {
       });
     }
     const breaks = blackestNightBreaks(timeline, catalog);
+    const replaced = replacedSpells(timeline, catalog, new Set(players.keys()), scheduled);
     const model = new MpModel(players, (action, player, at, target) => {
       const a = byId.get(action);
       if (!a) return [];
@@ -109,8 +111,8 @@ export class MpModel {
             mp: (e.potency ?? 0) * 10,
           })),
         );
-      // Past the wipe point, a GCD takes a damage spell's place, and its MP.
-      const freed = a.gcd && at > past.from ? (past.perGcd.get(player) ?? 0) : 0;
+      // A GCD takes a damage spell's place, and its MP: past the wipe point, their usual one's; before, the one played.
+      const freed = !a.gcd ? 0 : at > past.from ? (past.perGcd.get(player) ?? 0) : replaced(player, at);
       const now = gain - a.mpCost + freed;
       // A Blackest Night that breaks gives its MP back (Dark Arts).
       const broke = action === BLACKEST_NIGHT ? breaks(target ?? player, at) : null;

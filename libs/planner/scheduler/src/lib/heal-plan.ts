@@ -20,7 +20,7 @@ import {
 import { bonded, pairingsFor } from './paired-heals';
 import { MISERY, aimedHeals, miserySpent, spareHeals } from './spare-heals';
 import { WEAVE_MS, Weaving } from './weaving';
-import { guardsOf, naturalRegen, pullEvents } from './hp-events';
+import { guardsOf, naturalRegen, pairedHealing, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import {
   Favour,
@@ -94,8 +94,9 @@ export function planHeals(
   const guards = guardsOf(plan.uses, (u) => mitigationOf.get(key(u)));
   const autos = new AutoDamage(timeline, plan.uses, (u) => mitigationOf.get(key(u)), facts);
   const dealt = autos.amountOf;
+  const replaced = [...fairy.recalculated, ...pairedHealing(pairings)]; // Played healing the plan works out itself.
   const track = new HpTrack(maxHp, [
-    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, fairy.recalculated, guards, dealt),
+    ...pullEvents(timeline, plan.mechanics, plan.hits, heals, replaced, guards, dealt),
     ...naturalRegen(timeline),
     ...fairy.events,
   ]);
