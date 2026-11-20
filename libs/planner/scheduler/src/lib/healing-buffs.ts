@@ -62,7 +62,8 @@ export class HealingBuffs {
       player,
       at,
       'potency',
-      uses.flatMap((u) => (this.byAction.has(u.action) ? this.spansOf(u) : [])),
+      // Only those used by then can be up then.
+      uses.flatMap((u) => (u.at <= at && this.byAction.has(u.action) ? this.spansOf(u) : [])),
     );
   }
 
@@ -85,9 +86,11 @@ export class HealingBuffs {
 
   private multiplier(player: number, at: number, kind: HealingBuff['kind'], extra: BuffSpan[] = []) {
     const strongest = new Map<string, number>();
-    for (const { buff, ...span } of [...(this.spans.get(`${player}:${kind}`) ?? []), ...extra]) {
-      if (span.player !== player || buff.kind !== kind || at < span.from || at > span.to) continue;
-      strongest.set(buff.status, Math.max(strongest.get(buff.status) ?? 0, buff.share));
+    for (const list of [this.spans.get(`${player}:${kind}`) ?? [], extra]) {
+      for (const { buff, player: on, from, to } of list) {
+        if (on !== player || buff.kind !== kind || at < from || at > to) continue;
+        strongest.set(buff.status, Math.max(strongest.get(buff.status) ?? 0, buff.share));
+      }
     }
     let multiplier = 1;
     for (const share of strongest.values()) multiplier *= 1 + share;

@@ -31,13 +31,21 @@ export function combinedShares(
     own.set(h.status, { sum: t.sum + h.amount + h.overheal, n: t.n + 1 });
     ticks.set(h.source, own);
   }
+  // The auras by caster and target, in the log's order.
+  const auras = new Map<string, PullTimeline['auras']>();
+  for (const a of timeline.auras) {
+    const key = `${a.source}:${a.target}`;
+    const list = auras.get(key);
+    if (list) list.push(a);
+    else auras.set(key, [a]);
+  }
   for (const h of timeline.heals) {
     if (h.source === null || h.action === null || !combined.has(h.action)) continue;
     const own = ticks.get(h.source);
     if (!own) continue;
     const on = new Set(
-      timeline.auras
-        .filter((a) => a.source === h.source && a.target === h.target && own.has(a.status))
+      (auras.get(`${h.source}:${h.target}`) ?? [])
+        .filter((a) => own.has(a.status))
         .filter((a) => a.from <= h.at && h.at <= a.to + SNAPSHOT_MS)
         .map((a) => a.status),
     );

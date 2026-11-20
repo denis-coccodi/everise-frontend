@@ -156,9 +156,23 @@ export function pullFacts(
     for (const hit of m.hits.filter((h) => !h.avoidable))
       taken.set(hit.player, [...(taken.get(hit.player) ?? []), m.at]);
   }
+  for (const list of times.values()) list.sort((a, b) => a - b);
+  // How many of a sorted list come before `at`, found by halving.
+  const before = (list: number[], at: number) => {
+    let [a, b] = [0, list.length];
+    while (a < b) {
+      const m = (a + b) >> 1;
+      if (list[m] < at) a = m + 1;
+      else b = m;
+    }
+    return a;
+  };
   return {
     maxHp,
-    hitsBetween: (player, from, to) => (times.get(player) ?? []).filter((at) => at >= from && at < to).length,
+    hitsBetween: (player, from, to) => {
+      const list = times.get(player) ?? [];
+      return Math.max(0, before(list, to) - before(list, from));
+    },
     walkingDeadEnd: (player, from) => {
       const first = (taken.get(player) ?? []).filter((at) => at >= from).sort((a, b) => a - b)[0];
       return first === undefined ? from : first + WALKING_DEAD_MS;
