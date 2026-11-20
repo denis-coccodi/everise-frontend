@@ -7,13 +7,15 @@ import type { PlanEdits } from './edits.model';
 import { withEnablerWindows } from './enabled-windows';
 import { withFairyAway } from './fairy-heals';
 import { withDraws } from './opening';
+import { withTargetsGone } from './untargetable';
 import type { Opening } from './openers.model';
 import type { HealTool, Mechanic, MitigationTool } from './plan.model';
 
 // The tools as the pull and the opener allow them: a scholar's fairy
 // orders wait for her while Dissipation has her away; Aetherflow comes
 // with its refills and the Faerie Gauge as it's spent, an astrologian's
-// cards with their draws; Lux Solaris
+// cards with their draws; Reprisal, Feint and Addle wait out the time nothing can be
+// targeted (`withTargetsGone`); Lux Solaris
 // waits for the burst that grants it; the user's removed skills aren't
 // planned where they were, nor cooldowns held for a death in their window.
 export function toolWindows(
@@ -29,7 +31,10 @@ export function toolWindows(
       withBans(
         withEnablerWindows(
           timeline,
-          withDraws(withAetherflow(timeline, withFairyAway(timeline, tools, dissipations), refills), opening),
+          withDraws(
+            withAetherflow(timeline, withFairyAway(timeline, withTargetsGone(timeline, tools), dissipations), refills),
+            opening,
+          ),
         ),
         edits,
         mechanics,
