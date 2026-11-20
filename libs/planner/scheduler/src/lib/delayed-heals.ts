@@ -14,7 +14,8 @@ import type { Candidate, Spent } from './heal-plan.model';
 //   the damage each took meanwhile on top;
 // any other `delayMs` after it lands (Earthly Star, Exaltation; 0 for a
 // heal that lands as it's cast). `hitTimes` says when the mechanics hit a
-// player after one moment, up to another (inclusive).
+// player after one moment, up to another (inclusive), `gcdTimes` when they
+// use a GCD; a heal that comes only with those, then (`conditionalEvents`).
 export function delayedEvents(
   tool: HealTool,
   use: PlannedUse,
@@ -23,7 +24,13 @@ export function delayedEvents(
   maxHp: Map<number, number>,
   track: HpTrack,
   hitTimes: (player: number, from: number, to: number) => number[],
+  gcdTimes: (player: number, from: number, to: number) => number[] = () => [],
 ): HpEvent[] {
+  if (tool.effects.some((e) => e.on)) {
+    const rest = { ...tool, effects: tool.effects.filter((e) => !e.on) };
+    const events = rest.effects.length ? delayedEvents(rest, use, delayMs, party, maxHp, track, hitTimes) : [];
+    return [...events, ...conditionalEvents(tool, use, party, maxHp, hitTimes, gcdTimes)];
+  }
   const delayed = tool.delayed;
   const plain = () => healEvents(tool, use, party, maxHp, delayMs);
   if (!delayed) return plain();
@@ -91,4 +98,31 @@ export function releaseOf(pick: Candidate, mechanic: number): { use: PlannedUse;
     castMs: 0,
   };
   return { use, spent };
+}
+
+// The heals of `tool` that come only with what its user does next (`on`):
+// with each of their GCDs while it lasts (Bloodwhetting: on them, or Nascent
+// Flash's on its target too), or from the first hit on whoever it's on in its
+// window (Tengentsu's Foresight), else as that ends where it says so
+// (Damnation's Primeval Impulse), else none.
+function conditionalEvents(
+  tool: HealTool,
+  use: PlannedUse,
+  party: number[],
+  maxHp: Map<number, number>,
+  hitTimes: (player: number, from: number, to: number) => number[],
+  gcdTimes: (player: number, from: number, to: number) => number[],
+): HpEvent[] {
+  const lands = use.at + tool.castMs;
+  return tool.effects.flatMap((effect) => {
+    const on = effect.on;
+    if (!on) return [];
+    const only = { ...tool, castMs: 0, effects: [{ ...effect, on: undefined }] };
+    const at = (time: number) => healEvents(only, { ...use, at: time }, party, maxHp);
+    if (on.each === 'gcd') return gcdTimes(use.player, lands, lands + on.withinMs).flatMap(at);
+    const hit = (player: number) =>
+      hitTimes(player, lands, lands + on.withinMs)[0] ?? (on.orAtEnd ? lands + on.withinMs : null);
+    const first = hit(effect.target === 'self' ? use.player : (use.target ?? use.player));
+    return first === null ? [] : at(first);
+  });
 }

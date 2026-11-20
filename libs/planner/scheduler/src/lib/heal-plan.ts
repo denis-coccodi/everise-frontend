@@ -102,11 +102,12 @@ export function planHeals(
   ]);
   const hitAt = new Map<number, number[]>();
   for (const m of plan.mechanics) for (const h of m.hits) hitAt.set(h.player, [...(hitAt.get(h.player) ?? []), m.at]);
+  const gcdsOf = (player: number, from: number, to: number) => weaving.gcdsBetween(player, from, to);
   const hitTimes = (player: number, from: number, to: number) =>
     (hitAt.get(player) ?? []).filter((at) => at > from && at <= to).sort((a, b) => a - b);
   // The HP a use heals, and when, as the pull goes on (a delayed heal's).
   const eventsFor = (tool: HealTool, use: PlannedUse, delayMs: number) => {
-    const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes), use, tool.gcd);
+    const own = boosts.boost(delayedEvents(tool, use, delayMs, party, maxHp, track, hitTimes, gcdsOf), use, tool.gcd);
     return [...own, ...movedAway(timeline, tool, use), ...bonded(pairings, [...uses, ...plan.uses], tool, use, own)];
   };
   // A pairing's own heal (Physis II's regen), at once: none without one.
