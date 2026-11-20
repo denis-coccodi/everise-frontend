@@ -64,9 +64,10 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const scheduled = new Set(plan.scheduled ?? []);
   casts.forEach((c, i) => {
     const action = byId.get(c.action);
-    // An attack stays as played (one that heals too: Confiteor), but for an
-    // oGCD the plan places itself (Assize, an astrologian's Lord of Crowns).
-    const placed = !action?.gcd && scheduled.has(playerId + ':' + c.action);
+    // An attack stays as played (one that heals too: Confiteor), but for one
+    // the plan places itself (Assize, Lord of Crowns; Macrocosmos, a GCD: their
+    // usual attack in its slot instead).
+    const placed = scheduled.has(playerId + ':' + c.action);
     const attack =
       !placed &&
       (onlyDamage(c.action, action) || (c.action === EUKRASIA && isAttack(casts[i + 1], byId)) || dealsDamage(action));

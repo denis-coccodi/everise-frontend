@@ -824,6 +824,19 @@ describe('planHeals', () => {
     expect(at('Microcosmos')).toBeGreaterThan(5_000);
     expect(at('Microcosmos')).toBeLessThan(9_000);
     expect(plan.hits[1]).toMatchObject({ safe: true });
+
+    // With the next buster at 30s, its 15s are soon enough: it resolves on its
+    // own, and Microcosmos shows as it does.
+    const later = pull(
+      [
+        [5, 'Buster', 1, 85_000],
+        [30, 'Buster', 1, 60_000],
+      ],
+      [[1, 2, 189, 60_000]],
+    );
+    const own = planHeals(planMitigation(mechanicsOf(later), [], maxHp, options), later, [], heals, maxHp, options);
+    const ownAt = (name: string) => own.uses.find((u) => u.name === name)?.at ?? NaN;
+    expect(ownAt('Microcosmos') - ownAt('Macrocosmos')).toBe(15_000);
   });
 
   it('puts Excogitation up before a hit that takes its target to half HP, healing them for the next', () => {

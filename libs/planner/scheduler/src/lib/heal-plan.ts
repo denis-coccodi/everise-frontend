@@ -290,9 +290,9 @@ export function planHeals(
               castMs: 0,
             });
           }
-          // A delayed heal set off sooner than it goes off on its own.
+          // A delayed heal set off sooner than it goes off on its own; Microcosmos (25875) shown even then, as it resolves.
           const { delayed } = pick.tool;
-          if (delayed?.release && pick.delayMs < delayed.delaysMs[0]) {
+          if (delayed?.release && (pick.delayMs < delayed.delaysMs[0] || delayed.release.action === 25875)) {
             const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
             uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
             const release = { action: delayed.release.action, group: `release:${pick.use.player}`, pool: null };
