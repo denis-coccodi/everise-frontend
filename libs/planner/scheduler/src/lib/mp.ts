@@ -268,7 +268,7 @@ export class MpModel {
     let thinAir = -Infinity;
     const own = this.players.get(player);
     return uses
-      .filter((u) => !own?.unlogged.has(`${u.action}:${u.at}`) && !own?.fixed.has(u.action))
+      .filter((u) => !own?.fixed.has(u.action) && !(own?.unlogged.size && own.unlogged.has(`${u.action}:${u.at}`)))
       .sort((a, b) => a.at - b.at)
       .flatMap((u) => {
         if (u.action === THIN_AIR) thinAir = u.at;

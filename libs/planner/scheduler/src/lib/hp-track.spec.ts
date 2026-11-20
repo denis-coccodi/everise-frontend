@@ -22,6 +22,20 @@ describe('HpTrack', () => {
     expect(t.checkpoint(2, 0)).toBeNull();
   });
 
+  it('gives a later checkpoint the events added before it since the last one', () => {
+    const t = track();
+    expect(t.checkpoint(1, 25_000)).toMatchObject({ hp: 0, next: 2 });
+
+    t.add([
+      { at: 5_000, player: 1, amount: -10_000 },
+      { at: 15_000, player: 1, amount: 40_000 },
+    ]);
+
+    // 100k - 10k - 70k + 40k - 50k: 10k, after four events.
+    expect(t.checkpoint(1, 25_000)).toMatchObject({ hp: 10_000, next: 4 });
+    expect(t.checkpoint(1, 12_000)).toMatchObject({ hp: 20_000, next: 2 });
+  });
+
   it('grows a heal as its target has less HP, all of it at its full share or less', () => {
     const lowHp = { times: 2.25, fullAt: 0.3 };
     const hpAfter = (damage: number) => {

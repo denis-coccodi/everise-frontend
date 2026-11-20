@@ -1,7 +1,7 @@
 // How far from the moments asked about a player's actions can still bear
 // on them: longer than any cast bar, lock or late GCD's gap. Only those
 // are looked at (`Weaving`), the rest of the pull left out.
-const NEAR_MS = 60_000;
+const NEAR_MS = 15_000;
 
 // Those of `list` near `lo` to `hi`, by `at`.
 export function near<T>(list: T[], lo: number, hi: number, at = (t: T) => (t as { at: number }).at) {

@@ -5,6 +5,10 @@ import type { HpEvent, HpCheckpoint } from './hp-track.model';
 // their max HP.
 export class HpTrack {
   private readonly events = new Map<number, HpEvent[]>();
+  // Each player's HP after each of their events (`checkpoint`), right for
+  // the first `known` of them: an event added earlier undoes those after it.
+  private readonly hps = new Map<number, number[]>();
+  private readonly known = new Map<number, number>();
 
   constructor(
     private readonly maxHp: Map<number, number>,
@@ -22,6 +26,7 @@ export class HpTrack {
       while (i > 0 && list[i - 1].at > event.at) i--;
       list.splice(i, 0, event);
       this.events.set(event.player, list);
+      this.known.set(event.player, Math.min(this.known.get(event.player) ?? 0, i));
     }
   }
 
@@ -83,10 +88,19 @@ export class HpTrack {
     const max = this.maxHp.get(player);
     if (max === undefined) return null;
     const list = this.events.get(player) ?? [];
-    let hp = max;
-    let next = 0;
-    for (; next < list.length && list[next].at <= at; next++) hp = this.step(hp, list[next], max);
-    return { player, at, hp, next };
+    // The events up to `at` (inclusive), found by halving.
+    let [a, next] = [0, list.length];
+    while (a < next) {
+      const m = (a + next) >> 1;
+      if (list[m].at <= at) a = m + 1;
+      else next = m;
+    }
+    const hps = this.hps.get(player) ?? [];
+    this.hps.set(player, hps);
+    let known = this.known.get(player) ?? 0;
+    for (; known < next; known++) hps[known] = this.step(known ? hps[known - 1] : max, list[known], max);
+    this.known.set(player, known);
+    return { player, at, hp: next ? hps[next - 1] : max, next };
   }
 
   // Their HP just before `at`, from a checkpoint, with `extra` events (all
