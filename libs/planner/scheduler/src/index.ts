@@ -16,6 +16,7 @@ export type {
 export { PlannerScheduler } from './lib/planner-scheduler.service';
 export { PlanPool, STOPPED } from './lib/plan-pool.service';
 export { STRATEGIES, betterPlan, diesToMechanic, strategiesAfter, worthImproving } from './lib/strategies';
+export { keepsNext, triesNext, variantsOf } from './lib/plan-variants';
 export type { Strategy } from './lib/strategy.model';
 export { withoutFollowUps } from './lib/weaving';
 export { landedGcds } from './lib/weaving-rhythm';
