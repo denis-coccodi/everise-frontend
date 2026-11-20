@@ -43,13 +43,18 @@ export function openingOf(
   return opening;
 }
 
-// The tools with each astrologian's cards as their draws bring them.
+// The tools with each astrologian's cards as their draws bring them, and take them away.
 export function withDraws<T extends { player: number; pool: ToolPool | null }>(tools: T[], opening: Opening): T[] {
   return tools.map((t) => {
     const draws = opening.draws.get(t.player);
     const name = t.pool?.name ?? '';
-    const refills = ASTRAL_CARDS.includes(name) ? draws?.astral : UMBRAL_CARDS.includes(name) ? draws?.umbral : null;
-    return refills && t.pool ? { ...t, pool: { ...t.pool, refills } } : t;
+    const [refills, empties] = ASTRAL_CARDS.includes(name)
+      ? [draws?.astral, draws?.umbral]
+      : UMBRAL_CARDS.includes(name)
+        ? [draws?.umbral, draws?.astral]
+        : [];
+    // Drawn at their draw, lost at the other one, which swaps them for its own.
+    return refills && t.pool ? { ...t, pool: { ...t.pool, refills, empties } } : t;
   });
 }
 

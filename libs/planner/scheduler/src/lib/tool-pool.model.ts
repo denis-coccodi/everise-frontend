@@ -8,6 +8,8 @@ export interface ToolPool {
   // A pool that fills only at these moments, to `max` (Aetherflow and
   // Dissipation's stacks), from empty: `gainMs` is then how often it comes.
   refills?: number[];
+  // A refilled pool emptied at these moments, what's left lost: an astrologian's other draw swaps the cards drawn.
+  empties?: number[];
   // A pool that starts empty and gains one only at these moments, not with
   // time (the Faerie Gauge, from the Aetherflow spent).
   earned?: number[];

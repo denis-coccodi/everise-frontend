@@ -39,7 +39,7 @@ const burst = (job: string, opener: 'standard' | 'none' = 'standard') => {
   const weaving = Weaving.of(t, c, () => true);
   // The Lightspeeds first, as the scheduler places them.
   const lightspeed = placeLightspeed(t, c, t.players, opening, weaving);
-  const rest = burstUses(t, c, t.players, opening, weaving, opening.uses);
+  const rest = burstUses(t, c, t.players, opening, weaving, [...opening.uses, ...lightspeed]);
   return [...lightspeed, ...rest].map((u) => [u.name, u.at]);
 };
 
@@ -83,22 +83,22 @@ describe('burstUses', () => {
     expect(burst('WHM')).toEqual([['Presence of Mind', 136_100]]);
   });
 
-  it("has an astrologian's Divination and a Lightspeed each two minutes, and their draws each with its card", () => {
-    expect(burst('AST')).toEqual([
-      // Lightspeed placed first; Divination a weave after it.
+  it("has an astrologian's Divination and a Lightspeed each two minutes, and their cards in its windows", () => {
+    const inTime = burst('AST').sort((a, b) => (a[1] as number) - (b[1] as number));
+    expect(inTime).toEqual([
+      // Astral Draw at the odd minute (55s after the opener's Umbral Draw at 11.9s), its cards held...
+      ['Astral Draw', 66_900],
+      // ...to the next Divination (Lightspeed a weave before it), then Umbral Draw and the Spear in that window.
       ['Lightspeed', 136_100],
       ['Divination', 136_800],
-      // Astral Draw (the countdown's, then 110s on) with the Balance, Umbral
-      // Draw (the opener's at 11.9s, then 110s on) with the Spear: each card
-      // a weave after its draw, or after the next GCD when there's no room.
-      ['Astral Draw', 66_900],
-      ['the Balance', 68_600],
-      ['Umbral Draw', 138_600],
-      ['the Spear', 139_300],
-      ['Astral Draw', 176_900],
-      ['the Balance', 178_600],
-      ['Umbral Draw', 231_900],
-      ['the Spear', 233_600],
+      ['the Balance', 138_600],
+      ['Lord of Crowns', 139_300],
+      ['Umbral Draw', 141_100],
+      ['the Spear', 141_800],
+      // The next Astral Draw 55s on; with no Divination left in the pull, its cards right away.
+      ['Astral Draw', 196_100],
+      ['the Balance', 196_800],
+      ['Lord of Crowns', 198_600],
     ]);
   });
 

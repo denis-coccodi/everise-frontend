@@ -275,6 +275,17 @@ describe('a pool refilled at set moments', () => {
     expect(poolLevel([3_000], 10_000, pool)).toBe(2);
     expect(poolLevel([3_000], 15_000, pool)).toBe(3);
   });
+
+  it('loses what it holds at each emptying: a card the other draw swaps out', () => {
+    // Lady of Crowns from Umbral Draws at 10s and 120s; Astral Draw at 65s swaps it for the Lord.
+    const lady = { name: 'Lady of Crowns', gainMs: 55_000, max: 1, refills: [10_000, 120_000], empties: [65_000] };
+    expect(fitsPool([], 60_000, lady)).toBe(true);
+    expect(fitsPool([], 90_000, lady)).toBe(false);
+    expect(fitsPool([], 65_000, lady)).toBe(false);
+    expect(fitsPool([], 125_000, lady)).toBe(true);
+    expect(poolLevel([], 90_000, lady)).toBe(0);
+    expect(poolLevel([], 125_000, lady)).toBe(1);
+  });
 });
 
 describe('fitsGrant', () => {

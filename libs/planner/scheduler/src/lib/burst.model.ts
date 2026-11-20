@@ -4,4 +4,6 @@
 export interface BurstAction {
   action: number;
   everyMs?: number;
+  // Placed before the heals and mitigations, not after: an astrologian's, their cards going by it.
+  early?: boolean;
 }

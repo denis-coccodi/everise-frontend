@@ -19,7 +19,8 @@ import type { Spent } from './heal-plan.model';
 // tank takes the most: at least `ARROW_LOAD` times their max HP of the
 // mechanics' damage (unmitigated) in its 15s. In 88 kills' logs, the Arrow
 // came from 114 of 223 Astral Draws, little more often before heavy tank
-// damage; played with every card, the plan had 271 (now 111).
+// damage; played with every card, the plan had 271. Since the Arrow is lost
+// at the next Umbral Draw, 1.5 (on 8 ultimate kills: 33, logs 30).
 export const TANK_BUFFS = new Set([37024, 25867]);
 const LAST = new Set([25867]);
 const WITHIN_MS = 60_000;
@@ -27,7 +28,7 @@ const LEAD_MS = 1_000;
 const WINDOW_MS = 8_000;
 const THE_ARROW = 37024;
 const ARROW_MS = 15_000;
-const ARROW_LOAD = 2.5;
+const ARROW_LOAD = 1.5;
 
 // The uses, on the `players`' tanks, before the heals are planned (`last`: after); `spent` takes them.
 export function tankBuffs(

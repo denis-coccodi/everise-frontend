@@ -234,30 +234,37 @@ export function poolLevel(times: number[], at: number, pool: ToolPool) {
   ).level;
 }
 
-// A refilled pool's uses in time order, each taking one of what it holds.
+// A refilled pool's uses in time order, each taking one of what it holds: full at each refill, empty at each of
+// `empties` (both before a use at the same moment).
 function fitsRefills(uses: number[], pool: ToolPool) {
-  const refills = [...(pool.refills ?? [])].sort((a, b) => a - b);
   let level = 0;
-  let next = 0;
-  for (const use of [...uses].sort((a, b) => a - b)) {
-    while (next < refills.length && refills[next] <= use) {
-      level = pool.max;
-      next++;
-    }
-    if (level < 1) return false;
-    level--;
+  for (const e of refillEvents(uses, Infinity, pool)) {
+    if (e.kind !== 'use') level = e.kind === 'refill' ? pool.max : 0;
+    else if (level < 1) return false;
+    else level--;
   }
   return true;
 }
 
 function refilledLevel(uses: number[], at: number, pool: ToolPool) {
-  const events = [
-    ...(pool.refills ?? []).filter((t) => t <= at).map((t) => ({ t, refill: true })),
-    ...uses.filter((t) => t < at).map((t) => ({ t, refill: false })),
-  ].sort((a, b) => a.t - b.t || Number(b.refill) - Number(a.refill));
+  const events = refillEvents(
+    uses.filter((t) => t < at),
+    at,
+    pool,
+  );
   let level = 0;
-  for (const e of events) level = e.refill ? pool.max : Math.max(0, level - 1);
+  for (const e of events) level = e.kind === 'refill' ? pool.max : e.kind === 'empty' ? 0 : Math.max(0, level - 1);
   return level;
+}
+
+// A refilled pool's refills and emptyings up to `end`, and its uses, in time order: the pool's changes first.
+function refillEvents(uses: number[], end: number, pool: ToolPool) {
+  const order = { empty: 0, refill: 1, use: 2 };
+  return [
+    ...(pool.empties ?? []).filter((t) => t <= end).map((t) => ({ t, kind: 'empty' as const })),
+    ...(pool.refills ?? []).filter((t) => t <= end).map((t) => ({ t, kind: 'refill' as const })),
+    ...uses.map((t) => ({ t, kind: 'use' as const })),
+  ].sort((a, b) => a.t - b.t || order[a.kind] - order[b.kind]);
 }
 
 // Whether one more use at `at` of an action another grants still has a
