@@ -2,6 +2,7 @@ import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-t
 import { fitsRecast } from './coverage';
 import { UMBRAL_DRAW } from './opener-presets';
 import type { BurstAction } from './burst.model';
+import { burstWindows, windowDue } from './burst-windows';
 import type { Opening } from './openers.model';
 import type { PlannedUse } from './plan.model';
 import type { Occupied } from './weaving.model';
@@ -31,19 +32,27 @@ const DRAW_MS = 55_000;
 // Divination with a Lightspeed (its other charge is for movement),
 // Presence of Mind; Fight or Flight; Inner Release, and Infuriate twice a
 // minute (always recharging: each Fell Cleave and Inner Chaos takes 5s off);
-// Delirium; No Mercy and Bloodfest (60s since 7.4). Each delays only to the
-// player's next weave slot. An astrologian's go before the heals (`early`): their cards go by Divination.
+// Delirium; No Mercy and Bloodfest (60s since 7.4), lined up with the party's burst windows as played (`windowDue`).
+// Each delays only to the player's next weave slot. All go before the heals and mitigations (`early`), as players keep
+// their burst in its window and heal around it (placed after, a scholar's Chain Stratagem slid 20s and more past its
+// window, then missed the next); an astrologian's cards go by Divination.
 export const BURST: Record<string, BurstAction[]> = {
-  SCH: [{ action: 7436 }], // Chain Stratagem
+  SCH: [{ action: 7436, early: true }], // Chain Stratagem
   AST: [
     { action: LIGHTSPEED, everyMs: TWO_MINUTES, early: true },
     { action: DIVINATION, early: true },
   ],
-  WHM: [{ action: 136 }], // Presence of Mind
-  PLD: [{ action: 20 }], // Fight or Flight
-  WAR: [{ action: 7389 }, { action: 52, everyMs: 30_000 }], // Inner Release, Infuriate
-  DRK: [{ action: 7390 }], // Delirium
-  GNB: [{ action: 16138 }, { action: 16164 }], // No Mercy, Bloodfest
+  WHM: [{ action: 136, early: true }], // Presence of Mind
+  PLD: [{ action: 20, early: true }], // Fight or Flight
+  WAR: [
+    { action: 7389, early: true }, // Inner Release
+    { action: 52, everyMs: 30_000, early: true }, // Infuriate
+  ],
+  DRK: [{ action: 7390, early: true }], // Delirium
+  GNB: [
+    { action: 16138, early: true }, // No Mercy
+    { action: 16164, early: true }, // Bloodfest
+  ],
 };
 
 // The actions the plan places for each job after the opener: the burst's,
@@ -69,6 +78,7 @@ export function burstUses(
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const end = timeline.durationMs;
   const uses: PlannedUse[] = [];
+  const windows = burstWindows(timeline);
   for (const p of players) {
     const job = p.job ?? '';
     const opened = opening.uses.filter((u) => u.player === p.id);
@@ -93,10 +103,12 @@ export function burstUses(
       if (!action) continue;
       const every = b.everyMs ?? action.recastMs;
       const last = opened.filter((u) => u.action === b.action).at(-1)?.at;
-      for (let due = last === undefined ? firstGcd : last + every; due < end;) {
+      // Back from its recast, in the party's next burst window as played (`windowDue`).
+      const after = (back: number) => windowDue(back, every, windows);
+      for (let due = last === undefined ? firstGcd : after(last + every); due < end;) {
         const at = place(b.action, action.name, due);
         if (at === null) break;
-        due = at + every;
+        due = after(at + every);
       }
     }
     const draws = opening.draws.get(p.id);
