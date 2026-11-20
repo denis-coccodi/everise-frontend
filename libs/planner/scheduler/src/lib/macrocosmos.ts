@@ -11,10 +11,10 @@ const WINDOW_MS = 8_000;
 // Back from its recast, it waits for the heaviest raidwide this soon after.
 const PICK_MS = 60_000;
 
-// A replanned astrologian's Macrocosmos, as top ones cast it (about every
-// three minutes, four or five times a fight): back from its recast, in their
-// GCD slot just before the raidwide taking the party the most within
-// `PICK_MS`, so it takes in that hit's damage and heals half of it back. A damage spell, it costs no damage. Its uses, their
+// A replanned astrologian's Macrocosmos where a strategy asks for it often (`macrocosmos`): back from its recast, in
+// their GCD slot just before the raidwide taking the party the most within `PICK_MS`, so it takes in that hit's damage
+// and heals half of it back. Not on cooldown, as players don't cast it so: in 88 kills' logs, 92 of the 176 its recast
+// allows, held a median 72s once back, for heavy party damage. A damage spell, it costs no damage. Its uses, their
 // slots taken in `weaving`.
 export function macrocosmosUses(
   players: TimelinePlayer[],
