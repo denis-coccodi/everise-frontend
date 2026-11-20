@@ -1,5 +1,5 @@
-import { hardFirst, inPlanningOrder } from './hard-first';
-import type { Mechanic, Plan } from './plan.model';
+import { freedForHard, hardFirst, inPlanningOrder } from './hard-first';
+import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
 
 // A plan whose hits at these mechanics are short (and with `dead` players dying).
 const planOf = (short: number[], dead = 0) =>
@@ -51,5 +51,40 @@ describe('hardFirst', () => {
   it('keeps the plan as it was where more players die', () => {
     const plan = planOf([5, 6]);
     expect(hardFirst(plan, () => planOf([], 1), fewerShort)).toEqual({ plan, first: new Set() });
+  });
+});
+
+describe('freedForHard', () => {
+  // Player 1's 120s cooldown, lasting 15s, on the party or only themselves; used at 10s.
+  const tool = (target: 'party' | 'self', charges = 1) =>
+    ({
+      player: 1,
+      action: 7,
+      charges,
+      recastMs: 120_000,
+      castMs: 0,
+      effects: [{ target, durationMs: 15_000 }],
+    }) as unknown as MitigationTool;
+  const use = { player: 1, action: 7, at: 10_000, target: null, covers: [] } as PlannedUse;
+  const hit = (id: number, at: number, players = [1, 2]) =>
+    ({ id, at, hits: players.map((player) => ({ player })) }) as unknown as Mechanic;
+  const freed = (t: MitigationTool, m: Mechanic, u: PlannedUse = use, hard = new Set([m.id])) =>
+    freedForHard([t], [m], hard)(u);
+
+  it('lets a use go where its recast keeps it from a hard mechanic it could cover', () => {
+    expect(freed(tool('party'), hit(1, 60_000))).toBe(true);
+    expect(freed(tool('self'), hit(1, 60_000))).toBe(true);
+  });
+
+  it("keeps it where it covers the hard mechanic, is back by then, can't reach it, or nothing is hard", () => {
+    expect(freed(tool('party'), hit(1, 20_000))).toBe(false);
+    expect(freed(tool('party'), hit(1, 140_000))).toBe(false);
+    expect(freed(tool('self'), hit(1, 60_000, [2, 3]))).toBe(false);
+    expect(freed(tool('party'), hit(1, 60_000), use, new Set())).toBe(false);
+  });
+
+  it('keeps played uses, and those of a tool with charges', () => {
+    expect(freed(tool('party'), hit(1, 60_000), { ...use, played: true })).toBe(false);
+    expect(freed(tool('party', 2), hit(1, 60_000))).toBe(false);
   });
 });
