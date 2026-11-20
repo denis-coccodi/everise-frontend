@@ -51,8 +51,9 @@ describe('tankBuffs', () => {
     ]);
   });
 
-  it('plays the Arrow only where the tank takes at least 3 times their max HP in its 15s', () => {
-    const light = players.map((p) => (p.role === 'tank' ? { ...p, maxHp: 40_000 } : p));
+  it('plays the Arrow only where the tank takes at least 1.5 times their max HP in its 15s', () => {
+    // 150,000 is 2.1 times 70,000; 90,000 only 1.3 times.
+    const light = players.map((p) => (p.role === 'tank' ? { ...p, maxHp: 70_000 } : p));
 
     expect(tankBuffs([arrow], [], new Weaving(), mechanics, light).map((u) => [u.at, u.target])).toEqual([[39_000, 2]]);
   });
