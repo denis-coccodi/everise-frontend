@@ -197,6 +197,7 @@ describe('healTools', () => {
       action(16557, 'Horoscope', ['SCH'], 60, [
         waiting('Horoscope', 200, 10, '400 (and 30s) after a Helios; when read again or it ends'),
       ]),
+      action(99_002, 'Fortune', ['SCH'], 60, [waiting('Fortune', 200, 10, 'when read again or it ends')]),
       action(25874, 'Macrocosmos', ['SCH'], 180, [
         waiting('Macrocosmos', 200, 15, 'plus 50% of damage taken meanwhile; when it ends or on Microcosmos'),
       ]),
@@ -211,7 +212,9 @@ describe('healTools', () => {
       delayed: { delaysMs: [45_000], release: null, belowShare: 0.5, loggedAs: 'Excogitation' },
     });
     expect(byName.get('Exaltation')?.delayed).toMatchObject({ delaysMs: [8000], belowShare: null });
-    expect(byName.get('Horoscope')?.delayed).toMatchObject({ delaysMs: [10_000], belowShare: null, damageShare: null });
+    expect(byName.get('Fortune')?.delayed).toMatchObject({ delaysMs: [10_000], belowShare: null, damageShare: null });
+    // Horoscope only ever goes before a Helios (a pairing), never on its own.
+    expect(byName.has('Horoscope')).toBe(false);
     // Set off sooner with Microcosmos, once the hits it gathers are in.
     expect(byName.get('Macrocosmos')?.delayed).toMatchObject({
       delaysMs: [15_000, 10_000, 5_000, 2_500],
