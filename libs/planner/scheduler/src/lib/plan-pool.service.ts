@@ -52,12 +52,38 @@ export class PlanPool {
   }
 
   // The plan of the pull made as `options` say, once a worker is free;
-  // `progress` hears how far a worker has got with it (0 to 1).
-  plan(timeline: PullTimeline, catalog: ActionCatalog, options: PlanOptions, progress?: (share: number) => void) {
+  // `progress` hears how far a worker has got with it (0 to 1). Once
+  // `signal` aborts, it's no longer needed: dropped, or its worker stopped
+  // (the promise fails with `STOPPED`).
+  plan(
+    timeline: PullTimeline,
+    catalog: ActionCatalog,
+    options: PlanOptions,
+    progress?: (share: number) => void,
+    signal?: AbortSignal,
+  ) {
     return new Promise<Plan>((done, failed) => {
-      this.queue.push({ timeline, catalog, options, done, failed, progress });
+      if (signal?.aborted) return failed(STOPPED);
+      const asked: Asked = { timeline, catalog, options, done, failed, progress };
+      signal?.addEventListener('abort', () => this.drop(asked), { once: true });
+      this.queue.push(asked);
       this.next();
     });
+  }
+
+  // One plan asked for no longer needed: out of the queue, or its worker stopped.
+  private drop(asked: Asked) {
+    const queued = this.queue.indexOf(asked);
+    if (queued >= 0) this.queue.splice(queued, 1);
+    const slot = this.slots.find((s) => s.busy === asked);
+    if (queued < 0 && !slot) return;
+    asked.failed(STOPPED);
+    if (!slot) return;
+    slot.worker?.terminate();
+    slot.worker = null;
+    slot.holds = '';
+    slot.busy = null;
+    this.next();
   }
 
   // Drops every plan asked for and not yet made (their promises fail with

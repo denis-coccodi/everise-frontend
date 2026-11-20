@@ -2,11 +2,12 @@ import { injectAsync, onIdle } from '@angular/core';
 import { patchState, signalStore, withMethods, withProps, withState } from '@ngrx/signals';
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import type { OpenerId, Plan, PlanEdit, PlanEdits } from '@everise/planner/scheduler';
-import { STOPPED, STRATEGIES, type Strategy } from '@everise/planner/scheduler';
+import { STOPPED, STRATEGIES, betterPlan, type Strategy } from '@everise/planner/scheduler';
 import { editWarning as editWarningFor, editsKey, NO_EDITS, saveEdits, storedEdits, withAdded } from './plan-edits';
 import { INITIAL_PLAN_STATE, type FailedMechanics, type PlanPlayer, type PlanState } from './plan.model';
 import { refinePlans, refines } from './plan-refine';
 import { progressOf } from './plan-progress';
+import { plannedSideBySide } from './plan-side-by-side';
 import { characterKey, saveReplan, storedReplan } from './plan-replan';
 
 // Whether two plans have the same uses and hits.
@@ -69,13 +70,27 @@ export const PlanStore = signalStore(
         };
         const edits = store.edits();
         const edited = edits.added.length + edits.removed.length > 0;
-        // The plan with the edits, and the one without (kept while its options stay), made one way.
+        const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp ?? 0]));
+        // The plan with the edits, and the one without (kept while its options stay), made one way; the plain plan,
+        // shown first, with its other ways side by side (`plannedSideBySide`), as the others are side by side already.
         const planWith = async (strategy: Strategy, repairDeaths = false) => {
           const baseKey = JSON.stringify({ pullId, ...options, strategy, repairDeaths });
           const kept = store.baseKey() === baseKey ? store.basePlan() : null;
           const asked = { ...options, strategy, repairDeaths };
-          const made = (key: string, own: { edits?: PlanEdits }) =>
-            progress.track(key, (report) => pool.plan(timeline, catalog, { ...asked, ...own }, report));
+          const sideBySide = strategy === STRATEGIES[0] && !repairDeaths;
+          const made = (key: string, own: { edits?: PlanEdits }) => {
+            const way = { ...asked, ...own };
+            return progress.track(key, (report) =>
+              sideBySide
+                ? plannedSideBySide(
+                    way,
+                    (o, hear, signal) => pool.plan(timeline, catalog, o, hear, signal),
+                    (a, b) => betterPlan(a, b, maxHp, way),
+                    report,
+                  )
+                : pool.plan(timeline, catalog, way, report),
+            );
+          };
           const [plan, base] = await Promise.all([
             made(baseKey + ':edited', { edits }),
             edited ? (kept ?? made(baseKey, {})) : null,
@@ -90,7 +105,6 @@ export const PlanStore = signalStore(
         const improving = refines(first.plan);
         patchState(store, { ...first, timeline, pullId, planning: false, sameAsBefore, improving });
         progress.clear();
-        const maxHp = new Map(timeline.players.map((p) => [p.id, p.maxHp ?? 0]));
         // Once the strategies are weighed, those still being made aren't needed.
         const weighed = () => (pool.stop(), progress.clear());
         const keep = (best: typeof first) => patchState(store, best);

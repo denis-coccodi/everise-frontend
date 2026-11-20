@@ -112,4 +112,27 @@ describe('PlanPool', () => {
     expect(FakeWorker.made.length).toBe(2);
     expect(FakeWorker.made[1].sent[0].timeline).toBe(timeline);
   });
+  it('drops one plan no longer needed: out of the queue, or its worker ended for the next', async () => {
+    vi.stubGlobal('Worker', FakeWorker);
+    vi.stubGlobal('navigator', { hardwareConcurrency: 2 });
+    const pool = new PlanPool();
+    const [busy, queued] = [new AbortController(), new AbortController()];
+
+    const first = pool.plan(timeline, catalog, options(1), undefined, busy.signal);
+    const second = pool.plan(timeline, catalog, options(2), undefined, queued.signal);
+    const third = pool.plan(timeline, catalog, options(3));
+    queued.abort();
+    await expect(second).rejects.toBe(STOPPED);
+    expect(FakeWorker.made[0].sent.length).toBe(1);
+
+    busy.abort();
+    await expect(first).rejects.toBe(STOPPED);
+    expect(FakeWorker.made[0].terminated).toBe(true);
+    // The next plan asked for starts in a new worker, sent the pull again.
+    expect(FakeWorker.made[1].sent[0]).toMatchObject({ options: options(3), timeline });
+    FakeWorker.made[1].answer({ plan: planned(3) });
+    await expect(third).resolves.toMatchObject({ margin: 3 });
+    // Stopping one already made does nothing.
+    expect(() => busy.abort()).not.toThrow();
+  });
 });
