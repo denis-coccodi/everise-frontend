@@ -142,6 +142,7 @@ export function planHeals(
   // The healing buffs on the tanks (the Arrow, Protraction) first: the heals after count them.
   uses.push(...tankBuffs(planned, spent, weaving, plan.mechanics, timeline.players));
   for (const use of uses) boosts.add(use);
+  track.add(uses.flatMap((use) => eventsOfOwn(healOf.get(key(use)), use))); // The Ewer heals too.
   // What each hit takes, which need no healing for, and what lands with each.
   const { invulnerable, damage, damageOf, together } = hitDamage(plan);
   // The mechanics, with Living Dead's and the damage outside them (damage over time, auto-attacks).
