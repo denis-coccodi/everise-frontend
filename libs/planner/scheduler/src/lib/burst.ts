@@ -73,7 +73,7 @@ export function burstUses(
     const job = p.job ?? '';
     const opened = opening.uses.filter((u) => u.player === p.id);
     const taken: Occupied[] = planned
-      .filter((u) => u.player === p.id)
+      .filter((u) => u.player === p.id && u.again !== 'ends')
       .map((u) => ({ at: u.at, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 }));
     const firstGcd = weaving.gcdsBetween(p.id, 0, end)[0];
     if (firstGcd === undefined) continue;

@@ -240,6 +240,16 @@ describe('planLog', () => {
     expect(lords(['1:7444'])).toEqual([]);
   });
 
+  it('gives an event (Macrocosmos healing as it ends) nothing to remove: nobody presses it', () => {
+    const event = { ...plan.uses[0], action: 25875, name: 'Microcosmos', covers: [], again: 'ends' as const };
+    const [entry] = planLog({ ...plan, uses: [event] }, pullTimeline(), plan.uses[0].player, actionCatalog()).filter(
+      (e) => e.kind === 'use' && e.action === 'Microcosmos',
+    );
+
+    expect(entry).toEqual(expect.objectContaining({ again: 'ends' }));
+    expect(entry).not.toHaveProperty('id');
+  });
+
   it('shows their usual attack in place of a played GCD attack the plan places itself (Macrocosmos)', () => {
     const catalog = actionCatalog();
     for (const a of catalog.actions) if (a.id === 9) a.gcd = true;

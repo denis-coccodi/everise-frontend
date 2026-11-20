@@ -825,8 +825,8 @@ describe('planHeals', () => {
     expect(at('Microcosmos')).toBeLessThan(9_000);
     expect(plan.hits[1]).toMatchObject({ safe: true });
 
-    // With the next buster at 30s, its 15s are soon enough: it resolves on its
-    // own, and Microcosmos shows as it does.
+    // With the next buster at 30s, its 15s are soon enough: it heals on its
+    // own as they end, and Microcosmos shows then as an event.
     const later = pull(
       [
         [5, 'Buster', 1, 85_000],
@@ -837,6 +837,8 @@ describe('planHeals', () => {
     const own = planHeals(planMitigation(mechanicsOf(later), [], maxHp, options), later, [], heals, maxHp, options);
     const ownAt = (name: string) => own.uses.find((u) => u.name === name)?.at ?? NaN;
     expect(ownAt('Microcosmos') - ownAt('Macrocosmos')).toBe(15_000);
+    // Shown as what happens then, pressed by nobody: no slot taken.
+    expect(own.uses.find((u) => u.name === 'Microcosmos')).toMatchObject({ again: 'ends', covers: [] });
   });
 
   it('puts Excogitation up before a hit that takes its target to half HP, healing them for the next', () => {

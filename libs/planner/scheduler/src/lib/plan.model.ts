@@ -270,9 +270,9 @@ export interface PlannedUse {
   overcap?: boolean;
   // A step of the player's opener (an Energy Drain, Chain Stratagem...).
   opener?: boolean;
-  // A second press: Kardia put back where it was (it stays until moved), or
-  // Horoscope read again, for Horoscope Helios to heal.
-  again?: 'kardia' | 'horoscope';
+  // A second press: Kardia put back (it stays until moved), Horoscope read again for Horoscope Helios; or no press at
+  // all (`ends`): what goes off on its own as it ends (Macrocosmos), shown in no slot.
+  again?: 'kardia' | 'horoscope' | 'ends';
   // A raid buff or burst on cooldown, or an astrologian's draw and card.
   burst?: boolean;
   // A resource for the heals after (Rhizomata's Addersgall).

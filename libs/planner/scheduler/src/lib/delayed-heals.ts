@@ -2,6 +2,7 @@ import { healEvents } from './hp-events';
 import { HpTrack } from './hp-track';
 import { HealTool, PlannedUse, ShieldSize } from './plan.model';
 import type { HpEvent } from './hp-track.model';
+import type { Candidate, Spent } from './heal-plan.model';
 
 // The HP a use of a heal tool restores, and when, as the pull goes on:
 // - a triggered heal (Excogitation) when its target first drops to its
@@ -65,4 +66,29 @@ export function delayedEvents(
 
 function sizeOf(size: ShieldSize, player: number, maxHp: Map<number, number>) {
   return 'hp' in size ? size.hp : size.maxHpShare * (maxHp.get(player) ?? 0);
+}
+
+// Macrocosmos's Microcosmos: shown where it heals on its own too (`again: 'ends'`, as its 15s end, nothing pressed).
+const MICROCOSMOS = 25875;
+
+// What a delayed heal's release adds for a pick covering `mechanic`: pressed sooner than it goes off on its own (Stellar
+// Detonation, Microcosmos), a use and the slot it takes; Macrocosmos left to its end, an event in no slot; else nothing.
+export function releaseOf(pick: Candidate, mechanic: number): { use: PlannedUse; spent: Spent | null } | null {
+  const { delayed } = pick.tool;
+  const ends = !!delayed && pick.delayMs >= delayed.delaysMs[0];
+  if (!delayed?.release || (ends && delayed.release.action !== MICROCOSMOS)) return null;
+  const at = pick.use.at + pick.tool.castMs + pick.delayMs;
+  const use: PlannedUse = { ...pick.use, ...delayed.release, at, target: null, covers: [mechanic] };
+  if (ends) return { use: { ...use, covers: [], again: 'ends' }, spent: null };
+  const { player } = pick.use;
+  const spent = {
+    player,
+    action: delayed.release.action,
+    group: `release:${player}`,
+    pool: null,
+    at,
+    gcd: false,
+    castMs: 0,
+  };
+  return { use, spent };
 }

@@ -5,7 +5,7 @@ import { ROLE_HEALS } from './role-heals';
 import { readHoroscope } from './horoscope-read';
 import { projected, pullFacts, reaches } from './coverage';
 import { AutoDamage } from './auto-damage';
-import { delayedEvents } from './delayed-heals';
+import { delayedEvents, releaseOf } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
 import {
   NO_ROOM_MS,
@@ -290,14 +290,10 @@ export function planHeals(
               castMs: 0,
             });
           }
-          // A delayed heal set off sooner than it goes off on its own; Microcosmos (25875) shown even then, as it resolves.
-          const { delayed } = pick.tool;
-          if (delayed?.release && (pick.delayMs < delayed.delaysMs[0] || delayed.release.action === 25875)) {
-            const lands = pick.use.at + pick.tool.castMs + pick.delayMs;
-            uses.push({ ...pick.use, ...delayed.release, at: lands, target: null, covers: [m.id] });
-            const release = { action: delayed.release.action, group: `release:${pick.use.player}`, pool: null };
-            spent.push({ player: pick.use.player, ...release, at: lands, gcd: false, castMs: 0 });
-          }
+          // A delayed heal set off sooner than it goes off on its own, or Macrocosmos healing as it ends (`releaseOf`).
+          const released = releaseOf(pick, m.id);
+          if (released) uses.push(released.use);
+          if (released?.spent) spent.push(released.spent);
           const { group, pool, gcd, castMs } = pick.tool;
           spent.push({ player: pick.use.player, action: pick.use.action, at: pick.use.at, group, pool, gcd, castMs });
           readHoroscope(pick, uses, spent, weaving);

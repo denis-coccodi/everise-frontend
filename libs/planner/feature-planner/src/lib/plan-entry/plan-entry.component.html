@@ -2,7 +2,8 @@
 @switch (e.kind) {
   @case ('use') {
     <p class="line">
-      <span class="label">Use</span>{{ e.first ? ' ' + e.first + ', then ' : ' '
+      <span class="label">{{ e.again === 'ends' ? 'Event' : 'Use' }}</span
+      >{{ e.first ? ' ' + e.first + ', then ' : ' '
       }}<cdt-planner-action-name [name]="e.action" [icon]="e.icon" [description]="e.description" />
       @if (e.target) {
         {{ ' ' }}on {{ e.target }}
@@ -39,11 +40,13 @@
                           ? 'Back where it was: Kardia stays until moved'
                           : e.again === 'horoscope'
                             ? 'Read again: Horoscope Helios heals now'
-                            : e.refill
-                              ? 'Addersgall is running low: one more for the heals after'
-                              : e.overcap
-                                ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
-                                : 'On cooldown, or before it would go to waste'
+                            : e.again === 'ends'
+                              ? 'Macrocosmos heals as its 15s end: nothing to press'
+                              : e.refill
+                                ? 'Addersgall is running low: one more for the heals after'
+                                : e.overcap
+                                  ? 'The lilies are full: spent so none goes to waste, and for the next Misery'
+                                  : 'On cooldown, or before it would go to waste'
       }}
     </p>
   }
