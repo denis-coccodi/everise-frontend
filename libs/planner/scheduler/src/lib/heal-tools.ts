@@ -13,21 +13,19 @@ import {
   recastMsOf,
 } from './tools';
 import { SECOND_WIND, roleHeal } from './role-heals';
+import { conditionalOn, maxHpHeal } from './self-heals';
 import { TANK_BUFFS } from './tank-buffs';
 
 // Healing over time ticks this often.
 export const TICK_MS = 3000;
 
-// GCD heals that cost no damage: Afflatus Solace and Rapture (three of
-// them give the Blood Lily that Afflatus Misery's damage refunds), and
-// Pneuma (a damage spell that heals).
+// GCD heals that cost no damage: Afflatus Solace and Rapture (three of them give the Blood Lily that Afflatus Misery's
+// damage refunds), and Pneuma (a damage spell that heals).
 const NEUTRAL_GCDS = new Set([16531, 16534, 24318]);
 
-// GCD heals The Balance's skill overviews (7.4) keep as a last resort: for
-// when the healer is out of MP, or every better heal is down (Cure, Cure
-// II, Medica, Benefic, Benefic II, Helios, Physick, Diagnosis, Prognosis).
-// The ones played are Afflatus Solace and Rapture, Medica III, Regen,
-// Aspected Benefic, Helios Conjunction and the shields.
+// GCD heals The Balance's skill overviews (7.4) keep as a last resort: for when the healer is out of MP, or every
+// better heal is down (Cure, Cure II, Medica, Benefic, Benefic II, Helios, Physick, Diagnosis, Prognosis). The ones
+// played are Afflatus Solace and Rapture, Medica III, Regen, Aspected Benefic, Helios Conjunction and the shields.
 const FALLBACK_GCDS = new Set([120, 135, 124, 3594, 3610, 3600, 190, 16230, 24284, 24286]);
 
 // Last-resort heals another of the job's outdoes: Cure II and Benefic II heal
@@ -89,25 +87,19 @@ const SET_OFF: Record<number, { release: number; name: string; delaysMs: number[
 const STACKS_LEFT = 'each stack left when it ends';
 const ON_HIT = /^each time the .+ takes damage$/;
 
-// The oGCDs that only pay with a heal after them, by action, and how:
-// Plenary Indulgence's Confession heals 200 potency on each member a Medica,
-// Cure III or Afflatus Rapture reaches in its 10s; Zoe makes the next GCD
-// heal 50% bigger (Pneuma, the Eukrasian ones) in 30s; Neutral Sect, an
-// Aspected Benefic's or Helios Conjunction's 20% in 20s (their barriers
-// meanwhile: 250% of the heal for an Aspected Benefic, 125% for a Helios
-// Conjunction, or for an Aspected Helios below level 96, for 30s); Krasis, the next 10s of a Sage's heal on one member
-// (Druochole, Taurochole, Diagnosis, Eukrasian Diagnosis), 20% on them;
-// Physis II before any of a Sage's heals in its 15s (its own regen, and 10%
-// more), as the guides have it go first; Recitation before an Adloquium,
-// Concitation, Indomitability or Excogitation, a critical heal (its making
-// them free of Aetherflow isn't counted); Emergency Tactics before an
-// Adloquium or Concitation, its Galvanize (180% of the heal) healing
-// instead (`converts`: no shield then), and under Seraphism (its recast 1s)
-// before a Manifestation or Accession; Horoscope before a Helios, Aspected
-// Helios or Helios Conjunction in its 10s, Horoscope Helios then healing 400
-// potency on each member it reaches (read again as the Helios lands, a press
-// of its own); Synastry, its bond on the member who needs it most, 40% of
-// each Benefic, Benefic II or Aspected Benefic in its 20s on them too.
+// The oGCDs that only pay with a heal after them, by action, and how: Plenary Indulgence's Confession heals 200 potency
+// on each member a Medica, Cure III or Afflatus Rapture reaches in its 10s; Zoe makes the next GCD heal 50% bigger
+// (Pneuma, the Eukrasian ones) in 30s; Neutral Sect, an Aspected Benefic's or Helios Conjunction's 20% in 20s (their
+// barriers meanwhile: 250% of the heal for an Aspected Benefic, 125% for a Helios Conjunction, or for an Aspected
+// Helios below level 96, for 30s); Krasis, the next 10s of a Sage's heal on one member (Druochole, Taurochole,
+// Diagnosis, Eukrasian Diagnosis), 20% on them; Physis II before any of a Sage's heals in its 15s (its own regen, and
+// 10% more), as the guides have it go first; Recitation before an Adloquium, Concitation, Indomitability or
+// Excogitation, a critical heal (its making them free of Aetherflow isn't counted); Emergency Tactics before an
+// Adloquium or Concitation, its Galvanize (180% of the heal) healing instead (`converts`: no shield then), and under
+// Seraphism (its recast 1s) before a Manifestation or Accession; Horoscope before a Helios, Aspected Helios or Helios
+// Conjunction in its 10s, Horoscope Helios then healing 400 potency on each member it reaches (read again as the Helios
+// lands, a press of its own); Synastry, its bond on the member who needs it most, 40% of each Benefic, Benefic II or
+// Aspected Benefic in its 20s on them too.
 const PAIRED: Record<
   number,
   {
@@ -282,17 +274,25 @@ const LOW_HP = /^up to (\d+) as the target has less HP \(most at (\d+)%\)$/;
 function healEffects(action: CatalogAction, power: number | null, delayed: boolean): HealEffect[] {
   const effects: HealEffect[] = [];
   for (const e of action.effects) {
-    if (e.target === 'enemies' || (e.condition && !delayed && !ASSUMED(e.condition) && !STRONGER.test(e.condition)))
+    const on = conditionalOn(action, e);
+    const grown = maxHpHeal(e);
+    if (grown) effects.push(grown);
+    if (
+      e.target === 'enemies' ||
+      (e.condition && !on && !delayed && !ASSUMED(e.condition) && !STRONGER.test(e.condition))
+    )
       continue;
     const size = sizeOf(e, power);
     if (!size) continue;
     const low = e.potency ? LOW_HP.exec(e.condition ?? '') : null;
     const lowHp =
       low && e.potency ? { lowHp: { times: Number(low[1]) / e.potency, fullAt: Number(low[2]) / 100 } } : {};
-    if (e.kind === 'heal') effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null, ...lowHp });
+    const when = on ? { on } : {};
+    if (e.kind === 'heal')
+      effects.push({ target: e.target, size, ticks: 1, status: null, statusId: null, ...lowHp, ...when });
     else if (e.kind === 'regen' && (e.durationMs || action.id === AETHERPACT)) {
       const ticks = e.durationMs ? Math.floor(e.durationMs / TICK_MS) : FEY_UNION_TICKS;
-      effects.push({ target: e.target, size, ticks, status: e.status ?? action.name, statusId: e.statusId });
+      effects.push({ target: e.target, size, ticks, status: e.status ?? action.name, statusId: e.statusId, ...when });
     }
   }
   return effects;

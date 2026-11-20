@@ -76,8 +76,7 @@ export interface MitigationTool {
   // For an action another grants, which and how; null for any other.
   grantedBy: Grant | null;
   effects: MitigationEffect[];
-  // Recitation: what the next of its user's heals it makes critical is
-  // multiplied by.
+  // Recitation: what the next of its user's heals it makes critical is multiplied by.
   critical?: number;
   // Its effects as a critical heal (Adloquium after Recitation: a bigger
   // Galvanize, and Catalyze), and Deployment Tactics spreading that.
@@ -182,9 +181,8 @@ export interface HealPairing {
   // The heals it goes with, and how long before one it can go up.
   heals: number[];
   withinMs: number;
-  // What the heal's healing is multiplied by (on the member it's put on
-  // only, with `onTarget`: Krasis), and the HP each member it reaches gets
-  // on top.
+  // What the heal's healing is multiplied by (on the member it's put on only, with `onTarget`: Krasis), and the HP
+  // each member it reaches gets on top.
   times: number;
   onTarget: boolean;
   // Its own healing comes with it (Physis II's regen).
@@ -246,6 +244,8 @@ export interface HealEffect {
   status: string | null;
   statusId: number | null;
   lowHp?: { times: number; fullAt: number };
+  // Only with each of its user's weaponskills (`gcd`: Bloodwhetting) or once hit (`hit`: Tengentsu), in this window.
+  on?: { each: 'gcd' | 'hit'; withinMs: number; orAtEnd: boolean };
 }
 
 // When a player should use an action, and the mechanics it covers (or,

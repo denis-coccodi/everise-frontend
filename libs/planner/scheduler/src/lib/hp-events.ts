@@ -7,11 +7,13 @@ import { HealPairing, HealTool, Mechanic, MitigationTool, PlannedHit, PlannedUse
 import type { Guard, HpEvent } from './hp-track.model';
 
 // The other names the log gives a heal's healing, by the heal: Horoscope's,
-// read after a Helios; Haima's and Panhaima's stacks, as they heal.
+// read after a Helios; Haima's and Panhaima's stacks, as they heal; Nascent
+// Flash's on its target.
 const LOGGED_AS: Record<string, string[]> = {
   Horoscope: ['Horoscope Helios'],
   Haima: ['Haimatinon'],
   Panhaima: ['Panhaimatinon'],
+  'Nascent Flash': ['Nascent Glint'],
 };
 
 // The played healing of the pairings that heal (Horoscope Helios, Synastry's
@@ -97,6 +99,9 @@ export function pullEvents(
   const own = new Set<string>(recalculated);
   for (const t of heals) {
     own.add(`${t.player}:${t.action}`).add(`${t.player}:${t.name}`);
+    // Healing under a status of its name is its own too, where it comes with what they do (Bloodwhetting, with each
+    // weaponskill); not Kardia's, which their damage spells as played bring.
+    if (t.effects.some((e) => e.on)) own.add(`${t.player}:status ${t.name}`);
     for (const other of LOGGED_AS[t.name] ?? []) own.add(`${t.player}:${other}`).add(`${t.player}:status ${other}`);
     if (t.delayed) own.add(`${t.player}:${t.delayed.loggedAs}`).add(`${t.player}:status ${t.delayed.loggedAs}`);
     for (const e of t.effects) {

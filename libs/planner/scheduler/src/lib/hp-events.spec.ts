@@ -106,6 +106,35 @@ describe('pullEvents', () => {
     expect(pullEvents(timeline, [], [], [haima], pairedHealing([horoscope]))).toEqual([]);
   });
 
+  it("leaves out Bloodwhetting's played healing (under its status), but not Kardia's, which damage spells bring", () => {
+    const timeline = pull([]);
+    timeline.statuses.push({ id: 2678, name: 'Bloodwhetting' }, { id: 2604, name: 'Kardia' });
+    const healed = (status: number): TimelineHeal => ({
+      at: 50_000,
+      source: 2,
+      pet: null,
+      target: 2,
+      action: null,
+      status,
+      amount: 1000,
+      overheal: 0,
+      tick: false,
+      estimated: false,
+      hp: null,
+    });
+    timeline.heals = [healed(2678), healed(2604)];
+    const on = { each: 'gcd' as const, withinMs: 8000, orAtEnd: false };
+    const blood: HealTool = {
+      ...lustrate,
+      action: 25751,
+      name: 'Bloodwhetting',
+      effects: [{ target: 'self', size: { hp: 400 }, ticks: 1, status: null, statusId: null, on }],
+    };
+    const kardia: HealTool = { ...lustrate, action: 24285, name: 'Kardia' };
+
+    expect(pullEvents(timeline, [], [], [blood, kardia]).map((e) => e.amount)).toEqual([1000]);
+  });
+
   it("guards against the damage outside the mechanics under the plan's invulnerabilities: none under Hallowed Ground, 1 HP left under Holmgang", () => {
     const tool = (action: number, invulnerable: 'immune' | 'lastHp', player: number): MitigationTool =>
       ({
