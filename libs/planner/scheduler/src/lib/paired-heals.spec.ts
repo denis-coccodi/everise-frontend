@@ -1,5 +1,5 @@
 import { pairingsFor } from './paired-heals';
-import { HealPairing, HealTool, PlannedUse } from './plan.model';
+import { HealPairing, HealTool, Mechanic, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
 
 describe('pairingsFor', () => {
@@ -222,5 +222,44 @@ describe('pairingsFor in a window already up', () => {
 
     expect(withHoroscope?.open).toBeFalsy();
     expect(withHoroscope?.barrier?.tool.effects[0].shield).toEqual({ hp: 12_500 });
+  });
+
+  it('reads Horoscope Helios as the Helios lands, or right after the next hit on those it reached', () => {
+    // Horoscope before the Helios at 15s (landing at 16.5s on players 1 and 3), 20,000 on top each when read.
+    const horoscope: HealPairing = {
+      ...sect,
+      action: 16557,
+      name: 'Horoscope',
+      group: '2:horoscope',
+      recastMs: 60_000,
+      withinMs: 10_000,
+      times: 1,
+      extra: { hp: 20_000 },
+      barriers: {},
+    };
+    const hit = (id: number, at: number, players: number[]) =>
+      ({ id, at, hits: players.map((player) => ({ player, avoidable: false })) }) as unknown as Mechanic;
+    const read = (mechanics: Mechanic[]) =>
+      pairingsFor(
+        [horoscope],
+        helios,
+        cast(15_000),
+        healed(15_000),
+        [],
+        () => [],
+        new Weaving(),
+        new Map(),
+        undefined,
+        undefined,
+        mechanics,
+      ).map((p) => [p.readAt, p.events.filter((e) => e.amount === 20_000).map((e) => e.at)]);
+
+    // A hit on someone else at 20s doesn't count; the raidwide at 25s does: read a second after it.
+    expect(read([hit(1, 20_000, [2]), hit(2, 25_000, [1, 3])])).toEqual([
+      [16_500, [16_500, 16_500]],
+      [26_000, [26_000, 26_000]],
+    ]);
+    // With no hit in its 30s, it heals as it runs out.
+    expect(read([]).map(([at]) => at)).toEqual([16_500, 46_500]);
   });
 });

@@ -1,16 +1,31 @@
 import { fitsRecast } from './coverage';
-import { HealPairing, HealTool, MitigationTool, PlannedUse } from './plan.model';
+import { HealPairing, HealTool, Mechanic, MitigationTool, PlannedUse } from './plan.model';
 import { Weaving } from './weaving';
 import type { Paired } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
 import type { Occupied } from './weaving.model';
 
+// A pairing's heal on top that can wait for the damage, by action: Horoscope
+// Helios lasts 30s after the Helios and heals when read again, so it's read
+// as the Helios lands or right after the next hit (`nextHit`) on those it
+// reached (or as it runs out), whichever heals more: read only on landing, it
+// healed a full party before the hit.
+const RESOLVES_MS: Record<number, number> = { 16557: 30_000 };
+// How long after that hit it's read: the hit's damage in first.
+const AFTER_HIT_MS = 1_000;
+
+// When the first of `mechanics` after `after` hits any of `players`; null when none does.
+function nextHit(mechanics: Mechanic[], after: number, players: number[]) {
+  const hits = mechanics.filter((m) => m.at > after && m.hits.some((h) => !h.avoidable && players.includes(h.player)));
+  return hits.length ? Math.min(...hits.map((m) => m.at)) : null;
+}
+
 // The ways a use of a GCD heal can go with one of its user's pairings
 // (Plenary Indulgence before a Medica): each up in a weave slot before the
 // heal's cast, within its window and as its recast allows (`groupTimes`
 // says when its group was used), and the heal's `events` with it, bigger
-// or with Confession's heal on each member the heal reaches as it lands,
-// and its own healing (`ownEvents`: Physis II's regen).
+// or with Confession's heal on each member the heal reaches as it lands
+// (or after the next hit, `RESOLVES_MS`), and its own healing (`ownEvents`: Physis II's regen).
 export function pairingsFor(
   pairings: HealPairing[],
   tool: HealTool,
@@ -22,6 +37,7 @@ export function pairingsFor(
   maxHp: Map<number, number>,
   ownEvents: (pairing: HealPairing, use: PlannedUse) => HpEvent[] = () => [],
   short = new Map<number, number>(),
+  mechanics: Mechanic[] = [],
 ): Paired[] {
   if (!events.length) return [];
   // The heal itself takes its slot: an oGCD's weave, a GCD's own.
@@ -57,13 +73,19 @@ export function pairingsFor(
       continue;
     }
     const { extra } = pairing;
-    const more = extra
-      ? reached.map((player) => ({
-          at: lands,
-          player,
-          amount: 'hp' in extra ? extra.hp : extra.maxHpShare * (maxHp.get(player) ?? 0),
-        }))
-      : [];
+    const resolves = RESOLVES_MS[pairing.action];
+    const hit = resolves ? nextHit(mechanics, lands, reached) : null;
+    // Read as the Helios lands or after the next hit: both are tried, the one healing more kept.
+    const later = Math.min(lands + (resolves ?? 0), hit === null ? Infinity : hit + AFTER_HIT_MS);
+    const reads = resolves ? [...new Set([lands, later])] : [undefined];
+    const more = (readAt: number | undefined) =>
+      extra
+        ? reached.map((player) => ({
+            at: readAt ?? lands,
+            player,
+            amount: 'hp' in extra ? extra.hp : extra.maxHpShare * (maxHp.get(player) ?? 0),
+          }))
+        : [];
     // On one member (Krasis), only the heal on them.
     const boosted = events.map((e) =>
       pairing.onTarget && e.player !== healed ? e : { ...e, amount: e.amount * pairing.times },
@@ -88,17 +110,16 @@ export function pairingsFor(
       target: on,
       covers: use.covers,
     };
-    found.push({
-      use: paired,
+    const barrier = barrierOf(
       pairing,
-      events: [...boosted, ...more, ...bonded, ...(pairing.own ? ownEvents(pairing, paired) : [])],
-      barrier: barrierOf(
-        pairing,
-        tool,
-        use,
-        boosted.filter((e) => e.at === lands),
-      ),
-    });
+      tool,
+      use,
+      boosted.filter((e) => e.at === lands),
+    );
+    for (const readAt of reads) {
+      const events = [...boosted, ...more(readAt), ...bonded, ...(pairing.own ? ownEvents(pairing, paired) : [])];
+      found.push({ use: paired, pairing, ...(readAt === undefined ? {} : { readAt }), events, barrier });
+    }
   }
   // With another pairing (Horoscope before the Helios that also takes Neutral
   // Sect's barrier) the barrier comes too: one Helios sets off both.
