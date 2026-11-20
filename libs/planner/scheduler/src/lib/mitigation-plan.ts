@@ -9,14 +9,14 @@ import { plannedHits } from './mitigation-hits';
 import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
 import { shortAndLong } from './tank-busters';
+import { freedForHard } from './hard-first';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
 import type { PullTimeline } from '@everise/core/api-types';
 import type { PullFacts } from './coverage.model';
 import type { Candidate, Granted } from './mitigation-plan.model';
 import type { MpModel } from './mp';
 
-// What an avoided hit does.
-const AVOIDED = { damage: 0, absorbed: 0, statuses: [], invulnerable: false };
+const AVOIDED = { damage: 0, absorbed: 0, statuses: [], invulnerable: false }; // What an avoided hit does.
 // The spare pass adds at most this many uses to one mechanic.
 const SPARE_PER_MECHANIC = 4;
 // A GCD's worth next to an oGCD doing as much: it costs a GCD of damage.
@@ -87,9 +87,9 @@ export function planMitigation(
   // A Limit Break is the group's call: kept where they used it, never planned.
   const ours = (t: MitigationTool) => !options.replan || options.replan.includes(t.player);
   const plannable = tools.filter((t) => !AUTOMATIC.has(t.action) && !t.limitBreak && ours(t));
-  // An earlier plan's mitigations stay: taking one away would leave its hits bigger, and the HP after them lower
-  // than the plan was made for. (It has the fixed ones already.)
-  for (const use of [...(from?.uses ?? fixed).filter((u) => !AUTOMATIC.has(u.action)), ...automatic]) {
+  // An earlier plan's mitigations stay (it has the fixed ones already), but those a `hard` mechanic waits for (`freedForHard`).
+  const freed = freedForHard(tools, mechanics, hard);
+  for (const use of [...(from?.uses ?? fixed).filter((u) => !AUTOMATIC.has(u.action) && !freed(u)), ...automatic]) {
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }

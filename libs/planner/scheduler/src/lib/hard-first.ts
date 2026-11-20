@@ -1,5 +1,27 @@
+import { reaches } from './coverage';
 import { deadIn } from './plan-score';
-import type { Mechanic, Plan } from './plan.model';
+import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
+
+// Whether a use an earlier plan placed is let go in a replan with `hard` mechanics first: one charge of its tool (of
+// `tools`), and its recast still running at a hard mechanic it doesn't cover but could (the party's, or its user hit);
+// placed again, the hard ones get it first if it's their best (Neutral Sect, Expedient, Shadowed Vigil kept for DM's
+// Forsaken stretch, as the logs' healers keep them). Played, opener and edited uses stay.
+export const freedForHard =
+  (tools: MitigationTool[], mechanics: Mechanic[], hard: Set<number>) =>
+  (use: PlannedUse): boolean => {
+    const tool = tools.find((t) => t.player === use.player && t.action === use.action);
+    if (!hard.size || !tool || use.played || use.opener || use.edited || tool.charges > 1) return false;
+    const reachable = (m: Mechanic) =>
+      tool.effects.some((e) => e.target !== 'self') || m.hits.some((h) => h.player === use.player);
+    return mechanics.some(
+      (m) =>
+        hard.has(m.id) &&
+        m.at > use.at &&
+        m.at < use.at + tool.recastMs &&
+        reachable(m) &&
+        !m.hits.some((h) => reaches(tool, use, m, h).length),
+    );
+  };
 
 // How many times the heals are planned again with more mechanics first.
 const TRIES = 2;
