@@ -217,6 +217,29 @@ describe('planLog', () => {
     expect(kept(['1:3612'])).toEqual([]);
   });
 
+  it('keeps no played attack the plan places itself, as an oGCD (Lord of Crowns)', () => {
+    const catalog = actionCatalog();
+    catalog.actions.push({
+      ...catalog.actions[0],
+      id: 7444,
+      name: 'Lord of Crowns',
+      gcd: false,
+      effects: [],
+      description: 'Deals unaspected damage with a potency of 400 to all nearby enemies.',
+    });
+    const timeline = pullTimeline();
+    timeline.playerCasts.push({ at: 50_000, source: 1, target: null, action: 7444, castMs: null });
+
+    const lords = (scheduled: string[]) =>
+      planLog({ ...plan, replanned: [1], scheduled }, timeline, 1, catalog).filter(
+        (e) => e.kind === 'use' && e.action === 'Lord of Crowns',
+      );
+
+    // As played while the plan leaves it to them; none once the plan places its own.
+    expect(lords([]).map((e) => e.kind === 'use' && [e.at, e.kept])).toEqual([[50_000, 'Damage']]);
+    expect(lords(['1:7444'])).toEqual([]);
+  });
+
   it('shows a buff the plan has on cooldown as such, and none of its played uses', () => {
     const catalog = actionCatalog();
     catalog.actions.push({
