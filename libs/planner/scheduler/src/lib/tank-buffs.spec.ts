@@ -58,6 +58,16 @@ describe('tankBuffs', () => {
     expect(tankBuffs([arrow], [], new Weaving(), mechanics, light).map((u) => [u.at, u.target])).toEqual([[39_000, 2]]);
   });
 
+  it('plays the Ewer, one a draw, on the tank taking at least 0.8 times their max HP in its 15s', () => {
+    // 150,000 is 1.25 times 120,000, and 90,000 only 0.75 times.
+    const ewer = tool(37028, 'the Ewer', 1_000, { name: 'the Ewer', gainMs: 110_000, max: 1, refills: [0, 110_000] });
+    const heavier = players.map((p) => (p.role === 'tank' ? { ...p, maxHp: 120_000 } : p));
+
+    expect(tankBuffs([ewer], [], new Weaving(), mechanics, heavier).map((u) => [u.name, u.at, u.target])).toEqual([
+      ['the Ewer', 39_000, 2],
+    ]);
+  });
+
   it('places Protraction only in the last pass, as its recast allows, never for a hit on someone not a tank', () => {
     expect(run([arrow, protraction], true)).toEqual([
       ['Protraction', 39_000, 2],

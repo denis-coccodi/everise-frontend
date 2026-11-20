@@ -5,7 +5,7 @@ import type { Mechanic } from './mechanic.model';
 import type { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
 
-// The healing buffs a healer puts on a tank, with no heal of their own: an
+// The healing buffs a healer puts on a tank (and an astrologian's Ewer, a regen): an
 // astrologian's the Arrow (healing received +10% for 15s) and a scholar's
 // Protraction (max HP and healing received +10% for 10s). In 54 kills' logs,
 // 83 of 110 Arrows went on a tank, and scholars cast Protraction 153 times;
@@ -16,19 +16,23 @@ import type { Spent } from './heal-plan.model';
 // slots the heals leave: placed first, it took the ones a scholar short of
 // them needed (two deaths in a Dancing Mad kill). Its boost isn't counted.
 // An astrologian, busy with their damage too, plays the Arrow only where the
-// tank takes the most: at least `ARROW_LOAD` times their max HP of the
+// tank takes the most: at least `LOAD` times their max HP of the
 // mechanics' damage (unmitigated) in its 15s. In 88 kills' logs, the Arrow
 // came from 114 of 223 Astral Draws, little more often before heavy tank
 // damage; played with every card, the plan had 271. Since the Arrow is lost
 // at the next Umbral Draw, 1.5 (on 8 ultimate kills: 33, logs 30).
-export const TANK_BUFFS = new Set([37024, 25867]);
+export const TANK_BUFFS = new Set([37024, 25867, 37028]);
 const LAST = new Set([25867]);
 const WITHIN_MS = 60_000;
 const LEAD_MS = 1_000;
 const WINDOW_MS = 8_000;
 const THE_ARROW = 37024;
 const ARROW_MS = 15_000;
-const ARROW_LOAD = 1.5;
+const THE_EWER = 37028;
+// What a card needs its tank to take in its 15s, by card: the Arrow's (above), and the Ewer's, its 200-potency regen
+// for 15s: in the logs, from 145 of 239 Umbral Draws, 126 on a tank (a median 0.52 times their max HP in its 15s); the
+// plan, playing it only for a short hit, had 65. At 0.8, on 8 ultimate kills: 45, as the logs.
+const LOAD: Record<number, number> = { [THE_ARROW]: 1.5, [THE_EWER]: 0.8 };
 
 // The uses, on the `players`' tanks, before the heals are planned (`last`: after); `spent` takes them.
 export function tankBuffs(
@@ -89,7 +93,7 @@ export function tankBuffs(
         continue;
       }
       const target = tankHit(m)?.player ?? null;
-      if (tool.action === THE_ARROW && target !== null && load(target, at, ARROW_MS) < ARROW_LOAD) {
+      if (tool.action in LOAD && target !== null && load(target, at, ARROW_MS) < LOAD[tool.action]) {
         due = m.at;
         continue;
       }
