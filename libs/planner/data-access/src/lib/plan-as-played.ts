@@ -64,12 +64,12 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const scheduled = new Set(plan.scheduled ?? []);
   casts.forEach((c, i) => {
     const action = byId.get(c.action);
-    // An attack that heals too stays as played (Confiteor), but for an oGCD
-    // the plan places itself (Assize).
+    // An attack stays as played (one that heals too: Confiteor), but for an
+    // oGCD the plan places itself (Assize, an astrologian's Lord of Crowns).
+    const placed = !action?.gcd && scheduled.has(playerId + ':' + c.action);
     const attack =
-      onlyDamage(c.action, action) ||
-      (c.action === EUKRASIA && isAttack(casts[i + 1], byId)) ||
-      (dealsDamage(action) && (!!action?.gcd || !scheduled.has(playerId + ':' + c.action)));
+      !placed &&
+      (onlyDamage(c.action, action) || (c.action === EUKRASIA && isAttack(casts[i + 1], byId)) || dealsDamage(action));
     const castAt = action ? countdownStart(c.at, c.castMs, action.castMs) : null;
     const begun = castAt !== null ? { castAt } : {};
     if (mine.some((u) => u.action === c.action && Math.abs(u.at - c.at) < SAME_CAST_MS)) return;
