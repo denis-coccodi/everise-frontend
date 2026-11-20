@@ -3,7 +3,10 @@ import type { TimelineCast } from '@everise/core/api-types';
 // A replanned player's MP with the plan: what it is after each change.
 export interface PlannedMp {
   player: number;
+  // With a Dark Knight's `gained` Edges spent, as real ones spend spare MP.
   points: { at: number; mp: number }[];
+  // Before those (theirs to spend or not): what an edit can still use.
+  spare?: { at: number; mp: number }[];
   // A Dark Knight's Edges of Shadow as played that the plan drops for MP.
   dropped: number[];
   // The Edges of Shadow more than played their MP pays for with the plan

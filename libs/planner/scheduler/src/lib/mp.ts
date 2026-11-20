@@ -207,24 +207,27 @@ export class MpModel {
     return (at) => ([...points].reverse().find((p) => p.at <= at)?.mp ?? max) / max;
   }
 
-  // The player's MP with these uses, at each change.
-  curve(player: number, uses: Use[]): Change[] {
-    const { dropped } = this.withDrops(player, uses, -Infinity);
+  // The player's MP with these uses, at each change (with these Edges dropped, else those it needs).
+  curve(player: number, uses: Use[], dropped = this.withDrops(player, uses, -Infinity).dropped): Change[] {
     // Between readings, a refund can show over the max for a moment.
     const max = this.players.get(player)?.max ?? Infinity;
     return this.walk(player, uses, dropped).map(({ at, mp }) => ({ at, mp: Math.min(max, Math.max(0, mp)) }));
   }
 
   // Each of these players' MP with the plan's uses, and a Dark Knight's
-  // Edges of Shadow it drops and those more its MP pays for (`spareEdges`).
+  // Edges of Shadow it drops and those more its MP pays for (`spareEdges`):
+  // spent, as real Dark Knights spend spare MP on damage, not kept.
   plannedMp(players: number[], uses: { player: number; action: number; at: number }[]): PlannedMp[] {
     return players.map((player) => {
       const own = uses.filter((u) => u.player === player);
-      const points = this.curve(player, own);
+      const before = this.curve(player, own);
       const { dropped } = this.withDrops(player, own, -Infinity);
       const fits = (extra: number[]) => this.edgesFit(player, own, dropped, extra);
-      const gained = this.players.get(player)?.darkKnight ? spareEdges(points, fits) : [];
-      return { player, points, dropped: dropped.map((e) => e.at).sort((a, b) => a - b), gained };
+      const gained = this.players.get(player)?.darkKnight ? spareEdges(before, fits) : [];
+      const edges = gained.map((at) => ({ action: EDGE_OF_SHADOW, at }));
+      const points = gained.length ? this.curve(player, [...own, ...edges], dropped) : before;
+      const spare = gained.length ? { spare: before } : {};
+      return { player, points, ...spare, dropped: dropped.map((e) => e.at).sort((a, b) => a - b), gained };
     });
   }
 
