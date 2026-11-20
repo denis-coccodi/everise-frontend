@@ -153,6 +153,10 @@ describe("a replanned healer's MP", () => {
     // One more, at once; none where a Blackest Night (that won't break) needs the MP at 30s.
     expect(mp.plannedMp([1], [])[0].gained).toEqual([0]);
     expect(mp.plannedMp([1], [{ player: 1, action: TBN, at: 30_000 }])[0].gained).toEqual([]);
+    // Its MP spent on that Edge, as real Dark Knights spend spare MP; before it, what an edit can still use.
+    const [spent] = mp.plannedMp([1], []);
+    expect(spent.points[0]).toEqual({ at: 0, mp: 1_000 });
+    expect(spent.spare?.[0]).toEqual({ at: 0, mp: 4_000 });
   });
 
   it('makes the spell right after a planned Thin Air free', () => {

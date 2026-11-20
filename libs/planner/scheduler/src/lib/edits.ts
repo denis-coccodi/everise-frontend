@@ -159,7 +159,9 @@ export function editChoices(plan: Plan, timeline: PullTimeline, full: ActionCata
     return times.length ? Math.max(...times) : null;
   };
   const mpAt = (t: number) => {
-    const points = plan.mp?.find((m) => m.player === player)?.points ?? [];
+    // The MP before a Dark Knight's optional Edges (`spare`): those give way to an edit.
+    const own = plan.mp?.find((m) => m.player === player);
+    const points = own?.spare ?? own?.points ?? [];
     return [...points].reverse().find((p) => p.at <= t)?.mp ?? null;
   };
   const choices: EditChoice[] = [];
