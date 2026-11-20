@@ -62,12 +62,20 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const openerEnd = Math.max(-Infinity, ...mine.filter((u) => u.opener).map((u) => u.at + SAME_GCD_MS));
   const out: PlanUseEntry[] = [];
   const scheduled = new Set(plan.scheduled ?? []);
+  // What the plan places for them, by name too: the log has another action for
+  // some of them (Horoscope read again, Pneuma's heal).
+  const placedNames = new Set<string | undefined>(
+    [...scheduled].filter((k) => k.startsWith(playerId + ':')).map((k) => byId.get(Number(k.split(':')[1]))?.name),
+  );
+  placedNames.delete(undefined);
   casts.forEach((c, i) => {
     const action = byId.get(c.action);
     // An attack stays as played (one that heals too: Confiteor), but for one
     // the plan places itself (Assize, Lord of Crowns; Macrocosmos, a GCD: their
     // usual attack in its slot instead).
-    const placed = scheduled.has(playerId + ':' + c.action);
+    const placed = scheduled.has(playerId + ':' + c.action) || placedNames.has(action?.name ?? names.get(c.action));
+    // An oGCD the plan places itself is the plan's alone (but a Lightspeed's other charge, for movement).
+    if (placed && !action?.gcd && c.action !== LIGHTSPEED && replanned) return;
     const attack =
       !placed &&
       (onlyDamage(c.action, action) || (c.action === EUKRASIA && isAttack(casts[i + 1], byId)) || dealsDamage(action));

@@ -3,8 +3,26 @@ import { combinedShares } from './combined-hots';
 import { TICK_MS } from './heal-tools';
 import { isMechanicHit } from './mechanics';
 import { landsAt, landsUnder } from './coverage';
-import { HealTool, Mechanic, MitigationTool, PlannedHit, PlannedUse } from './plan.model';
+import { HealPairing, HealTool, Mechanic, MitigationTool, PlannedHit, PlannedUse } from './plan.model';
 import type { Guard, HpEvent } from './hp-track.model';
+
+// The other names the log gives a heal's healing, by the heal: Horoscope's,
+// read after a Helios; Haima's and Panhaima's stacks, as they heal.
+const LOGGED_AS: Record<string, string[]> = {
+  Horoscope: ['Horoscope Helios'],
+  Haima: ['Haimatinon'],
+  Panhaima: ['Panhaimatinon'],
+};
+
+// The played healing of the pairings that heal (Horoscope Helios, Synastry's
+// bond, Confession), as `recalculated` keys: the plan places those itself.
+export function pairedHealing(pairings: HealPairing[]): string[] {
+  return pairings
+    .filter((p) => p.extra || p.bond)
+    .flatMap((p) =>
+      [p.action, p.name, ...(LOGGED_AS[p.name] ?? [])].flatMap((k) => [`${p.player}:${k}`, `${p.player}:status ${k}`]),
+    );
+}
 
 // The invulnerabilities the plan's `uses` put up, on whom and while (from
 // when each lands).
@@ -79,6 +97,7 @@ export function pullEvents(
   const own = new Set<string>(recalculated);
   for (const t of heals) {
     own.add(`${t.player}:${t.action}`).add(`${t.player}:${t.name}`);
+    for (const other of LOGGED_AS[t.name] ?? []) own.add(`${t.player}:${other}`).add(`${t.player}:status ${other}`);
     if (t.delayed) own.add(`${t.player}:${t.delayed.loggedAs}`).add(`${t.player}:status ${t.delayed.loggedAs}`);
     for (const e of t.effects) {
       if (e.statusId) own.add(`${t.player}:status ${e.statusId}`);

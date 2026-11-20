@@ -217,6 +217,33 @@ describe('planLog', () => {
     expect(kept(['1:3612'])).toEqual([]);
   });
 
+  it('keeps none of what the plan places under another action of the same name (Horoscope read again)', () => {
+    const catalog = actionCatalog();
+    for (const [id, name] of [
+      [16557, 'Horoscope'],
+      [16558, 'Horoscope'],
+    ] as const) {
+      catalog.actions.push({
+        ...catalog.actions[0],
+        id,
+        name,
+        gcd: false,
+        effects: [],
+        description: 'Reads your fortune.',
+      });
+    }
+    const timeline = pullTimeline();
+    timeline.playerCasts.push({ at: 50_000, source: 1, target: null, action: 16558, castMs: null });
+
+    const reads = (scheduled: string[]) =>
+      planLog({ ...plan, replanned: [1], scheduled }, timeline, 1, catalog).filter(
+        (e) => e.kind === 'use' && e.action === 'Horoscope',
+      );
+
+    expect(reads([]).map((e) => e.at)).toEqual([50_000]);
+    expect(reads(['1:16557'])).toEqual([]);
+  });
+
   it('keeps no played attack the plan places itself, as an oGCD (Lord of Crowns)', () => {
     const catalog = actionCatalog();
     catalog.actions.push({
