@@ -37,10 +37,10 @@ const OUTDONE = new Map([
   [120, 135],
   [3594, 3610],
 ]);
-// Heals never planned: Physick, a scholar's weakest heal, which Adloquium
-// and the Aetherflow heals do better. As a last resort the plan still cast it
-// 4 times as often as the logs did (37 to 9 in 54 kills).
-const NEVER = new Set([190]);
+// Never planned on their own: Physick, which Adloquium and the Aetherflow heals do better (the plan cast it 37 times to
+// the logs' 9); Horoscope, only before a Helios that makes it Horoscope Helios (PAIRED; Neutral Sect's barrier too):
+// the logs' astrologians upgrade 88% of theirs (51 of 55 with Neutral Sect up), where the plan cast 43% alone.
+const NEVER = new Set([190, 16557]);
 
 // Soteria: the next four Kardion heals 70% bigger, 119 potency more each on
 // whoever has Kardion (`withKardion`), one about each GCD of the sage's.
