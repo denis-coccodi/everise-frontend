@@ -240,6 +240,47 @@ describe('planLog', () => {
     expect(lords(['1:7444'])).toEqual([]);
   });
 
+  it('gives an event (Macrocosmos healing as it ends) nothing to remove: nobody presses it', () => {
+    const event = { ...plan.uses[0], action: 25875, name: 'Microcosmos', covers: [], again: 'ends' as const };
+    const [entry] = planLog({ ...plan, uses: [event] }, pullTimeline(), plan.uses[0].player, actionCatalog()).filter(
+      (e) => e.kind === 'use' && e.action === 'Microcosmos',
+    );
+
+    expect(entry).toEqual(expect.objectContaining({ again: 'ends' }));
+    expect(entry).not.toHaveProperty('id');
+  });
+
+  it('shows their usual attack in place of a played GCD attack the plan places itself (Macrocosmos)', () => {
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+    catalog.actions.push({
+      ...catalog.actions[0],
+      id: 25874,
+      name: 'Macrocosmos',
+      gcd: true,
+      effects: [{ ...catalog.actions[0].effects[0], kind: 'delayedHeal', target: 'party' }],
+      description: 'Deals unaspected damage with a potency of 250 to target and all enemies nearby it.',
+    });
+    const timeline = pullTimeline();
+    // Their Fast Blade at 35s and 45s, and Macrocosmos at 40s.
+    timeline.playerCasts = [35_000, 40_000, 45_000].map((at) => ({
+      at,
+      source: 1,
+      target: null,
+      action: at === 40_000 ? 25874 : 9,
+      castMs: null,
+    }));
+
+    const at40 = (scheduled: string[]) =>
+      planLog({ ...plan, uses: [], replanned: [1], scheduled }, timeline, 1, catalog).find(
+        (e) => e.kind === 'use' && e.at === 40_000,
+      );
+
+    // Left to them, it stays as played; placed by the plan (a 180s recast), their attack goes in its slot.
+    expect(at40([])).toEqual(expect.objectContaining({ action: 'Macrocosmos', kept: 'Damage' }));
+    expect(at40(['1:25874'])).toEqual(expect.objectContaining({ action: 'Fast Blade', instead: 'Macrocosmos' }));
+  });
+
   it('shows a buff the plan has on cooldown as such, and none of its played uses', () => {
     const catalog = actionCatalog();
     catalog.actions.push({

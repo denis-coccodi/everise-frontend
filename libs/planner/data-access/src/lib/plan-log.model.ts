@@ -60,8 +60,8 @@ export interface PlanUseEntry {
   burst?: boolean;
   // A resource for the heals after (Rhizomata).
   refill?: boolean;
-  // A second press: Kardia put back, or Horoscope read again.
-  again?: 'kardia' | 'horoscope';
+  // A second press: Kardia put back, or Horoscope read again; or none (`ends`): Macrocosmos healing as it ends.
+  again?: 'kardia' | 'horoscope' | 'ends';
   // Kept as the player used it (a buff, an enabler), and what it does.
   kept?: string;
   // A GCD (a heal spell, Afflatus Misery): it comes first in its row.

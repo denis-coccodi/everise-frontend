@@ -11,3 +11,16 @@
     color: var(--color-danger-strong);
   }
 }
+
+// Something that happens on its own, pressed by nobody (Macrocosmos healing
+// as it ends): its line dashed and quiet, its text in italics.
+:host(.event) {
+  border-left: var(--border-width-strong) dashed var(--color-border);
+  padding-left: 0.75rem;
+
+  .line,
+  .detail {
+    color: var(--color-contrast-muted);
+    font-style: italic;
+  }
+}

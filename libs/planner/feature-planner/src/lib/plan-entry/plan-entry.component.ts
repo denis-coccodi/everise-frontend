@@ -16,6 +16,7 @@ const percent = new Intl.NumberFormat('en', { style: 'percent', maximumFractionD
     '[class]': 'entry().kind',
     '[class.unsafe]': "entry().kind === 'hit' && !safe()",
     '[class.attack]': 'attack()',
+    '[class.event]': 'event()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -25,6 +26,12 @@ export class PlanEntryComponent {
   protected attack() {
     const entry = this.entry();
     return entry.kind === 'use' && !!entry.attack;
+  }
+
+  // Something that happens on its own: nothing pressed (Macrocosmos healing as it ends).
+  protected event() {
+    const entry = this.entry();
+    return entry.kind === 'use' && entry.again === 'ends';
   }
 
   protected safe() {

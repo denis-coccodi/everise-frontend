@@ -52,7 +52,8 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       kind: 'use',
       at: use.at,
       action: use.name,
-      id: use.action,
+      // Nothing to remove where nothing is pressed (an event: `again: 'ends'`).
+      ...(use.again === 'ends' ? {} : { id: use.action }),
       ...(use.edited ? { edited: true } : {}),
       ...(catalogAction.has(use.action)
         ? {

@@ -62,6 +62,26 @@ describe('PlanEntryComponent', () => {
     ).toBe('Use Eukrasia, then Eukrasian Prognosis II For Killer Voice');
   });
 
+  it('shows what happens on its own as an event, not a use (Macrocosmos healing as it ends)', () => {
+    const fixture = TestBed.createComponent(PlanEntryComponent);
+    fixture.componentRef.setInput('entry', {
+      kind: 'use',
+      at: 75_000,
+      action: 'Microcosmos',
+      target: null,
+      covers: [],
+      damage: false,
+      overcap: false,
+      again: 'ends',
+    } satisfies PlanEntry);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const text = [...host.querySelectorAll('p')].map((p) => p.textContent?.replace(/\s+/g, ' ').trim()).join(' ');
+
+    expect(text).toBe('Event Microcosmos Macrocosmos heals as its 15s end: nothing to press');
+    expect(host.classList.contains('event')).toBe(true);
+  });
+
   it('says a buff is kept as played, and what it does', () => {
     expect(
       render({

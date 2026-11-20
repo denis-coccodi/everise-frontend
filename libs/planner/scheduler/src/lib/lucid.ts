@@ -33,7 +33,8 @@ export function lucidTimes(
   byId: Map<number, CatalogAction>,
   durationMs: number,
 ): number[] {
-  const own = uses.filter((u) => u.player === player);
+  // Their presses: an event (`again: 'ends'`, Macrocosmos healing as it ends) takes no slot.
+  const own = uses.filter((u) => u.player === player && u.again !== 'ends');
   const occupied = own.map((u) => ({
     at: u.at,
     gcd: !!byId.get(u.action)?.gcd,
