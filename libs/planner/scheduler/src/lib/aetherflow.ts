@@ -21,7 +21,7 @@ export function refillsOf(timeline: PullTimeline, scholar: number): number[] {
 
 // What spends a stack: Energy Drain, Lustrate, Indomitability,
 // Excogitation and Sacred Soil.
-const SPENDS = new Set([167, 189, 3583, 7434, 188]);
+export const STACK_SPENDS = new Set([167, 189, 3583, 7434, 188]);
 // Recitation makes the next of these spend none.
 const RECITATION = 16542;
 const RECITED = new Set([185, 37013, 3583, 7434]);
@@ -42,7 +42,7 @@ export function faerieGaugeOf(timeline: ReferencedTimeline, scholar: number): nu
   for (const cast of casts) {
     if (cast.action === RECITATION) recited = true;
     else if (recited && RECITED.has(cast.action)) recited = false;
-    else if (SPENDS.has(cast.action)) spent.push(cast.at);
+    else if (STACK_SPENDS.has(cast.action)) spent.push(cast.at);
   }
   const earned = spent.filter((_, i) => (i + 1) % STACKS_A_UNION === 0);
   const { completion } = timeline;

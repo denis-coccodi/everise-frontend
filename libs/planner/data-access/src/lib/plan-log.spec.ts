@@ -110,6 +110,115 @@ describe('planLog', () => {
     ]);
   });
 
+  it("gives their usual attack in the slot of what their burst enabled that the plan's doesn't", () => {
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+    const scarlet = { ...catalog.actions.find((a) => a.id === 9)!, id: 36928, name: 'Scarlet Delirium' };
+    catalog.actions.push(scarlet);
+    const timeline = pullTimeline();
+    // Fast Blade at 30s and 32.5s; Scarlet Delirium, after their Delirium, at 35s and 37.5s: the plan kept the one at 37.5s
+    // (its Delirium moved) and dropped the one at 35s.
+    timeline.playerCasts = [30_000, 32_500, 35_000, 37_500].map((at) => ({
+      at,
+      source: 2,
+      target: null,
+      action: at < 35_000 ? 9 : 36928,
+      castMs: null,
+    }));
+    const kept = { ...plan.uses[0], player: 2, action: 36928, name: 'Scarlet Delirium', at: 37_500, burst: true };
+
+    const log = planLog({ ...plan, uses: [kept], replanned: [2] }, timeline, 2, catalog);
+
+    expect(log.filter((e) => e.kind === 'use').map((e) => e.kind === 'use' && [e.at, e.action, e.instead])).toEqual([
+      [30_000, 'Fast Blade', undefined],
+      [32_500, 'Fast Blade', undefined],
+      [35_000, 'Fast Blade', 'Scarlet Delirium'],
+      [37_500, 'Scarlet Delirium', undefined],
+    ]);
+  });
+
+  it('gives their usual attack in the slot of an attack the plan places itself, and of a Dosis whose Eukrasia it took', () => {
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+    const blade = catalog.actions.find((a) => a.id === 9)!;
+    catalog.actions.push(
+      { ...blade, id: 16535, name: 'Afflatus Misery' },
+      { ...blade, id: 24290, name: 'Eukrasia', description: 'Augments certain offensive and healing magic actions.' },
+      { ...blade, id: 24314, name: 'Eukrasian Dosis III' },
+    );
+    const timeline = pullTimeline();
+    // Afflatus Misery at 30s; Eukrasia at 40s and 45s, each with its Eukrasian Dosis III a second later; Fast Blade,
+    // their usual attack, from 50s.
+    const casts: [number, number][] = [
+      [30_000, 16535],
+      [40_000, 24290],
+      [41_000, 24314],
+      [45_000, 24290],
+      [46_000, 24314],
+      [50_000, 9],
+      [52_500, 9],
+      [55_000, 9],
+    ];
+    timeline.playerCasts = casts.map(([at, action]) => ({ at, source: 2, target: null, action, castMs: null }));
+    // The plan's own Misery at 60s, and a GCD of its own in the slot of the Eukrasia at 40s.
+    const use = (action: number, name: string, at: number, extra = {}) => ({
+      ...plan.uses[0],
+      player: 2,
+      action,
+      name,
+      at,
+      ...extra,
+    });
+    const uses = [use(16535, 'Afflatus Misery', 60_000, { damage: true }), use(9, 'Fast Blade', 40_000)];
+
+    const log = planLog({ ...plan, uses, replanned: [2] }, timeline, 2, catalog);
+
+    expect(
+      log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.kind === 'use' && [e.at, e.action, e.instead]),
+    ).toEqual([
+      [30_000, 'Fast Blade', 'Afflatus Misery'],
+      [41_000, 'Fast Blade', 'Eukrasian Dosis III'],
+      [45_000, 'Eukrasia', undefined],
+      [46_000, 'Eukrasian Dosis III', undefined],
+      [50_000, 'Fast Blade', undefined],
+      [52_500, 'Fast Blade', undefined],
+      [55_000, 'Fast Blade', undefined],
+    ]);
+  });
+
+  it("keeps their oGCD attacks in the opener but for its own and those in its steps' weave slots", () => {
+    const catalog = actionCatalog();
+    const blade = catalog.actions.find((a) => a.id === 9)!;
+    catalog.actions.push({ ...blade, id: 36921, name: 'Imperator', gcd: false });
+    const timeline = pullTimeline();
+    // Imperator at 8.2s, the weave after their Fight or Flight; another at 7.7s, in its slot.
+    timeline.playerCasts = [7_700, 8_200].map((at) => ({ at, source: 2, target: null, action: 36921, castMs: null }));
+    const fof = { ...plan.uses[0], player: 2, action: 20, name: 'Fight or Flight', at: 7_600, opener: true };
+
+    const log = planLog({ ...plan, uses: [fof], replanned: [2] }, timeline, 2, catalog);
+
+    expect(log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.at)).toEqual([8_200]);
+  });
+
+  it("keeps a replanned scholar's Energy Drains as played only where the plan's heals left the stacks", () => {
+    const timeline = pullTimeline();
+    // Energy Drains at 15s, 25s and 50s.
+    timeline.playerCasts = [15_000, 25_000, 50_000].map((at) => ({
+      at,
+      source: 2,
+      target: null,
+      action: 167,
+      castMs: null,
+    }));
+    // The plan's Aetherflow at 10s; its Sacred Soil at 20s and Indomitability at 21s take two of the three stacks.
+    const use = (action: number, name: string, at: number) => ({ ...plan.uses[0], player: 2, action, name, at });
+    const uses = [use(166, 'Aetherflow', 10_000), use(188, 'Sacred Soil', 20_000), use(3583, 'Indomitability', 21_000)];
+
+    const log = planLog({ ...plan, uses, replanned: [2] }, timeline, 2, actionCatalog());
+
+    expect(log.filter((e) => e.kind === 'use' && e.attack).map((e) => e.at)).toEqual([15_000]);
+  });
+
   it('keeps an attack that heals too as played, not as a dropped heal', () => {
     const catalog = actionCatalog();
     const blade = catalog.actions.find((a) => a.id === 9);

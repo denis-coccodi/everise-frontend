@@ -9,7 +9,7 @@ import { plannedHits } from './mitigation-hits';
 import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
 import { shortAndLong } from './tank-busters';
-import { freedForHard } from './hard-first';
+import { keptForHard } from './hard-first';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
 import type { PullTimeline } from '@everise/core/api-types';
 import type { PullFacts } from './coverage.model';
@@ -87,9 +87,9 @@ export function planMitigation(
   // A Limit Break is the group's call: kept where they used it, never planned.
   const ours = (t: MitigationTool) => !options.replan || options.replan.includes(t.player);
   const plannable = tools.filter((t) => !AUTOMATIC.has(t.action) && !t.limitBreak && ours(t));
-  // An earlier plan's mitigations stay (it has the fixed ones already), but those a `hard` mechanic waits for (`freedForHard`).
-  const freed = freedForHard(tools, mechanics, hard);
-  for (const use of [...(from?.uses ?? fixed).filter((u) => !AUTOMATIC.has(u.action) && !freed(u)), ...automatic]) {
+  // An earlier plan's mitigations stay (it has the fixed ones already), but those a `hard` mechanic waits for (`keptForHard`).
+  const kept = keptForHard(tools, mechanics, hard, from?.uses ?? fixed);
+  for (const use of [...kept, ...automatic]) {
     const t = tools.find((o) => o.player === use.player && o.action === use.action);
     if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }

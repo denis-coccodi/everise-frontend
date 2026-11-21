@@ -1,6 +1,7 @@
 import { reaches } from './coverage';
 import { deadIn } from './plan-score';
 import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
+import { AUTOMATIC } from './tools';
 
 // Whether a use an earlier plan placed is let go in a replan with `hard` mechanics first: one charge of its tool (of
 // `tools`), and its recast still running at a hard mechanic it doesn't cover but could (the party's, or its user hit);
@@ -22,6 +23,29 @@ export const freedForHard =
         !m.hits.some((h) => reaches(tool, use, m, h).length),
     );
   };
+
+// The uses not `freed`, and those freed that granted one of them (`grantedBy`): let go, a Neutral Sect placed again
+// elsewhere left its Sun Sign behind (Divine Caress its Temperance, Accessions their Seraphism). Letting both go instead,
+// a Dancing Mad kill planned twice as long, a hit short.
+export function withGranters(tools: MitigationTool[], uses: PlannedUse[], freed: (use: PlannedUse) => boolean) {
+  const granters = new Set(
+    uses.map((u) => {
+      const g = tools.find((t) => t.player === u.player && t.action === u.action)?.grantedBy;
+      return (
+        g &&
+        uses.find((o) => o.player === u.player && o.action === g.action && u.at >= o.at && u.at <= o.at + g.withinMs)
+      );
+    }),
+  );
+  return uses.filter((u) => granters.has(u) || !freed(u));
+}
+
+// An earlier plan's uses kept in a replan with `hard` mechanics first: but a pet's own (`AUTOMATIC`) and those let go
+// (`freedForHard`), unless what they granted stays (`withGranters`).
+export function keptForHard(tools: MitigationTool[], mechanics: Mechanic[], hard: Set<number>, uses: PlannedUse[]) {
+  const own = uses.filter((u) => !AUTOMATIC.has(u.action));
+  return withGranters(tools, own, freedForHard(tools, mechanics, hard));
+}
 
 // How many times the heals are planned again with more mechanics first.
 const TRIES = 2;

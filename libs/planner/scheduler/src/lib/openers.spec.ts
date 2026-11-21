@@ -1,6 +1,6 @@
 import { action, catalog, pull } from './scheduler-fixtures';
 import { openingOf, withDraws } from './opening';
-import { withStacksLeft } from './openers';
+import { drainsWithStacks, withStacksLeft } from './openers';
 
 // One player of each job casting a GCD every 2.5s from the countdown's one
 // (landing at 0.5s); the scholar (2) with a Dissipation at 200s.
@@ -136,5 +136,22 @@ describe('withStacksLeft', () => {
     expect(withStacksLeft(uses, [3_000, 16_000], [8_000]).map((u) => u.at)).toEqual([
       6_000, 9_000, 11_000, 21_000, 23_000, 26_000,
     ]);
+  });
+});
+
+describe('drainsWithStacks', () => {
+  const use = (action: number, at: number) => ({ action, at });
+
+  it("keeps a scholar's Energy Drains as played only where the plan's heals left the stacks", () => {
+    // Aetherflow at 120s; the plan's Indomitability at 121s, Sacred Soil at
+    // 164s and Indomitability at 169s take all three: the Energy Drain played at
+    // 124.5s goes. The next Aetherflow (180s) leaves one for 182s.
+    const planned = [use(166, 120_000), use(3583, 121_000), use(188, 164_000), use(3583, 169_000), use(166, 180_000)];
+
+    expect(drainsWithStacks(planned, [use(167, 124_500), use(167, 182_000)]).map((d) => d.at)).toEqual([182_000]);
+  });
+
+  it('keeps none before the first refill', () => {
+    expect(drainsWithStacks([use(166, 10_000)], [use(167, 5_000)])).toEqual([]);
   });
 });

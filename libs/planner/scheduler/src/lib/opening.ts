@@ -1,5 +1,6 @@
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
-import { AFFLATUS_MISERY, OPENERS } from './opener-presets';
+import { AFFLATUS_MISERY, ENERGY_DRAIN, OPENERS } from './opener-presets';
+import { WEAVE_MS } from './weaving';
 import { astrologianDraws, openerUses, scholarTimes, withStacksLeft } from './openers';
 import type { OpenerId, Opening } from './openers.model';
 import type { PlannedUse, ToolPool } from './plan.model';
@@ -79,4 +80,19 @@ export function shownSteps(
     const refills = opening.refills.get(player);
     return refills ? withStacksLeft(mine, refills, stackUses(player)) : mine;
   });
+}
+
+// The openers' steps the plan shows with its own uses (`uses`, final): Seraph casts her Veils herself, no use to list;
+// a scholar's Energy Drains only where the stacks its heals (`stackUse`) spend leave them, and the slot is free.
+export function openerShown(
+  opening: Opening,
+  placed: PlannedUse[],
+  uses: PlannedUse[],
+  stackUse: (use: PlannedUse) => boolean,
+): PlannedUse[] {
+  const shown = shownSteps(opening, placed, (player) =>
+    uses.filter((u) => u.player === player && stackUse(u)).map((u) => u.at),
+  );
+  const taken = (u: PlannedUse) => uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS);
+  return shown.filter((u) => u.action !== ENERGY_DRAIN || !taken(u));
 }
