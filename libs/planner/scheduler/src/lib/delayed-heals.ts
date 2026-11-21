@@ -1,6 +1,6 @@
 import { healEvents } from './hp-events';
 import { HpTrack } from './hp-track';
-import { HealTool, PlannedUse, ShieldSize } from './plan.model';
+import { HealTool, Mechanic, PlannedUse, ShieldSize } from './plan.model';
 import type { HpEvent } from './hp-track.model';
 import type { Candidate, Spent } from './heal-plan.model';
 
@@ -125,4 +125,33 @@ function conditionalEvents(
     const first = hit(effect.target === 'self' ? use.player : (use.target ?? use.player));
     return first === null ? [] : at(first);
   });
+}
+
+// A gathering heal (Macrocosmos) left to its end is set off this long after the last raidwide of its window, where that
+// comes this long before its end at least: the logs' astrologians pressed Microcosmos for 37 of 92 Macrocosmos, a median
+// 1.4s after a raidwide, and seldom where the last came in its final seconds (4s: on 8 ultimate kills, 18 of 34 pressed,
+// the logs 16 of 37; 2s pressed 26 of 36).
+const AFTER_RAIDWIDE_MS = 1_000;
+const BEFORE_END_MS = 4_000;
+
+// The pick with a gathering heal left to its end (Macrocosmos, `pick.delayMs` its whole wait) set off instead a second
+// after the last raidwide in its window (4 players or more), as players press Microcosmos once the hit is in: the same
+// damage gathered, healed sooner (`eventsFor` its new healing). Any other pick as it is.
+export function soonerRelease(
+  pick: Candidate,
+  mechanics: Mechanic[],
+  eventsFor: (tool: HealTool, use: PlannedUse, delayMs: number) => HpEvent[],
+): Candidate {
+  const delayed = pick.tool.delayed;
+  if (!delayed?.release || delayed.damageShare === null || pick.delayMs < delayed.delaysMs[0]) return pick;
+  const lands = pick.use.at + pick.tool.castMs;
+  const last = Math.max(
+    ...mechanics
+      .filter((m) => m.kind === 'raidwide' && m.hits.filter((h) => !h.avoidable).length >= 4)
+      .map((m) => m.at)
+      .filter((at) => at > lands && at <= lands + delayed.delaysMs[0] - BEFORE_END_MS),
+  );
+  if (last === -Infinity) return pick;
+  const delayMs = last + AFTER_RAIDWIDE_MS - lands;
+  return { ...pick, delayMs, events: eventsFor(pick.tool, pick.use, delayMs) };
 }
