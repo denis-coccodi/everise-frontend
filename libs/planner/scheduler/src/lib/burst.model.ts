@@ -14,4 +14,9 @@ export interface FollowUp {
   actions: number[];
   withinMs: number;
   fromPrevious?: boolean;
+  // One the player can also have without the buff (a Fell Cleave paid with Beast Gauge): theirs outside it stay, for the
+  // gauge to judge (`unpaidSpends`).
+  paid?: boolean;
+  // One whose step the next doesn't need: missing, the chain goes on.
+  alone?: boolean;
 }
