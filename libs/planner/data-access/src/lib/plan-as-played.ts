@@ -11,6 +11,8 @@ import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
 import { countdownStart } from './pull-time';
+import { withGaugePaid } from './plan-gauges';
+import { withStingsPaid } from './plan-stings';
 
 // A replanned player's buffs and enablers the plan leaves as they played
 // them (Lucid Dreaming, a raid buff, a potion): not a heal or mitigation
@@ -155,7 +157,10 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
       out.push(entry(c, action, whatItDoes(c.action, action)));
     }
   });
-  return out;
+  const job = timeline.players.find((p) => p.id === playerId)?.job ?? '';
+  if (!replanned) return out;
+  const paid = withGaugePaid(job, out, mine, casts, catalog, filler);
+  return job === 'SGE' ? withStingsPaid(timeline, playerId, paid, mine, casts, catalog, filler) : paid;
 }
 
 // Whether a buff or enabler of theirs stays as played (see SAME_USE_MS).
@@ -170,12 +175,14 @@ function keptBuff(plan: Plan, mine: PlannedUse[], playerId: number, c: { action:
 const isAttack = (cast: { action: number } | undefined, byId: Map<number, CatalogAction>) =>
   !!cast && onlyDamage(cast.action, byId.get(cast.action));
 
-// The damage GCD they cast most: what they'd cast in a slot the plan frees.
+// The damage GCD they cast most that costs nothing (no gauge, Cartridge or Addersting: a warrior's is Heavy Swing, not
+// Fell Cleave): what they'd cast in a slot the plan frees.
 export function usualAttack(casts: { action: number }[], byId: Map<number, CatalogAction>) {
   const counts = new Map<number, number>();
   for (const c of casts) {
     const action = byId.get(c.action);
-    if (action?.gcd && onlyDamage(c.action, action)) counts.set(c.action, (counts.get(c.action) ?? 0) + 1);
+    const free = !/cost:/i.test(action?.description ?? '');
+    if (action?.gcd && free && onlyDamage(c.action, action)) counts.set(c.action, (counts.get(c.action) ?? 0) + 1);
   }
   const best = [...counts].sort((a, b) => b[1] - a[1])[0];
   return best ? byId.get(best[0]) : undefined;

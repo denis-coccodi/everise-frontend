@@ -21,7 +21,13 @@ const timeline = (job: string, own: Record<number, number> = {}) => {
 const cat = () => {
   const c = catalog();
   c.actions.push(
-    action(9, 'Hard Slash', ['DRK', 'SCH', 'GNB'], 2.5, [], { gcd: true }),
+    action(9, 'Hard Slash', ['DRK', 'SCH', 'GNB', 'WAR'], 2.5, [], { gcd: true }),
+    action(7389, 'Inner Release', ['WAR'], 60, []),
+    action(3549, 'Fell Cleave', ['WAR'], 2.5, [], { gcd: true }),
+    action(3550, 'Decimate', ['WAR'], 2.5, [], { gcd: true }),
+    action(36924, 'Primal Wrath', ['WAR'], 1, []),
+    action(25753, 'Primal Rend', ['WAR'], 2.5, [], { gcd: true }),
+    action(36925, 'Primal Ruination', ['WAR'], 2.5, [], { gcd: true }),
     action(7436, 'Chain Stratagem', ['SCH'], 120, []),
     action(37012, 'Baneful Impaction', ['SCH'], 1, []),
     action(7390, 'Delirium', ['DRK'], 60, []),
@@ -93,6 +99,21 @@ describe('followUpUses', () => {
       ['Scarlet Delirium', 55_500],
       ['Comeuppance', 58_000],
       ['Torcleaver', 60_500],
+    ]);
+  });
+
+  it("keeps Inner Release's Fell Cleaves where they played them, before its Primal Rend too, then Primal Wrath", () => {
+    // Inner Release at 51.1s; their Fell Cleaves at 53s and 55.5s, Primal Rend and Ruination at 58s and 60.5s: a third
+    // Fell Cleave in their next GCD, Primal Wrath after it.
+    const t = timeline('WAR', { 53_000: 3549, 55_500: 3549, 58_000: 25753, 60_500: 36925 });
+
+    expect(follow(t, [buff(7389, 51_100)])).toEqual([
+      ['Primal Rend', 58_000],
+      ['Primal Ruination', 60_500],
+      ['Fell Cleave', 53_000],
+      ['Fell Cleave', 55_500],
+      ['Fell Cleave', 63_000],
+      ['Primal Wrath', 63_600],
     ]);
   });
 

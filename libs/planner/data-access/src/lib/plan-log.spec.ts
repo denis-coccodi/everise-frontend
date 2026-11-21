@@ -200,6 +200,53 @@ describe('planLog', () => {
     expect(log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.at)).toEqual([8_200]);
   });
 
+  it("gives a replanned tank's spends the gauge pays for, and their spender in a stand-in's place where it does", () => {
+    const catalog = actionCatalog();
+    const gcd = (id: number, name: string, description: string) => ({
+      ...catalog.actions[0],
+      id,
+      name,
+      jobs: ['WAR'],
+      gcd: true,
+      effects: [],
+      description,
+    });
+    catalog.actions.push(
+      gcd(31, 'Heavy Swing', 'Delivers an attack with a potency of 220.'),
+      gcd(3549, 'Fell Cleave', 'Delivers an attack with a potency of 580.\nBeast Gauge Cost: 50'),
+      gcd(16465, 'Inner Chaos', 'Delivers a critical direct hit with a potency of 700.\nBeast Gauge Cost: 50'),
+      gcd(25753, 'Primal Rend', 'Delivers a critical direct hit with a potency of 720.'),
+      { ...gcd(52, 'Infuriate', 'Increases Beast Gauge by 50.'), gcd: false },
+    );
+    const timeline = pullTimeline();
+    timeline.players[0].job = 'WAR';
+    // Heavy Swings, a Fell Cleave at 17.5s (paid with the 50 they had), and a Primal Rend at 30s.
+    const casts: [number, number][] = [
+      [10_000, 31],
+      [12_500, 31],
+      [15_000, 31],
+      [17_500, 3549],
+      [30_000, 25753],
+    ];
+    timeline.playerCasts = casts.map(([at, action]) => ({ at, source: 1, target: null, action, castMs: null }));
+    // The plan's own Inner Chaos at 20s takes those 50; its Infuriate at 28s gives 50 for the slot of their Primal Rend,
+    // which no Inner Release of the plan's enables.
+    const use = (action: number, name: string, at: number) => ({ ...plan.uses[0], player: 1, action, name, at });
+    const uses = [use(16465, 'Inner Chaos', 20_000), use(52, 'Infuriate', 28_000)];
+
+    const log = planLog({ ...plan, uses, replanned: [1] }, timeline, 1, catalog);
+
+    expect(
+      log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.kind === 'use' && [e.at, e.action, e.instead]),
+    ).toEqual([
+      [10_000, 'Heavy Swing', undefined],
+      [12_500, 'Heavy Swing', undefined],
+      [15_000, 'Heavy Swing', undefined],
+      [17_500, 'Heavy Swing', 'Fell Cleave'],
+      [30_000, 'Fell Cleave', 'Primal Rend'],
+    ]);
+  });
+
   it("keeps a replanned scholar's Energy Drains as played only where the plan's heals left the stacks", () => {
     const timeline = pullTimeline();
     // Energy Drains at 15s, 25s and 50s.
