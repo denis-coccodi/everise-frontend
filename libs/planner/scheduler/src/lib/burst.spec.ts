@@ -74,10 +74,20 @@ describe('burstUses', () => {
       ).map((u) => [u.name, u.at]);
 
     expect(placed()).toEqual([]);
-    expect(placed(new Map([[2, 100_000]]))).toEqual([
-      ['Chain Stratagem', 136_100],
-      ['Baneful Impaction', 138_600],
-    ]);
+    expect(placed(new Map([[2, 100_000]]))).toEqual([['Chain Stratagem', 136_100]]);
+  });
+
+  it('places Baneful Impaction after the heals, in a slot they leave', () => {
+    // The heals took the weave slot a GCD after Chain Stratagem (138.6s): the next one.
+    const t = timeline('SCH');
+    const c = cat();
+    const opening = openingOf(t, c, t.players, { 2: 'standard' });
+    const weaving = Weaving.of(t, c, () => true);
+    const early = placeLightspeed(t, c, t.players, opening, weaving);
+    const heal = { player: 2, action: 3583, name: 'Indomitability', at: 138_600, target: null, covers: [] };
+    const late = burstUses(t, c, t.players, opening, weaving, [...opening.uses, ...early, heal]);
+
+    expect(late.map((u) => [u.name, u.at])).toEqual([['Baneful Impaction', 139_300]]);
   });
 
   it("never has a Baneful Impaction past Chain Stratagem's Impact Imminent", () => {
@@ -90,24 +100,18 @@ describe('burstUses', () => {
     ];
     const c = cat();
     const opening = openingOf(t, c, t.players, { 2: 'standard' });
-    const placed = burstUses(
-      t,
-      c,
-      t.players,
-      opening,
-      Weaving.of(t, c, () => true),
-      opening.uses,
-      true,
-    );
+    const weaving = Weaving.of(t, c, () => true);
+    const early = placeLightspeed(t, c, t.players, opening, weaving);
+    const late = burstUses(t, c, t.players, opening, weaving, [...opening.uses, ...early]);
 
-    expect(placed.map((u) => [u.name, u.at])).toEqual([['Chain Stratagem', 136_100]]);
+    expect([...early, ...late].map((u) => [u.name, u.at])).toEqual([['Chain Stratagem', 136_100]]);
   });
 
   it('starts it at the first GCD without an opener', () => {
     expect(burst('SCH', 'none')).toEqual([
       ['Chain Stratagem', 1_100],
-      ['Baneful Impaction', 4_400],
       ['Chain Stratagem', 136_100],
+      ['Baneful Impaction', 4_400],
       ['Baneful Impaction', 138_600],
     ]);
   });

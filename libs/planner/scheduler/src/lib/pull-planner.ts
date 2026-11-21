@@ -26,7 +26,7 @@ import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openingOf, placedSteps, shownSteps } from './opening';
 import { scholarFairies } from './scholar-fairies';
 import { macrocosmosUses } from './macrocosmos';
-import { burstActions, burstUses, placeLightspeed } from './burst';
+import { FOLLOW_UPS, burstActions, burstUses, placeLightspeed } from './burst';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
 import {
@@ -171,7 +171,14 @@ export class PullPlanner {
     // Their MP, and that of those planned from a completed wipe's wipe point on: their heals there spend it too.
     const mpIds = [...ids, ...late.keys()];
     const past = mpExtras(given, catalog, opening, upkeep, ids);
-    const weaving = Weaving.of(timeline, catalog, (p, a) => scheduled.has(`${p}:${a}`), stops, ids);
+    // A played Baneful Impaction keeps its slot (`FOLLOW_UPS`).
+    const weaving = Weaving.of(
+      timeline,
+      catalog,
+      (p, a) => !FOLLOW_UPS.has(a) && scheduled.has(`${p}:${a}`),
+      stops,
+      ids,
+    );
     const byId = new Map(catalog.actions.map((a) => [a.id, a]));
     const slot = (u: PlannedUse) => ({ ...u, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 });
     weaving.keep([...opening.uses.filter((u) => u.action !== ENERGY_DRAIN), ...added].map(slot));

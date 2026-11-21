@@ -59,6 +59,12 @@ export const BURST: Record<string, BurstAction[]> = {
   ],
 };
 
+// What the burst enables (Baneful Impaction): placed last, in the slots the heals leave, so where they played theirs
+// stays taken for the heals, as it was (freed, the heals planned differently and took twice as long on a Dancing Mad kill).
+export const FOLLOW_UPS = new Set(
+  Object.values(BURST).flatMap((b) => b.flatMap((x) => (x.then ? [x.then.action] : []))),
+);
+
 // The actions the plan places for each job after the opener: the burst's,
 // and an astrologian's draws and the cards they play.
 export function burstActions(job: string): number[] {
@@ -112,11 +118,20 @@ export function burstUses(
       for (let due = last === undefined ? firstGcd : after(last + every); due < end;) {
         const at = place(b.action, action.name, due);
         if (at === null) break;
-        // What it enables, a GCD after it while that lasts (the opener has its own).
-        const then = b.then && byId.get(b.then.action);
-        if (b.then && then) place(then.id, then.name, at + GCD_MS, at + b.then.withinMs);
         due = after(at + every);
       }
+    }
+    // What a burst action enables (Baneful Impaction), from a GCD after each of the plan's while that lasts (the
+    // opener has its own), last: in the slots the heals leave, as players don't hold a heal for it).
+    for (const b of early ? [] : (BURST[job] ?? [])) {
+      const then = b.then && byId.get(b.then.action);
+      if (!b.then || !then) continue;
+      const within = b.then.withinMs;
+      [...planned, ...uses]
+        .filter((u) => u.player === p.id && u.action === b.action && !u.opener)
+        .map((u) => u.at)
+        .sort((x, y) => x - y)
+        .forEach((at) => place(then.id, then.name, at + GCD_MS, at + within));
     }
     const draws = opening.draws.get(p.id);
     if (!early || !draws) continue;
