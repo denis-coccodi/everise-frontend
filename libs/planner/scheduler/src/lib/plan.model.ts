@@ -47,15 +47,15 @@ export interface PlanOptions {
   oneWay?: boolean;
 }
 
-// Favouring damage, a healer spends what would overcap on damage and keeps
-// GCD heals for where nothing else will do; favouring healing (the
-// `healersHeal` strategy), they don't.
+// Favouring damage, a healer spends what would overcap on damage and keeps GCD heals for where nothing else will do;
+// favouring healing (the `healersHeal` strategy), they don't.
 export type Favour = 'dps' | 'healing';
 
 // A mitigation or shield a player can use: an action and what it lowers or absorbs, for whom.
 export interface MitigationTool {
-  // When it can't be used: a fairy's order while Dissipation has her away.
+  // When it can't be used (a fairy's order in Dissipation), and when it reaches only its user (`soloPhases`).
   away?: { from: number; to: number }[];
+  alone?: { from: number; to: number }[];
   // The mechanics an invulnerability isn't for (ids): ones the user took it off.
   notFor?: number[];
   player: number;
@@ -105,9 +105,8 @@ export interface MitigationEffect {
   magic: number;
   // What a shield absorbs after mitigation; null for a mitigation.
   shield: ShieldSize | null;
-  // How many hits on a player a shield absorbs: it breaks on the first (as
-  // the planner counts it), and one renewed each time it breaks (Haima)
-  // lasts more.
+  // How many hits on a player a shield absorbs: it breaks on the first (as the planner counts it), and one renewed
+  // each time it breaks (Haima) lasts more.
   hits: number;
   durationMs: number;
   // The status, as the game names it.
@@ -136,8 +135,9 @@ export type ShieldSize = { hp: number } | { maxHpShare: number };
 
 // An action that restores HP: a healer's heal, a mitigation's (Kerachole).
 export interface HealTool {
-  // When it can't be used: a fairy's order while Dissipation has her away.
+  // When it can't be used (a fairy's order in Dissipation), and when it reaches only its user (`soloPhases`).
   away?: { from: number; to: number }[];
+  alone?: { from: number; to: number }[];
   player: number;
   action: number;
   name: string;

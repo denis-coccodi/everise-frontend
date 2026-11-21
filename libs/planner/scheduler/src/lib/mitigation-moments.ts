@@ -1,5 +1,6 @@
 import { Mechanic, MechanicHit, MitigationTool, PlannedUse } from './plan.model';
 import type { Candidate } from './mitigation-plan.model';
+import { reachable } from './solo-phases';
 
 // A mitigation goes up at least this long before the hit it's for.
 export const LEAD_MS = 500;
@@ -90,6 +91,7 @@ export function mostEndangered(
   for (const hit of m.hits) {
     const share = project(m, hit, uses).damage / hpOf(m, hit);
     if (t && ON_OTHERS.has(t.action) && hit.player === t.player) continue;
+    if (t && !reachable(t.alone, t.player, m.at, hit.player)) continue;
     if (t?.action === NASCENT_FLASH && m.kind === 'raidwide' && !needed) continue;
     const kept = raidwidesOnly ? m.kind === 'raidwide' : m.kind !== 'tankbuster';
     const onlyOn = raidwidesOnly && t?.action === THE_SPIRE ? undefined : t?.onlyOn;

@@ -5,6 +5,7 @@ import { isMechanicHit } from './mechanics';
 import { landsAt, landsUnder } from './coverage';
 import { HealPairing, HealTool, Mechanic, MitigationTool, PlannedHit, PlannedUse } from './plan.model';
 import type { Guard, HpEvent } from './hp-track.model';
+import { reachable } from './solo-phases';
 
 // The other names the log gives a heal's healing, by the heal: Horoscope's,
 // read after a Helios; Haima's and Panhaima's stacks, as they heal; Nascent
@@ -34,7 +35,9 @@ export function guardsOf(uses: PlannedUse[], toolOf: (use: PlannedUse) => Mitiga
     if (!tool) return [];
     const from = landsAt(tool, use);
     return tool.effects.flatMap((e) =>
-      e.invulnerable && (e.target === 'self' || e.target === 'target')
+      e.invulnerable &&
+      (e.target === 'self' || e.target === 'target') &&
+      reachable(tool.alone, use.player, use.at, e.target === 'self' ? use.player : (use.target ?? use.player))
         ? [
             {
               player: e.target === 'self' ? use.player : (use.target ?? use.player),
@@ -161,8 +164,9 @@ export function healEvents(
   const lands = use.at + tool.castMs + delayMs;
   const events: HpEvent[] = [];
   for (const effect of tool.effects) {
-    const players =
-      effect.target === 'party' ? party : effect.target === 'self' ? [use.player] : [use.target ?? use.player];
+    const players = (
+      effect.target === 'party' ? party : effect.target === 'self' ? [use.player] : [use.target ?? use.player]
+    ).filter((player) => reachable(tool.alone, use.player, use.at, player));
     for (const player of players) {
       const amount = 'hp' in effect.size ? effect.size.hp : effect.size.maxHpShare * (maxHp.get(player) ?? 0);
       if (!effect.status) events.push({ at: lands, player, amount, ...(effect.lowHp ? { lowHp: effect.lowHp } : {}) });

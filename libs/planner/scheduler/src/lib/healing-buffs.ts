@@ -2,6 +2,7 @@ import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { PlannedUse } from './plan.model';
 import type { BuffSpan, HealingBuff } from './healing-buffs.model';
 import type { HpEvent } from './hp-track.model';
+import { reachable, soloPhases } from './solo-phases';
 
 // The catalog's healing buffs, by action. Those that only sometimes apply
 // (Zoe: the next healing spell) only with `conditional`.
@@ -34,12 +35,16 @@ export class HealingBuffs {
   // The spans by player and kind ("player:kind").
   private readonly spans = new Map<string, BuffSpan[]>();
 
+  // When everyone is alone in their own instance: a buff given then reaches only its giver.
+  private readonly alone: { from: number; to: number }[];
+
   constructor(
     private readonly byAction: Map<number, HealingBuff[]>,
     private readonly party: number[],
     timeline: PullTimeline,
     planned: Set<string>,
   ) {
+    this.alone = soloPhases(timeline);
     const byStatus = new Map<number, HealingBuff>();
     for (const buffs of byAction.values()) for (const b of buffs) if (b.statusId) byStatus.set(b.statusId, b);
     for (const aura of timeline.auras) {
@@ -71,7 +76,9 @@ export class HealingBuffs {
     return (this.byAction.get(use.action) ?? []).flatMap((buff) => {
       const players =
         buff.target === 'party' ? this.party : buff.target === 'self' ? [use.player] : [use.target ?? use.player];
-      return players.map((player) => ({ player, buff, from: use.at, to: use.at + buff.durationMs }));
+      return players
+        .filter((player) => reachable(this.alone, use.player, use.at, player))
+        .map((player) => ({ player, buff, from: use.at, to: use.at + buff.durationMs }));
     });
   }
 

@@ -3,6 +3,7 @@ import { landsAt, reaches, shareAgainst } from './coverage';
 import type { PullFacts } from './coverage.model';
 import type { HpEvent } from './hp-track.model';
 import type { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
+import { reachable } from './solo-phases';
 
 // What the boss's auto-attacks take with the plan's mitigations and shields,
 // not with those up as played: as dealt, they'd count a tank's cooldowns as
@@ -59,13 +60,15 @@ export class AutoDamage {
     const players = tool.effects.some((e) => e.target === 'party' || e.target === 'enemies')
       ? [...this.autos.keys()]
       : [...new Set(tool.effects.map((e) => (e.target === 'self' ? use.player : (use.target ?? use.player))))];
-    return players.flatMap((player) => {
-      const before = (this.autos.get(player) ?? []).map((a) => a.amount);
-      this.project(player);
-      return (this.autos.get(player) ?? [])
-        .map((a, i) => ({ at: a.hit.at, player, amount: before[i] - a.amount, back: true }))
-        .filter((e) => e.amount !== 0);
-    });
+    return players
+      .filter((p) => reachable(tool.alone, use.player, use.at, p))
+      .flatMap((player) => {
+        const before = (this.autos.get(player) ?? []).map((a) => a.amount);
+        this.project(player);
+        return (this.autos.get(player) ?? [])
+          .map((a, i) => ({ at: a.hit.at, player, amount: before[i] - a.amount, back: true }))
+          .filter((e) => e.amount !== 0);
+      });
   }
 
   private project(player: number) {

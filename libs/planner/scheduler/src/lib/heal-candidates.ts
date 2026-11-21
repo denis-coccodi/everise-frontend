@@ -7,6 +7,7 @@ import { Weaving } from './weaving';
 import type { Candidate, Paired, Spent } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
 import type { Occupied } from './weaving.model';
+import { reachable } from './solo-phases';
 
 // How soon after the four spells a moved Kardia goes back at the latest.
 const KARDIA_BACK_MS = 5_000;
@@ -130,7 +131,9 @@ export function best(
   // Kardion holder, Kardia moved to anyone else.
   const holder = tool.kardion?.find((s) => s.from <= m.at && m.at < s.to)?.player;
   if (tool.kardion && holder === undefined) return null;
-  const others = [...short].filter(([p]) => tool.action !== KARDIA || p !== holder);
+  const others = [...short].filter(
+    ([p]) => (tool.action !== KARDIA || p !== holder) && reachable(tool.alone, tool.player, m.at, p),
+  );
   if (!others.length) return null;
   const target =
     tool.action === SOTERIA

@@ -7,6 +7,7 @@ import type { PlanEdits } from './edits.model';
 import { withEnablerWindows } from './enabled-windows';
 import { withFairyAway } from './fairy-heals';
 import { withDraws } from './opening';
+import { withSoloPhases } from './solo-phases';
 import { withTargetsGone } from './untargetable';
 import type { Opening } from './openers.model';
 import type { HealTool, Mechanic, MitigationTool } from './plan.model';
@@ -18,6 +19,7 @@ import type { HealTool, Mechanic, MitigationTool } from './plan.model';
 // targeted (`withTargetsGone`); Lux Solaris
 // waits for the burst that grants it; the user's removed skills aren't
 // planned where they were, nor cooldowns held for a death in their window.
+// In a solo phase each player's reach only themselves (`withSoloPhases`).
 export function toolWindows(
   timeline: PullTimeline,
   opening: Opening,
@@ -32,7 +34,11 @@ export function toolWindows(
         withEnablerWindows(
           timeline,
           withDraws(
-            withAetherflow(timeline, withFairyAway(timeline, withTargetsGone(timeline, tools), dissipations), refills),
+            withAetherflow(
+              timeline,
+              withFairyAway(timeline, withSoloPhases(timeline, withTargetsGone(timeline, tools)), dissipations),
+              refills,
+            ),
             opening,
           ),
         ),

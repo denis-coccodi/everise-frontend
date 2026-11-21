@@ -13,6 +13,7 @@ import {
 import type { PullFacts } from './coverage.model';
 import { FIRST_STAYS } from './tools';
 import { WALKING_DEAD_MS } from './walking-dead';
+import { reachable } from './solo-phases';
 
 // What a hit the fight doesn't let kill shows among what was up for it.
 export const LEAVES_ONE_HP = 'Leaves 1 HP';
@@ -34,6 +35,8 @@ export function reaches(tool: MitigationTool, use: PlannedUse, mechanic: Mechani
   const from = landsAt(tool, use);
   return tool.effects.filter((effect) => {
     if (mechanic.at < from || mechanic.at > from + effect.durationMs + SNAPSHOT_MS) return false;
+    // In a solo phase it reaches only its user.
+    if (!reachable(tool.alone, use.player, use.at, hit.player)) return false;
     if (effect.target === 'self') return hit.player === use.player;
     if (effect.target === 'target') return hit.player === use.target;
     return true;
