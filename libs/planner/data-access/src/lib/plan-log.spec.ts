@@ -110,6 +110,25 @@ describe('planLog', () => {
     ]);
   });
 
+  it("keeps a replanned scholar's Energy Drains as played only where the plan's heals left the stacks", () => {
+    const timeline = pullTimeline();
+    // Energy Drains at 15s, 25s and 50s.
+    timeline.playerCasts = [15_000, 25_000, 50_000].map((at) => ({
+      at,
+      source: 2,
+      target: null,
+      action: 167,
+      castMs: null,
+    }));
+    // The plan's Aetherflow at 10s; its Sacred Soil at 20s and Indomitability at 21s take two of the three stacks.
+    const use = (action: number, name: string, at: number) => ({ ...plan.uses[0], player: 2, action, name, at });
+    const uses = [use(166, 'Aetherflow', 10_000), use(188, 'Sacred Soil', 20_000), use(3583, 'Indomitability', 21_000)];
+
+    const log = planLog({ ...plan, uses, replanned: [2] }, timeline, 2, actionCatalog());
+
+    expect(log.filter((e) => e.kind === 'use' && e.attack).map((e) => e.at)).toEqual([15_000]);
+  });
+
   it('keeps an attack that heals too as played, not as a dropped heal', () => {
     const catalog = actionCatalog();
     const blade = catalog.actions.find((a) => a.id === 9);

@@ -26,6 +26,9 @@ const LORD_OF_CROWNS = 7444;
 const DIVINATION = 16552;
 // How often an astrologian can draw, where the catalog doesn't say.
 const DRAW_MS = 55_000;
+const BANEFUL_IMPACTION = 37012;
+// Chain Stratagem's Impact Imminent, without which Baneful Impaction can't be used.
+const IMPACT_IMMINENT_MS = 30_000;
 
 // The raid buffs and burst each job's guides use on cooldown after the
 // opener, by job (Icy Veins 7.55, The Balance 7.4): Chain Stratagem,
@@ -37,7 +40,8 @@ const DRAW_MS = 55_000;
 // their burst in its window and heal around it (placed after, a scholar's Chain Stratagem slid 20s and more past its
 // window, then missed the next); an astrologian's cards go by Divination.
 export const BURST: Record<string, BurstAction[]> = {
-  SCH: [{ action: 7436, early: true }], // Chain Stratagem
+  // Chain Stratagem, then Baneful Impaction.
+  SCH: [{ action: 7436, early: true, then: { action: BANEFUL_IMPACTION, withinMs: IMPACT_IMMINENT_MS } }],
   AST: [
     { action: LIGHTSPEED, everyMs: TWO_MINUTES, early: true },
     { action: DIVINATION, early: true },
@@ -58,7 +62,7 @@ export const BURST: Record<string, BurstAction[]> = {
 // The actions the plan places for each job after the opener: the burst's,
 // and an astrologian's draws and the cards they play.
 export function burstActions(job: string): number[] {
-  const own = (BURST[job] ?? []).map((b) => b.action);
+  const own = (BURST[job] ?? []).flatMap((b) => (b.then ? [b.action, b.then.action] : [b.action]));
   return job === 'AST' ? [...own, ASTRAL_DRAW, UMBRAL_DRAW, THE_BALANCE, THE_SPEAR, LORD_OF_CROWNS] : own;
 }
 
@@ -90,9 +94,9 @@ export function burstUses(
     // The first weave slot from `due`, at their next GCD if it's downtime
     // (past a completed wipe's wipe point, those at their rhythm); with none
     // left, from `due` itself.
-    const place = (action: number, name: string, due: number) => {
+    const place = (action: number, name: string, due: number, latest = end) => {
       const next = weaving.gcdsBetween(p.id, due - GCD_MS, end)[0] ?? (weaving.freeAt(p.id, due) ? due : undefined);
-      const at = next === undefined ? null : weaving.ogcdAfter(p.id, Math.max(due, next), end, taken);
+      const at = next === undefined ? null : weaving.ogcdAfter(p.id, Math.max(due, next), latest, taken);
       if (at === null) return null;
       uses.push({ player: p.id, action, name, at, target: null, covers: [], burst: true });
       taken.push({ at, gcd: false, castMs: 0 });
@@ -108,6 +112,9 @@ export function burstUses(
       for (let due = last === undefined ? firstGcd : after(last + every); due < end;) {
         const at = place(b.action, action.name, due);
         if (at === null) break;
+        // What it enables, a GCD after it while that lasts (the opener has its own).
+        const then = b.then && byId.get(b.then.action);
+        if (b.then && then) place(then.id, then.name, at + GCD_MS, at + b.then.withinMs);
         due = after(at + every);
       }
     }

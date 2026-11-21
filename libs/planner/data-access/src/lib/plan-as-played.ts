@@ -1,5 +1,5 @@
 import { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
-import { gcdCasts, withoutFollowUps, type Plan, type PlannedUse } from '@everise/planner/scheduler';
+import { drainsWithStacks, gcdCasts, withoutFollowUps, type Plan, type PlannedUse } from '@everise/planner/scheduler';
 import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
@@ -23,12 +23,14 @@ const SAME_GCD_MS = 600;
 // A use of the plan's this close to a cast of a player planned as they
 // played is that cast.
 const SAME_CAST_MS = 2_500;
+const ENERGY_DRAIN = 167;
 
 // What the player cast that the plan keeps as they played it, so that both
 // columns show their whole rotation. A player planned as they played keeps
 // everything the plan doesn't list itself (their heals, buffs, attacks). A
 // replanned one keeps their attacks, but for the GCDs a planned one took the
-// slot of; where they cast a GCD heal the plan has no use for, it's their
+// slot of and a scholar's Energy Drains whose stacks the plan's heals took
+// (Baneful Impaction the plan places itself, after its Chain Stratagems); where they cast a GCD heal the plan has no use for, it's their
 // usual damage GCD instead; and their buffs and enablers as above.
 export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog) {
   if (!catalog) return [];
@@ -60,6 +62,15 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   });
   // The plan's opener has its own oGCD steps: their oGCD attacks give way.
   const openerEnd = Math.max(-Infinity, ...mine.filter((u) => u.opener).map((u) => u.at + SAME_GCD_MS));
+  // A replanned scholar's Energy Drains where the plan's heals left the stacks.
+  const drains = new Set(
+    replanned
+      ? drainsWithStacks(
+          mine,
+          casts.filter((c) => c.action === ENERGY_DRAIN && c.at > openerEnd),
+        )
+      : [],
+  );
   const out: PlanUseEntry[] = [];
   const scheduled = new Set(plan.scheduled ?? []);
   // What the plan places for them, by name too: the log has another action for
@@ -93,6 +104,7 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
       // The opener's steps are oGCDs: in it their oGCD attacks give way, not
       // their GCDs.
       if (gcd(c) ? slotTaken(c.at) : c.at <= openerEnd) return;
+      if (c.action === ENERGY_DRAIN && !drains.has(c)) return;
       out.push({ ...entry(c, action, 'Damage'), attack: true, ...begun });
     } else if (action?.gcd && action.effects.length) {
       // A GCD heal of theirs the plan has no use for: damage there instead.

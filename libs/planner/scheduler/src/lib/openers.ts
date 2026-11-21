@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline } from '@everise/core/api-types';
-import { AETHERFLOW, DISSIPATION } from './aetherflow';
+import { AETHERFLOW, DISSIPATION, STACK_SPENDS } from './aetherflow';
 import { ENERGY_DRAIN, OPENERS, UMBRAL_DRAW } from './opener-presets';
 import type { OpenerId } from './openers.model';
 import type { PlannedUse } from './plan.model';
@@ -90,7 +90,11 @@ export function astrologianDraws(uses: PlannedUse[], durationMs: number): { astr
 // in the window from each refill to the next, the heals' stacks (`spent`)
 // come first, the latest Energy Drains dropped for them, as the guides say
 // (hold a stack for healing when it's needed).
-export function withStacksLeft(uses: PlannedUse[], refills: number[], spent: number[]): PlannedUse[] {
+export function withStacksLeft<T extends { action: number; at: number }>(
+  uses: T[],
+  refills: number[],
+  spent: number[],
+): T[] {
   const sorted = [...refills].sort((a, b) => a - b);
   const windowOf = (at: number) => sorted.filter((r) => r <= at).length - 1;
   const left = sorted.map((_, i) => 3 - spent.filter((at) => windowOf(at) === i).length);
@@ -101,4 +105,20 @@ export function withStacksLeft(uses: PlannedUse[], refills: number[], spent: num
     left[i]--;
     return true;
   });
+}
+
+// A replanned scholar's Energy Drains as played, but those the plan's stacks
+// don't leave: the plan's Aetherflows and Dissipations (`planned`) refill
+// them, its heals and its opener's Energy Drains spend them first.
+export function drainsWithStacks<T extends { action: number; at: number }>(
+  planned: { action: number; at: number }[],
+  drains: T[],
+): T[] {
+  const refills = planned.filter((u) => u.action === AETHERFLOW || u.action === DISSIPATION).map((u) => u.at);
+  const spent = planned.filter((u) => STACK_SPENDS.has(u.action)).map((u) => u.at);
+  return withStacksLeft(
+    [...drains].sort((a, b) => a.at - b.at),
+    refills,
+    spent,
+  );
 }

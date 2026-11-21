@@ -292,17 +292,6 @@ export class PullPlanner {
       bonus.clear();
       weaving.release(slots);
     }
-    // Seraph casts her Veils herself: they're no use to list. The openers' other steps (Energy Drains, Chain Stratagem...)
-    // show with it, but for the Energy Drains whose stacks the heals took.
-    const stackTools = new Set([...mitigation, ...heals].filter((t) => t.pool?.name === 'Aetherflow').map(key));
-    const shown = shownSteps(opening, placed, (player) =>
-      best.uses.filter((u) => u.player === player && stackTools.has(key(u))).map((u) => u.at),
-    );
-    // An opener's Energy Drain gives its slot to what the plan put there.
-    const drains = shown.filter(
-      (u) =>
-        u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
-    );
     // A replanned healer's Lucid Dreaming where the plan runs their MP low; the heals are planned again with it (in every MP
     // check: `fixed`), unless that comes out worse: then they stay, and the Lucids (in slots they leave free, MP only) are added.
     const low = MpModel.of(timeline, catalog, mpIds, scheduled, aliveIn(best), past);
@@ -325,6 +314,17 @@ export class PullPlanner {
     // A replanned white mage's Thin Air: a charge for each raise, the rest on costly spells.
     const thinAir = whms.flatMap((w) =>
       thinAirTimes(w, timeline, best.uses, weaving, byId).map((at) => thinAirUse(w, at)),
+    );
+    // Seraph casts her Veils herself: they're no use to list. The openers' other steps (Energy Drains, Chain Stratagem...)
+    // show with it, but for the Energy Drains whose stacks the final plan's heals took (Lucid's and the aimed heals' passes too).
+    const stackTools = new Set([...mitigation, ...heals].filter((t) => t.pool?.name === 'Aetherflow').map(key));
+    const shown = shownSteps(opening, placed, (player) =>
+      best.uses.filter((u) => u.player === player && stackTools.has(key(u))).map((u) => u.at),
+    );
+    // An opener's Energy Drain gives its slot to what the plan put there.
+    const drains = shown.filter(
+      (u) =>
+        u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
     );
     const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed, ...thinAir];
     const burst = [...lightspeed, ...burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken)];
