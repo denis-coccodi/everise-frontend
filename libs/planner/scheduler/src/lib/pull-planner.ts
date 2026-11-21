@@ -19,11 +19,11 @@ import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
 import { groupLimitBreaks } from './limit-break-gauge';
 import { playedUses } from './played-uses';
-import { Weaving, WEAVE_MS } from './weaving';
+import { Weaving } from './weaving';
 import { InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { mitigationTools, notAutomatic, withGrantedCovers } from './tools';
 import { catalogAtLevel, pullLevel } from './trait-levels';
-import { openingOf, placedSteps, shownSteps } from './opening';
+import { openerShown, openingOf, placedSteps } from './opening';
 import { scholarFairies } from './scholar-fairies';
 import { macrocosmosUses } from './macrocosmos';
 import { burstActions, burstUses, placeLightspeed } from './burst';
@@ -316,17 +316,9 @@ export class PullPlanner {
     const thinAir = whms.flatMap((w) =>
       thinAirTimes(w, timeline, best.uses, weaving, byId).map((at) => thinAirUse(w, at)),
     );
-    // Seraph casts her Veils herself: they're no use to list. The openers' other steps (Energy Drains, Chain Stratagem...)
-    // show with it, but for the Energy Drains whose stacks the final plan's heals took (Lucid's and the aimed heals' passes too).
+    // The openers' other steps (Energy Drains, Chain Stratagem...), but the Energy Drains the final plan's heals took.
     const stackTools = new Set([...mitigation, ...heals].filter((t) => t.pool?.name === 'Aetherflow').map(key));
-    const shown = shownSteps(opening, placed, (player) =>
-      best.uses.filter((u) => u.player === player && stackTools.has(key(u))).map((u) => u.at),
-    );
-    // An opener's Energy Drain gives its slot to what the plan put there.
-    const drains = shown.filter(
-      (u) =>
-        u.action !== ENERGY_DRAIN || !best.uses.some((b) => b.player === u.player && Math.abs(b.at - u.at) < WEAVE_MS),
-    );
+    const drains = openerShown(opening, placed, best.uses, (u) => stackTools.has(key(u)));
     const taken = [...best.uses, ...drains, ...rhizomata, ...lightspeed, ...thinAir];
     const afterHeals = burstUses(timeline, catalog, replannedPlayers, opening, weaving, taken);
     const burst = [...lightspeed, ...afterHeals];

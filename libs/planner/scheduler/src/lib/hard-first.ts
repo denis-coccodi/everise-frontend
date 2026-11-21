@@ -1,6 +1,7 @@
 import { reaches } from './coverage';
 import { deadIn } from './plan-score';
 import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
+import { AUTOMATIC } from './tools';
 
 // Whether a use an earlier plan placed is let go in a replan with `hard` mechanics first: one charge of its tool (of
 // `tools`), and its recast still running at a hard mechanic it doesn't cover but could (the party's, or its user hit);
@@ -33,6 +34,16 @@ export function withTheirGrants(tools: MitigationTool[], kept: PlannedUse[]): Pl
       kept.some((o) => o.player === u.player && o.action === g.action && u.at >= o.at && u.at <= o.at + g.withinMs)
     );
   });
+}
+
+// An earlier plan's uses kept in a replan with `hard` mechanics first: but a pet's own (`AUTOMATIC`), those let go (`freedForHard`), and what they
+// granted with them (`withTheirGrants`).
+export function keptForHard(tools: MitigationTool[], mechanics: Mechanic[], hard: Set<number>, uses: PlannedUse[]) {
+  const freed = freedForHard(tools, mechanics, hard);
+  return withTheirGrants(
+    tools,
+    uses.filter((u) => !AUTOMATIC.has(u.action) && !freed(u)),
+  );
 }
 
 // How many times the heals are planned again with more mechanics first.
