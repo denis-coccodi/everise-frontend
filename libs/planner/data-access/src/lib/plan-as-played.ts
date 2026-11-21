@@ -27,6 +27,8 @@ const SECOND_CHARGE_MS = 20_000;
 const EUKRASIA = 24290;
 // A planned GCD this close to one of theirs took its slot.
 const SAME_GCD_MS = 600;
+// An oGCD of the plan's this close to one of theirs took its weave slot (the next one is 0.7s on).
+const SAME_WEAVE_MS = 350;
 // A use of the plan's this close to a cast of a player planned as they
 // played is that cast.
 const SAME_CAST_MS = 2_500;
@@ -68,8 +70,25 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
     kept,
     ...(gcd(c) ? { gcd: true } : {}),
   });
-  // The plan's opener has its own oGCD steps: their oGCD attacks give way.
-  const openerEnd = Math.max(-Infinity, ...mine.filter((u) => u.opener).map((u) => u.at + SAME_GCD_MS));
+  // The plan's opener has its own oGCD steps: their oGCD attacks in it give way to one of the same (an Energy Drain)
+  // or in its slot; the rest stay (a paladin's Imperator, which their Confiteor needs).
+  const openerSteps = mine.filter((u) => u.opener);
+  const openerEnd = Math.max(-Infinity, ...openerSteps.map((u) => u.at + SAME_GCD_MS));
+  const givesWay = (c: { action: number; at: number }) =>
+    c.at <= openerEnd && openerSteps.some((u) => u.action === c.action || Math.abs(u.at - c.at) < SAME_WEAVE_MS);
+  // The GCD attacks the plan places for them itself (Afflatus Misery): theirs give way, their usual attack there.
+  const ownAttacks = new Set(
+    mine.filter((u) => u.damage || (u.opener && byId.get(u.action)?.gcd)).map((u) => u.action),
+  );
+  // Whether the Eukrasia before a Eukrasian attack of theirs (`i`) still shows: one a planned GCD took the slot of
+  // leaves it a plain Dosis.
+  const eukrasiaShown = (i: number) => {
+    const e = casts
+      .slice(0, i)
+      .reverse()
+      .find((x) => x.action === EUKRASIA);
+    return !!e && out.some((o) => o.at === e.at && o.action === (byId.get(EUKRASIA)?.name ?? 'Eukrasia'));
+  };
   // A replanned scholar's Energy Drains where the plan's heals left the stacks.
   const drains = new Set(
     replanned
@@ -111,11 +130,13 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
     } else if (attack) {
       // The opener's steps are oGCDs: in it their oGCD attacks give way, not
       // their GCDs.
-      if (gcd(c) ? slotTaken(c.at) : c.at <= openerEnd) return;
+      if (gcd(c) ? slotTaken(c.at) : givesWay(c)) return;
       if (c.action === ENERGY_DRAIN && !drains.has(c)) return;
-      // One their burst enabled that the plan's, moved, doesn't (it keeps those it does, `followUpUses`): their usual
-      // attack in its place; an oGCD (Oracle, Baneful Impaction) gives up its slot.
-      if (FOLLOW_UPS.has(c.action)) {
+      // One their burst enabled that the plan's, moved, doesn't (it keeps those it does, `followUpUses`), one the plan
+      // places itself, or a Eukrasian attack whose Eukrasia is gone: their usual attack in its place; an oGCD (Oracle,
+      // Baneful Impaction) gives up its slot.
+      const eukrasian = !!action?.name.startsWith('Eukrasian D') && !eukrasiaShown(i);
+      if (FOLLOW_UPS.has(c.action) || ownAttacks.has(c.action) || eukrasian) {
         if (gcd(c) && filler && !FOLLOW_UPS.has(filler.id))
           out.push({
             ...entry(c, filler, 'Damage'),

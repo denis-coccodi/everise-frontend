@@ -23,6 +23,18 @@ export const freedForHard =
     );
   };
 
+// The uses kept, but those another granted (`grantedBy`) that lost it, freed (`freedForHard`): a Sun Sign stayed with
+// its Neutral Sect placed again elsewhere, a Divine Caress without its Temperance, Accessions without Seraphism.
+export function withTheirGrants(tools: MitigationTool[], kept: PlannedUse[]): PlannedUse[] {
+  return kept.filter((u) => {
+    const g = tools.find((t) => t.player === u.player && t.action === u.action)?.grantedBy;
+    return (
+      !g ||
+      kept.some((o) => o.player === u.player && o.action === g.action && u.at >= o.at && u.at <= o.at + g.withinMs)
+    );
+  });
+}
+
 // How many times the heals are planned again with more mechanics first.
 const TRIES = 2;
 

@@ -84,6 +84,18 @@ describe('followUpUses', () => {
     ]);
   });
 
+  it("doesn't keep theirs where the plan put a GCD of its own", () => {
+    // Their Scarlet Delirium at 53s, where the plan has a GCD: it goes in their next.
+    const t = timeline('DRK', { 53_000: 36928 });
+    const planned = [buff(7390, 51_100), { ...buff(9, 53_000), burst: false }];
+
+    expect(follow(t, planned)).toEqual([
+      ['Scarlet Delirium', 55_500],
+      ['Comeuppance', 58_000],
+      ['Torcleaver', 60_500],
+    ]);
+  });
+
   it('counts Impalement for any of the three', () => {
     const t = timeline('DRK', { 53_000: 36931, 55_500: 36931 });
 

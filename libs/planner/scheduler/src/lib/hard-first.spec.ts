@@ -1,4 +1,4 @@
-import { freedForHard, hardFirst, inPlanningOrder } from './hard-first';
+import { freedForHard, hardFirst, inPlanningOrder, withTheirGrants } from './hard-first';
 import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
 
 // A plan whose hits at these mechanics are short (and with `dead` players dying).
@@ -86,5 +86,23 @@ describe('freedForHard', () => {
   it('keeps played uses, and those of a tool with charges', () => {
     expect(freed(tool('party'), hit(1, 60_000), { ...use, played: true })).toBe(false);
     expect(freed(tool('party', 2), hit(1, 60_000))).toBe(false);
+  });
+});
+
+describe('withTheirGrants', () => {
+  // Player 1's Neutral Sect (16559) and the Sun Sign (37031) it grants for 30s.
+  const tools = [
+    { player: 1, action: 16559 },
+    { player: 1, action: 37031, grantedBy: { action: 16559, withinMs: 30_000, uses: 1 } },
+  ] as unknown as MitigationTool[];
+  const use = (action: number, at: number) => ({ player: 1, action, at, target: null, covers: [] }) as PlannedUse;
+
+  it('keeps a granted use with what granted it', () => {
+    const kept = [use(16559, 10_000), use(37031, 12_000)];
+    expect(withTheirGrants(tools, kept)).toEqual(kept);
+  });
+
+  it('lets it go with what granted it, freed', () => {
+    expect(withTheirGrants(tools, [use(37031, 12_000), use(16559, 50_000)])).toEqual([use(16559, 50_000)]);
   });
 });

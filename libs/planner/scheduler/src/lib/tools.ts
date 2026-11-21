@@ -139,9 +139,17 @@ export const EUKRASIA = 24290;
 export const EUKRASIA_MS = 1000;
 const EUKRASIAN = [24291, 24292, 37034];
 const EUKRASIAN_LEAD_MS = EUKRASIA_MS + 600;
-// What a player presses before an action, for the plan to say: Tempera Coat before Tempera Grassa, which removes it.
+// What a player presses before an action, for the plan to say: Tempera Coat before Tempera Grassa, which removes it;
+// Improvisation before Improvised Finish, which ends it.
+const IMPROVISED_FINISH = 25789;
 export const pressedFirst = (action: number) =>
-  EUKRASIAN.includes(action) ? 'Eukrasia' : action === 34686 ? 'Tempera Coat' : null;
+  EUKRASIAN.includes(action)
+    ? 'Eukrasia'
+    : action === 34686
+      ? 'Tempera Coat'
+      : action === IMPROVISED_FINISH
+        ? 'Improvisation'
+        : null;
 // How long after its start an action lands, as the plan counts it.
 export const castMsOf = (action: CatalogAction) => (EUKRASIAN.includes(action.id) ? EUKRASIAN_LEAD_MS : action.castMs);
 // The longest recast a GCD has with no cooldown of its own: the GCD.

@@ -137,6 +137,69 @@ describe('planLog', () => {
     ]);
   });
 
+  it('gives their usual attack in the slot of an attack the plan places itself, and of a Dosis whose Eukrasia it took', () => {
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+    const blade = catalog.actions.find((a) => a.id === 9)!;
+    catalog.actions.push(
+      { ...blade, id: 16535, name: 'Afflatus Misery' },
+      { ...blade, id: 24290, name: 'Eukrasia', description: 'Augments certain offensive and healing magic actions.' },
+      { ...blade, id: 24314, name: 'Eukrasian Dosis III' },
+    );
+    const timeline = pullTimeline();
+    // Afflatus Misery at 30s; Eukrasia at 40s and 45s, each with its Eukrasian Dosis III a second later; Fast Blade,
+    // their usual attack, from 50s.
+    const casts: [number, number][] = [
+      [30_000, 16535],
+      [40_000, 24290],
+      [41_000, 24314],
+      [45_000, 24290],
+      [46_000, 24314],
+      [50_000, 9],
+      [52_500, 9],
+      [55_000, 9],
+    ];
+    timeline.playerCasts = casts.map(([at, action]) => ({ at, source: 2, target: null, action, castMs: null }));
+    // The plan's own Misery at 60s, and a GCD of its own in the slot of the Eukrasia at 40s.
+    const use = (action: number, name: string, at: number, extra = {}) => ({
+      ...plan.uses[0],
+      player: 2,
+      action,
+      name,
+      at,
+      ...extra,
+    });
+    const uses = [use(16535, 'Afflatus Misery', 60_000, { damage: true }), use(9, 'Fast Blade', 40_000)];
+
+    const log = planLog({ ...plan, uses, replanned: [2] }, timeline, 2, catalog);
+
+    expect(
+      log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.kind === 'use' && [e.at, e.action, e.instead]),
+    ).toEqual([
+      [30_000, 'Fast Blade', 'Afflatus Misery'],
+      [41_000, 'Fast Blade', 'Eukrasian Dosis III'],
+      [45_000, 'Eukrasia', undefined],
+      [46_000, 'Eukrasian Dosis III', undefined],
+      [50_000, 'Fast Blade', undefined],
+      [52_500, 'Fast Blade', undefined],
+      [55_000, 'Fast Blade', undefined],
+    ]);
+  });
+
+  it("keeps their oGCD attacks in the opener but for its own and those in its steps' weave slots", () => {
+    const catalog = actionCatalog();
+    const blade = catalog.actions.find((a) => a.id === 9)!;
+    catalog.actions.push({ ...blade, id: 36921, name: 'Imperator', gcd: false });
+    const timeline = pullTimeline();
+    // Imperator at 8.2s, the weave after their Fight or Flight; another at 7.7s, in its slot.
+    timeline.playerCasts = [7_700, 8_200].map((at) => ({ at, source: 2, target: null, action: 36921, castMs: null }));
+    const fof = { ...plan.uses[0], player: 2, action: 20, name: 'Fight or Flight', at: 7_600, opener: true };
+
+    const log = planLog({ ...plan, uses: [fof], replanned: [2] }, timeline, 2, catalog);
+
+    expect(log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.at)).toEqual([8_200]);
+  });
+
   it("keeps a replanned scholar's Energy Drains as played only where the plan's heals left the stacks", () => {
     const timeline = pullTimeline();
     // Energy Drains at 15s, 25s and 50s.

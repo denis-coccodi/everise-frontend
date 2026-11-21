@@ -6,6 +6,8 @@ import type { Occupied } from './weaving.model';
 import type { Weaving } from './weaving';
 
 const MS = 1_000;
+// A GCD of the plan's this close to one of theirs took its slot.
+const SAME_SLOT_MS = 600;
 const DELIRIUM_IMPALEMENT = 36931;
 // What each burst action enables, in order, as its tooltip has it ("Can only be executed while..."): Chain
 // Stratagem's Impact Imminent (30s) Baneful Impaction; Divination's Divining (30s) Oracle; Presence of Mind's 3
@@ -86,8 +88,11 @@ export function followUpUses(
           const end = (step.fromPrevious ? from : buff) + step.withinMs;
           const inTime = (c: { action: number; at: number }) =>
             !claimed.has(c) && step.actions.includes(c.action) && c.at >= from && c.at <= end;
-          // The plan's own (an opener's step), or theirs as played.
-          const own = [...mine.filter(inTime), ...played.filter(inTime)].sort((x, y) => x.at - y.at)[0];
+          // The plan's own (an opener's step), or theirs as played where the plan has no GCD of its own in its slot.
+          const slotFree = (c: { action: number; at: number }) =>
+            !byId.get(c.action)?.gcd || !taken.some((o) => o.gcd && Math.abs(o.at - c.at) < SAME_SLOT_MS);
+          const theirs = played.filter((c) => inTime(c) && slotFree(c));
+          const own = [...mine.filter(inTime), ...theirs].sort((x, y) => x.at - y.at)[0];
           if (own) {
             claimed.add(own);
             if (!('player' in own)) {
