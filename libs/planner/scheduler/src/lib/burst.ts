@@ -26,9 +26,6 @@ const LORD_OF_CROWNS = 7444;
 const DIVINATION = 16552;
 // How often an astrologian can draw, where the catalog doesn't say.
 const DRAW_MS = 55_000;
-const BANEFUL_IMPACTION = 37012;
-// Chain Stratagem's Impact Imminent, without which Baneful Impaction can't be used.
-const IMPACT_IMMINENT_MS = 30_000;
 
 // The raid buffs and burst each job's guides use on cooldown after the
 // opener, by job (Icy Veins 7.55, The Balance 7.4): Chain Stratagem,
@@ -40,8 +37,7 @@ const IMPACT_IMMINENT_MS = 30_000;
 // their burst in its window and heal around it (placed after, a scholar's Chain Stratagem slid 20s and more past its
 // window, then missed the next); an astrologian's cards go by Divination.
 export const BURST: Record<string, BurstAction[]> = {
-  // Chain Stratagem, then Baneful Impaction.
-  SCH: [{ action: 7436, early: true, then: { action: BANEFUL_IMPACTION, withinMs: IMPACT_IMMINENT_MS } }],
+  SCH: [{ action: 7436, early: true }], // Chain Stratagem
   AST: [
     { action: LIGHTSPEED, everyMs: TWO_MINUTES, early: true },
     { action: DIVINATION, early: true },
@@ -59,16 +55,10 @@ export const BURST: Record<string, BurstAction[]> = {
   ],
 };
 
-// What the burst enables (Baneful Impaction): placed last, in the slots the heals leave, so where they played theirs
-// stays taken for the heals, as it was (freed, the heals planned differently and took twice as long on a Dancing Mad kill).
-export const FOLLOW_UPS = new Set(
-  Object.values(BURST).flatMap((b) => b.flatMap((x) => (x.then ? [x.then.action] : []))),
-);
-
 // The actions the plan places for each job after the opener: the burst's,
 // and an astrologian's draws and the cards they play.
 export function burstActions(job: string): number[] {
-  const own = (BURST[job] ?? []).flatMap((b) => (b.then ? [b.action, b.then.action] : [b.action]));
+  const own = (BURST[job] ?? []).map((b) => b.action);
   return job === 'AST' ? [...own, ASTRAL_DRAW, UMBRAL_DRAW, THE_BALANCE, THE_SPEAR, LORD_OF_CROWNS] : own;
 }
 
@@ -100,9 +90,9 @@ export function burstUses(
     // The first weave slot from `due`, at their next GCD if it's downtime
     // (past a completed wipe's wipe point, those at their rhythm); with none
     // left, from `due` itself.
-    const place = (action: number, name: string, due: number, latest = end) => {
+    const place = (action: number, name: string, due: number) => {
       const next = weaving.gcdsBetween(p.id, due - GCD_MS, end)[0] ?? (weaving.freeAt(p.id, due) ? due : undefined);
-      const at = next === undefined ? null : weaving.ogcdAfter(p.id, Math.max(due, next), latest, taken);
+      const at = next === undefined ? null : weaving.ogcdAfter(p.id, Math.max(due, next), end, taken);
       if (at === null) return null;
       uses.push({ player: p.id, action, name, at, target: null, covers: [], burst: true });
       taken.push({ at, gcd: false, castMs: 0 });
@@ -120,18 +110,6 @@ export function burstUses(
         if (at === null) break;
         due = after(at + every);
       }
-    }
-    // What a burst action enables (Baneful Impaction), from a GCD after each of the plan's while that lasts (the
-    // opener has its own), last: in the slots the heals leave, as players don't hold a heal for it).
-    for (const b of early ? [] : (BURST[job] ?? [])) {
-      const then = b.then && byId.get(b.then.action);
-      if (!b.then || !then) continue;
-      const within = b.then.withinMs;
-      [...planned, ...uses]
-        .filter((u) => u.player === p.id && u.action === b.action && !u.opener)
-        .map((u) => u.at)
-        .sort((x, y) => x - y)
-        .forEach((at) => place(then.id, then.name, at + GCD_MS, at + within));
     }
     const draws = opening.draws.get(p.id);
     if (!early || !draws) continue;

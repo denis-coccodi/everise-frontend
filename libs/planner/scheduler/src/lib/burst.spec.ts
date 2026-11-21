@@ -21,7 +21,6 @@ const cat = () => {
   c.actions.push(
     action(9, 'Broil IV', ['SCH', 'AST', 'WHM', 'SGE'], 2.5, [], { gcd: true }),
     action(7436, 'Chain Stratagem', ['SCH'], 120, []),
-    action(37012, 'Baneful Impaction', ['SCH'], 1, []),
     action(16552, 'Divination', ['AST'], 120, []),
     action(3606, 'Lightspeed', ['AST'], 60, [], { charges: 2 }),
     action(136, 'Presence of Mind', ['WHM'], 120, []),
@@ -47,11 +46,8 @@ const burst = (job: string, opener: 'standard' | 'none' = 'standard') => {
 describe('burstUses', () => {
   it("has a scholar's Chain Stratagem on cooldown after the opener's, waiting out the downtime", () => {
     // The opener's at 6.2s; the next due at 126.2s, in the downtime: after
-    // their first GCD back (135.5s), its Baneful Impaction a GCD later.
-    expect(burst('SCH')).toEqual([
-      ['Chain Stratagem', 136_100],
-      ['Baneful Impaction', 138_600],
-    ]);
+    // their first GCD back (135.5s).
+    expect(burst('SCH')).toEqual([['Chain Stratagem', 136_100]]);
   });
 
   it("goes on past a completed wipe's wipe point, where they have no GCDs as played", () => {
@@ -77,42 +73,10 @@ describe('burstUses', () => {
     expect(placed(new Map([[2, 100_000]]))).toEqual([['Chain Stratagem', 136_100]]);
   });
 
-  it('places Baneful Impaction after the heals, in a slot they leave', () => {
-    // The heals took the weave slot a GCD after Chain Stratagem (138.6s): the next one.
-    const t = timeline('SCH');
-    const c = cat();
-    const opening = openingOf(t, c, t.players, { 2: 'standard' });
-    const weaving = Weaving.of(t, c, () => true);
-    const early = placeLightspeed(t, c, t.players, opening, weaving);
-    const heal = { player: 2, action: 3583, name: 'Indomitability', at: 138_600, target: null, covers: [] };
-    const late = burstUses(t, c, t.players, opening, weaving, [...opening.uses, ...early, heal]);
-
-    expect(late.map((u) => [u.name, u.at])).toEqual([['Baneful Impaction', 139_300]]);
-  });
-
-  it("never has a Baneful Impaction past Chain Stratagem's Impact Imminent", () => {
-    // No weave slot in the 30s after it (a downtime from 136.2s): none.
-    const t = timeline('SCH');
-    t.playerCasts = t.playerCasts.filter((cast) => cast.at < 136_000 || cast.at > 170_000);
-    t.downtime = [
-      { from: 115_000, to: 135_000 },
-      { from: 136_200, to: 170_000 },
-    ];
-    const c = cat();
-    const opening = openingOf(t, c, t.players, { 2: 'standard' });
-    const weaving = Weaving.of(t, c, () => true);
-    const early = placeLightspeed(t, c, t.players, opening, weaving);
-    const late = burstUses(t, c, t.players, opening, weaving, [...opening.uses, ...early]);
-
-    expect([...early, ...late].map((u) => [u.name, u.at])).toEqual([['Chain Stratagem', 136_100]]);
-  });
-
   it('starts it at the first GCD without an opener', () => {
     expect(burst('SCH', 'none')).toEqual([
       ['Chain Stratagem', 1_100],
       ['Chain Stratagem', 136_100],
-      ['Baneful Impaction', 4_400],
-      ['Baneful Impaction', 138_600],
     ]);
   });
 

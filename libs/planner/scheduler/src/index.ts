@@ -23,6 +23,7 @@ export { landedGcds } from './lib/weaving-rhythm';
 export { playerActions, pressedFirst } from './lib/tools';
 export { catalogAtLevel, pullLevel } from './lib/trait-levels';
 export { OPENERS, drainsWithStacks } from './lib/openers';
+export { FOLLOW_UPS } from './lib/burst-follow-ups';
 export type { OpenerId, OpenerPreset } from './lib/openers.model';
 export { ENABLERS } from './lib/enablers';
 export { attackSeverity, severityOf } from './lib/severity';

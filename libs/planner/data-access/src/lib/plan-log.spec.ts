@@ -110,6 +110,33 @@ describe('planLog', () => {
     ]);
   });
 
+  it("gives their usual attack in the slot of what their burst enabled that the plan's doesn't", () => {
+    const catalog = actionCatalog();
+    for (const a of catalog.actions) if (a.id === 9) a.gcd = true;
+    const scarlet = { ...catalog.actions.find((a) => a.id === 9)!, id: 36928, name: 'Scarlet Delirium' };
+    catalog.actions.push(scarlet);
+    const timeline = pullTimeline();
+    // Fast Blade at 30s and 32.5s; Scarlet Delirium, after their Delirium, at 35s and 37.5s: the plan kept the one at 37.5s
+    // (its Delirium moved) and dropped the one at 35s.
+    timeline.playerCasts = [30_000, 32_500, 35_000, 37_500].map((at) => ({
+      at,
+      source: 2,
+      target: null,
+      action: at < 35_000 ? 9 : 36928,
+      castMs: null,
+    }));
+    const kept = { ...plan.uses[0], player: 2, action: 36928, name: 'Scarlet Delirium', at: 37_500, burst: true };
+
+    const log = planLog({ ...plan, uses: [kept], replanned: [2] }, timeline, 2, catalog);
+
+    expect(log.filter((e) => e.kind === 'use').map((e) => e.kind === 'use' && [e.at, e.action, e.instead])).toEqual([
+      [30_000, 'Fast Blade', undefined],
+      [32_500, 'Fast Blade', undefined],
+      [35_000, 'Fast Blade', 'Scarlet Delirium'],
+      [37_500, 'Scarlet Delirium', undefined],
+    ]);
+  });
+
   it("keeps a replanned scholar's Energy Drains as played only where the plan's heals left the stacks", () => {
     const timeline = pullTimeline();
     // Energy Drains at 15s, 25s and 50s.

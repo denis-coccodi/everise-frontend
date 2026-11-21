@@ -1,5 +1,12 @@
 import { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
-import { drainsWithStacks, gcdCasts, withoutFollowUps, type Plan, type PlannedUse } from '@everise/planner/scheduler';
+import {
+  FOLLOW_UPS,
+  drainsWithStacks,
+  gcdCasts,
+  withoutFollowUps,
+  type Plan,
+  type PlannedUse,
+} from '@everise/planner/scheduler';
 import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
@@ -29,8 +36,9 @@ const ENERGY_DRAIN = 167;
 // columns show their whole rotation. A player planned as they played keeps
 // everything the plan doesn't list itself (their heals, buffs, attacks). A
 // replanned one keeps their attacks, but for the GCDs a planned one took the
-// slot of and a scholar's Energy Drains whose stacks the plan's heals took
-// (Baneful Impaction the plan places itself, after its Chain Stratagems); where they cast a GCD heal the plan has no use for, it's their
+// slot of, a scholar's Energy Drains whose stacks the plan's heals took, and
+// what their burst enabled that the plan's, moved, doesn't (their usual GCD in
+// its place); where they cast a GCD heal the plan has no use for, it's their
 // usual damage GCD instead; and their buffs and enablers as above.
 export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog) {
   if (!catalog) return [];
@@ -105,6 +113,18 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
       // their GCDs.
       if (gcd(c) ? slotTaken(c.at) : c.at <= openerEnd) return;
       if (c.action === ENERGY_DRAIN && !drains.has(c)) return;
+      // One their burst enabled that the plan's, moved, doesn't (it keeps those it does, `followUpUses`): their usual
+      // attack in its place; an oGCD (Oracle, Baneful Impaction) gives up its slot.
+      if (FOLLOW_UPS.has(c.action)) {
+        if (gcd(c) && filler && !FOLLOW_UPS.has(filler.id))
+          out.push({
+            ...entry(c, filler, 'Damage'),
+            attack: true,
+            instead: action?.name ?? names.get(c.action),
+            ...begun,
+          });
+        return;
+      }
       out.push({ ...entry(c, action, 'Damage'), attack: true, ...begun });
     } else if (action?.gcd && action.effects.length) {
       // A GCD heal of theirs the plan has no use for: damage there instead.

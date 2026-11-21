@@ -6,8 +6,12 @@ export interface BurstAction {
   everyMs?: number;
   // Placed before the heals and mitigations, not after: an astrologian's, their cards going by it.
   early?: boolean;
-  // What it enables, in the first weave slot a GCD after it while that lasts
-  // (`withinMs`): Chain Stratagem's Impact Imminent (30s) for Baneful
-  // Impaction, which can't be used without it.
-  then?: { action: number; withinMs: number };
+}
+
+// A cast a burst action enables, within `withinMs` of it (of the step before, `fromPrevious`: a combo, or what that
+// step grants): the first of `actions` the plan places, any of them the player's own (Impalement for Scarlet Delirium).
+export interface FollowUp {
+  actions: number[];
+  withinMs: number;
+  fromPrevious?: boolean;
 }
