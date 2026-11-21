@@ -1,4 +1,4 @@
-import { freedForHard, hardFirst, inPlanningOrder, withTheirGrants } from './hard-first';
+import { freedForHard, hardFirst, inPlanningOrder, withGranters } from './hard-first';
 import type { Mechanic, MitigationTool, Plan, PlannedUse } from './plan.model';
 
 // A plan whose hits at these mechanics are short (and with `dead` players dying).
@@ -89,20 +89,21 @@ describe('freedForHard', () => {
   });
 });
 
-describe('withTheirGrants', () => {
+describe('withGranters', () => {
   // Player 1's Neutral Sect (16559) and the Sun Sign (37031) it grants for 30s.
   const tools = [
     { player: 1, action: 16559 },
     { player: 1, action: 37031, grantedBy: { action: 16559, withinMs: 30_000, uses: 1 } },
   ] as unknown as MitigationTool[];
   const use = (action: number, at: number) => ({ player: 1, action, at, target: null, covers: [] }) as PlannedUse;
+  const neutralFreed = (u: PlannedUse) => u.action === 16559;
 
-  it('keeps a granted use with what granted it', () => {
-    const kept = [use(16559, 10_000), use(37031, 12_000)];
-    expect(withTheirGrants(tools, kept)).toEqual(kept);
+  it('keeps a freed use that granted one kept', () => {
+    const uses = [use(16559, 10_000), use(37031, 12_000)];
+    expect(withGranters(tools, uses, neutralFreed)).toEqual(uses);
   });
 
-  it('lets it go with what granted it, freed', () => {
-    expect(withTheirGrants(tools, [use(37031, 12_000), use(16559, 50_000)])).toEqual([use(16559, 50_000)]);
+  it('lets a freed one go where it granted none', () => {
+    expect(withGranters(tools, [use(16559, 10_000), use(37031, 50_000)], neutralFreed)).toEqual([use(37031, 50_000)]);
   });
 });

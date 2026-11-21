@@ -24,26 +24,27 @@ export const freedForHard =
     );
   };
 
-// The uses kept, but those another granted (`grantedBy`) that lost it, freed (`freedForHard`): a Sun Sign stayed with
-// its Neutral Sect placed again elsewhere, a Divine Caress without its Temperance, Accessions without Seraphism.
-export function withTheirGrants(tools: MitigationTool[], kept: PlannedUse[]): PlannedUse[] {
-  return kept.filter((u) => {
-    const g = tools.find((t) => t.player === u.player && t.action === u.action)?.grantedBy;
-    return (
-      !g ||
-      kept.some((o) => o.player === u.player && o.action === g.action && u.at >= o.at && u.at <= o.at + g.withinMs)
-    );
-  });
+// The uses not `freed`, and those freed that granted one of them (`grantedBy`): let go, a Neutral Sect placed again
+// elsewhere left its Sun Sign behind (Divine Caress its Temperance, Accessions their Seraphism). Letting both go instead,
+// a Dancing Mad kill planned twice as long, a hit short.
+export function withGranters(tools: MitigationTool[], uses: PlannedUse[], freed: (use: PlannedUse) => boolean) {
+  const granters = new Set(
+    uses.map((u) => {
+      const g = tools.find((t) => t.player === u.player && t.action === u.action)?.grantedBy;
+      return (
+        g &&
+        uses.find((o) => o.player === u.player && o.action === g.action && u.at >= o.at && u.at <= o.at + g.withinMs)
+      );
+    }),
+  );
+  return uses.filter((u) => granters.has(u) || !freed(u));
 }
 
-// An earlier plan's uses kept in a replan with `hard` mechanics first: but a pet's own (`AUTOMATIC`), those let go (`freedForHard`), and what they
-// granted with them (`withTheirGrants`).
+// An earlier plan's uses kept in a replan with `hard` mechanics first: but a pet's own (`AUTOMATIC`) and those let go
+// (`freedForHard`), unless what they granted stays (`withGranters`).
 export function keptForHard(tools: MitigationTool[], mechanics: Mechanic[], hard: Set<number>, uses: PlannedUse[]) {
-  const freed = freedForHard(tools, mechanics, hard);
-  return withTheirGrants(
-    tools,
-    uses.filter((u) => !AUTOMATIC.has(u.action) && !freed(u)),
-  );
+  const own = uses.filter((u) => !AUTOMATIC.has(u.action));
+  return withGranters(tools, own, freedForHard(tools, mechanics, hard));
 }
 
 // How many times the heals are planned again with more mechanics first.
