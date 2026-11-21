@@ -1,4 +1,5 @@
 import type { ActionCatalog, PullTimeline } from '@everise/core/api-types';
+import type { StingCast } from './addersting.model';
 
 // A sage's Addersting, as the trait has it: one stack when the barrier of their Eukrasian Diagnosis (on anyone) or of
 // their Eukrasian Prognosis (on themselves) is completely absorbed, up to 3; each Toxikon spends one. A barrier is
@@ -8,14 +9,6 @@ const DIAGNOSIS = [24291];
 const PROGNOSIS = [24292, 37034];
 export const TOXIKONS = new Set([24304, 24316]);
 const MAX_STINGS = 3;
-
-export interface StingCast {
-  action: number;
-  at: number;
-  target: number | null;
-  // The plan's own: a Toxikon of theirs as played gives way to them.
-  own: boolean;
-}
 
 // When each of the sage's barriers among `casts` breaks, giving a stack.
 export function stingsFrom(

@@ -1,4 +1,5 @@
 import { ActionCatalog, CatalogAction } from '@everise/core/api-types';
+import type { GaugeCast } from './tank-gauges.model';
 
 // A tank's gauge as their tooltips have it: a warrior's Beast Gauge, a dark knight's Blood Gauge, a gunbreaker's
 // Cartridges. Gained by combo bonuses ("Combo Bonus: Increases Beast Gauge by 20", "Adds a Cartridge"), only in a
@@ -22,13 +23,6 @@ const STACKS_MS = 15_000;
 const RELEASE_MS = 30_000;
 const BLOODFEST_MS = 30_000;
 const COMBO_MS = 30_000;
-
-export interface GaugeCast {
-  action: number;
-  at: number;
-  // The plan's own: it gets the gauge first.
-  own: boolean;
-}
 
 const text = (a: CatalogAction | undefined) => (a?.description ?? '').replace(/\n/g, ' | ');
 // The action a combo step follows ("Combo Action: Heavy Swing").

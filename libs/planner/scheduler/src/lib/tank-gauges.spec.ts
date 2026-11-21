@@ -1,5 +1,6 @@
 import { action, catalog } from './scheduler-fixtures';
-import { allPaid, gaugeAtPull, unpaidSpends, type GaugeCast } from './tank-gauges';
+import { allPaid, gaugeAtPull, unpaidSpends } from './tank-gauges';
+import type { GaugeCast } from './tank-gauges.model';
 
 // A warrior's and a gunbreaker's actions, with their tooltips' gauge lines.
 const cat = () => {

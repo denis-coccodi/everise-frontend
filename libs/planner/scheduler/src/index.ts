@@ -27,7 +27,7 @@ export { FOLLOW_UPS } from './lib/burst-follow-ups';
 export { SPENDER, allPaid, gaugeAtPull, hasTankGauge, unpaidSpends } from './lib/tank-gauges';
 export { TOXIKONS, stingsAtPull, stingsFrom, unpaidToxikons } from './lib/addersting';
 export { healPower } from './lib/heal-power';
-export type { GaugeCast } from './lib/tank-gauges';
+export type { GaugeCast } from './lib/tank-gauges.model';
 export type { OpenerId, OpenerPreset } from './lib/openers.model';
 export { ENABLERS } from './lib/enablers';
 export { attackSeverity, severityOf } from './lib/severity';

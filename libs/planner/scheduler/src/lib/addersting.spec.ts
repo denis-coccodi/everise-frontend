@@ -1,5 +1,6 @@
 import { action, catalog, pull } from './scheduler-fixtures';
-import { stingsAtPull, stingsFrom, unpaidToxikons, type StingCast } from './addersting';
+import { stingsAtPull, stingsFrom, unpaidToxikons } from './addersting';
+import type { StingCast } from './addersting.model';
 
 // A sage (2) and a tank (1); the tank takes 30,000 at 10s and 20,000 at 20s, the sage 5,000 at 15s.
 const timeline = () => {
