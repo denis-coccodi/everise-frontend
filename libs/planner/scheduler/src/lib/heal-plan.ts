@@ -5,7 +5,7 @@ import { ROLE_HEALS } from './role-heals';
 import { readHoroscope } from './horoscope-read';
 import { projected, pullFacts, reaches } from './coverage';
 import { AutoDamage } from './auto-damage';
-import { delayedEvents, releaseOf } from './delayed-heals';
+import { delayedEvents, releaseOf, soonerRelease } from './delayed-heals';
 import { HealingBuffs } from './healing-buffs';
 import {
   NO_ROOM_MS,
@@ -259,10 +259,11 @@ export function planHeals(
             tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
           // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
           const waits = (t: HealTool) => !firstNeed && !first.has(m.id) && waitsForBiggerNeed(t, m, mechanics, needOf);
-          const pick = full
+          const found = full
             ? among(planned.filter((t) => refills(m.id, t)))
             : (among(planned.filter((t) => !waits(t))) ?? among(planned));
-          if (!pick) break;
+          if (!found) break;
+          const pick = soonerRelease(found, plan.mechanics, eventsFor); // Microcosmos pressed once the raidwide is in.
           track.add(healOnly(pick.events));
           uses.push(pick.use);
           boosts.add(pick.use);
