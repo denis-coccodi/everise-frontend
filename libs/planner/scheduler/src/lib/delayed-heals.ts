@@ -3,6 +3,7 @@ import { HpTrack } from './hp-track';
 import { HealTool, Mechanic, PlannedUse, ShieldSize } from './plan.model';
 import type { HpEvent } from './hp-track.model';
 import type { Candidate, Spent } from './heal-plan.model';
+import { reachable } from './solo-phases';
 
 // The HP a use of a heal tool restores, and when, as the pull goes on:
 // - a triggered heal (Excogitation) when its target first drops to its
@@ -54,7 +55,8 @@ export function delayedEvents(
       .filter((e) => e.amount > 0);
     if (perHit) {
       for (const at of used(use.player)) {
-        for (const player of party) events.push({ at, player, amount: sizeOf(perHit, player, maxHp) });
+        for (const player of party.filter((p) => reachable(tool.alone, use.player, use.at, p)))
+          events.push({ at, player, amount: sizeOf(perHit, player, maxHp) });
       }
     }
     return events;
