@@ -23,8 +23,8 @@ export function refillsOf(timeline: PullTimeline, scholar: number): number[] {
 // Excogitation and Sacred Soil.
 export const STACK_SPENDS = new Set([167, 189, 3583, 7434, 188]);
 // Recitation makes the next of these spend none.
-const RECITATION = 16542;
-const RECITED = new Set([185, 37013, 3583, 7434]);
+export const RECITATION = 16542;
+export const RECITED = new Set([185, 37013, 3583, 7434]);
 // The Faerie Gauge a stack spent gives, of the 50 a Fey Union takes.
 const STACKS_A_UNION = 5;
 // Past a completed wipe's wipe point, where nobody played, their stacks
