@@ -26,7 +26,8 @@ const COMBO_MS = 30_000;
 
 const text = (a: CatalogAction | undefined) => (a?.description ?? '').replace(/\n/g, ' | ');
 // The action a combo step follows ("Combo Action: Heavy Swing").
-const comboOf = (a: CatalogAction | undefined) => /combo action: ([^|]+?)\s*(?:\||$)/i.exec(text(a))?.[1].split(' or ');
+export const comboOf = (a: CatalogAction | undefined) =>
+  /combo action: ([^|]+?)\s*(?:\||$)/i.exec(text(a))?.[1].split(' or ');
 
 // Whether a job has a gauge here.
 export const hasTankGauge = (job: string) => job in RULES;

@@ -11,6 +11,7 @@ import { dealsDamage, onlyDamage, whatItDoes } from './action-kinds';
 import { effectsText } from './effect-text';
 import type { PlanUseEntry } from './plan-log.model';
 import { countdownStart } from './pull-time';
+import { withCombosKept } from './plan-combos';
 import { withGaugePaid } from './plan-gauges';
 import { withStingsPaid } from './plan-stings';
 
@@ -162,7 +163,8 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const paid = withGaugePaid(job, out, mine, casts, catalog, filler);
   const shown = job === 'SGE' ? withStingsPaid(timeline, playerId, paid, mine, casts, catalog, filler) : paid;
   const withheld = (plan.withheld ?? []).filter((w) => w.player === playerId);
-  return withheld.length ? withoutWithheld(shown, withheld, byId, filler) : shown;
+  const kept = withheld.length ? withoutWithheld(shown, withheld, byId, filler) : shown;
+  return withCombosKept(kept, mine, casts, byId, filler);
 }
 
 // What the plan withholds (`withLegalCasts`): their usual attack in a GCD's slot, an oGCD gone.
