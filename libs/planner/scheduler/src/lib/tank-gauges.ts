@@ -17,6 +17,9 @@ const BLOODFEST_MAX = 6;
 const INNER_RELEASE = 7389;
 const FREE_IN_RELEASE = new Set([3549, 3550]); // Fell Cleave, Decimate
 const DELIRIUM = 7390;
+// Below level 96 (no Scarlet Delirium yet), Delirium makes the next 3 Bloodspillers or Quietuses free instead.
+const SCARLET_DELIRIUM = 36928;
+const FREE_IN_DELIRIUM = [7392, 7391]; // Bloodspiller, Quietus
 const STACKS = 3;
 const STACKS_MS = 15_000;
 // Inner Release's stacks: its tooltip's 15s is Inner Strength's; the logs' warriors press their third free Fell Cleave up to RELEASE_MS on.
@@ -99,6 +102,7 @@ function paid(
   let bloodfestUntil = -Infinity;
   let release = { left: 0, until: -Infinity };
   let bloodWeapon = { left: 0, until: -Infinity };
+  let freed = { actions: [] as number[], left: 0, until: -Infinity };
   const last = new Map<string, { name: string; at: number }>();
   for (const c of casts) {
     if (!kept(c)) continue;
@@ -113,6 +117,7 @@ function paid(
     }
     if (c.action === INNER_RELEASE) release = { left: STACKS, until: c.at + RELEASE_MS };
     if (c.action === DELIRIUM) bloodWeapon = { left: STACKS, until: c.at + STACKS_MS };
+    if (a.frees) freed = { actions: a.frees, left: STACKS, until: c.at + STACKS_MS };
     if (!a.gcd) continue;
     if (bloodWeapon.left && c.at <= bloodWeapon.until) {
       bloodWeapon.left--;
@@ -127,6 +132,9 @@ function paid(
     let n = a.cost;
     if (FREE_IN_RELEASE.has(c.action) && release.left && c.at <= release.until) {
       release.left--;
+      n = 0;
+    } else if (freed.actions.includes(c.action) && freed.left && c.at <= freed.until) {
+      freed.left--;
       n = 0;
     }
     if (n > level) {
@@ -148,6 +156,8 @@ interface GaugeFacts {
   chain: string;
   gain: number | null;
   cost: number | null;
+  // The spends it makes free for its stacks (Delirium's Bloodspillers below level 96).
+  frees?: number[];
 }
 const FACTS = new WeakMap<ActionCatalog, Map<string, Map<number, GaugeFacts>>>();
 function factsOf(job: string, catalog: ActionCatalog): Map<number, GaugeFacts> {
@@ -168,6 +178,9 @@ function factsOf(job: string, catalog: ActionCatalog): Map<number, GaugeFacts> {
         chain: chains.get(a.name) ?? a.name,
         gain: gain ? +gain[1] || 1 : null,
         cost: cost ? +cost[1] : null,
+        ...(a.id === DELIRIUM && !catalog.actions.some((x) => x.id === SCARLET_DELIRIUM)
+          ? { frees: FREE_IN_DELIRIUM }
+          : {}),
       };
       return [a.id, fact] as const;
     }),

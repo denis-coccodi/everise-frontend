@@ -158,7 +158,9 @@ export class PullPlanner {
     // Where each player can act: their GCDs as played, and the oGCDs they used that the plan doesn't schedule, and
     // their opener's steps (but the Energy Drains, which a heal can take the stacks of). A replanned player's raid
     // buffs and burst go on cooldown after the opener, in the slots the heals and mitigations leave.
-    const sages = replannedPlayers.filter((p) => p.job === 'SGE');
+    // A sage's Rhizomata where the pull's level has it (74).
+    const hasRhizomata = catalog.actions.some((a) => a.id === RHIZOMATA);
+    const sages = replannedPlayers.filter((p) => p.job === 'SGE' && hasRhizomata);
     const bursts = [
       ...replannedPlayers.flatMap((p) => burstActions(p.job ?? '').map((action) => ({ player: p.id, action }))),
       ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),

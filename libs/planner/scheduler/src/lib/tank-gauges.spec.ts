@@ -69,6 +69,28 @@ describe('spendsShort', () => {
   });
 });
 
+describe("a dark knight's Delirium", () => {
+  const drk = (scarlet: boolean) => {
+    const c = cat();
+    c.actions.push(
+      action(7390, 'Delirium', ['DRK'], 60, [], { description: 'Grants 3 stacks of Delirium and Blood Weapon.' }),
+      action(7392, 'Bloodspiller', ['DRK'], 2.5, [], { gcd: true, description: 'Blood Gauge Cost: 50' }),
+      ...(scarlet ? [action(36928, 'Scarlet Delirium', ['DRK'], 2.5, [], { gcd: true })] : []),
+    );
+    return c;
+  };
+  // Delirium, then 3 Bloodspillers with nothing in the gauge: its Blood Weapon's 10 for each pays for none.
+  const casts = [cast(7390, 1_000), cast(7392, 3_000), cast(7392, 5_500), cast(7392, 8_000)];
+
+  it('makes the next 3 Bloodspillers free below level 96, with no Scarlet Delirium yet', () => {
+    expect(spendsShort('DRK', casts, drk(false), 0)).toEqual([]);
+  });
+
+  it('frees none once Scarlet Delirium takes their place', () => {
+    expect(spendsShort('DRK', casts, drk(true), 0).map((c) => c.at)).toEqual([3_000, 5_500, 8_000]);
+  });
+});
+
 describe('gaugeAtPull', () => {
   it('gives what their casts as played needed at the pull', () => {
     expect(gaugeAtPull('WAR', [cast(3549, 1_000)], cat())).toBe(50);

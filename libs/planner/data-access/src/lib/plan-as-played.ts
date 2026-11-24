@@ -1,8 +1,10 @@
 import { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
 import {
   FOLLOW_UPS,
+  catalogAtLevel,
   drainsWithStacks,
   gcdCasts,
+  pullLevel,
   withoutFollowUps,
   type Plan,
   type PlannedUse,
@@ -45,8 +47,10 @@ const ENERGY_DRAIN = 167;
 // what their burst enabled that the plan's, moved, doesn't (their usual GCD in
 // its place); where they cast a GCD heal the plan has no use for, it's their
 // usual damage GCD instead; and their buffs and enablers as above.
-export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog) {
-  if (!catalog) return [];
+export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, full?: ActionCatalog) {
+  if (!full) return [];
+  // The actions as the pull's level has them (a level-90 Delirium frees Bloodspillers).
+  const catalog = catalogAtLevel(full, pullLevel(timeline));
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
   const names = new Map(timeline.actions.map((a) => [a.id, a.name]));
   const mine = plan.uses.filter((u) => u.player === playerId);

@@ -9,6 +9,9 @@ const MS = 1_000;
 // A GCD of the plan's this close to one of theirs took its slot.
 const SAME_SLOT_MS = 600;
 const DELIRIUM_IMPALEMENT = 36931;
+const SCARLET_DELIRIUM = 36928;
+const BLOODSPILLER = 7392;
+const QUIETUS = 7391;
 const FELL_CLEAVE = 3549;
 const DECIMATE = 3550;
 const PRIMAL_WRATH = 36924;
@@ -16,7 +19,8 @@ const PRIMAL_WRATH = 36924;
 // Stratagem's Impact Imminent (30s) Baneful Impaction; Divination's Divining (30s) Oracle; Presence of Mind's 3
 // Sacred Sight (30s) a Glare IV each; Fight or Flight's Goring Blade Ready (30s); No Mercy's Ready to Break (30s)
 // Sonic Break; Bloodfest's Ready to Reign (30s) Reign of Beasts, then its combo (Noble Blood, Lion Heart); Delirium's
-// 3 stacks (15s) Scarlet Delirium, Comeuppance and Torcleaver, or Impalement for any; Inner Release's 3 stacks
+// 3 stacks (15s) Scarlet Delirium, Comeuppance and Torcleaver, or Impalement for any (below level 96, before Scarlet
+// Delirium, a free Bloodspiller or Quietus each); Inner Release's 3 stacks
 // (15s) a free Fell Cleave or Decimate each (Wrathful after them for Primal Wrath), its Primal Rend Ready (30s), then
 // the Primal Ruination Ready (20s) that grants; Infuriate's Nascent Chaos (30s) Inner Chaos, or Chaotic Cyclone.
 export const FOLLOW_UPS_OF: Record<number, FollowUp[]> = {
@@ -30,7 +34,16 @@ export const FOLLOW_UPS_OF: Record<number, FollowUp[]> = {
     { actions: [36938], withinMs: 30 * MS, fromPrevious: true },
     { actions: [36939], withinMs: 30 * MS, fromPrevious: true },
   ],
-  7390: [36928, 36929, 36930].map((a) => ({ actions: [a, DELIRIUM_IMPALEMENT], withinMs: 15 * MS })),
+  7390: [
+    ...[36928, 36929, 36930].map((a) => ({ actions: [a, DELIRIUM_IMPALEMENT], withinMs: 15 * MS })),
+    ...[1, 2, 3].map(() => ({
+      actions: [BLOODSPILLER, QUIETUS],
+      withinMs: 15 * MS,
+      paid: true,
+      alone: true,
+      unlessLearnt: SCARLET_DELIRIUM,
+    })),
+  ],
   7389: [
     { actions: [25753], withinMs: 30 * MS, alone: true },
     { actions: [36925], withinMs: 20 * MS, fromPrevious: true },
@@ -99,6 +112,7 @@ export function followUpUses(
         // Whether the step before is in the plan: one not `alone` needs it.
         let before = true;
         for (const step of steps) {
+          if (step.unlessLearnt && byId.has(step.unlessLearnt)) continue;
           if (!step.alone && !before) continue;
           before = false;
           const end = (step.fromPrevious ? from : buff) + step.withinMs;

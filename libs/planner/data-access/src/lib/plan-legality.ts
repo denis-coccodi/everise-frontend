@@ -45,8 +45,11 @@ export const replannedIn = (plan: Plan, timeline: PullTimeline) =>
 // What judges a replanned player's column of a plan of the pull (`planLegality`), what stays the same made once: the
 // casts kept as played (`played`, as it returns them) can be given, where only the plan's own moved.
 export function legalityJudge(timeline: PullTimeline, full: ActionCatalog) {
-  const catalog = catalogAtLevel(full, pullLevel(timeline));
+  const level = pullLevel(timeline);
+  const catalog = catalogAtLevel(full, level);
   const byId = new Map(catalog.actions.map((a) => [a.id, a]));
+  // An action not learnt yet at the pull's level (Scarlet Delirium at 90).
+  const unlearnt = new Map(full.actions.filter((a) => !byId.has(a.id)).map((a) => [a.id, a]));
   const power = healPower(timeline, catalog);
   const ofPlayer = new Map<number, ReturnType<typeof playerRules>>();
   const rulesOf = (id: number) => {
@@ -60,7 +63,7 @@ export function legalityJudge(timeline: PullTimeline, full: ActionCatalog) {
     const { job, mine, log, check, logLacking } = rulesOf(id);
     const kept = played ?? playedColumn(plan, timeline, id, catalog, mine);
     const column = [...ownColumn(plan, id, mine), ...kept].sort((a, b) => a.at - b.at);
-    const lacking = check(column);
+    const lacking = [...check(column), ...notLearnt(column, unlearnt, level)];
     if (job === 'SGE') lacking.push(...stingsShort(plan, timeline, catalog, id, power.get(id) ?? 0, column, log));
     const named = (l: Lacking): ImpossibleCast => ({ ...l.cast, player: id, rule: l.rule, needs: l.needs });
     // A cast kept as played that fails as the log's own does is the rules' blind spot (a recast a proc reset), not
@@ -138,6 +141,14 @@ function byNameOf(mine: CatalogAction[]) {
   BY_NAME.set(mine, byName);
   for (const a of [...mine].sort((x, y) => Number(!!x.description) - Number(!!y.description))) byName.set(a.name, a.id);
   return byName;
+}
+
+// Each cast of an action the pull's level doesn't have.
+function notLearnt(casts: LegalityCast[], unlearnt: Map<number, CatalogAction>, level: number): Lacking[] {
+  return casts.flatMap((cast) => {
+    const action = unlearnt.get(cast.action);
+    return action ? [{ cast, rule: 'level' as const, needs: `level ${action.level} (the pull is at ${level})` }] : [];
+  });
 }
 
 const BY_NAME = new WeakMap<CatalogAction[], Map<string, number>>();
