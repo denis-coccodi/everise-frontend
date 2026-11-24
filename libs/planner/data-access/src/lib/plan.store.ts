@@ -8,6 +8,7 @@ import { INITIAL_PLAN_STATE, type FailedMechanics, type PlanPlayer, type PlanSta
 import { refinePlans, refines } from './plan-refine';
 import { progressOf } from './plan-progress';
 import { plannedSideBySide } from './plan-side-by-side';
+import { withLegalCasts } from './plan-legal-casts';
 import { characterKey, saveReplan, storedReplan } from './plan-replan';
 
 // Whether two plans have the same uses and hits.
@@ -80,15 +81,17 @@ export const PlanStore = signalStore(
           const sideBySide = strategy === STRATEGIES[0] && !repairDeaths;
           const made = (key: string, own: { edits?: PlanEdits }) => {
             const way = { ...asked, ...own };
+            // Nothing in it a player couldn't press (`withLegalCasts`).
+            const legal = (plan: Promise<Plan>) => plan.then((p) => withLegalCasts(p, timeline, catalog));
             return progress.track(key, (report) =>
               sideBySide
                 ? plannedSideBySide(
                     way,
-                    (o, hear, signal) => pool.plan(timeline, catalog, o, hear, signal),
+                    (o, hear, signal) => legal(pool.plan(timeline, catalog, o, hear, signal)),
                     (a, b) => betterPlan(a, b, maxHp, way),
                     report,
                   )
-                : pool.plan(timeline, catalog, way, report),
+                : legal(pool.plan(timeline, catalog, way, report)),
             );
           };
           const [plan, base] = await Promise.all([

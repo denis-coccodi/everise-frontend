@@ -24,7 +24,7 @@ export { playerActions, pressedFirst } from './lib/tools';
 export { catalogAtLevel, pullLevel } from './lib/trait-levels';
 export { OPENERS, drainsWithStacks } from './lib/openers';
 export { FOLLOW_UPS } from './lib/burst-follow-ups';
-export { SPENDER, allPaid, gaugeAtPull, hasTankGauge, unpaidSpends } from './lib/tank-gauges';
+export { SPENDER, allPaid, gaugeAtPull, hasTankGauge, spendsShort, unpaidSpends } from './lib/tank-gauges';
 export { TOXIKONS, stingsAtPull, stingsFrom, unpaidToxikons } from './lib/addersting';
 export { healPower } from './lib/heal-power';
 export { AETHERFLOW, DISSIPATION, RECITATION, RECITED, STACK_SPENDS } from './lib/aetherflow';

@@ -1,5 +1,5 @@
 import { action, catalog } from './scheduler-fixtures';
-import { allPaid, gaugeAtPull, unpaidSpends } from './tank-gauges';
+import { allPaid, gaugeAtPull, spendsShort, unpaidSpends } from './tank-gauges';
 import type { GaugeCast } from './tank-gauges.model';
 
 // A warrior's and a gunbreaker's actions, with their tooltips' gauge lines.
@@ -57,6 +57,15 @@ describe('unpaidSpends', () => {
   it("pays a gunbreaker's Double Down from Bloodfest's three Cartridges", () => {
     const casts = [cast(16164, 1_000), cast(25760, 3_000), cast(25760, 6_000)];
     expect(unpaidAt('GNB', casts)).toEqual([6_000]);
+  });
+});
+
+describe('spendsShort', () => {
+  it('judges the casts as they stand: each spend the gauge has nothing for then, the gauge going on without it', () => {
+    // Infuriate's 50 pays the Fell Cleave at 5s, leaving nothing for the Inner Chaos at 10s; Infuriate again pays the
+    // one at 20s.
+    const casts = [cast(52, 1_000), cast(3549, 5_000), cast(16465, 10_000), cast(52, 15_000), cast(3549, 20_000)];
+    expect(spendsShort('WAR', casts, cat(), 0).map((c) => c.at)).toEqual([10_000]);
   });
 });
 

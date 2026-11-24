@@ -339,6 +339,9 @@ export interface Plan {
   late?: number[];
   // The deaths the plan couldn't prevent, and their raises (`withDeaths`).
   deaths?: PlannedDeath[];
+  // Casts of a replanned player's kept as played that the plan leaves them unable to press (a Fell Cleave whose gauge
+  // went elsewhere): not shown, their usual attack in a GCD's slot (`withLegalCasts`).
+  withheld?: { player: number; action: number; at: number }[];
 }
 
 // A player's HP with the plan: what it is after each change, in time order.
