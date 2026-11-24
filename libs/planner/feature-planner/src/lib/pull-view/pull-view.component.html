@@ -4,16 +4,20 @@
     <ul cdtTabs aria-label="Players" class="players">
       @for (p of players(); track p.id) {
         <li class="player">
-          <cdt-tooltip
-            text="Ticked, the plan places their mitigations and heals. Unticked, they stay as they were played."
-          >
-            <cdt-checkbox
-              class="replan"
-              [checked]="plans.replan().includes(p.id)"
-              (checkedChange)="plans.setReplanned(p.id, $event)"
-              ><span class="visually-hidden">Replan {{ p.name }}</span></cdt-checkbox
+          @if (plans.replannable(p.job)) {
+            <cdt-tooltip
+              text="Ticked, the plan places their mitigations and heals. Unticked, they stay as they were played."
             >
-          </cdt-tooltip>
+              <cdt-checkbox
+                class="replan"
+                [checked]="plans.replan().includes(p.id)"
+                (checkedChange)="plans.setReplanned(p.id, $event)"
+                ><span class="visually-hidden">Replan {{ p.name }}</span></cdt-checkbox
+              >
+            </cdt-tooltip>
+          } @else {
+            <span class="no-tick" aria-hidden="true"></span>
+          }
           <button type="button" cdtTab [active]="player()?.id === p.id" (click)="choose(p.id)">
             {{ p.job ?? 'Unknown job' }} {{ p.name }}
           </button>

@@ -13,6 +13,7 @@ export { deathsText } from './lib/plan-deaths-text';
 export { hpCurves, lowest, lowestPerBucket, shareAt } from './lib/hp-curves';
 export type { HpCurve, HpMark, HpPoint } from './lib/hp-curves.model';
 export { PlanStore } from './lib/plan.store';
+export { replannable } from './lib/replannable';
 export { DEFAULT_MARGIN, MARGIN_RANGE } from './lib/plan.model';
 export type { FailedMechanics, PlanPlayer } from './lib/plan.model';
 export type { PlanEntry, PlanHitEntry, PlanUseEntry } from './lib/plan-log.model';

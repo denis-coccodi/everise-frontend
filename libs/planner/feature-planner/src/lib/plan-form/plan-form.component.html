@@ -50,17 +50,17 @@
 }
 <div class="shortcuts">
   <span class="label">Replan</span>
-  <button cdtButton="chip" type="button" (click)="replanEveryone()">Everyone</button>
+  <button cdtButton="chip" type="button" (click)="replanTanksAndHealers()">Tanks and healers</button>
   <button cdtButton="chip" type="button" (click)="plans.replanOnly([])">Nobody</button>
 </div>
 <p class="scope">
   Plans the mitigations, shields and invulnerabilities of the players ticked on their tabs, the biggest hits first, then
   their heals: first so that no hit takes anyone below the margin, then to refill everyone to full before each mechanic
   with what that leaves, as healers do. GCD heals go only where nothing else will do, or to a healer with MP to spare.
-  Everyone else's actions stay as they were played.
+  Everyone else's actions stay as they were played; only tanks and healers can be ticked, for now.
 </p>
 <cdt-message [tone]="plans.replan().length ? 'status' : 'warning'">{{
-  plans.replan().length ? summary() : 'Tick who to replan on their tab, or replan everyone.'
+  plans.replan().length ? summary() : 'Tick the tanks and healers to replan on their tabs, or replan them all.'
 }}</cdt-message>
 <cdt-message tone="error">{{ plans.error() }}</cdt-message>
 <cdt-planner-plan-export />

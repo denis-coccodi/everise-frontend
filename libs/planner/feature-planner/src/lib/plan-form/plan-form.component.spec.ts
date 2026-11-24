@@ -58,7 +58,7 @@ describe('PlanFormComponent', () => {
     const rendered = await openPlan();
 
     expect(submit(rendered.page)?.disabled).toBe(true);
-    expect(warning(rendered.page)).toBe('Tick who to replan on their tab, or replan everyone.');
+    expect(warning(rendered.page)).toBe('Tick the tanks and healers to replan on their tabs, or replan them all.');
 
     click(rendered, replanTick(rendered.page, 'Tank Main'));
 
@@ -66,7 +66,7 @@ describe('PlanFormComponent', () => {
     expect(warning(rendered.page)).toBeUndefined();
     expect(replanTick(rendered.page, 'Heal Main').checked).toBe(false);
 
-    click(rendered, formButton(rendered.page, 'Everyone'));
+    click(rendered, formButton(rendered.page, 'Tanks and healers'));
     expect(replanTick(rendered.page, 'Heal Main').checked).toBe(true);
     click(rendered, formButton(rendered.page, 'Nobody'));
     expect(replanTick(rendered.page, 'Tank Main').checked).toBe(false);
@@ -120,7 +120,7 @@ describe('PlanFormComponent', () => {
   it('refuses a margin out of range', async () => {
     const rendered = await openPlan();
     const input = rendered.page.querySelector<HTMLInputElement>('#planner-margin') as HTMLInputElement;
-    click(rendered, formButton(rendered.page, 'Everyone'));
+    click(rendered, formButton(rendered.page, 'Tanks and healers'));
 
     input.value = '80';
     input.dispatchEvent(new Event('input'));

@@ -1,7 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormField, FormRoot, form, max, min, required } from '@angular/forms/signals';
 import { InputErrorsComponent } from '@everise/core/forms';
-import { MARGIN_RANGE, PlanStore, PlannerStore, deathsText, pullClock, unsafeHits } from '@everise/planner/data-access';
+import {
+  MARGIN_RANGE,
+  PlanStore,
+  PlannerStore,
+  deathsText,
+  pullClock,
+  replannable,
+  unsafeHits,
+} from '@everise/planner/data-access';
 import {
   ButtonComponent,
   FieldComponent,
@@ -45,8 +53,14 @@ export class PlanFormComponent {
     { submission: { action: async () => this.run() } },
   );
 
-  private readonly playerIds = computed(() =>
-    this.store.pull.hasValue() ? this.store.pull.value().players.map((p) => p.id) : [],
+  // The players with a tick: tanks and healers, for now.
+  private readonly tickable = computed(() =>
+    this.store.pull.hasValue()
+      ? this.store.pull
+          .value()
+          .players.filter((p) => replannable(p.job))
+          .map((p) => p.id)
+      : [],
   );
   // The plan, when it's for the pull open.
   protected readonly current = computed(() => (this.plans.pullId() === this.store.pullId() ? this.plans.plan() : null));
@@ -148,8 +162,8 @@ export class PlanFormComponent {
     this.store.setCompleteWipe(value === 'whole');
   }
 
-  protected replanEveryone() {
-    this.plans.replanOnly(this.playerIds());
+  protected replanTanksAndHealers() {
+    this.plans.replanOnly(this.tickable());
   }
 
   private async run() {

@@ -16,6 +16,12 @@
   align-items: center;
 }
 
+// The tick's room on a tab without one (a damage dealer's, for now), so the names line up where the tabs stack.
+.no-tick {
+  flex: none;
+  width: 1.8rem;
+}
+
 // The phone and tablet: the player's part of planning shows on the plan's
 // tab only.
 cdt-planner-plan-view {
