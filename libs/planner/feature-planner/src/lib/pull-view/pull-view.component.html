@@ -15,6 +15,8 @@
                 ><span class="visually-hidden">Replan {{ p.name }}</span></cdt-checkbox
               >
             </cdt-tooltip>
+          } @else {
+            <span class="no-tick" aria-hidden="true"></span>
           }
           <button type="button" cdtTab [active]="player()?.id === p.id" (click)="choose(p.id)">
             {{ p.job ?? 'Unknown job' }} {{ p.name }}
