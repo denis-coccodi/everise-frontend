@@ -49,13 +49,21 @@ function cached<T>(store: WeakMap<CatalogAction[], Map<string, T>>, mine: Catalo
   return known.get(key) as T;
 }
 
+// The action an upgrade replaces below its level, where a tooltip names the upgrade: Blazing Shot cuts Double Check
+// and Checkmate (level 92), which are Gauss Round and Ricochet below 92.
+const BEFORE_UPGRADE: Record<string, string> = { 'Double Check': 'Gauss Round', Checkmate: 'Ricochet' };
+
 function cutsOf(action: CatalogAction, mine: CatalogAction[]): { group: number; ms: number }[] {
+  const said = (action.description ?? '').matchAll(
+    /reduces the recast time of (?:both )?([A-Z][\w' ]*?)(?: and ([A-Z][\w' ]*?))? by (\d+)(?:s\b| seconds)/gi,
+  );
   const cuts = [
-    ...[...(action.description ?? '').matchAll(/reduces the recast time of ([A-Z][\w' ]*?) by (\d+) seconds/gi)],
+    ...[...said].flatMap(([, first, second, seconds]) => [first, second].filter(Boolean).map((n) => ['', n, seconds])),
     ...(TRAIT_CUTS[action.id] ?? []),
   ];
   return cuts.flatMap(([, name, seconds]) => {
-    const target = mine.find((a) => a.name === name && recastMsOf(a));
+    const named = (n: string | undefined) => mine.find((a) => a.name === n && recastMsOf(a));
+    const target = named(name) ?? named(BEFORE_UPGRADE[name]);
     return target ? [{ group: target.cooldownGroup, ms: +seconds * 1000 }] : [];
   });
 }
@@ -131,11 +139,24 @@ function grantWindow(granter: CatalogAction, need: string): number | null {
   return duration ? +duration[1] * 1000 : GRANT_MS;
 }
 
+// A black mage's Astral Fire and Umbral Ice have no timer (since 7.0): each lasts until a cast grants the other
+// ("Grants Umbral Ice III and removes Astral Fire"), and Transpose swaps them.
+const ELEMENTS = ['astral fire', 'umbral ice'] as const;
+type Element = (typeof ELEMENTS)[number];
+const TRANSPOSE = 149;
+function elementAfter(action: CatalogAction, element: Element | null): Element | null {
+  if (action.id === TRANSPOSE) return element && (element === 'astral fire' ? 'umbral ice' : 'astral fire');
+  const text = (action.description ?? '').toLowerCase();
+  return ELEMENTS.find((e) => text.includes('grants ' + e)) ?? element;
+}
+
 // Each cast whose tooltip says it can only be executed under a status no cast of the column granted in time, and each
 // Afflatus Misery without 3 lilies spent since the last.
 export function enablersMissing(casts: LegalityCast[], mine: CatalogAction[], byId: Map<number, CatalogAction>) {
   const out: Lacking[] = [];
   let lilies = BLOOM;
+  // A black mage's element: unknown (anything goes) until a cast grants one.
+  let element: Element | null = null;
   for (const cast of casts) {
     const action = byId.get(cast.action);
     if (!action) continue;
@@ -146,7 +167,13 @@ export function enablersMissing(casts: LegalityCast[], mine: CatalogAction[], by
       continue;
     }
     const need = needOf(action);
+    const was = element;
+    element = elementAfter(action, element);
     if (!need) continue;
+    if (ELEMENTS.some((e) => need.includes(e))) {
+      if (was && !need.includes(was)) out.push({ cast, rule: 'enabler', needs: need });
+      continue;
+    }
     const granters = cached(GRANTERS, mine, action.id + ':' + need, () =>
       mine
         .filter((g) => g.id !== action.id)
