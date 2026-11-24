@@ -22,4 +22,6 @@ export interface FollowUp {
   paid?: boolean;
   // One whose step the next doesn't need: missing, the chain goes on.
   alone?: boolean;
+  // Only where the pull's level hasn't this action yet (a level-90 Delirium's free Bloodspillers, before Scarlet Delirium).
+  unlessLearnt?: number;
 }

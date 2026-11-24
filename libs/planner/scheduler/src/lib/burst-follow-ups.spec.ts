@@ -68,6 +68,26 @@ describe('followUpUses', () => {
     expect(follow(timeline('SCH'), [buff(7436, 51_100)])).toEqual([['Baneful Impaction', 51_800]]);
   });
 
+  it("has a dark knight's 3 free Bloodspillers after the plan's Delirium below level 96, theirs where in time", () => {
+    // No Scarlet Delirium yet; theirs at 53s, the others in their next GCDs.
+    const t = timeline('DRK', { 53_000: 7392 });
+    const c = cat();
+    c.actions = c.actions.filter((a) => ![36928, 36929, 36930, 36931].includes(a.id));
+    c.actions.push(action(7392, 'Bloodspiller', ['DRK'], 2.5, [], { gcd: true }));
+    const uses = followUpUses(
+      t,
+      c,
+      t.players,
+      Weaving.of(t, c, () => true),
+      [buff(7390, 51_100)],
+    );
+    expect(uses.map((u) => [u.name, u.at])).toEqual([
+      ['Bloodspiller', 53_000],
+      ['Bloodspiller', 55_500],
+      ['Bloodspiller', 58_000],
+    ]);
+  });
+
   it("keeps the Delirium combo where they played it, if it's in the plan's Delirium", () => {
     // Delirium at 51.1s; they played the combo in its 15s (53s, 55.5s, 58s).
     const t = timeline('DRK', { 53_000: 36928, 55_500: 36929, 58_000: 36930 });

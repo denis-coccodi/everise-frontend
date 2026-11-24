@@ -6,12 +6,19 @@ export function pullLevel(timeline: PullTimeline): number {
   return Math.min(100, ...timeline.players.flatMap((p) => (p.stats ? [p.stats.level] : [])));
 }
 
-// The catalog at a level: each action without the traits above it (Troubadour
-// at 90: 10% where the level-100 tooltip says 15%; Essential Dignity at 90:
-// 2 charges).
+// The catalog at a level: the actions learnt by then (no Scarlet Delirium at 90), each without the traits above it
+// (Troubadour at 90: 10% where the level-100 tooltip says 15%; Essential Dignity at 90: 2 charges). Made once for each.
 export function catalogAtLevel(catalog: ActionCatalog, level: number): ActionCatalog {
-  return { ...catalog, actions: catalog.actions.map((action) => actionAtLevel(action, level)) };
+  const byLevel = LEVELED.get(catalog) ?? new Map<number, ActionCatalog>();
+  LEVELED.set(catalog, byLevel);
+  const known = byLevel.get(level);
+  if (known) return known;
+  const actions = catalog.actions.filter((a) => !a.level || a.level <= level).map((a) => actionAtLevel(a, level));
+  const made = { ...catalog, actions };
+  byLevel.set(level, made);
+  return made;
 }
+const LEVELED = new WeakMap<ActionCatalog, Map<number, ActionCatalog>>();
 
 function actionAtLevel(action: CatalogAction, level: number): CatalogAction {
   // Highest level first: the last one above the level is the earliest state.

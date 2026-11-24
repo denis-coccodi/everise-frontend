@@ -24,6 +24,16 @@ describe('catalogAtLevel', () => {
     expect(at(90)).toEqual([2, 400]);
     expect(at(70)).toEqual([1, 400]);
   });
+
+  it('has only the actions learnt by the level, made once for each', () => {
+    const cat = {
+      ...catalog(),
+      actions: [dignity(), { ...action(36928, 'Scarlet Delirium', ['DRK'], 2.5, []), level: 96 }],
+    };
+    expect(catalogAtLevel(cat, 90).actions.map((a) => a.name)).toEqual(['Essential Dignity']);
+    expect(catalogAtLevel(cat, 100).actions.map((a) => a.name)).toEqual(['Essential Dignity', 'Scarlet Delirium']);
+    expect(catalogAtLevel(cat, 90)).toBe(catalogAtLevel(cat, 90));
+  });
 });
 
 describe('pullLevel', () => {
