@@ -5,6 +5,7 @@ import { landedGcds, rhythmFrom, rhythmOf, withRhythm } from './weaving-rhythm';
 import { RELEASED } from './heal-tools';
 import { withoutFollowUps } from './weaving-follow-ups';
 import { near, nearSorted } from './weaving-near';
+import { weavesFull } from './weaving-slots';
 
 export { withoutFollowUps };
 
@@ -196,10 +197,10 @@ export class Weaving {
   // The latest moment from `from` to `at` the player can use an oGCD;
   // null when there's none.
   ogcdBefore(player: number, at: number, from: number, occupied: Occupied[]) {
-    const busy = this.all(player, this.with(player, occupied), from, at);
+    const { busy, full } = this.all(player, this.with(player, occupied), from, at);
     const candidates = [at, ...busy.map((b) => b.from - WEAVE_MS), ...busy.map((b) => b.to)];
     return pick(
-      candidates.filter((t) => t >= from && t <= at).sort((a, b) => b - a),
+      candidates.filter((t) => t >= from && t <= at && !full(t)).sort((a, b) => b - a),
       WEAVE_MS,
       busy,
     );
@@ -208,10 +209,10 @@ export class Weaving {
   // The earliest moment from `at` to `to` the player can use an oGCD; null
   // when there's none.
   ogcdAfter(player: number, at: number, to: number, occupied: Occupied[]) {
-    const busy = this.all(player, this.with(player, occupied), at, to);
+    const { busy, full } = this.all(player, this.with(player, occupied), at, to);
     const candidates = [at, ...busy.map((b) => b.to)];
     return pick(
-      candidates.filter((t) => t >= at && t <= to).sort((a, b) => a - b),
+      candidates.filter((t) => t >= at && t <= to && !full(t)).sort((a, b) => a - b),
       WEAVE_MS,
       busy,
     );
@@ -328,7 +329,8 @@ export class Weaving {
 
   private all(player: number, occupied: Occupied[], lo: number, hi: number) {
     const { gcds, ogcds } = this.busy(player, occupied, lo, hi);
-    return [...gcds, ...ogcds];
+    // What takes their time, and the gaps between two GCDs with no weave slot left.
+    return { busy: [...gcds, ...ogcds], full: weavesFull(gcds, ogcds) };
   }
 }
 

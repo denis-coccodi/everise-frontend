@@ -26,8 +26,8 @@ import { catalogAtLevel, pullLevel } from './trait-levels';
 import { openerShown, openingOf, placedSteps } from './opening';
 import { scholarFairies } from './scholar-fairies';
 import { macrocosmosUses } from './macrocosmos';
-import { burstActions, burstUses, placeLightspeed } from './burst';
-import { followUpUses } from './burst-follow-ups';
+import { burstUses, placeLightspeed } from './burst';
+import { burstAndFollowUps, followUpUses } from './burst-follow-ups';
 import { addedUses, keptInvulnerabilities, notRemoved, ownEdits, withAddedCovers } from './edits';
 import { toolWindows } from './tool-windows';
 import {
@@ -162,7 +162,7 @@ export class PullPlanner {
     const hasRhizomata = catalog.actions.some((a) => a.id === RHIZOMATA);
     const sages = replannedPlayers.filter((p) => p.job === 'SGE' && hasRhizomata);
     const bursts = [
-      ...replannedPlayers.flatMap((p) => burstActions(p.job ?? '').map((action) => ({ player: p.id, action }))),
+      ...replannedPlayers.flatMap((p) => burstAndFollowUps(p.job ?? '').map((action) => ({ player: p.id, action }))),
       ...sages.map((p) => ({ player: p.id, action: RHIZOMATA })),
     ];
     const { healers, whms, tools: lucids } = mpTools(replannedPlayers);

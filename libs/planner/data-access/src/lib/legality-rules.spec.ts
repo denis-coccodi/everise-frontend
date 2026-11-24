@@ -1,5 +1,12 @@
 import { CatalogAction } from '@everise/core/api-types';
-import { aetherflowAtPull, aetherflowShort, enablersMissing, poolsShort, recastsShort } from './legality-rules';
+import {
+  aetherflowAtPull,
+  aetherflowShort,
+  enablersMissing,
+  poolsShort,
+  recastsShort,
+  weavesShort,
+} from './legality-rules';
 import type { LegalityCast } from './plan-legality.model';
 
 const action = (id: number, name: string, recastS: number, extra: Partial<CatalogAction> = {}): CatalogAction => ({
@@ -145,5 +152,25 @@ describe('aetherflowShort', () => {
   it('starts with the fewest stacks the log needs', () => {
     expect(aetherflowAtPull([at(167, 1), at(166, 2)])).toBe(1);
     expect(aetherflowAtPull([at(166, 1), at(167, 2)])).toBe(0);
+  });
+});
+
+describe('weavesShort', () => {
+  const gcd = action(25871, 'Fall Malefic', 2.5, { gcd: true, castMs: 1500 });
+  const div = action(16552, 'Divination', 120);
+  const card = action(37023, 'the Balance', 1);
+  const oracle = action(37029, 'Oracle', 1);
+  const byId = byIdOf([gcd, div, card, oracle]);
+  const played = (id: number, s: number): LegalityCast => ({ action: id, at: s * 1000, source: 'played' });
+
+  it("flags a third oGCD between two GCDs 2.5s apart, the plan's first", () => {
+    const casts = [at(25871, 0), played(37029, 0.7), at(16552, 1.0), at(37023, 1.6), at(25871, 2.5)];
+    expect(weavesShort(casts, byId)).toEqual([{ cast: at(37023, 1.6), rule: 'weave', needs: 'a weave slot' }]);
+  });
+
+  it('fits two in any gap, and three in 2.8s', () => {
+    expect(weavesShort([at(25871, 0), at(16552, 0.7), at(37023, 1.4), at(25871, 2.5)], byId)).toEqual([]);
+    const three = [at(25871, 0), at(16552, 0.7), at(37023, 1.4), at(37029, 2.1), at(25871, 2.8)];
+    expect(weavesShort(three, byId)).toEqual([]);
   });
 });

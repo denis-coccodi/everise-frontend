@@ -7,7 +7,7 @@ export interface LegalityCast {
 
 // What a cast lacked: its cooldown or a charge, the status that enables it, or what it spends.
 export type LegalityRule =
-  'recast' | 'enabler' | 'blood lily' | 'pool' | 'aetherflow' | 'gauge' | 'addersting' | 'level';
+  'recast' | 'enabler' | 'blood lily' | 'pool' | 'aetherflow' | 'gauge' | 'addersting' | 'level' | 'weave';
 
 // What a cast lacked, before it's named for its player.
 export interface Lacking {

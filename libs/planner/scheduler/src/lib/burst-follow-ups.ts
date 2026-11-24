@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
-import { BURST } from './burst';
+import { BURST, burstActions } from './burst';
 import type { FollowUp } from './burst.model';
 import type { PlannedUse } from './plan.model';
 import type { Occupied } from './weaving.model';
@@ -62,6 +62,13 @@ const stepsOf = (paid: boolean) =>
 export const FOLLOW_UPS = new Set(stepsOf(false));
 const ALSO_PAID = new Set(stepsOf(true));
 
+// A job's burst actions and what they enable: the plan schedules them all, so the slot one of theirs had as played is
+// free to the plan, and one kept where they pressed it must still fit there (`followUpUses`).
+export const burstAndFollowUps = (job: string): number[] => [
+  ...burstActions(job),
+  ...(BURST[job] ?? []).flatMap((b) => (FOLLOW_UPS_OF[b.action] ?? []).flatMap((f) => f.actions)),
+];
+
 // A GCD of theirs a follow-up can take the place of: one nothing later needs, as its tooltip says. Not one that builds
 // (grants something, gives gauge, a Cartridge or MP, or has a combo bonus): in the place of a Gnashing Fang or a Royal
 // Authority, one left their Jugular Rip, Atonement... without what they need (about 260 in 32 kills). One that spends
@@ -123,7 +130,11 @@ export function followUpUses(
           // The plan's own (an opener's step), or theirs as played where the plan has no GCD of its own in its slot.
           const slotFree = (c: { action: number; at: number }) =>
             !byId.get(c.action)?.gcd || !taken.some((o) => o.gcd && Math.abs(o.at - c.at) < SAME_SLOT_MS);
-          const theirs = played.filter((c) => inTime(c) && slotFree(c));
+          // An oGCD of theirs only where its weave slot still has room beside the plan's (the opener's Divination and
+          // card where they had their Spear: Oracle there was a third oGCD in one GCD).
+          const fits = (c: { action: number; at: number }) =>
+            !!byId.get(c.action)?.gcd || weaving.ogcdAfter(p.id, c.at, c.at, taken) !== null;
+          const theirs = played.filter((c) => inTime(c) && slotFree(c) && fits(c));
           const own = [...mine.filter(inTime), ...theirs].sort((x, y) => x.at - y.at)[0];
           if (own) {
             claimed.add(own);

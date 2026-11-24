@@ -235,3 +235,35 @@ export function aetherflowShort(casts: LegalityCast[], start: number): Lacking[]
 // The fewest stacks at the pull the log's own casts need (none in the game; a log can miss a cast).
 export const aetherflowAtPull = (log: LegalityCast[]) =>
   [0, 1, 2, 3].find((start) => !aetherflowShort(log, start).length) ?? 3;
+
+// Weaving: a GCD locks its player out of other actions for 0.6s, an oGCD for 0.7s (`WEAVE_MS`), so a third oGCD
+// between two GCDs fits only in a gap of 2.7s or more. Each oGCD past two, and past what its gap fits, is flagged:
+// the plan's first (moved later by `withLegalCasts`), then the latest. Counted as if every GCD were instant
+// (Swiftcast leaves no cast bar), so only what no GCD could leave room for.
+const GCD_LOCK_MS = 600;
+const OGCD_LOCK_MS = 700;
+const WEAVE_SLACK_MS = 100;
+export function weavesShort(casts: LegalityCast[], byId: Map<number, CatalogAction>): Lacking[] {
+  const out: Lacking[] = [];
+  let gcd: LegalityCast | null = null;
+  let between: LegalityCast[] = [];
+  for (const cast of casts) {
+    const action = byId.get(cast.action);
+    if (!action) continue;
+    if (!action.gcd) {
+      between.push(cast);
+      continue;
+    }
+    if (gcd) {
+      // Two always pass: the logs' times (a cast's end, Eukrasia's) don't give the room closely enough to judge them.
+      const fit = Math.max(2, Math.floor((cast.at - gcd.at - GCD_LOCK_MS + WEAVE_SLACK_MS) / OGCD_LOCK_MS));
+      const order = (a: LegalityCast, b: LegalityCast) =>
+        Number(b.source === 'plan') - Number(a.source === 'plan') || b.at - a.at;
+      for (const extra of [...between].sort(order).slice(0, Math.max(0, between.length - fit)))
+        out.push({ cast: extra, rule: 'weave', needs: 'a weave slot' });
+    }
+    gcd = cast;
+    between = [];
+  }
+  return out;
+}

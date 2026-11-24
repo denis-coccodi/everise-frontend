@@ -5,6 +5,7 @@ import {
   catalogAtLevel,
   gaugeAtPull,
   hasTankGauge,
+  limitBreakLevel,
   healPower,
   pullLevel,
   stingsAtPull,
@@ -14,7 +15,14 @@ import {
   withoutFollowUps,
   type Plan,
 } from '@everise/planner/scheduler';
-import { aetherflowAtPull, aetherflowShort, enablersMissing, poolsShort, recastsShort } from './legality-rules';
+import {
+  aetherflowAtPull,
+  aetherflowShort,
+  enablersMissing,
+  poolsShort,
+  recastsShort,
+  weavesShort,
+} from './legality-rules';
 import { asPlayed } from './plan-as-played';
 import type { ImpossibleCast, Lacking, LegalityCast, PlanLegality } from './plan-legality.model';
 
@@ -23,10 +31,10 @@ const SAME_MS = 100;
 
 // What each replanned player's column of the plan has them press (the plan's uses and what it keeps as they played:
 // the column the page shows) that they couldn't have: a cooldown not back, a status that enables it not up (Baneful
-// Impaction without Chain Stratagem's Impact Imminent), or a gauge or stack it spends not there (Aetherflow,
-// Addersgall, lilies, Beast/Blood/Cartridges, Addersting). The log's own casts go through the same rules: what fails
-// there is the rules' blind spot or the log's noise. Not checked: MP (the plan's `mpShort`), the Oath gauge, cards
-// and the Faerie Gauge.
+// Impaction without Chain Stratagem's Impact Imminent), a third oGCD between two GCDs where it can't fit, or a gauge
+// or stack it spends not there (Aetherflow, Addersgall, lilies, Beast/Blood/Cartridges, Addersting). The log's own
+// casts go through the same rules: what fails there is the rules' blind spot or the log's noise. Not checked: MP (the
+// plan's `mpShort`), the Oath gauge, cards and the Faerie Gauge.
 export function planLegality(plan: Plan, timeline: PullTimeline, full: ActionCatalog): PlanLegality {
   const judge = legalityJudge(timeline, full);
   const result: PlanLegality = { plan: [], log: [] };
@@ -99,6 +107,11 @@ function playerRules(timeline: PullTimeline, catalog: ActionCatalog, byId: Map<n
     ...recastsShort(casts, byId, mine),
     ...enablersMissing(casts, mine, byId),
     ...poolsShort(casts),
+    // A Limit Break is no weave: its own long lock, kept where the group used it.
+    ...weavesShort(
+      casts.filter((c) => !limitBreakLevel(c.action)),
+      byId,
+    ),
     ...(job === 'SCH' ? aetherflowShort(casts, start) : []),
     ...(hasTankGauge(job) ? gaugeShort(job, casts, catalog, gaugeStart) : []),
   ];
