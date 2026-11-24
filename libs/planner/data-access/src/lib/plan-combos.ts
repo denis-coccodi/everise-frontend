@@ -47,9 +47,10 @@ export function withCombosKept(
   let last: { name: string; at: number } | null = null;
   for (const g of gcds) {
     const standIn = 'instead' in g && !!g.instead && g.action === filler.name;
-    const next = standIn && last && g.at - last.at <= COMBO_MS ? nextOf.get(last.name) : undefined;
+    const next: CatalogAction | undefined =
+      standIn && last && g.at - last.at <= COMBO_MS ? nextOf.get(last.name) : undefined;
     if (next) changed.set(g as PlanUseEntry, next);
-    const name = next?.name ?? g.action;
+    const name: string = next?.name ?? g.action;
     if (chain.has(name)) last = { name, at: g.at };
   }
   return entries.map((e) => {
