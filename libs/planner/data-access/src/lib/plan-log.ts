@@ -9,6 +9,15 @@ import type { PlanHitEntry, PlanUseEntry, PlanEntry } from './plan-log.model';
 // each hit on them lands with the plan's mitigations, shields and heals.
 // With the `catalog`, what they cast that the plan keeps as played too
 // (`asPlayed`): their attacks, buffs, and all of it when not replanned.
+// What they press first (Eukrasia, Tempera Coat), with its time where the plan put it a GCD or more before.
+const FIRST_APART_MS = 1_000;
+function firstPress(use: Plan['uses'][number]) {
+  const name = pressedFirst(use.action);
+  return name && use.firstAt !== undefined && use.at - use.firstAt > FIRST_APART_MS
+    ? `${name} at ${pullClock(use.firstAt)}`
+    : name;
+}
+
 export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, catalog?: ActionCatalog): PlanEntry[] {
   const mechanic = new Map(plan.mechanics.map((m) => [m.id, m]));
   const playerName = new Map(timeline.players.map((p) => [p.id, p.name]));
@@ -64,7 +73,7 @@ export function planLog(plan: Plan, timeline: PullTimeline, playerId: number, ca
       // Named even when it's themselves: a single-target heal or shield says
       // who it's for.
       target: use.target === null ? null : (playerName.get(use.target) ?? null),
-      first: pressedFirst(use.action),
+      first: firstPress(use),
       covers: [...new Set(use.covers.map((id) => mechanic.get(id)?.name ?? 'Unknown'))],
       damage: use.damage ?? false,
       overcap: use.overcap ?? false,

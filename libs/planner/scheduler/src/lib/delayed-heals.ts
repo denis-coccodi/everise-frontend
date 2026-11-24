@@ -4,6 +4,8 @@ import { HealTool, Mechanic, PlannedUse, ShieldSize } from './plan.model';
 import type { HpEvent } from './hp-track.model';
 import type { Candidate, Spent } from './heal-plan.model';
 import { reachable } from './solo-phases';
+import type { Weaving } from './weaving';
+import type { Occupied } from './weaving.model';
 
 // The HP a use of a heal tool restores, and when, as the pull goes on:
 // - a triggered heal (Excogitation) when its target first drops to its
@@ -136,13 +138,17 @@ function conditionalEvents(
 const AFTER_RAIDWIDE_MS = 1_000;
 const BEFORE_END_MS = 4_000;
 
-// The pick with a gathering heal left to its end (Macrocosmos, `pick.delayMs` its whole wait) set off instead a second
-// after the last raidwide in its window (4 players or more), as players press Microcosmos once the hit is in: the same
-// damage gathered, healed sooner (`eventsFor` its new healing). Any other pick as it is.
+// The pick with a gathering heal left to its end (Macrocosmos, `pick.delayMs` its whole wait) set off instead in the
+// first free weave slot (beside the caster's `spent`: `releaseSlot`) from a second after the last raidwide in its window (4 players or more) to its
+// end, as players press Microcosmos once the hit is in, in a weave slot (on the bench's logs, alone in its gap 27 times
+// of 38): the same damage gathered, healed sooner (`eventsFor` its new healing). With no slot free, it heals as it
+// ends. Any other pick as it is.
 export function soonerRelease(
   pick: Candidate,
   mechanics: Mechanic[],
   eventsFor: (tool: HealTool, use: PlannedUse, delayMs: number) => HpEvent[],
+  weaving: Weaving,
+  spent: Spent[],
 ): Candidate {
   const delayed = pick.tool.delayed;
   if (!delayed?.release || delayed.damageShare === null || pick.delayMs < delayed.delaysMs[0]) return pick;
@@ -154,6 +160,30 @@ export function soonerRelease(
       .filter((at) => at > lands && at <= lands + delayed.delaysMs[0] - BEFORE_END_MS),
   );
   if (last === -Infinity) return pick;
-  const delayMs = last + AFTER_RAIDWIDE_MS - lands;
+  const { player } = pick.use;
+  const own = [
+    ...spent.filter((s) => s.player === player),
+    { at: pick.use.at, gcd: pick.tool.gcd, castMs: pick.tool.castMs },
+  ];
+  const at = releaseSlot(weaving, player, last + AFTER_RAIDWIDE_MS, lands + delayed.delaysMs[0] - 1, own);
+  if (at === null) return pick;
+  const delayMs = at - lands;
   return { ...pick, delayMs, events: eventsFor(pick.tool, pick.use, delayMs) };
 }
+
+// The first weave slot from `from` to `to` in a gap with no other oGCD of the player's (one more still fits beside it),
+// as the logs' astrologians press Microcosmos (alone in its gap 27 times of 38); else the first free one; null when none.
+function releaseSlot(weaving: Weaving, player: number, from: number, to: number, own: Occupied[]) {
+  const first = weaving.ogcdAfter(player, from, to, own);
+  for (let at = first; at !== null;) {
+    const [prev] = weaving.gcdsBetween(player, at - GAP_MS, at).slice(-1);
+    const [next] = weaving.gcdsBetween(player, at + 1, at + GAP_MS);
+    if (prev === undefined || next === undefined) return at;
+    const withIt = [...own, { at, gcd: false, castMs: 0 }];
+    if (weaving.ogcdAfter(player, prev, next - 1, withIt) !== null) return at;
+    at = next > to ? null : weaving.ogcdAfter(player, next, to, own);
+  }
+  return first;
+}
+// How far apart two GCDs of a player can be and still have a gap between them.
+const GAP_MS = 10_000;

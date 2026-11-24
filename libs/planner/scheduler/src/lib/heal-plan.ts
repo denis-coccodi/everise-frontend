@@ -18,7 +18,7 @@ import {
   waitsForBiggerNeed,
 } from './heal-candidates';
 import { bonded, pairingsFor } from './paired-heals';
-import { MISERY, aimedHeals, miserySpent, spareHeals } from './spare-heals';
+import { MISERY, aimedHeals, miserySpent, spareHeals, useSpent } from './spare-heals';
 import { WEAVE_MS, Weaving } from './weaving';
 import { guardsOf, naturalRegen, pairedHealing, pullEvents } from './hp-events';
 import { HpTrack } from './hp-track';
@@ -121,15 +121,7 @@ export function planHeals(
     if (use.action === MISERY.action) spent.push(miserySpent(use.player, use.at));
     // A pet's own cast (Seraphic Veil) takes none of its owner's time.
     if (tool && !AUTOMATIC.has(use.action)) {
-      spent.push({
-        player: use.player,
-        action: use.action,
-        at: use.at,
-        group: tool.group,
-        pool: tool.pool,
-        gcd: tool.gcd,
-        castMs: tool.castMs,
-      });
+      spent.push(useSpent(use, tool));
       // Superbolide takes half its user's max HP off (to 1 HP at least).
       if (mitigationTool?.effects.some((e) => e.invulnerable === 'halvesHp')) {
         track.add([{ at: use.at, player: use.player, amount: -(maxHp.get(use.player) ?? 0) / 2, floor: 1 }]);
@@ -263,7 +255,7 @@ export function planHeals(
             ? among(planned.filter((t) => refills(m.id, t)))
             : (among(planned.filter((t) => !waits(t))) ?? among(planned));
           if (!found) break;
-          const pick = soonerRelease(found, plan.mechanics, eventsFor); // Microcosmos pressed once the raidwide is in.
+          const pick = soonerRelease(found, plan.mechanics, eventsFor, weaving, spent); // Microcosmos once the raidwide is in.
           track.add(healOnly(pick.events));
           uses.push(pick.use);
           boosts.add(pick.use);

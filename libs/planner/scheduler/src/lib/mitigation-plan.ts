@@ -3,6 +3,7 @@ import { fitsGrant, fitsPool, fitsRecast, isAway, projected, pullFacts, reaches 
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { cutsUnion } from './fairy-heals';
 import { AUTOMATIC } from './tools';
+import { ogcdWithFirstBefore, withFirst } from './first-press';
 import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, reachMs, waitsForBigger } from './mitigation-moments';
 import { plannedHits } from './mitigation-hits';
@@ -94,16 +95,18 @@ export function planMitigation(
     if (t) add({ use: { ...use, covers: [] }, tool: use.critical ? critical(t) : t, value: 0 });
   }
   const first = uses.length;
+  const occupiedBy = (player: number) =>
+    uses
+      .filter((u) => u.player === player && !AUTOMATIC.has(u.action))
+      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs, firstAt: u.firstAt }));
   // When the player can use `t` for `m`, at `at` or before it while it still covers `m`; null when they can't.
   const fit = (m: Mechanic, t: MitigationTool, at: number) => {
     const from = m.at - reachMs(t);
-    const occupied = uses
-      .filter((u) => u.player === t.player && !AUTOMATIC.has(u.action))
-      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
     return t.gcd
-      ? weaving.gcdBefore(t.player, at - t.castMs, from, t.castMs, occupied)
-      : weaving.ogcdBefore(t.player, at, from, occupied);
+      ? weaving.gcdBefore(t.player, at - t.castMs, from, t.castMs, occupiedBy(t.player))
+      : ogcdWithFirstBefore(weaving, t.player, t.action, at, from, occupiedBy(t.player));
   };
+  const firstOf = (t: MitigationTool, at: number) => withFirst(weaving, t.player, t.action, at, occupiedBy(t.player));
   // The invulnerabilities asked for first, before their mechanic (not banned).
   const unplaced = [...(from?.unplaced ?? [])];
   for (const choice of from ? [] : (options.invulnerabilities ?? [])) {
@@ -134,10 +137,6 @@ export function planMitigation(
   const timesOf = (player: number, action: number) =>
     uses.filter((u) => u.player === player && u.action === action).map((u) => u.at);
 
-  const occupiedBy = (player: number) =>
-    uses
-      .filter((u) => u.player === player && !AUTOMATIC.has(u.action))
-      .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs }));
   const zoeFor = zoeOptions(plannable, uses, tool, occupiedBy, weaving, options);
 
   // The damage `added` uses take off the hits `wanted` of `m` (and, in a burst, the earlier hits on those players, which
@@ -235,6 +234,7 @@ export function planMitigation(
         const { granted } = option;
         const crit = option.tool !== t;
         const use: PlannedUse = { player: t.player, action: t.action, name: t.name, at, target, covers: [] };
+        Object.assign(use, firstOf(t, at)); // Tempera Grassa's Tempera Coat, in a slot before it.
         if (crit) use.critical = true;
         if ('boost' in option) use.boost = option.boost as number;
         const added = [{ use, tool: option.tool }, ...granted];
