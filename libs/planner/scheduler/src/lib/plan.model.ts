@@ -119,13 +119,10 @@ export interface MitigationEffect {
   selfHeal?: number;
 }
 
-// What a tank's invulnerability does to the hits while it lasts: nothing
-// at all (`immune`: Hallowed Ground); they land but can't take the last HP
-// (`lastHp`: Holmgang); nothing, once it has taken half the tank's max HP
-// off as it's used (`halvesHp`: Superbolide, since 7.1; down to 1 HP
-// before); they land but can't take the last HP, and the tank must be
-// healed by their max HP in the 10s after the first, or die
-// (`walkingDead`: Living Dead).
+// What a tank's invulnerability does to the hits while it lasts: nothing at all (`immune`: Hallowed Ground); they land
+// but can't take the last HP (`lastHp`: Holmgang); nothing, once it has taken half the tank's max HP off as it's used
+// (`halvesHp`: Superbolide, since 7.1; down to 1 HP before); they land but can't take the last HP, and the tank must be
+// healed by their max HP in the 10s after the first, or die (`walkingDead`: Living Dead).
 export type Invulnerability = 'immune' | 'lastHp' | 'halvesHp' | 'walkingDead';
 
 // A set amount of HP, or a share of the max HP of whoever gets it.

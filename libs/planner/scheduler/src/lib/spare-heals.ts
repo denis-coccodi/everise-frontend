@@ -9,6 +9,12 @@ import type { HpEvent } from './hp-track.model';
 // damage), Celestial Opposition (a strong heal on a short cooldown), Lux
 // Solaris (free, in each Refulgent Lux).
 const ON_COOLDOWN = new Set([3571, 16553, 36997]);
+// What a use of `tool` takes: its slot (and its first press's: Tempera Coat), its recast group and its gauge.
+export function useSpent(use: PlannedUse, tool: Pick<HealTool, 'group' | 'pool' | 'gcd' | 'castMs'>): Spent {
+  const { group, pool, gcd, castMs } = tool;
+  return { player: use.player, action: use.action, at: use.at, group, pool, gcd, castMs, firstAt: use.firstAt };
+}
+
 // The heals used on cooldown aimed at the raidwides, as the logs' players use
 // them, by how long before the hit they're used: Earthly Star (placed 10s
 // before it at least, to be grown, and set off with Stellar Detonation just
