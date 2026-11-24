@@ -5,13 +5,13 @@ import { Weaving } from './weaving';
 
 // A healer (2) casting an instant GCD every 2.5s from 0.5s to the end of a
 // 250s pull, but for a downtime from 115s to 135.5s.
-const timeline = (job: string) => {
+const timeline = (job: string, gcd = 9) => {
   const t = pull([]);
   t.durationMs = 250_000;
   t.players = [{ id: 2, name: 'Heal Main', job, role: 'healer', maxHp: 100_000, maxMp: null, mp: [], stats: null }];
   t.playerCasts = Array.from({ length: 100 }, (_, i) => 500 + i * 2500)
     .filter((at) => at < 115_000 || at >= 135_000)
-    .map((at) => ({ at, source: 2, target: null, action: 9, castMs: null }));
+    .map((at) => ({ at, source: 2, target: null, action: gcd, castMs: null }));
   // Nothing to target then: the gap stays a gap.
   t.downtime = [{ from: 115_000, to: 135_000 }];
   return t;
@@ -20,6 +20,7 @@ const cat = () => {
   const c = catalog();
   c.actions.push(
     action(9, 'Broil IV', ['SCH', 'AST', 'WHM', 'SGE'], 2.5, [], { gcd: true }),
+    action(3549, 'Fell Cleave', ['WAR'], 2.5, [], { gcd: true }),
     action(7436, 'Chain Stratagem', ['SCH'], 120, []),
     action(16552, 'Divination', ['AST'], 120, []),
     action(3606, 'Lightspeed', ['AST'], 60, [], { charges: 2 }),
@@ -32,8 +33,8 @@ const cat = () => {
   );
   return c;
 };
-const burst = (job: string, opener: 'standard' | 'none' = 'standard') => {
-  const t = timeline(job);
+const burst = (job: string, opener: 'standard' | 'none' = 'standard', gcd = 9) => {
+  const t = timeline(job, gcd);
   const c = cat();
   const opening = openingOf(t, c, t.players, { 2: opener });
   const weaving = Weaving.of(t, c, () => true);
@@ -125,13 +126,21 @@ describe('burstUses', () => {
       expect(replanned.filter((b) => b > at - 60_000 && b <= at).length).toBeLessThanOrEqual(2);
   });
 
-  it("has a warrior's Inner Release each minute and Infuriate twice, from the opener's last", () => {
+  it("has a warrior's Inner Release each minute, and Infuriate where a charge is back", () => {
     expect(burst('WAR')).toEqual([
       // After the opener's at 8.7s; one due in the downtime waits for it.
       ['Inner Release', 68_700],
       ['Inner Release', 136_100],
       ['Inner Release', 196_100],
-      // Every 30s from the opener's third, at 36.2s.
+      // The opener's three used both charges and more: with nothing taking time off, one a minute.
+      ['Infuriate', 136_800],
+      ['Infuriate', 181_200],
+      ['Infuriate', 241_200],
+    ]);
+  });
+
+  it("has a warrior's Infuriate every 30s where their Fell Cleaves take 5s each off it", () => {
+    expect(burst('WAR', 'standard', 3549).filter(([name]) => name === 'Infuriate')).toEqual([
       ['Infuriate', 66_200],
       ['Infuriate', 96_200],
       ['Infuriate', 136_800],

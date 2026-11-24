@@ -1,5 +1,5 @@
 import { ActionCatalog, PullTimeline, TimelinePlayer } from '@everise/core/api-types';
-import { fitsRecast } from './coverage';
+import { chargeAt, fitsRecast } from './coverage';
 import { UMBRAL_DRAW } from './opener-presets';
 import type { BurstAction } from './burst.model';
 import { burstWindows, windowDue } from './burst-windows';
@@ -46,7 +46,9 @@ export const BURST: Record<string, BurstAction[]> = {
   PLD: [{ action: 20, early: true }], // Fight or Flight
   WAR: [
     { action: 7389, early: true }, // Inner Release
-    { action: 52, everyMs: 30_000, early: true }, // Infuriate
+    // Infuriate: Inner Beast, Steel Cyclone, Fell Cleave, Decimate (Enhanced Infuriate), Inner Chaos and Chaotic
+    // Cyclone each take 5s off.
+    { action: 52, everyMs: 30_000, early: true, cutBy: { actions: [49, 51, 3549, 3550, 16465, 16463], ms: 5_000 } },
   ],
   DRK: [{ action: 7390, early: true }], // Delirium
   GNB: [
@@ -102,12 +104,23 @@ export function burstUses(
       const action = byId.get(b.action);
       if (!action) continue;
       const every = b.everyMs ?? action.recastMs;
-      const last = opened.filter((u) => u.action === b.action).at(-1)?.at;
-      // Back from its recast, in the party's next burst window as played (`windowDue`).
-      const after = (back: number) => windowDue(back, every, windows);
+      const times = opened.filter((u) => u.action === b.action).map((u) => u.at);
+      const cutBy = b.cutBy;
+      const cuts = cutBy
+        ? timeline.playerCasts
+            .filter((c) => c.source === p.id && cutBy.actions.includes(c.action))
+            .map((c) => ({ at: c.at, ms: cutBy.ms }))
+        : [];
+      // Back from its recast (with a charge there, where casts take time off it), in the party's next burst window
+      // as played (`windowDue`).
+      const back = (soonest: number) =>
+        cutBy ? chargeAt(times, cuts, action.recastMs, action.charges, soonest) : soonest;
+      const after = (soonest: number) => windowDue(back(soonest), every, windows);
+      const last = times.at(-1);
       for (let due = last === undefined ? firstGcd : after(last + every); due < end;) {
         const at = place(b.action, action.name, due);
         if (at === null) break;
+        times.push(at);
         due = after(at + every);
       }
     }
