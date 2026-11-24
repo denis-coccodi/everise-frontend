@@ -49,6 +49,22 @@ describe('recastsShort', () => {
     expect(recastsShort([at(52, 0), at(52, 50)], byIdOf(mine), mine)).toHaveLength(1);
   });
 
+  it("reads a cut of two actions, and gives an upgrade's cut to what it replaces below its level", () => {
+    const blazing = action(36978, 'Blazing Shot', 0, {
+      jobs: ['MCH'],
+      gcd: true,
+      description: 'Additional Effect: Reduces the recast time of both Double Check and Checkmate by 15s',
+    });
+    const gauss = action(2874, 'Gauss Round', 30, { jobs: ['MCH'], charges: 3 });
+    const ricochet = action(2890, 'Ricochet', 30, { jobs: ['MCH'], charges: 3 });
+    // Level 80: no Double Check or Checkmate, so Blazing Shot brings Gauss Round and Ricochet back sooner.
+    const mine = [blazing, gauss, ricochet];
+    const spent = [0, 1, 2].flatMap((s) => [at(2874, s), at(2890, s)]);
+    const casts = [...spent, at(36978, 3), at(36978, 5), at(2874, 15), at(2890, 15)];
+    expect(recastsShort(casts, byIdOf(mine), mine)).toEqual([]);
+    expect(recastsShort([...spent, at(2874, 15)], byIdOf(mine), mine)).toHaveLength(1);
+  });
+
   it('leaves out GCDs with no cooldown of their own', () => {
     const broil = action(25865, 'Broil IV', 2.5, { gcd: true });
     expect(recastsShort([at(25865, 0), at(25865, 2.4)], byIdOf([broil]), [broil])).toEqual([]);
@@ -68,6 +84,34 @@ describe('enablersMissing', () => {
     expect(enablersMissing([at(7436, 0), at(37012, 2)], mine, byIdOf(mine))).toEqual([]);
     const late = enablersMissing([at(7436, 0), at(37012, 31)], mine, byIdOf(mine));
     expect(late).toEqual([{ cast: at(37012, 31), rule: 'enabler', needs: 'impact imminent' }]);
+  });
+
+  it("keeps a black mage's element until a cast grants the other, Transpose swapping them", () => {
+    const blm = (id: number, name: string, description: string) =>
+      action(id, name, 2.5, { jobs: ['BLM'], gcd: true, description });
+    const fire3 = blm(152, 'Fire III', 'Additional Effect: Grants Astral Fire III and removes Umbral Ice');
+    const blizzard3 = blm(154, 'Blizzard III', 'Additional Effect: Grants Umbral Ice III and removes Astral Fire');
+    const fire4 = blm(3577, 'Fire IV', 'Can only be executed while under the effect of Astral Fire.');
+    const transpose = blm(
+      149,
+      'Transpose',
+      'Swaps Astral Fire with a single Umbral Ice, or Umbral Ice with a single Astral Fire.',
+    );
+    const mine = [fire3, blizzard3, fire4, transpose];
+    // A Fire IV long after Fire III: no timer. After Blizzard III or a Transpose out of fire, none.
+    const casts = [
+      at(152, 0),
+      at(3577, 100),
+      at(154, 110),
+      at(3577, 112),
+      at(149, 114),
+      at(3577, 115),
+      at(149, 116),
+      at(3577, 117),
+    ];
+    expect(enablersMissing(casts, mine, byIdOf(mine)).map((l) => l.cast.at)).toEqual([112_000, 117_000]);
+    // Unknown at the pull (the log may start in fire): no flag.
+    expect(enablersMissing([at(3577, 1)], mine, byIdOf(mine))).toEqual([]);
   });
 
   it('blooms the Blood Lily once at the pull, then after 3 lilies spent', () => {
