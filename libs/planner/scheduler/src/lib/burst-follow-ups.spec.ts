@@ -68,6 +68,24 @@ describe('followUpUses', () => {
     expect(follow(timeline('SCH'), [buff(7436, 51_100)])).toEqual([['Baneful Impaction', 51_800]]);
   });
 
+  it("keeps theirs as played only where its weave slot still has room beside the plan's", () => {
+    // Their Baneful Impaction at 51.8s, the second weave after their GCD at 50.5s; the plan has Chain Stratagem and
+    // Excogitation there, so it goes to the next free slot, after their GCD at 53s.
+    const t = timeline('SCH');
+    t.playerCasts.push({ at: 51_800, source: 2, target: null, action: 37012, castMs: null });
+    const c = cat();
+    c.actions.push(action(7434, 'Excogitation', ['SCH'], 45, []));
+    const planned = [buff(7436, 51_100), { ...buff(7434, 51_800), burst: undefined }];
+    const uses = followUpUses(
+      t,
+      c,
+      t.players,
+      Weaving.of(t, c, () => true),
+      planned,
+    );
+    expect(uses.map((u) => [u.name, u.at])).toEqual([['Baneful Impaction', 53_600]]);
+  });
+
   it("has a dark knight's 3 free Bloodspillers after the plan's Delirium below level 96, theirs where in time", () => {
     // No Scarlet Delirium yet; theirs at 53s, the others in their next GCDs.
     const t = timeline('DRK', { 53_000: 7392 });

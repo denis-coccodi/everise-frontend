@@ -47,3 +47,4 @@ export { standIns } from './lib/completion-players';
 export { completedTimeline } from './lib/completion-timeline';
 export { scriptMatches } from './lib/script-match';
 export type { Alignment, Completion, Progress, StandIns } from './lib/completion.model';
+export { limitBreakLevel } from './lib/limit-break-gauge';
