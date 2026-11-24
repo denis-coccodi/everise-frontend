@@ -68,7 +68,8 @@ function moved(plan: Plan, cast: ImpossibleCast, state: Judged, judge: Judge, en
   const use = plan.uses.find(
     (u) =>
       u.player === cast.player &&
-      ((u.action === cast.action && u.at === cast.at) || (u.at === cast.at + 1 && !!pressedFirst(u.action))),
+      ((u.action === cast.action && u.at === cast.at) ||
+        ((u.firstAt ?? u.at - 1) === cast.at && !!pressedFirst(u.action))),
   );
   if (!use || !movable(use)) return null;
   const known = new Set(state.plan.map(keyOf));

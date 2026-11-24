@@ -129,6 +129,7 @@ export function planHeals(
         pool: tool.pool,
         gcd: tool.gcd,
         castMs: tool.castMs,
+        firstAt: use.firstAt,
       });
       // Superbolide takes half its user's max HP off (to 1 HP at least).
       if (mitigationTool?.effects.some((e) => e.invulnerable === 'halvesHp')) {
@@ -263,7 +264,7 @@ export function planHeals(
             ? among(planned.filter((t) => refills(m.id, t)))
             : (among(planned.filter((t) => !waits(t))) ?? among(planned));
           if (!found) break;
-          const pick = soonerRelease(found, plan.mechanics, eventsFor); // Microcosmos pressed once the raidwide is in.
+          const pick = soonerRelease(found, plan.mechanics, eventsFor, weaving, spent); // Microcosmos once the raidwide is in.
           track.add(healOnly(pick.events));
           uses.push(pick.use);
           boosts.add(pick.use);

@@ -24,4 +24,6 @@ export interface Occupied {
   at: number;
   gcd: boolean;
   castMs: number;
+  // An oGCD's first press, in a weave slot of its own (Tempera Grassa's Tempera Coat: `first-press.ts`).
+  firstAt?: number;
 }

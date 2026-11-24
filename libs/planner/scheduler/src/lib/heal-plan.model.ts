@@ -11,6 +11,8 @@ export interface Spent {
   pool: ToolPool | null;
   gcd: boolean;
   castMs: number;
+  // Its first press's moment, in a weave slot of its own (Tempera Coat: `PlannedUse.firstAt`).
+  firstAt?: number;
 }
 
 // A heal the plan could use, and what it makes up.

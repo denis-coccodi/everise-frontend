@@ -271,6 +271,8 @@ export interface PlannedUse {
   // A second press: Kardia put back (it stays until moved), Horoscope read again for Horoscope Helios; or no press at
   // all (`ends`): what goes off on its own as it ends (Macrocosmos), shown in no slot.
   again?: 'kardia' | 'horoscope' | 'ends';
+  // When its first press goes (`pressedFirst`: Tempera Grassa's Tempera Coat, Improvisation), in a weave slot of its own.
+  firstAt?: number;
   // A raid buff or burst on cooldown, or an astrologian's draw and card.
   burst?: boolean;
   // A resource for the heals after (Rhizomata's Addersgall).

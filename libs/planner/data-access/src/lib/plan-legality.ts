@@ -122,14 +122,14 @@ function playerRules(timeline: PullTimeline, catalog: ActionCatalog, byId: Map<n
 }
 
 // A player's own column: the plan's uses, and what they press first (Tempera Coat before Tempera Grassa,
-// Improvisation before its finish), just before.
+// Improvisation before its finish), where the plan put it (`firstAt`), else just before.
 function ownColumn(plan: Plan, player: number, mine: CatalogAction[]): LegalityCast[] {
   const byName = byNameOf(mine);
   // Not a second press (Horoscope read, Kardia put back) nor an event: neither spends a cooldown.
   const uses = plan.uses.filter((u) => u.player === player && !u.again);
   const first = uses.flatMap((u) => {
     const action = byName.get(pressedFirst(u.action) ?? '');
-    return action === undefined ? [] : [{ action, at: u.at - 1, source: 'plan' as const }];
+    return action === undefined ? [] : [{ action, at: u.firstAt ?? u.at - 1, source: 'plan' as const }];
   });
   return [...first, ...uses.map((u) => ({ action: u.action, at: u.at, source: 'plan' as const }))];
 }

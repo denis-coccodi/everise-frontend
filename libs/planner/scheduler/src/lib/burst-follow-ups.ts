@@ -100,6 +100,7 @@ export function followUpUses(
       at: u.at,
       gcd: !!byId.get(u.action)?.gcd,
       castMs: byId.get(u.action)?.castMs ?? 0,
+      firstAt: u.firstAt,
     }));
     // Their GCDs a follow-up can't take the place of: those something else needs (see `plain`).
     for (const c of timeline.playerCasts.filter((x) => x.source === p.id)) {

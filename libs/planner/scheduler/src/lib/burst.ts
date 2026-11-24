@@ -86,7 +86,12 @@ export function burstUses(
     const opened = opening.uses.filter((u) => u.player === p.id);
     const taken: Occupied[] = planned
       .filter((u) => u.player === p.id && u.again !== 'ends')
-      .map((u) => ({ at: u.at, gcd: !!byId.get(u.action)?.gcd, castMs: byId.get(u.action)?.castMs ?? 0 }));
+      .map((u) => ({
+        at: u.at,
+        gcd: !!byId.get(u.action)?.gcd,
+        castMs: byId.get(u.action)?.castMs ?? 0,
+        firstAt: u.firstAt,
+      }));
     const firstGcd = weaving.gcdsBetween(p.id, 0, end)[0];
     if (firstGcd === undefined) continue;
     // The first weave slot from `due`, at their next GCD if it's downtime

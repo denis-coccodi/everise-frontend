@@ -299,7 +299,7 @@ export class Weaving {
       ...[...planned].filter(([at]) => !playedAt.has(at)).map(([at, castMs]) => ({ at, castMs, landed: false })),
     ];
     const kept = near(this.keptBusy.get(player) ?? [], lo, hi, (b) => b.from);
-    const ogcds = [...kept, ...occupied.filter((o) => !o.gcd).map((o) => ({ from: o.at, to: o.at + WEAVE_MS }))];
+    const ogcds = [...kept, ...occupied.filter((o) => !o.gcd).flatMap((o) => weaves(o.at, o.firstAt))];
     // A GCD that came late leaves no more weave room than one on time: the
     // rest is the player being slow, not free time (an oGCD always comes
     // after a GCD, two at most). A longer gap is downtime or a death.
@@ -338,6 +338,10 @@ export class Weaving {
 function pick(candidates: number[], length: number, busy: Busy[]) {
   return candidates.find((t) => !busy.some((b) => b.from < t + length && b.to > t)) ?? null;
 }
+
+// The weave an oGCD takes, and its first press's (Tempera Coat: `first-press.ts`).
+const weaves = (at: number, firstAt?: number) =>
+  [at, ...(firstAt === undefined ? [] : [firstAt])].map((t) => ({ from: t, to: t + WEAVE_MS }));
 
 function push<T>(map: Map<number, T[]>, key: number, value: T) {
   const list = map.get(key);
