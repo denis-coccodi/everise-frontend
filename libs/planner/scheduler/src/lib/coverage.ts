@@ -283,18 +283,59 @@ export function fitsGrant(granted: number[], grants: number[], at: number, grant
   return true;
 }
 
-// Whether one more use at `at` keeps to the recast: with `charges`, no
-// stretch as long as the recast holds more uses than charges.
 // Whether a tool can't be used at a moment (its `away` spans).
 export const isAway = (tool: { away?: { from: number; to: number }[] }, at: number) =>
   !!tool.away?.some((s) => at >= s.from && at < s.to);
 
+// Whether one more use at `at` keeps to the recast, every use having a charge: they come back one at a time, a
+// recast apart, as the game has them. Two used at 0s and 1s come back at 60s and 120s, so a third at 61s has none
+// (counted as no more uses than charges in any recast-long stretch, the plan had 626 such casts on the bench).
 export function fitsRecast(times: number[], at: number, recastMs: number, charges: number) {
   const all = [...times, at].sort((a, b) => a - b);
-  for (let i = 0; i < all.length; i++) {
-    let within = 0;
-    for (let j = i; j < all.length && all[j] - all[i] < recastMs; j++) within++;
-    if (within > charges) return false;
+  let left = charges;
+  let back: number | null = null;
+  for (const t of all) {
+    while (back !== null && back <= t) {
+      left++;
+      back = left < charges ? back + recastMs : null;
+    }
+    if (left < 1) return false;
+    left--;
+    back ??= t + recastMs;
   }
   return true;
+}
+
+// When a charge is there at `from` or after, with uses at `times` (none after `from`) and `cuts` taking time off the
+// recast running then (Fell Cleave's 5s off Infuriate): charges come back one at a time, as in `fitsRecast`.
+export function chargeAt(
+  times: number[],
+  cuts: { at: number; ms: number }[],
+  recastMs: number,
+  charges: number,
+  from: number,
+): number {
+  let left = charges;
+  let back: number | null = null;
+  const settle = (t: number) => {
+    while (back !== null && back <= t) {
+      left++;
+      back = left < charges ? back + recastMs : null;
+    }
+  };
+  const events = [...times.map((at) => ({ at, ms: 0 })), ...cuts].sort((a, b) => a.at - b.at);
+  for (const e of events.filter((x) => x.at <= from)) {
+    settle(e.at);
+    if (!e.ms) {
+      left--;
+      back ??= e.at + recastMs;
+    } else if (back !== null) back = Math.max(e.at, back - e.ms);
+  }
+  settle(from);
+  if (left >= 1 || back === null) return from;
+  for (const cut of cuts.filter((c) => c.at > from).sort((a, b) => a.at - b.at)) {
+    if (back <= cut.at) break;
+    back = Math.max(cut.at, back - cut.ms);
+  }
+  return back;
 }

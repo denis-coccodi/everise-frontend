@@ -6,6 +6,9 @@ export interface BurstAction {
   everyMs?: number;
   // Placed before the heals and mitigations, not after: an astrologian's, their cards going by it.
   early?: boolean;
+  // What takes time off its recast, each of the player's casts of these as played (Infuriate: Fell Cleave and the
+  // rest, 5s each): placed only where a charge is back, `everyMs` at the soonest.
+  cutBy?: { actions: number[]; ms: number };
 }
 
 // A cast a burst action enables, within `withinMs` of it (of the step before, `fromPrevious`: a combo, or what that

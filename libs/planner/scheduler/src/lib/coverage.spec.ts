@@ -1,4 +1,4 @@
-import { fitsGrant, fitsPool, fitsRecast, poolFull, poolLevel, projected } from './coverage';
+import { chargeAt, fitsGrant, fitsPool, fitsRecast, poolFull, poolLevel, projected } from './coverage';
 import { Mechanic, MitigationEffect, MitigationTool, PlannedUse } from './plan.model';
 import type { PullFacts } from './coverage.model';
 
@@ -229,6 +229,31 @@ describe('fitsRecast', () => {
     expect(fitsRecast([0], 60_000, 60_000, 1)).toBe(true);
     expect(fitsRecast([0], 1_000, 60_000, 2)).toBe(true);
     expect(fitsRecast([0, 1_000], 2_000, 60_000, 2)).toBe(false);
+  });
+
+  it('brings charges back one at a time, a recast apart', () => {
+    // Used at 0s and 1s: one back at 60s, the other at 120s.
+    expect(fitsRecast([0, 1_000], 60_000, 60_000, 2)).toBe(true);
+    expect(fitsRecast([0, 1_000, 60_000], 61_000, 60_000, 2)).toBe(false);
+    expect(fitsRecast([0, 1_000, 60_000], 120_000, 60_000, 2)).toBe(true);
+    // A use placed before the others is checked against them too.
+    expect(fitsRecast([1_000, 60_000, 61_000], 0, 60_000, 2)).toBe(false);
+  });
+});
+
+describe('chargeAt', () => {
+  const cut = (at: number) => ({ at, ms: 5_000 });
+
+  it('is now while a charge is left, else when the next comes back', () => {
+    expect(chargeAt([0], [], 60_000, 2, 30_000)).toBe(30_000);
+    expect(chargeAt([0, 1_000], [], 60_000, 2, 30_000)).toBe(60_000);
+  });
+
+  it('counts what casts take off the recast, before and after', () => {
+    // Infuriate at 0s and 1s: back at 60s, less 5s for each Fell Cleave (10s, 20s before; 40s after 30s).
+    expect(chargeAt([0, 1_000], [cut(10_000), cut(20_000), cut(40_000)], 60_000, 2, 30_000)).toBe(45_000);
+    // A cut can't bring it back before the cast that made it.
+    expect(chargeAt([0], [cut(57_000)], 60_000, 1, 56_000)).toBe(57_000);
   });
 });
 
