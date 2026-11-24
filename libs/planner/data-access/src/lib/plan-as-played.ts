@@ -160,7 +160,36 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, c
   const job = timeline.players.find((p) => p.id === playerId)?.job ?? '';
   if (!replanned) return out;
   const paid = withGaugePaid(job, out, mine, casts, catalog, filler);
-  return job === 'SGE' ? withStingsPaid(timeline, playerId, paid, mine, casts, catalog, filler) : paid;
+  const shown = job === 'SGE' ? withStingsPaid(timeline, playerId, paid, mine, casts, catalog, filler) : paid;
+  const withheld = (plan.withheld ?? []).filter((w) => w.player === playerId);
+  return withheld.length ? withoutWithheld(shown, withheld, byId, filler) : shown;
+}
+
+// What the plan withholds (`withLegalCasts`): their usual attack in a GCD's slot, an oGCD gone.
+function withoutWithheld(
+  out: PlanUseEntry[],
+  withheld: { action: number; at: number }[],
+  byId: Map<number, CatalogAction>,
+  filler: CatalogAction | undefined,
+): PlanUseEntry[] {
+  const gone = (e: PlanUseEntry) => withheld.some((w) => w.at === e.at && byId.get(w.action)?.name === e.action);
+  return out.flatMap((e) => {
+    if (!gone(e)) return [e];
+    if (!e.gcd || !filler) return [];
+    const instead = e.instead ?? e.action;
+    const icon = filler.icon ?? null;
+    return [
+      {
+        ...e,
+        action: filler.name,
+        icon,
+        description: filler.description ?? null,
+        kept: 'Damage',
+        attack: true,
+        instead,
+      },
+    ];
+  });
 }
 
 // Whether a buff or enabler of theirs stays as played (see SAME_USE_MS).

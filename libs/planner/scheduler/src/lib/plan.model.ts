@@ -99,8 +99,7 @@ export interface Grant {
 export interface MitigationEffect {
   // `target`: the user or one party member, picked per use.
   target: 'self' | 'target' | 'party' | 'enemies';
-  // The share of physical and of magic damage it takes off (0.1: 10%; 0
-  // for a shield). None of unique damage.
+  // The share of physical and of magic damage it takes off (0.1: 10%; 0 for a shield). None of unique damage.
   physical: number;
   magic: number;
   // What a shield absorbs after mitigation; null for a mitigation.
@@ -111,8 +110,7 @@ export interface MitigationEffect {
   durationMs: number;
   // The status, as the game names it.
   status: string;
-  // Effects with one key don't stack: two Reprisals count once, and so do
-  // Troubadour and Tactician.
+  // Effects with one key don't stack: two Reprisals count once, and so do Troubadour and Tactician.
   stack: string;
   // A tank's invulnerability; null for anything else.
   invulnerable: Invulnerability | null;
@@ -331,14 +329,16 @@ export interface Plan {
   // Replanned players' MP, and where a heal was turned down for it.
   mp?: PlannedMp[];
   mpShort?: MpShort[];
-  // The players it replans (ids; left out, everyone), and what it plans for
-  // them ("player:action"): their own uses of those aren't kept as played.
+  // The players it replans (ids; left out, everyone), and what it plans for them ("player:action"):
+  // their own uses of those aren't kept as played.
   replanned?: number[];
   scheduled?: string[];
   // Of those, the ones replanned only from a completed wipe's wipe point.
   late?: number[];
   // The deaths the plan couldn't prevent, and their raises (`withDeaths`).
   deaths?: PlannedDeath[];
+  // Casts kept as played they can no longer press, not shown (`withLegalCasts`).
+  withheld?: { player: number; action: number; at: number }[];
 }
 
 // A player's HP with the plan: what it is after each change, in time order.

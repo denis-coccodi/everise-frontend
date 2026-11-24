@@ -10,6 +10,7 @@ export { OPENERS } from './opener-presets';
 // instant one's lock; a second one after the same GCD a weave later.
 const WEAVE_AFTER_MS = 700;
 const AETHERFLOW_MS = 60_000;
+const DISSIPATION_MS = 180_000;
 // After the opener, Dissipation stays where the player used it: the guides
 // hold it for when the healing needs it.
 const OPENER_MS = 45_000;
@@ -59,7 +60,8 @@ export function openerUses(
 
 // A scholar's stacks with their opener's uses: when each Aetherflow and
 // Dissipation lands (Aetherflow on cooldown after the opener's; from the
-// first GCD with none), Dissipation after the opener as played.
+// first GCD with none), Dissipation after the opener as played, each once the
+// one before is back (the opener's can come later than theirs).
 export function scholarTimes(
   timeline: PullTimeline,
   scholar: number,
@@ -71,7 +73,12 @@ export function scholarTimes(
   const aetherflow: number[] = [];
   for (let at = firstOf(AETHERFLOW) ?? firstGcd; at <= timeline.durationMs; at += AETHERFLOW_MS) aetherflow.push(at);
   const opened = firstOf(DISSIPATION);
-  const dissipation = opened === undefined ? played : [opened, ...played.filter((at) => at > OPENER_MS)];
+  if (opened === undefined) return { aetherflow, dissipation: played };
+  const dissipation = [opened];
+  for (const at of played.filter((t) => t > OPENER_MS)) {
+    const back = dissipation[dissipation.length - 1] + DISSIPATION_MS;
+    if (back <= timeline.durationMs) dissipation.push(Math.max(at, back));
+  }
   return { aetherflow, dissipation };
 }
 

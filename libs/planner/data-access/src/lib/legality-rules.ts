@@ -35,6 +35,21 @@ const TRAIT_CUTS: Record<number, string[][]> = {
 // (Inner Chaos). Counted even where the tooltip sets a condition (Tempera Coat's, when its barrier breaks): a cast
 // is judged impossible only where it surely was.
 function recastCuts(action: CatalogAction, mine: CatalogAction[]): { group: number; ms: number }[] {
+  return cached(CUTS, mine, String(action.id), () => cutsOf(action, mine));
+}
+
+// What each tooltip says, read once per job's actions (a plan is judged many times over: `withLegalCasts`).
+const CUTS = new WeakMap<CatalogAction[], Map<string, { group: number; ms: number }[]>>();
+const GRANTERS = new WeakMap<CatalogAction[], Map<string, { id: number; window: number }[]>>();
+const NEEDS = new WeakMap<CatalogAction, string | null>();
+function cached<T>(store: WeakMap<CatalogAction[], Map<string, T>>, mine: CatalogAction[], key: string, make: () => T) {
+  const known = store.get(mine) ?? new Map<string, T>();
+  store.set(mine, known);
+  if (!known.has(key)) known.set(key, make());
+  return known.get(key) as T;
+}
+
+function cutsOf(action: CatalogAction, mine: CatalogAction[]): { group: number; ms: number }[] {
   const cuts = [
     ...[...(action.description ?? '').matchAll(/reduces the recast time of ([A-Z][\w' ]*?) by (\d+) seconds/gi)],
     ...(TRAIT_CUTS[action.id] ?? []),
@@ -91,6 +106,11 @@ const norm = (s: string) =>
 // The status a cast needs, from "Can only be executed while under the effect of Impact Imminent."; none for the
 // conditions the plan doesn't track (in combat, a target, the faerie summoned).
 function needOf(action: CatalogAction): string | null {
+  if (!NEEDS.has(action)) NEEDS.set(action, readNeed(action));
+  return NEEDS.get(action) ?? null;
+}
+
+function readNeed(action: CatalogAction): string | null {
   const m =
     /can only be executed (?:while|when)(?: under the effect of| you are under the effect of)? ([^.|\n]+?)(?: is active| is in full bloom)?[.\n|]/i.exec(
       action.description ?? '',
@@ -127,10 +147,12 @@ export function enablersMissing(casts: LegalityCast[], mine: CatalogAction[], by
     }
     const need = needOf(action);
     if (!need) continue;
-    const granters = mine
-      .filter((g) => g.id !== action.id)
-      .map((g) => ({ id: g.id, window: grantWindow(g, need) }))
-      .filter((g): g is { id: number; window: number } => g.window !== null);
+    const granters = cached(GRANTERS, mine, action.id + ':' + need, () =>
+      mine
+        .filter((g) => g.id !== action.id)
+        .map((g) => ({ id: g.id, window: grantWindow(g, need) }))
+        .filter((g): g is { id: number; window: number } => g.window !== null),
+    );
     if (!granters.length) continue;
     const granted = casts.some((g) => {
       const window = granters.find((x) => x.id === g.action)?.window;

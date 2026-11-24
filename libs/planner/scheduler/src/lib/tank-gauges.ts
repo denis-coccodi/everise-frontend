@@ -38,14 +38,13 @@ export function unpaidSpends(job: string, casts: GaugeCast[], catalog: ActionCat
   const rules = RULES[job];
   const dropped = new Set<GaugeCast>();
   if (!rules) return dropped;
-  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-  const chains = chainsOf(catalog);
-  const costOf = (c: GaugeCast) => +(rules.cost.exec(text(byId.get(c.action)))?.[1] ?? 0);
+  const facts = factsOf(job, catalog);
+  const costOf = (o: GaugeCast) => facts.get(o.action)?.cost ?? 0;
   for (const c of casts) {
     if (c.own || !costOf(c)) continue;
     // Theirs: with it, and without the later ones of theirs, is every spend still paid?
-    const later = new Set(casts.filter((o) => !o.own && o.at > c.at && costOf(o)));
-    if (!paid(rules, casts, byId, chains, start, (o) => !dropped.has(o) && !later.has(o))) dropped.add(c);
+    const kept = (o: GaugeCast) => !dropped.has(o) && (o.own || o.at <= c.at || !costOf(o));
+    if (!paid(rules, casts, facts, start, kept)) dropped.add(c);
   }
   return dropped;
 }
@@ -54,8 +53,7 @@ export function unpaidSpends(job: string, casts: GaugeCast[], catalog: ActionCat
 export function allPaid(job: string, casts: GaugeCast[], catalog: ActionCatalog, start: number): boolean {
   const rules = RULES[job];
   if (!rules) return true;
-  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-  return paid(rules, casts, byId, chainsOf(catalog), start, () => true);
+  return paid(rules, casts, factsOf(job, catalog), start, () => true);
 }
 
 // The spender a tank presses where they have the gauge: Fell Cleave, Bloodspiller, Burst Strike.
@@ -65,20 +63,36 @@ export const SPENDER: Record<string, number> = { WAR: 3549, DRK: 7392, GNB: 1616
 export function gaugeAtPull(job: string, casts: GaugeCast[], catalog: ActionCatalog): number {
   const rules = RULES[job];
   if (!rules) return 0;
-  const byId = new Map(catalog.actions.map((a) => [a.id, a]));
-  const chains = chainsOf(catalog);
-  for (let start = 0; start < rules.max; start++) if (paid(rules, casts, byId, chains, start, () => true)) return start;
+  const facts = factsOf(job, catalog);
+  for (let start = 0; start < rules.max; start++) if (paid(rules, casts, facts, start, () => true)) return start;
   return rules.max;
 }
 
-// Whether every spend of the casts `kept` is paid, from `start`.
+// The spends of a tank's casts (in time order) the gauge can't pay for as it stands, from `start`: each goes unpaid,
+// and the gauge on without it. One pass, where `unpaidSpends` weighs which of theirs to give up.
+export function spendsShort<T extends GaugeCast>(job: string, casts: T[], catalog: ActionCatalog, start: number): T[] {
+  const rules = RULES[job];
+  const short: T[] = [];
+  if (rules)
+    paid(
+      rules,
+      casts,
+      factsOf(job, catalog),
+      start,
+      () => true,
+      (c) => short.push(c as T),
+    );
+  return short;
+}
+
+// Whether every spend of the casts `kept` is paid, from `start`; with `unpaid`, each that isn't told, and on.
 function paid(
   rules: (typeof RULES)[string],
   casts: GaugeCast[],
-  byId: Map<number, CatalogAction>,
-  chains: Map<string, string>,
+  facts: Map<number, GaugeFacts>,
   start: number,
   kept: (c: GaugeCast) => boolean,
+  unpaid?: (c: GaugeCast) => void,
 ): boolean {
   let level = start;
   let bloodfestUntil = -Infinity;
@@ -87,7 +101,7 @@ function paid(
   const last = new Map<string, { name: string; at: number }>();
   for (const c of casts) {
     if (!kept(c)) continue;
-    const a = byId.get(c.action);
+    const a = facts.get(c.action);
     if (!a) continue;
     const max = c.at <= bloodfestUntil ? BLOODFEST_MAX : rules.max;
     const add = (n: number) => (level = Math.min(max, level + n));
@@ -103,25 +117,62 @@ function paid(
       bloodWeapon.left--;
       add(10);
     }
-    const follows = comboOf(a);
-    const chain = chains.get(a.name) ?? a.name;
-    if (follows) {
-      const before = last.get(chain);
-      const gain = rules.gain.exec(text(a));
-      if (gain && before && follows.includes(before.name) && c.at - before.at <= COMBO_MS) add(+gain[1] || 1);
+    if (a.follows) {
+      const before = last.get(a.chain);
+      if (a.gain && before && a.follows.includes(before.name) && c.at - before.at <= COMBO_MS) add(a.gain);
     }
-    last.set(chain, { name: a.name, at: c.at });
-    const cost = rules.cost.exec(text(a));
-    if (!cost) continue;
-    let n = +cost[1];
+    last.set(a.chain, { name: a.name, at: c.at });
+    if (a.cost === null) continue;
+    let n = a.cost;
     if (FREE_IN_RELEASE.has(c.action) && release.left && c.at <= release.until) {
       release.left--;
       n = 0;
     }
-    if (n > level) return false;
+    if (n > level) {
+      if (!unpaid) return false;
+      unpaid(c);
+      continue;
+    }
     level -= n;
   }
   return true;
+}
+
+// What a tank's gauge rules read of each action's tooltip, read once per catalog.
+interface GaugeFacts {
+  name: string;
+  gcd: boolean;
+  // The steps it follows in a combo, and its combo's first step.
+  follows?: string[];
+  chain: string;
+  gain: number | null;
+  cost: number | null;
+}
+const FACTS = new WeakMap<ActionCatalog, Map<string, Map<number, GaugeFacts>>>();
+function factsOf(job: string, catalog: ActionCatalog): Map<number, GaugeFacts> {
+  const byJob = FACTS.get(catalog) ?? new Map<string, Map<number, GaugeFacts>>();
+  FACTS.set(catalog, byJob);
+  const known = byJob.get(job);
+  if (known) return known;
+  const rules = RULES[job];
+  const chains = chainsOf(catalog);
+  const facts = new Map(
+    catalog.actions.map((a) => {
+      const gain = rules?.gain.exec(text(a));
+      const cost = rules?.cost.exec(text(a));
+      const fact: GaugeFacts = {
+        name: a.name,
+        gcd: !!a.gcd,
+        follows: comboOf(a),
+        chain: chains.get(a.name) ?? a.name,
+        gain: gain ? +gain[1] || 1 : null,
+        cost: cost ? +cost[1] : null,
+      };
+      return [a.id, fact] as const;
+    }),
+  );
+  byJob.set(job, facts);
+  return facts;
 }
 
 // Each combo step's chain: the first action of its combo (Heavy Swing for Maim and Storm's Path), each chain on its own.

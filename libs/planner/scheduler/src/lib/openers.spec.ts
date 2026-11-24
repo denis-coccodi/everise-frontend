@@ -23,6 +23,13 @@ const steps = (job: string, opener?: 'standard' | 'dissipation-first' | 'double-
   openingOf(timeline(job), cat(), timeline(job).players, opener ? { 2: opener } : {});
 
 describe('openingOf', () => {
+  it("keeps a scholar's Dissipation as played only once the opener's is back", () => {
+    // Played at 50s, the opener's at 16.2s: back 180s on.
+    const t = timeline('SCH');
+    t.playerCasts = t.playerCasts.map((c) => (c.action === 3587 ? { ...c, at: 50_000 } : c));
+    expect(openingOf(t, cat(), t.players, {}).dissipations.get(2)).toEqual([16_200, 196_200]);
+  });
+
   it("weaves a scholar's standard opener after their GCDs: Aetherflow, then Dissipation", () => {
     const o = steps('SCH');
     const opener = o.uses.filter((u) => u.opener);

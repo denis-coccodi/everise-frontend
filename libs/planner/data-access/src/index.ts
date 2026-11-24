@@ -7,6 +7,7 @@ export { readReportLink } from './lib/report-link';
 export { pullClock, pullClockTenths } from './lib/pull-time';
 export { planLog, unsafeHits } from './lib/plan-log';
 export { planLegality } from './lib/plan-legality';
+export { withLegalCasts } from './lib/plan-legal-casts';
 export type { ImpossibleCast, LegalityCast, LegalityRule, PlanLegality } from './lib/plan-legality.model';
 export { deathsText } from './lib/plan-deaths-text';
 export { hpCurves, lowest, lowestPerBucket, shareAt } from './lib/hp-curves';
