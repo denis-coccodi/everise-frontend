@@ -282,7 +282,7 @@ export const formButton = (page: HTMLElement, text: string) =>
 // Plans the pull with everyone replanned (and the margin, when given), and
 // waits for the plan.
 export async function planEveryone(rendered: RenderedPull, margin?: string) {
-  click(rendered, formButton(rendered.page, 'Everyone'));
+  click(rendered, formButton(rendered.page, 'Tanks and healers'));
   const input = rendered.page.querySelector<HTMLInputElement>('#planner-margin');
   if (!input) throw new Error('no margin field');
   if (margin !== undefined) {

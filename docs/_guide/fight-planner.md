@@ -18,7 +18,7 @@ Player names in this picture are replaced with "Player 1", "Player 2" and so on.
 1. **Paste the report's link** from FFLogs. The report must be public or unlisted.
 2. **Pick a pull.** Pulls are grouped by fight.
 3. **Compare:** each player has a tab showing what they did, next to what the plan suggests, on one timeline.
-4. **Adjust:** choose who to replan, and add or remove skills. The plan rebuilds around your changes.
+4. **Adjust:** choose which tanks and healers to replan (tick them on their tabs, or press **Tanks and healers**), and add or remove skills. The plan rebuilds around your changes. Damage dealers have no tick for now: their skills stay as they were played.
 {: .steps}
 
 - **HP margin:** the HP that counts as dangerously low. The plan makes sure no hit takes anyone below it. Before a heavy hit (40% of a player's HP or more) it tops everyone up to full, as healers do, and before every raidwide it also shields everyone (Succor, Eukrasian Prognosis, Aspected Helios...), as healers do; before other light hits it only uses healing that costs no damage, and doesn't spend GCD heals just to top people up. An astrologian shields the party with Helios Conjunction during Neutral Sect, before the raidwides in it, and Horoscope can go with that same Helios. A sage's Zoe goes before a Eukrasian Prognosis whenever it's back, making its shield bigger, as sages play it.

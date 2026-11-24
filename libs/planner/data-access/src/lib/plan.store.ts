@@ -10,6 +10,7 @@ import { progressOf } from './plan-progress';
 import { plannedSideBySide } from './plan-side-by-side';
 import { withLegalCasts } from './plan-legal-casts';
 import { characterKey, saveReplan, storedReplan } from './plan-replan';
+import { replannable } from './replannable';
 
 // Whether two plans have the same uses and hits.
 const samePlan = (a: Plan, b: Plan) => JSON.stringify([a.uses, a.hits]) === JSON.stringify([b.uses, b.hits]);
@@ -146,10 +147,12 @@ export const PlanStore = signalStore(
       async prepare(pullId: number, timeline: PullTimeline, catalog: ActionCatalog, players: PlanPlayer[]) {
         if (store.preparedFor() === pullId) return;
         const remembered = storedReplan();
+        const tickable = new Set(timeline.players.filter((p) => replannable(p.job)).map((p) => p.id));
         patchState(store, {
           preparedFor: pullId,
           players,
-          replan: players.filter((p) => remembered.includes(characterKey(p))).map((p) => p.id),
+          // Only tanks and healers have a tick (`replannable`).
+          replan: players.filter((p) => tickable.has(p.id) && remembered.includes(characterKey(p))).map((p) => p.id),
           lightspeed: {},
           openers: {},
           invulnerabilityOptions: null,
@@ -170,6 +173,8 @@ export const PlanStore = signalStore(
         replanOnly(on ? [...others, playerId] : others);
       },
       replanOnly,
+      // Whether a player gets a replan tick: tanks and healers, for now.
+      replannable,
       setLightspeed(player: number, second: 'logged' | 'replan') {
         patchState(store, { lightspeed: { ...store.lightspeed(), [player]: second } });
       },
