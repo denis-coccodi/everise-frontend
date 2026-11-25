@@ -138,3 +138,11 @@ export function stretchHeals(
   }
   return { uses, events };
 }
+
+// What a mitigation's value counts of the hits in its window other than the mechanic's it's placed for: a quarter,
+// but all of them for Sacred Soil, meant for the whole stretch it's down for (its regen heals between the hits). Weighed
+// like the rest, it went in just before one later hit, and the heals before it took Indomitability instead: 51% of the
+// plan's Indomitabilities on 16 bench kills had a Soil in the 15s after, the logs' 33% (45% one in the 15s before).
+const WHOLE_WINDOW = new Set([188]);
+export const othersWeight = (added: { tool: { action: number } }[]) =>
+  added.some((a) => WHOLE_WINDOW.has(a.tool.action)) ? 1 : 0.25;

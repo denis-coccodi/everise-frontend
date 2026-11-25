@@ -45,6 +45,8 @@ import { hpBefores, judgedHits } from './judged-hits';
 import { mpShares, refillTargets, refillsBefore, refillWorth } from './heal-refill';
 import { barrierFor, barrierWorth, healOnly, pairedWithBarrier, withBarriers } from './barrier-worth';
 import { inPlanningOrder } from './hard-first';
+import { soilFirst } from './aetherflow';
+import { soilMover } from './soil-move';
 import { stretchHeals } from './kind-first';
 
 // The heals planned for one mechanic, at most.
@@ -115,6 +117,7 @@ export function planHeals(
   const eventsOfOwn = (own: HealTool | undefined, use: PlannedUse) => (own ? eventsFor(own, use, 0) : []);
   const spent: Spent[] = [];
   const uses: PlannedUse[] = [];
+  const regenOf = new Map<PlannedUse, HpEvent[]>();
   for (const use of plan.uses) {
     const mitigationTool = mitigationOf.get(key(use));
     const tool = mitigationTool ?? healOf.get(key(use)); // A heal an opener has (Assize) counts too.
@@ -130,7 +133,7 @@ export function planHeals(
     }
     const heal = healOf.get(key(use));
     // A mitigation that heals later (Exaltation) heals when it ends.
-    if (heal) track.add(eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0));
+    if (heal) track.add(regenOf.set(use, eventsFor(heal, use, heal.delayed?.delaysMs[0] ?? 0)).get(use) ?? []);
   }
   // The healing buffs on the tanks (the Arrow, Protraction) first: the heals after count them.
   uses.push(...tankBuffs(planned, spent, weaving, plan.mechanics, timeline.players));
@@ -171,6 +174,8 @@ export function planHeals(
     }
   };
 
+  const toolsOf = (u: PlannedUse) => ({ mitigation: mitigationOf.get(key(u)), heal: healOf.get(key(u)) });
+  const soil = soilMover(mitigating, plan.mechanics, spent, track, regenOf, toolsOf, eventsFor, mitigate);
   // A GCD shield is weighed with what its barrier saves, a pairing's barrier too.
   const barrierOf = barrierWorth(mitigationOf, plan.mechanics, mitigating, toolOfUse, facts);
   const mpShare = mpShares(mp);
@@ -250,14 +255,14 @@ export function planHeals(
             const args = [deficits, weaving, pairWith, favourOf, affordable, ahead, mpWorth] as const;
             return best(tool, m, anchor, full ? refillTargets(short, tool, timeline) : short, spent, eventsOf, ...args);
           };
-          const among = (tools: HealTool[]) =>
-            tools.map(candidateOf).reduce<Candidate | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
+          const among = (tools: HealTool[]) => soilFirst(tools.map(candidateOf), better); // Sacred Soil first.
           // A long cooldown waits for the bigger stretch ahead, unless nothing else is left.
           const waits = (t: HealTool) => !firstNeed && !first.has(m.id) && waitsForBiggerNeed(t, m, mechanics, needOf);
           const found = full
             ? among(planned.filter((t) => refills(m.id, t)))
             : (among(planned.filter((t) => !waits(t))) ?? among(planned));
           if (!found) break;
+          if (soil.move(found)) continue; // A Sacred Soil planned soon after goes there instead.
           const pick = soonerRelease(found, plan.mechanics, eventsFor, weaving, spent); // Microcosmos once the raidwide is in.
           track.add(healOnly(pick.events));
           uses.push(pick.use);
@@ -337,7 +342,7 @@ export function planHeals(
   for (const use of uses) use.covers = coveredMechanics(use.covers, deads);
   return {
     mechanics: plan.mechanics,
-    uses: [...plan.uses, ...uses].sort((a, b) => a.at - b.at || a.player - b.player),
+    uses: [...plan.uses.map(soil.placed), ...uses].sort((a, b) => a.at - b.at || a.player - b.player),
     hits,
     unplaced: plan.unplaced,
     hp: party.map((player) => ({ player, points: track.points(player) })),

@@ -27,7 +27,7 @@ describe('PlannerScheduler', () => {
     expect(scholar?.safe).toBe(true);
     expect(scholar?.absorbed).toBeGreaterThan(0);
     expect(scholar?.covers).toEqual(expect.arrayContaining(['Divine Veil', 'Galvanize']));
-    expect(p.uses.find((u) => u.name === 'Adloquium')).toMatchObject({ player: 2, target: 2, at: 29_500 });
+    expect(p.uses.find((u) => u.name === 'Adloquium')).toMatchObject({ player: 2, target: 2, at: 28_900 });
   });
 
   it('spends no GCD on spare margin', () => {
