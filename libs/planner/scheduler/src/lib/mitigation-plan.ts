@@ -10,6 +10,7 @@ import { plannedHits } from './mitigation-hits';
 import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
 import { shortAndLong } from './tank-busters';
+import { kindFirst } from './kind-first';
 import { keptForHard } from './hard-first';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
 import type { PullTimeline } from '@everise/core/api-types';
@@ -132,11 +133,9 @@ export function planMitigation(
   const never = new Set(
     (options.invulnerabilities ?? []).filter((c) => c.mechanic === null).map((c) => `${c.player}:${c.action}`),
   );
-
   // When a player has one action planned.
   const timesOf = (player: number, action: number) =>
     uses.filter((u) => u.player === player && u.action === action).map((u) => u.at);
-
   const zoeFor = zoeOptions(plannable, uses, tool, occupiedBy, weaving, options);
 
   // The damage `added` uses take off the hits `wanted` of `m` (and, in a burst, the earlier hits on those players, which
@@ -296,12 +295,13 @@ export function planMitigation(
   const lethal = (m: Mechanic) => m.hits.filter(killing(m)).length;
   const breaks = tools.filter((t) => t.limitBreak && ours(t));
   const lastResort = lastResortFor(breaks, limitBreaks.gauge, limitBreaks.played, { uses, add, fill, lethal });
-  // Each heavy tank buster a short and a long cooldown on its tank first (`shortAndLong`).
+  // Each heavy tank buster a short and a long cooldown on its tank first (`shortAndLong`), then each kind's skills.
   const covered = (m: Mechanic, h: MechanicHit, actions: Set<number>) =>
     project(m, h, uses).invulnerable || uses.some((u) => actions.has(u.action) && reaches(tool(u), u, m, h).length > 0);
   const saved = (m: Mechanic, h: MechanicHit) =>
     invulnerabilities.some((t) => t.player === h.player && invulnerabilityFor(m, t) !== null);
   shortAndLong(order, others, maxHp, uses, { covered, best, add, killing, saved });
+  kindFirst(order, others, mechanics, best, add, maxHp, short);
   // A player's own cooldown waits for their bigger hit still to plan, by its size, not the HP a round left.
   const pending = new Set(order);
   const weight = (_m: Mechanic, h: MechanicHit) => h.unmitigated / max(h);

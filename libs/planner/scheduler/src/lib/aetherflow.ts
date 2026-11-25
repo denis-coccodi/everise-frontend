@@ -36,19 +36,33 @@ const UNION_EVERY_MS = 100_000;
 // Union's worth: each fifth stack they spent, as played, and past a
 // completed wipe's wipe point every 100 seconds.
 export function faerieGaugeOf(timeline: ReferencedTimeline, scholar: number): number[] {
-  const casts = timeline.playerCasts.filter((c) => c.source === scholar).sort((a, b) => a.at - b.at);
-  const spent: number[] = [];
-  let recited = false;
-  for (const cast of casts) {
-    if (cast.action === RECITATION) recited = true;
-    else if (recited && RECITED.has(cast.action)) recited = false;
-    else if (STACK_SPENDS.has(cast.action)) spent.push(cast.at);
-  }
-  const earned = spent.filter((_, i) => (i + 1) % STACKS_A_UNION === 0);
+  const earned = unionsFrom(timeline.playerCasts.filter((c) => c.source === scholar));
   const { completion } = timeline;
   if (completion)
     for (let at = completion.from + UNION_EVERY_MS; at <= timeline.durationMs; at += UNION_EVERY_MS) earned.push(at);
   return earned;
+}
+
+// When each Fey Union's worth of Faerie Gauge is in: each fifth stack spent of `casts` (a scholar's), but one
+// Recitation made free.
+function unionsFrom(casts: { action: number; at: number }[]) {
+  const spent: number[] = [];
+  let recited = false;
+  for (const cast of [...casts].sort((a, b) => a.at - b.at)) {
+    if (cast.action === RECITATION) recited = true;
+    else if (recited && RECITED.has(cast.action)) recited = false;
+    else if (STACK_SPENDS.has(cast.action)) spent.push(cast.at);
+  }
+  return spent.filter((_, i) => (i + 1) % STACKS_A_UNION === 0);
+}
+
+// A scholar's Faerie Gauge as both their stacks as played (`pool.earned`) and the plan's own (`spent`, theirs: its
+// Aetherflow heals) have filled it, each Fey Union's worth when both have: the plan's check fills it from the plan's
+// column, so an Aetherpact on the stacks they spent as played, where the plan spent fewer, was one they couldn't press.
+export function withPlannedGauge(pool: ToolPool, spent: { action: number; at: number }[]): ToolPool {
+  const planned = unionsFrom(spent);
+  const played = [...(pool.earned ?? [])].sort((a, b) => a - b);
+  return { ...pool, earned: played.slice(0, planned.length).map((t, i) => Math.max(t, planned[i])) };
 }
 
 // The tools with their player's Aetherflow stacks as the pull refills

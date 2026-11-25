@@ -1,4 +1,5 @@
 import { fitsGrant, fitsPool, fitsRecast, isAway, poolFull } from './coverage';
+import { withPlannedGauge } from './aetherflow';
 import type { PullTimeline } from '@everise/core/api-types';
 import { KARDIA, KARDIA_HEAL, KARDIA_HEALS, SOTERIA, TICK_MS } from './heal-tools';
 import { Favour, HealCost, HealTool, Mechanic, PlannedUse } from './plan.model';
@@ -185,7 +186,12 @@ export function best(
       !fitsPool(
         pooled.map((s) => s.at),
         at,
-        tool.pool,
+        tool.pool.name === 'Faerie Gauge'
+          ? withPlannedGauge(
+              tool.pool,
+              spent.filter((s) => s.player === tool.player),
+            )
+          : tool.pool,
       )
     )
       continue;
