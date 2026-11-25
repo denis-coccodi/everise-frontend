@@ -10,7 +10,7 @@ import { plannedHits } from './mitigation-hits';
 import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
 import { shortAndLong, spareOn } from './tank-busters';
-import { kindFirst } from './kind-first';
+import { kindFirst, othersWeight } from './kind-first';
 import { keptForHard } from './hard-first';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
 import type { PullTimeline } from '@everise/core/api-types';
@@ -161,7 +161,7 @@ export function planMitigation(
           other === m
             ? wanted(hit)
             : other.at < m.at && sameBurst(other, m) && m.hits.some((x) => x.player === hit.player && wanted(x));
-        value += (before - after) * (counts ? 1 : 0.25);
+        value += (before - after) * (counts ? 1 : othersWeight(added));
       }
     }
     return value;

@@ -30,6 +30,17 @@ export class HpTrack {
     }
   }
 
+  // Takes back events added before (these same objects): a use the plan moved (Sacred Soil's regen).
+  remove(events: HpEvent[]) {
+    for (const event of events) {
+      const list = this.events.get(event.player) ?? [];
+      const i = list.indexOf(event);
+      if (i < 0) continue;
+      list.splice(i, 1);
+      this.known.set(event.player, Math.min(this.known.get(event.player) ?? 0, i));
+    }
+  }
+
   // The damage the player took after `from`, up to `to` (inclusive).
   damageBetween(player: number, from: number, to: number) {
     let damage = 0;

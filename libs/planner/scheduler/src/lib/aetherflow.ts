@@ -85,3 +85,21 @@ export function withAetherflow<T extends { player: number; pool: ToolPool | null
     return t;
   });
 }
+
+// Sacred Soil, and the Aetherflow heals it goes before (Indomitability, Lustrate).
+const SACRED_SOIL = 188;
+const AFTER_SOIL = new Set([3583, 189]);
+
+// The best of `candidates` (`better`), but a scholar's Sacred Soil where it's one of them and the best is their
+// Indomitability or Lustrate: Soil first, the others only where it can't help (The Balance, 7.4: Sacred Soil "instead of
+// Lustrate or Indomitability if the party will remain inside the bubble"; Lustrate "only if Excogitation and Sacred
+// Soil cannot be used"). One Recitation makes critical stays, for burst healing. On 16 bench kills, the logs' scholars
+// pressed Indomitability with Soil back 29% of the time, the plan 57%.
+export function soilFirst<C extends { use: { player: number; action: number; critical?: boolean } }>(
+  candidates: (C | null)[],
+  better: (a: C, b: C) => boolean,
+): C | null {
+  const best = candidates.reduce<C | null>((a, c) => (c && (!a || better(c, a)) ? c : a), null);
+  if (!best || !AFTER_SOIL.has(best.use.action) || best.use.critical) return best;
+  return candidates.find((c) => c?.use.action === SACRED_SOIL && c.use.player === best.use.player) ?? best;
+}
