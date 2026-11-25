@@ -16,9 +16,13 @@ import type { Weaving } from './weaving';
 //   or more 31%: its five barriers, one a hit), Taurochole (42%: "the heal will heal off the raidwide, while the
 //   mitigation will work nicely for the tankbuster"), the Bole ("additional support in tank busters"); any second
 //   21%.
+// - and a paladin's Divine Veil (`TANK_MULTI_HIT`: 3+ after 24% of the logs' casts, before a buster 5%); the plan had
+//   it before a buster 22% of the time, on 3+ raidwides 15%. Given the same, the other tanks' party mitigations (Shake
+//   It Off, Dark Missionary, Heart of Light) went on 3+ raidwides 40-51% of the time, the logs 27-33%.
 // The plan, placing them by what they take off wherever they fit first, had Liturgy before 3+ raidwides 19% of the
 // time, Haima 35% and Exaltation 32%.
-export const MULTI_HIT = new Set([25862, 24311, 37014, 37031, 37011, 25868, 16536]);
+const TANK_MULTI_HIT = [3540];
+export const MULTI_HIT = new Set([25862, 24311, 37014, 37031, 37011, 25868, 16536, ...TANK_MULTI_HIT]);
 export const BUSTER = new Set([25861, 25873, 24305, 24303, 37027]);
 // A tank buster this big (unmitigated, a share of max HP), still short of the margin with the tank's own cooldowns
 // (`tank-busters.ts`), gets one of them first: on every heavy buster, the plan had 2-3 times the logs' Aquaveils, Exaltations

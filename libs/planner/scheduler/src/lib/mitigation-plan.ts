@@ -9,7 +9,7 @@ import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, reachMs, waits
 import { plannedHits } from './mitigation-hits';
 import { takeBackGcds } from './mitigation-take-back';
 import { lastResortFor } from './limit-break-plan';
-import { shortAndLong } from './tank-busters';
+import { shortAndLong, spareOn } from './tank-busters';
 import { kindFirst } from './kind-first';
 import { keptForHard } from './hard-first';
 import type { GroupLimitBreak } from './limit-break-gauge.model';
@@ -337,7 +337,7 @@ export function planMitigation(
       return !invulnerable && damage > limit(m, h) / 2;
     };
     for (let n = 0; n < SPARE_PER_MECHANIC && m.hits.some(heavy); n++) {
-      const pick = pickBest(spare.map((t) => best(m, t, heavy, false)));
+      const pick = pickBest(spare.filter(spareOn(m)).map((t) => best(m, t, heavy, false)));
       if (!pick) break;
       add(pick);
     }
