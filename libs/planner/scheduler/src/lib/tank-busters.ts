@@ -16,6 +16,15 @@ const WITH_RAMPART = new Set([16140]);
 // A buster this big (unmitigated, a share of max HP) or bigger: in 88 kills' logs, those of 60% or more had a long
 // cooldown or an invulnerability on the tank 86-92% of the time, those under 40% 28%.
 const HEAVY = 0.6;
+// A tank's own cooldowns, and the other tank's Intervention or Nascent Flash: meant for tank busters (in 88 kills' logs
+// a buster follows within 10s 59-84% of their uses, any second of uptime 21%). Players don't spend them on a raidwide
+// for margin to spare: the plan, adding them wherever they gave the most, had 1.5-5 times the logs' (on 16 kills,
+// Intervention 88 to 21, Bloodwhetting 138 to 88, Dark Mind 66 to 41), before a buster as little as 16% of the time.
+const OWN = new Set([...SHORT_COOLDOWNS, ...LONG_COOLDOWNS, 22, 3634, 25754, 16140, ...FROM_THE_OTHER_TANK]);
+
+// Whether `t` may add margin to spare to `m`: not a tank's own cooldown (`OWN`) on a raidwide, where it still goes
+// for a hit short of the margin.
+export const spareOn = (m: Mechanic) => (t: MitigationTool) => m.kind !== 'raidwide' || !OWN.has(t.action);
 
 // Every heavy tank buster (`HEAVY`) gets a short and a long cooldown on the tank it hits, as The Balance's guides
 // pair them ("Rampart and Camoflauge tied with Heart of Corundum, or Nebula tied with Heart of Corundum"; a warrior's

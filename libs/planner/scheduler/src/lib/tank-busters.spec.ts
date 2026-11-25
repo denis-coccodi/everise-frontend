@@ -1,6 +1,6 @@
 import type { Candidate } from './mitigation-plan.model';
 import type { Mechanic, MechanicHit, MitigationTool, PlannedUse } from './plan.model';
-import { shortAndLong } from './tank-busters';
+import { shortAndLong, spareOn } from './tank-busters';
 
 const TANK = 1;
 // The tank's tools: Heart of Corundum (short), Great Nebula and Rampart (long), Camouflage.
@@ -59,5 +59,19 @@ describe('shortAndLong', () => {
 
   it('plans nothing for other kinds of mechanics', () => {
     expect(plan([{ ...buster(70_000), kind: 'raidwide' }])).toEqual([]);
+  });
+});
+
+describe('spareOn', () => {
+  const t = (action: number) => ({ action }) as MitigationTool;
+  const of = (kind: Mechanic['kind']) => ({ kind }) as Mechanic;
+
+  it("keeps a tank's own cooldowns off a raidwide's spare margin, not off a buster's, nor a party one", () => {
+    // Rampart, Bloodwhetting, Dark Mind, the other tank's Intervention; Reprisal.
+    for (const action of [7531, 25751, 3634, 7382]) {
+      expect(spareOn(of('raidwide'))(t(action))).toBe(false);
+      expect(spareOn(of('tankbuster'))(t(action))).toBe(true);
+    }
+    expect(spareOn(of('raidwide'))(t(7535))).toBe(true);
   });
 });
