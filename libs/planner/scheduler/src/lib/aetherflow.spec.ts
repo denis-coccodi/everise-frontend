@@ -1,4 +1,4 @@
-import { faerieGaugeOf, withAetherflow } from './aetherflow';
+import { faerieGaugeOf, withAetherflow, withPlannedGauge } from './aetherflow';
 import { pull } from './scheduler-fixtures';
 
 const ENERGY_DRAIN = 167;
@@ -59,5 +59,19 @@ describe('faerieGaugeOf', () => {
     const pool = { name: 'Faerie Gauge', gainMs: 75_000, max: 2 };
 
     expect(withAetherflow(timeline, [{ player: 2, pool }])[0].pool).toEqual({ ...pool, earned: [5_000] });
+  });
+});
+
+describe('withPlannedGauge', () => {
+  const pool = { name: 'Faerie Gauge', gainMs: 75_000, max: 2, earned: [50_000, 110_000] };
+  const spends = (...at: number[]) => at.map((t) => ({ action: LUSTRATE, at: t }));
+
+  it("has each Fey Union's worth in once both the stacks as played and the plan's have filled it", () => {
+    expect(withPlannedGauge(pool, spends(10_000, 20_000, 30_000, 40_000, 70_000)).earned).toEqual([70_000]);
+    expect(withPlannedGauge(pool, spends(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)).earned).toEqual([50_000, 110_000]);
+  });
+
+  it('has none where the plan spent fewer than five stacks', () => {
+    expect(withPlannedGauge(pool, spends(10_000, 20_000)).earned).toEqual([]);
   });
 });

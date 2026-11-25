@@ -45,6 +45,7 @@ import { hpBefores, judgedHits } from './judged-hits';
 import { mpShares, refillTargets, refillsBefore, refillWorth } from './heal-refill';
 import { barrierFor, barrierWorth, healOnly, pairedWithBarrier, withBarriers } from './barrier-worth';
 import { inPlanningOrder } from './hard-first';
+import { stretchHeals } from './kind-first';
 
 // The heals planned for one mechanic, at most.
 const HEALS_PER_MECHANIC = 8;
@@ -179,6 +180,8 @@ export function planHeals(
     track.add(spare.events);
     uses.push(...spare.uses);
   };
+  // The heals meant for stretches of several raidwides first, over the whole fight (`stretchHeals`: Liturgy of the Bell).
+  spareOnes(stretchHeals(planned, spent, weaving, eventsOf, plan.mechanics));
   // First what keeps every hit above the margin, and the heals used anyway; then (`refill`) everyone refilled to full before each of the pull's mechanics, with what all those leave and MP to spare.
   let needed: Map<string, number> | undefined;
   for (const full of refill ? [false, true] : [false]) {
