@@ -1,5 +1,5 @@
 import { HealTool, Mechanic } from './plan.model';
-import { aimedHeals, spareHeals } from './spare-heals';
+import { aimedHeals, miserySpent, spareHeals } from './spare-heals';
 import { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
 
@@ -22,7 +22,7 @@ describe('spareHeals', () => {
       [assize],
       spent,
       new Weaving(),
-      130_000,
+      { durationMs: 130_000, playerCasts: [] },
       () => 'dps',
       () => [],
     ).uses.map((u) => u.at);
@@ -65,7 +65,7 @@ describe('spareHeals', () => {
       [consolation],
       spent,
       new Weaving(),
-      130_000,
+      { durationMs: 130_000, playerCasts: [] },
       () => 'dps',
       () => [],
     ).uses;
@@ -184,5 +184,55 @@ describe('aimedHeals', () => {
       ['Pneuma', 47_500],
       ['Pneuma', 197_500],
     ]);
+  });
+
+  it('holds a bloom for a burst window where no lily heal comes before it and the lilies keep, else casts it then', () => {
+    const solace = {
+      player: 2,
+      action: 16531,
+      name: 'Afflatus Solace',
+      recastMs: 2_500,
+      charges: 1,
+      gcd: true,
+      castMs: 0,
+      group: '2:solace',
+      pool: { name: 'Lily', gainMs: 20_000, max: 3 },
+      cost: 'neutral',
+      effects: [{ kind: 'heal', target: 'target', potency: 800 }],
+    } as unknown as HealTool;
+    // The opener's Misery at 0, then three lilies by 15s: in full bloom again, none left.
+    const lily = (at: number): Spent => ({
+      player: 2,
+      action: 16531,
+      at,
+      group: '2:solace',
+      pool: solace.pool,
+      gcd: true,
+      castMs: 0,
+    });
+    const misery = (windowAt: number) => {
+      const spent: Spent[] = [miserySpent(2, 0), lily(5_000), lily(10_000), lily(15_000)];
+      const casts = [118, 7396].map((action, i) => ({
+        at: windowAt + i * 1_000,
+        source: 3 + i,
+        target: null,
+        action,
+        castMs: null,
+      }));
+      const { uses } = spareHeals(
+        [solace],
+        spent,
+        new Weaving(),
+        { durationMs: 130_000, playerCasts: casts },
+        () => 'healing',
+        () => [],
+      );
+      return uses.find((u) => u.name === 'Afflatus Misery')?.at;
+    };
+
+    // A window at 30s: Misery waits for it.
+    expect(misery(30_000)).toBe(30_000);
+    // One at 100s: the lilies would overcap before it, so it goes as it blooms (the GCD after the third lily).
+    expect(misery(100_000)).toBe(17_500);
   });
 });
