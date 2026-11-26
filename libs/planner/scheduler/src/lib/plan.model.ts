@@ -336,6 +336,7 @@ export interface Plan {
   late?: number[];
   // The deaths the plan couldn't prevent, and their raises (`withDeaths`).
   deaths?: PlannedDeath[];
+  failing?: number[]; // When the party fails so heavily that the plan raises it with a healer's Limit Break.
   // Casts kept as played they can no longer press, not shown (`withLegalCasts`).
   withheld?: { player: number; action: number; at: number }[];
 }

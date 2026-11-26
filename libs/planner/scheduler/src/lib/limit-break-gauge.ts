@@ -13,6 +13,9 @@ const LEVELS: Record<number, number> = {
     ].map((id) => [id, 3]),
   ),
 };
+// The healers' (Healing Wind, Breath of the Earth, Pulse of Life): not kept where a replanned healer used one.
+export const HEALER_LIMIT_BREAKS = new Set([206, 207, 208]);
+export const PULSE_OF_LIFE = 208;
 // The tanks' (kept where the group used them).
 const TANKS = new Set([197, 198, 199, 4240, 4241, 17105]);
 // A bar of gauge, as FFLogs counts it.
@@ -47,4 +50,20 @@ export function gaugeAt(
   const last = [...played].reverse().find((lb) => lb.at < at)?.at ?? -Infinity;
   if (planned.some((p) => p > last && p < (next?.at ?? Infinity))) return undefined;
   return { replaces: next };
+}
+
+// The group's gauge and Limit Breaks as the plan has them: a healer Limit Break a replanned healer (`replanned`) used is
+// not kept (it put the party back up after something went wrong, which the plan is there to prevent), its bars back in
+// the gauge from then until the group's next Limit Break, for a last-resort one there.
+export function withHealerBarsBack(timeline: PullTimeline, replanned: (player: number) => boolean) {
+  const all = groupLimitBreaks(timeline);
+  const dropped = all.filter((lb) => HEALER_LIMIT_BREAKS.has(lb.action) && replanned(lb.player));
+  const played = all.filter((lb) => !dropped.includes(lb));
+  const gauge = timeline.limitBreakGauge.map((g) => {
+    const back = dropped
+      .filter((lb) => lb.at <= g.at && !played.some((o) => o.at > lb.at && o.at <= g.at))
+      .reduce((sum, lb) => sum + lb.level * BAR, 0);
+    return back ? { ...g, value: Math.min(g.bars * BAR, g.value + back) } : g;
+  });
+  return { gauge, played };
 }

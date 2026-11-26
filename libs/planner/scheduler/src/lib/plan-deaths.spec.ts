@@ -1,6 +1,7 @@
 import type { PullTimeline } from '@everise/core/api-types';
 import type { Mechanic, Plan, PlannedHit } from './plan.model';
 import { withDeaths } from './plan-deaths';
+import { withHealerBarsBack } from './limit-break-gauge';
 import { action, catalog, party, pull } from './scheduler-fixtures';
 
 // A paladin (1), a scholar (2), a bard (3), and here a red mage (4); 100,000
@@ -140,5 +141,63 @@ describe('withDeaths', () => {
     const [death] = withDeaths(ticked, timeline, c).deaths ?? [];
 
     expect(death).toMatchObject({ player: 3, at: 80_000, mechanic: null, cause: 'Bleeding', raisedBy: 4 });
+  });
+});
+
+describe('a party failing heavily', () => {
+  // The paladin, the bard and the red mage die to the raidwide at 60 s; the scholar lives.
+  const failing = (): Plan => ({
+    ...plan(),
+    hits: [hit(1, 1, 50_000, 80_000), hit(1, 3, 50_000, 80_000), hit(1, 4, 50_000, 80_000)],
+    hp: [1, 2, 3, 4].map((player) => ({ player, points: [{ at: 0, hp: 100_000 }] })),
+  });
+  const gauge = (bars: number) => [{ at: 0, value: bars * 10_000, bars: 3 }];
+
+  it('has a replanned healer bring everyone back with Pulse of Life on three bars, and says the party fails', () => {
+    const { t, c } = setup();
+    const out = withDeaths(failing(), { ...t, limitBreakGauge: gauge(3) }, c);
+
+    expect(out.uses.filter((u) => u.name === 'Pulse of Life').map((u) => [u.player, u.at])).toEqual([[2, 62_500]]);
+    expect(out.deaths?.every((d) => d.raisedBy === 2 && d.backAt === 64_500 && d.full)).toBe(true);
+    expect(out.failing).toEqual([62_500]);
+    expect(out.hp.find((h) => h.player === 3)?.points.at(-1)).toEqual({ at: 64_500, hp: 100_000 });
+  });
+
+  it('raises them one by one without three bars', () => {
+    const { t, c } = setup();
+    const out = withDeaths(failing(), { ...t, limitBreakGauge: gauge(2) }, c);
+
+    expect(out.uses.some((u) => u.name === 'Pulse of Life')).toBe(false);
+    expect(out.failing).toBeUndefined();
+  });
+});
+
+describe('withHealerBarsBack', () => {
+  // Three bars at the pull, spent on a Pulse of Life at 50 s by the scholar (2); a tank's Last Bastion at 200 s.
+  const { t } = setup();
+  const played: PullTimeline = {
+    ...t,
+    playerCasts: [
+      { at: 50_000, source: 2, target: null, action: 208, castMs: null },
+      { at: 200_000, source: 1, target: null, action: 199, castMs: null },
+    ],
+    limitBreakGauge: [
+      { at: 0, value: 30_000, bars: 3 },
+      { at: 50_000, value: 0, bars: 3 },
+      { at: 120_000, value: 15_000, bars: 3 },
+      { at: 200_000, value: 0, bars: 3 },
+    ],
+  };
+
+  it("gives a replanned healer's Limit Break its bars back until the group's next one, and drops it", () => {
+    const { gauge, played: kept } = withHealerBarsBack(played, (p) => p === 2);
+    expect(gauge.map((g) => g.value)).toEqual([30_000, 30_000, 30_000, 0]);
+    expect(kept.map((lb) => lb.action)).toEqual([199]);
+  });
+
+  it("keeps a healer's Limit Break that isn't replanned", () => {
+    const { gauge, played: kept } = withHealerBarsBack(played, () => false);
+    expect(gauge.map((g) => g.value)).toEqual([30_000, 0, 15_000, 0]);
+    expect(kept.map((lb) => lb.action)).toEqual([208, 199]);
   });
 });

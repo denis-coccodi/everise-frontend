@@ -27,6 +27,6 @@
     <strong>Edit plan</strong> on the timeline to remove one, or put one on another mechanic.
   </p>
 }
-<cdt-message [tone]="unplaced() || mpShort() ? 'warning' : 'status'">
-  {{ summary() }} {{ unplaced() }} {{ mpShort() }} {{ dropped() }}
+<cdt-message [tone]="unplaced() || mpShort() || failing() ? 'warning' : 'status'">
+  {{ failing() }} {{ summary() }} {{ unplaced() }} {{ mpShort() }} {{ dropped() }}
 </cdt-message>
