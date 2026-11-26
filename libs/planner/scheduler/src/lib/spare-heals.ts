@@ -1,6 +1,8 @@
 import { fitsPool, fitsRecast, isAway, poolLevel } from './coverage';
 import { cutsUnion } from './fairy-heals';
 import { Favour, HealTool, Mechanic, PlannedUse } from './plan.model';
+import type { PullTimeline } from '@everise/core/api-types';
+import { burstWindows } from './burst-windows';
 import { Weaving } from './weaving';
 import type { Spent } from './heal-plan.model';
 import type { HpEvent } from './hp-track.model';
@@ -45,6 +47,8 @@ const STEP_MS = 500;
 export const MISERY = { action: 16535, name: 'Afflatus Misery' };
 const MISERY_CAST_MS = 0;
 const BLOOM = 3;
+// How long a burst window's raid buffs last from its start: a Misery in it gets them.
+const BUFF_MS = 20_000;
 
 // What the healers use after the heals the hits need, as their guides have
 // them: each heal that goes on cooldown, as often as its recast allows, in
@@ -59,10 +63,12 @@ export function spareHeals(
   tools: HealTool[],
   spent: Spent[],
   weaving: Weaving,
-  durationMs: number,
+  timeline: Pick<PullTimeline, 'durationMs' | 'playerCasts'>,
   favourOf: (player: number) => Favour,
   eventsFor: (tool: HealTool, use: PlannedUse) => HpEvent[],
 ): { uses: PlannedUse[]; events: HpEvent[] } {
+  const { durationMs } = timeline;
+  const windows = burstWindows(timeline as PullTimeline);
   const uses: PlannedUse[] = [];
   const events: HpEvent[] = [];
   const add = (tool: HealTool, at: number, target: number | null, overcap = false) => {
@@ -143,11 +149,24 @@ export function spareHeals(
       if (last === undefined) return !opened.length;
       return used().filter((u) => u > last && u <= t).length >= BLOOM;
     };
+    // Where the bloom comes before a burst window, Misery waits for it, as The Balance has it ("put Afflatus Misery into
+    // raid buffs whenever possible"; in 41 kills' logs, 41% of the Miseries went in one, the plan's 19%), but only where
+    // no lily heal of theirs comes before it (one spent in bloom is wasted) and their lilies don't overcap meanwhile ("do
+    // not fixate on putting Misery into buffs if it would otherwise cost you"). Else as the bloom comes.
+    const heldUntil = (t: number) => {
+      const w = windows.find((x) => x + BUFF_MS >= t);
+      if (w === undefined || w <= t) return t;
+      const lilyBefore = used().some((u) => u > t && u <= w);
+      return lilyBefore || poolLevel(used(), w, pool) >= pool.max ? t : w;
+    };
     for (let t = 0; t < durationMs; t += STEP_MS) {
       // Not while their lilies are away (a white mage planned from a wipe point).
       if (isAway(tool, t)) continue;
       if (bloomed(t)) {
-        const at = weaving.gcdAfter(player, t, t + pool.gainMs, MISERY_CAST_MS, occupied(player));
+        const from = heldUntil(t);
+        const at =
+          (from > t ? weaving.gcdAfter(player, from, from + BUFF_MS, MISERY_CAST_MS, occupied(player)) : null) ??
+          weaving.gcdAfter(player, t, t + pool.gainMs, MISERY_CAST_MS, occupied(player));
         if (at === null) continue;
         miseries.push(at);
         uses.push({ player, action: MISERY.action, name: MISERY.name, at, target: null, covers: [], damage: true });
