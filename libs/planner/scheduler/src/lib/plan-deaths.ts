@@ -1,5 +1,6 @@
 import type { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
 import type { Plan, PlannedDeath, PlannedUse } from './plan.model';
+import { PULSE_OF_LIFE, gaugeAt, limitBreakLevel, withHealerBarsBack } from './limit-break-gauge';
 
 // The raise of each job that has one.
 const RAISES: Record<string, number> = { RDM: 7523, WHM: 125, SCH: 173, AST: 3603, SGE: 24287, SMN: 173 };
@@ -21,6 +22,11 @@ const AFTER_HIT_MS = 500;
 const GCD_MS = 2_500;
 const DUALCAST_MS = 5_000;
 const TRIES = 12;
+// This many dying at once is a party failing heavily: a replanned healer brings them all back with Pulse of Life, the
+// healers' level 3 Limit Break, where the group's gauge has its three bars (as the last-resort tank one reads it), as
+// the very last resort; the plan says so (`failing`). Its 2s cast, then everyone dead is back at full HP.
+const MASS_DEATHS = 3;
+const LIMIT_BREAK_CAST_MS = 2_000;
 
 // The plan with what it couldn't prevent: a hit that leaves a player no HP,
 // which nothing in the plan saved, kills them, and so does anything else
@@ -47,16 +53,30 @@ export function withDeaths(plan: Plan, timeline: PullTimeline, catalog: ActionCa
   lethal.sort((a, b) => a.at - b.at);
   const raiser = (player: number) => !!RAISES[timeline.players.find((p) => p.id === player)?.job ?? ''];
   const raises = new Raises(plan, timeline, uses, byId, deadAt);
+  const pulse = pulseOfLife(plan, timeline, uses, deadAt);
+  const failing: number[] = [];
   for (const at of [...new Set(lethal.map((l) => l.at))]) {
     const now = lethal
       .filter((l) => l.at === at && !deadAt(l.player, at))
       .sort((a, b) => Number(raiser(b.player)) - Number(raiser(a.player)));
     const fresh = now.map((l) => ({ ...l, raisedBy: null, raisedAt: null, backAt: null }) as PlannedDeath);
     deaths.push(...fresh);
-    for (const death of fresh) Object.assign(death, raises.of(death));
+    const lb = fresh.length >= MASS_DEATHS ? pulse(at) : null;
+    if (lb) failing.push(lb.at);
+    for (const death of fresh) {
+      Object.assign(
+        death,
+        lb ? { raisedBy: lb.player, raisedAt: lb.landed, backAt: lb.landed, full: true } : raises.of(death),
+      );
+    }
   }
   if (!deaths.length) return plan;
-  return { ...plan, deaths, ...afterDeaths(plan, timeline, deaths, raises.uses, mechanics) };
+  return {
+    ...plan,
+    deaths,
+    ...(failing.length ? { failing } : {}),
+    ...afterDeaths(plan, timeline, deaths, raises.uses, mechanics),
+  };
 }
 
 // Where a player's HP as the plan leaves it runs out besides a mechanic's
@@ -97,7 +117,7 @@ function afterDeaths(
     const points = curve.points.filter((p) => !own.some((d) => p.at >= d.at && p.at < (d.backAt ?? Infinity)));
     for (const d of own) {
       points.push({ at: d.at, hp: 0 });
-      if (d.backAt !== null) points.push({ at: d.backAt, hp: BACK_HP * max });
+      if (d.backAt !== null) points.push({ at: d.backAt, hp: (d.full ? 1 : BACK_HP) * max });
     }
     return { ...curve, points: points.sort((a, b) => a.at - b.at) };
   });
@@ -105,6 +125,32 @@ function afterDeaths(
     hits,
     hp,
     uses: uses.filter((u) => u.raise || !dead(u.player, u.at)).sort((a, b) => a.at - b.at || a.player - b.player),
+  };
+}
+
+// Who brings the party back with Pulse of Life after deaths at `at` (`MASS_DEATHS`), and when: a replanned healer
+// alive then, where the group's gauge (the bars of a healer Limit Break the plan dropped back in it) has three bars
+// and no Limit Break the plan placed has spent them; null where none can. Each one cast goes among `uses`.
+function pulseOfLife(
+  plan: Plan,
+  timeline: PullTimeline,
+  uses: PlannedUse[],
+  deadAt: (player: number, at: number) => boolean,
+) {
+  const replanned = (player: number) => !plan.replanned || plan.replanned.includes(player);
+  const { gauge, played } = withHealerBarsBack(timeline, replanned);
+  return (at: number) => {
+    const cast = at + REACT_MS;
+    const planned = uses.filter((u) => limitBreakLevel(u.action) > 0 && !u.played).map((u) => u.at);
+    if (!gaugeAt(cast, gauge, played, planned)) return null;
+    const hp = (player: number) =>
+      [...(plan.hp.find((h) => h.player === player)?.points ?? [])].reverse().find((p) => p.at <= at)?.hp;
+    const healer = timeline.players.find(
+      (p) => p.role === 'healer' && replanned(p.id) && !deadAt(p.id, cast) && (hp(p.id) ?? 1) > 0,
+    );
+    if (!healer) return null;
+    uses.push({ ...use(healer.id, PULSE_OF_LIFE, 'Pulse of Life', cast, null), gauge: { replaces: null } });
+    return { player: healer.id, at: cast, landed: cast + LIMIT_BREAK_CAST_MS };
   };
 }
 

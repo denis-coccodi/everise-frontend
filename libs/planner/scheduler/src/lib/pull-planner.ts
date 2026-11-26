@@ -17,7 +17,7 @@ import { LUCID_DREAMING, lucidCast, lucidTimes, lucidUse, mpTools } from './luci
 import { thinAirTimes, thinAirUse } from './thin-air';
 import { mechanicsOf } from './mechanics';
 import { planMitigation } from './mitigation-plan';
-import { groupLimitBreaks } from './limit-break-gauge';
+import { withHealerBarsBack } from './limit-break-gauge';
 import { playedUses } from './played-uses';
 import { Weaving } from './weaving';
 import { InvulnerabilityOptions, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
@@ -213,7 +213,7 @@ export class PullPlanner {
         shieldTimes,
         casts,
         mp,
-        { gauge: timeline.limitBreakGauge, played: groupLimitBreaks(timeline) },
+        withHealerBarsBack(timeline, (player) => ids.includes(player)),
         first,
       );
       mitigated.uses = [...mitigated.uses, ...autoCooldowns(mitigated, short, autos, weaving, mp)].sort(

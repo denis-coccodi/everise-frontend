@@ -3,6 +3,7 @@ import { TimelinePlayer } from '@everise/core/api-types';
 import { PlanStore, PlannerStore, pullClock, unsafeHits } from '@everise/planner/data-access';
 import { OPENERS, type OpenerId } from '@everise/planner/scheduler';
 import { edgesNote } from './edges-note';
+import { failingNote } from './failing-note';
 import { FieldComponent, InputComponent, MessageComponent } from '@everise/ui/components';
 
 // The player's own part of planning, in their tab: their opener, a replanned
@@ -76,6 +77,8 @@ export class PlanViewComponent {
     if (!times.length) return '';
     return `Short on MP at ${times.join(', ')}: the plan couldn't afford a heal there.`;
   });
+  // Where so many die at once that the plan brings the party back with a healer's Limit Break.
+  protected readonly failing = computed(() => failingNote(this.current()?.failing));
   // A Dark Knight's Edges of Shadow against the log.
   protected readonly dropped = computed(() =>
     edgesNote(this.current()?.mp?.find((m) => m.player === this.player().id)),

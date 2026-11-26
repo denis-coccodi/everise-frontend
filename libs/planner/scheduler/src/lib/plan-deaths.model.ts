@@ -12,4 +12,6 @@ export interface PlannedDeath {
   raisedBy: number | null;
   raisedAt: number | null;
   backAt: number | null;
+  // Back at full HP: raised by a healer's Limit Break (Pulse of Life), not at 20%.
+  full?: true;
 }
