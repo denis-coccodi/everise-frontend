@@ -181,7 +181,7 @@ export function planHeals(
   const mpShare = mpShares(mp);
   // What the healers use anyway: the heals on cooldown, and the lily that would overcap (`aimedHeals`: in the last pass, `aimed`).
   const eventsOf = (t: HealTool, u: PlannedUse, delayMs = 0) => eventsFor(t, u, delayMs);
-  const spareOnes = (spare = spareHeals(planned, spent, weaving, timeline.durationMs, favourOf, eventsOf)) => {
+  const spareOnes = (spare = spareHeals(planned, spent, weaving, timeline, favourOf, eventsOf)) => {
     track.add(spare.events);
     uses.push(...spare.uses);
   };
