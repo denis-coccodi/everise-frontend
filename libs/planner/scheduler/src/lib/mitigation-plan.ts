@@ -3,7 +3,7 @@ import { fitsGrant, fitsPool, fitsRecast, isAway, projected, pullFacts, reaches 
 import { Mechanic, MechanicHit, MitigationTool, Plan, PlanOptions, PlannedUse } from './plan.model';
 import { cutsUnion } from './fairy-heals';
 import { AUTOMATIC } from './tools';
-import { ogcdWithFirstBefore, withFirst } from './first-press';
+import { slotCache } from './slot-cache';
 import { WEAVE_MS, Weaving } from './weaving';
 import { LEAD_MS, chainsOf, momentsFor, mostEndangered, pickBest, reachMs, waitsForBigger } from './mitigation-moments';
 import { plannedHits } from './mitigation-hits';
@@ -101,13 +101,10 @@ export function planMitigation(
       .filter((u) => u.player === player && !AUTOMATIC.has(u.action))
       .map((u) => ({ at: u.at, gcd: tool(u).gcd, castMs: tool(u).castMs, firstAt: u.firstAt }));
   // When the player can use `t` for `m`, at `at` or before it while it still covers `m`; null when they can't.
-  const fit = (m: Mechanic, t: MitigationTool, at: number) => {
-    const from = m.at - reachMs(t);
-    return t.gcd
-      ? weaving.gcdBefore(t.player, at - t.castMs, from, t.castMs, occupiedBy(t.player))
-      : ogcdWithFirstBefore(weaving, t.player, t.action, at, from, occupiedBy(t.player));
-  };
-  const firstOf = (t: MitigationTool, at: number) => withFirst(weaving, t.player, t.action, at, occupiedBy(t.player));
+  const slots = slotCache(weaving);
+  const fit = (m: Mechanic, t: MitigationTool, at: number) =>
+    slots.slot(t, at, m.at - reachMs(t), occupiedBy(t.player));
+  const firstOf = (t: MitigationTool, at: number) => slots.first(t, at, occupiedBy(t.player));
   // The invulnerabilities asked for first, before their mechanic (not banned).
   const unplaced = [...(from?.unplaced ?? [])];
   for (const choice of from ? [] : (options.invulnerabilities ?? [])) {

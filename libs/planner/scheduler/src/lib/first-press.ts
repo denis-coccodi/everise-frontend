@@ -31,7 +31,7 @@ export function firstPressAt(
 }
 
 // The latest moment from `from` to `at` the player can use oGCD `action`, with a slot for its first press where it
-// needs one (`Weaving.ogcdBefore`).
+// needs one (`Weaving.ogcdBefore`). `slot` and `first` answer as those do (`slot-cache.ts` remembers them).
 export function ogcdWithFirstBefore(
   weaving: Weaving,
   player: number,
@@ -39,10 +39,12 @@ export function ogcdWithFirstBefore(
   at: number,
   from: number,
   occupied: Occupied[],
+  slot = (latest: number) => weaving.ogcdBefore(player, latest, from, occupied),
+  first = (found: number) => firstPressAt(weaving, player, action, found, occupied),
 ): number | null {
   for (let latest = at; latest >= from;) {
-    const found = weaving.ogcdBefore(player, latest, from, occupied);
-    if (found === null || firstPressAt(weaving, player, action, found, occupied) !== null) return found;
+    const found = slot(latest);
+    if (found === null || first(found) !== null) return found;
     latest = found - 1;
   }
   return null;
