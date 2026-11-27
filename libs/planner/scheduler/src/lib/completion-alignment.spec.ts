@@ -1,5 +1,5 @@
 import type { PullTimeline } from '@everise/core/api-types';
-import { alignment } from './completion-alignment';
+import { alignment, completionPhases, shiftOf } from './completion-alignment';
 import { pull } from './scheduler-fixtures';
 
 // A log of the boss's casts ([time in s, name]), lasting `seconds`.
@@ -151,5 +151,48 @@ describe('alignment', () => {
 
     expect(alignment(wipe, [fight(SCRIPT, 220)])).toBeNull();
     expect(alignment(fight(SCRIPT, 220), [])).toBeNull();
+  });
+});
+
+describe('completionPhases', () => {
+  const phased = (seconds: number, ...starts: number[]): PullTimeline => ({
+    ...pull([]),
+    durationMs: seconds * 1000,
+    phases: starts.map((at, i) => ({ at: at * 1000, name: `P${i + 1}`, intermission: false })),
+  });
+  // A wipe 30s into P2 (which began at 100s); kills with P2 90-200s, 110-210s and 80-190s long, P3 to their end.
+  const wipe = phased(130, 0, 100);
+  const kills = [phased(300, 0, 90, 200), phased(330, 0, 110, 210), phased(290, 0, 80, 190)];
+
+  it("lines the wipe's phase up on its start, and each later one after the kills' median lengths", () => {
+    // P2: 110s, 100s, 110s long: a median of 110s, so P3 starts at 210s on the wipe's clock.
+    expect(completionPhases(wipe, kills[0], kills)).toEqual([
+      { from: 90_000, offset: 10_000 },
+      { from: 200_000, offset: 10_000 },
+    ]);
+    const shift = shiftOf({
+      clear: 0,
+      name: '',
+      wipeAt: 0,
+      clearAt: 0,
+      offset: -5_000,
+      endsAt: 0,
+      matched: 3,
+      phases: completionPhases(wipe, kills[1], kills),
+    });
+    expect([shift(120_000), shift(250_000)]).toEqual([110_000, 250_000]);
+  });
+
+  it("makes the wipe's phase at least as long as it lasted", () => {
+    expect(completionPhases(phased(240, 0, 100), kills[0], kills)?.[1]).toEqual({ from: 200_000, offset: 40_000 });
+  });
+
+  it('has none where the logs mark no phases, or different ones, and the one offset counts then', () => {
+    expect(completionPhases(phased(130), kills[0], kills)).toBeUndefined();
+    expect(
+      completionPhases({ ...wipe, phases: [{ at: 0, name: 'Other', intermission: false }] }, kills[0], kills),
+    ).toBeUndefined();
+    const shift = shiftOf({ clear: 0, name: '', wipeAt: 0, clearAt: 0, offset: -5_000, endsAt: 0, matched: 3 });
+    expect(shift(120_000)).toBe(115_000);
   });
 });

@@ -2,6 +2,7 @@ import type { ActionCatalog, PullTimeline } from '@everise/core/api-types';
 import { mpPastWipePoint } from './completion-mp';
 import { standIns } from './completion-players';
 import type { Alignment } from './completion.model';
+import { shiftOf } from './completion-alignment';
 import type { ReferencedTimeline } from './reference-damage.model';
 import { wipePoint } from './wipe-point';
 
@@ -31,7 +32,7 @@ export function completedTimeline(
   const player = (id: number | null) => (id === null ? undefined : stand[id]?.player);
   // A player's or an enemy's id, as the wipe knows them.
   const actor = (id: number | null) => player(id) ?? (id === null ? undefined : enemies.ids.get(id));
-  const shift = (at: number) => at + aligned.offset;
+  const shift = shiftOf(aligned);
   const after = <T extends { at: number }>(list: T[]) =>
     list.filter((e) => shift(e.at) > from && e.at <= clear.durationMs).map((e) => ({ ...e, at: shift(e.at) }));
   const before = <T extends { at: number }>(list: T[]) => list.filter((e) => e.at <= from);

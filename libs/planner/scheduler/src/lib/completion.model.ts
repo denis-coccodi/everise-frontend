@@ -12,6 +12,9 @@ export interface Alignment {
   endsAt: number;
   // How many boss casts the two share in order, up to the anchor.
   matched: number;
+  // Where the logs mark the fight's phases: from each of the kill's phases on (`from`, on the kill's clock), the offset
+  // there (`completionPhases`), in place of `offset`.
+  phases?: { from: number; offset: number }[];
 }
 
 // How many of the fight's mechanics (`total`, as a kill has them) a wipe
