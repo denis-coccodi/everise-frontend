@@ -5,6 +5,7 @@ import type { Alignment } from './completion.model';
 import { shiftOf } from './completion-alignment';
 import type { ReferencedTimeline } from './reference-damage.model';
 import { wipePoint } from './wipe-point';
+import { tankLimitBreakAs } from './limit-break-gauge';
 
 // A kill's enemies that the wipe has none of by name get ids past any
 // report's own.
@@ -55,6 +56,15 @@ export function completedTimeline(
       return { ...a, source: actor(a.source) ?? null, target, from: shift(a.from), to: shift(a.to) };
     },
   );
+  // The kill's tank Limit Breaks, as its group used them (kept where used: Dark Force at TOP's Cosmo Memory), by
+  // the stand-in tank (`tankLimitBreakAs`): its gauge comes along, so dropped, the bars they took were gone with
+  // nothing for them, and a hit that needed one killed.
+  const jobOf = new Map(wipe.players.map((p) => [p.id, p.job]));
+  const limitBreaks = mapped(after(clear.playerCasts), (c) => {
+    const source = player(c.source);
+    const action = source === undefined ? undefined : tankLimitBreakAs(c.action, jobOf.get(source));
+    return source === undefined || action === undefined ? undefined : { ...c, source, action, target: null };
+  });
   // Each player's own MP from the wipe point on, and their MP spenders as
   // played past it (Edge of Shadow).
   const spenders: PullTimeline['playerCasts'] = [];
@@ -73,7 +83,7 @@ export function completedTimeline(
     damage: [...before(wipe.damage), ...damage],
     heals: before(wipe.heals),
     absorbs: before(wipe.absorbs),
-    playerCasts: [...before(wipe.playerCasts), ...spenders].sort((a, b) => a.at - b.at),
+    playerCasts: [...before(wipe.playerCasts), ...spenders, ...limitBreaks].sort((a, b) => a.at - b.at),
     enemyCasts: [...before(wipe.enemyCasts), ...enemyCasts],
     auras: [...wipe.auras.filter((a) => a.from <= from), ...auras],
     deaths: before(wipe.deaths),

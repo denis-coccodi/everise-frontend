@@ -156,6 +156,28 @@ describe('completedTimeline', () => {
     expect(done?.players.find((p) => p.id === 3)?.mp).not.toContainEqual({ at: 155_000, mp: 9000 });
   });
 
+  it("brings the kill's tank Limit Breaks, as its group used them, by the stand-in tank: none of anyone else's", () => {
+    // The kill's paladin's Last Bastion at 150s, its bard's Sagittarius Arrow at 170s.
+    const withBreaks = (): PullTimeline => {
+      const k = kill();
+      k.playerCasts.push(
+        { at: 150_000, source: 11, target: null, action: 199, castMs: null },
+        { at: 170_000, source: 13, target: null, action: 4244, castMs: null },
+      );
+      return k;
+    };
+    const breaks = (w: PullTimeline) =>
+      completedTimeline(w, withBreaks(), aligned, catalog())
+        ?.playerCasts.filter((c) => [199, 4241, 4244].includes(c.action))
+        .map((c) => [c.source, c.action]);
+
+    expect(breaks(wipe())).toEqual([[1, 199]]);
+    // A dark knight in the paladin's place: their own, Dark Force.
+    const knight = wipe();
+    knight.players[0] = { ...knight.players[0], job: 'DRK' };
+    expect(breaks(knight)).toEqual([[1, 4241]]);
+  });
+
   it('adds nothing when the kill ends before the wipe point', () => {
     expect(completedTimeline(wipe(), kill(), { ...aligned, endsAt: 99_000 }, catalog())).toBeNull();
   });
