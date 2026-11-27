@@ -1,3 +1,5 @@
+import { firstIndex } from './weaving-near';
+
 // A GCD locks its player out of other actions this long when it's instant; an oGCD, `WEAVE_MS` (weaving.ts).
 const GCD_LOCK_MS = 600;
 const WEAVE_MS = 700;
@@ -10,11 +12,13 @@ const SLACK_MS = 100;
 // `gcds` and `ogcds` are what takes the player's time (`Weaving`'s busy stretches).
 export function weavesFull(gcds: { from: number }[], ogcds: { from: number }[]): (t: number) => boolean {
   const starts = gcds.map((g) => g.from).sort((a, b) => a - b);
+  const weaves = ogcds.map((b) => b.from).sort((a, b) => a - b);
+  const first = (list: number[], passes: (x: number) => boolean) => firstIndex(list, passes);
   return (t) => {
-    const prev = starts.filter((s) => s <= t).at(-1);
-    const next = starts.find((s) => s > t);
+    const i = first(starts, (s) => s > t);
+    const [prev, next] = [starts[i - 1], starts[i]];
     if (prev === undefined || next === undefined) return false;
     const fits = Math.max(2, Math.floor((next - prev - GCD_LOCK_MS + SLACK_MS) / WEAVE_MS));
-    return ogcds.filter((b) => b.from >= prev && b.from < next).length >= fits;
+    return first(weaves, (f) => f >= next) - first(weaves, (f) => f >= prev) >= fits;
   };
 }

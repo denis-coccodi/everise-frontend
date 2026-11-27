@@ -4,7 +4,7 @@ import type { GcdCast, Occupied } from './weaving.model';
 import { landedGcds, rhythmFrom, rhythmOf, withRhythm } from './weaving-rhythm';
 import { RELEASED } from './heal-tools';
 import { withoutFollowUps } from './weaving-follow-ups';
-import { near, nearSorted } from './weaving-near';
+import { insertByAt, near, nearExact, nearSorted } from './weaving-near';
 import { weavesFull } from './weaving-slots';
 
 export { withoutFollowUps };
@@ -149,9 +149,9 @@ export class Weaving {
 
   // What the plan has players use before it plans the rest (an opener's
   // steps, its Afflatus Misery): they keep their place, as the played
-  // oGCDs do, a GCD the GCD of theirs it's at.
+  // oGCDs do, a GCD the GCD of theirs it's at. In time order (`with`).
   keep(uses: ({ player: number } & Occupied)[]) {
-    for (const { player, ...use } of uses) push(this.fixed, player, use);
+    for (const { player, ...use } of uses) this.fixed.set(player, insertByAt(this.fixed.get(player) ?? [], use));
   }
   // Those kept that the plan gives up again (Rhizomata it drops).
   release(uses: ({ player: number } & Occupied)[]) {
@@ -197,7 +197,7 @@ export class Weaving {
   // The latest moment from `from` to `at` the player can use an oGCD;
   // null when there's none.
   ogcdBefore(player: number, at: number, from: number, occupied: Occupied[]) {
-    const { busy, full } = this.all(player, this.with(player, occupied), from, at);
+    const { busy, full } = this.all(player, this.with(player, occupied, from, at), from, at);
     const candidates = [at, ...busy.map((b) => b.from - WEAVE_MS), ...busy.map((b) => b.to)];
     return pick(
       candidates.filter((t) => t >= from && t <= at && !full(t)).sort((a, b) => b - a),
@@ -209,7 +209,7 @@ export class Weaving {
   // The earliest moment from `at` to `to` the player can use an oGCD; null
   // when there's none.
   ogcdAfter(player: number, at: number, to: number, occupied: Occupied[]) {
-    const { busy, full } = this.all(player, this.with(player, occupied), at, to);
+    const { busy, full } = this.all(player, this.with(player, occupied, at, to), at, to);
     const candidates = [at, ...busy.map((b) => b.to)];
     return pick(
       candidates.filter((t) => t >= at && t <= to && !full(t)).sort((a, b) => a - b),
@@ -225,7 +225,7 @@ export class Weaving {
     return this.gcdMoment(
       player,
       castMs,
-      this.with(player, occupied),
+      this.with(player, occupied, from, at),
       (t) => t >= from && t <= at,
       (a, b) => b - a,
       at,
@@ -237,7 +237,7 @@ export class Weaving {
     return this.gcdMoment(
       player,
       castMs,
-      this.with(player, occupied),
+      this.with(player, occupied, at, to),
       (t) => t >= at && t <= to,
       (a, b) => a - b,
       at,
@@ -322,9 +322,9 @@ export class Weaving {
       ogcds,
     };
   }
-
-  private with(player: number, occupied: Occupied[]) {
-    return [...(this.fixed.get(player) ?? []), ...occupied];
+  // What the plan already has the player use near `lo` to `hi`: what it kept first (`keep`), then `occupied`.
+  private with(player: number, occupied: Occupied[], lo: number, hi: number) {
+    return [...nearExact(this.fixed.get(player) ?? [], lo, hi), ...near(occupied, lo, hi)];
   }
 
   private all(player: number, occupied: Occupied[], lo: number, hi: number) {
