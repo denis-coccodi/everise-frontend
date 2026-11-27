@@ -200,6 +200,21 @@ describe('planLog', () => {
     expect(log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.at)).toEqual([8_200]);
   });
 
+  it("has a movement oGCD of theirs in an opener step's weave slot give way too (a warrior's Onslaught)", () => {
+    const catalog = actionCatalog();
+    const blade = catalog.actions.find((a) => a.id === 9)!;
+    const description = 'Rushes target and delivers an attack with a potency of 150.';
+    catalog.actions.push({ ...blade, id: 7386, name: 'Onslaught', gcd: false, effects: [], description });
+    const timeline = pullTimeline();
+    // Onslaught at 7.7s, in the slot of the opener's Fight or Flight at 7.6s, and at 8.2s, the weave after it.
+    timeline.playerCasts = [7_700, 8_200].map((at) => ({ at, source: 2, target: null, action: 7386, castMs: null }));
+    const fof = { ...plan.uses[0], player: 2, action: 20, name: 'Fight or Flight', at: 7_600, opener: true };
+
+    const log = planLog({ ...plan, uses: [fof], replanned: [2] }, timeline, 2, catalog);
+
+    expect(log.filter((e) => e.kind === 'use' && e.kept).map((e) => e.at)).toEqual([8_200]);
+  });
+
   it("gives a replanned tank's spends the gauge pays for, and their spender in a stand-in's place where it does", () => {
     const catalog = actionCatalog();
     const gcd = (id: number, name: string, description: string) => ({
