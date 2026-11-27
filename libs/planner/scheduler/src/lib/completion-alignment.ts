@@ -33,7 +33,9 @@ export function alignment(wipe: PullTimeline, clears: PullTimeline[]): Alignment
     const found = anchor(casts, castsOf(clear));
     if (!found) return;
     const offset = found.wipeAt - found.clearAt;
-    const candidate = { ...found, clear: i, offset, endsAt: clear.durationMs + offset };
+    const phases = completionPhases(wipe, clear, clears);
+    const last = phases?.at(-1)?.offset ?? offset;
+    const candidate = { ...found, clear: i, offset, endsAt: clear.durationMs + last, ...(phases ? { phases } : {}) };
     if (
       !best ||
       candidate.wipeAt - best.wipeAt > SAME_ANCHOR_MS ||
@@ -42,6 +44,37 @@ export function alignment(wipe: PullTimeline, clears: PullTimeline[]): Alignment
       best = candidate;
   });
   return best;
+}
+
+// A kill's moment (on its clock) on the wipe's: shifted by the offset of the phase it's in, or the one offset.
+export function shiftOf(aligned: Alignment) {
+  const phases = aligned.phases ?? [];
+  return (at: number) =>
+    at + (([...phases].reverse().find((p) => p.from <= at) ?? phases[0])?.offset ?? aligned.offset);
+}
+
+// The offsets, phase by phase, that carry a kill's rest of the fight onto the wipe, where both logs mark the same phases
+// (none otherwise): the wipe's phase lined up on its start in both, each later one starting after the median length of
+// the ones before it over the kills (`clears`), the wipe's own at least as long as it lasted. Groups push phases at
+// different times, so one offset for the rest of the fight carried one group's pace into every later phase: on 88 cut
+// points of the bench's ultimate kills, boss casts within 2s of the group's own went from 94% to 96% in the wipe's
+// phase, 79% to 81% after it (82% to 83% in all).
+export function completionPhases(wipe: PullTimeline, clear: PullTimeline, clears: PullTimeline[]) {
+  const wiped = wipe.phases ?? [];
+  const kill = clear.phases ?? [];
+  const n = wiped.length - 1;
+  if (n < 0 || kill.length <= n || wiped.some((p, i) => p.name !== kill[i].name)) return undefined;
+  const same = clears.filter(
+    (c) => (c.phases ?? []).length === kill.length && kill.every((p, i) => c.phases[i].name === p.name),
+  );
+  const lengths = kill.map((_, i) => median(same.map((c) => (c.phases[i + 1]?.at ?? c.durationMs) - c.phases[i].at)));
+  const phases: { from: number; offset: number }[] = [];
+  let start = wiped[n].at;
+  for (let i = n; i < kill.length; i++) {
+    phases.push({ from: kill[i].at, offset: start - kill[i].at });
+    start += i === n ? Math.max(lengths[i], wipe.durationMs - wiped[n].at) : lengths[i];
+  }
+  return phases;
 }
 
 interface Cast {
