@@ -1,5 +1,6 @@
 import type { ActionCatalog, CatalogAction, PullTimeline } from '@everise/core/api-types';
 import type { Plan, PlannedDeath, PlannedUse } from './plan.model';
+import { mpWithDeaths } from './death-mp';
 import { PULSE_OF_LIFE, gaugeAt, limitBreakLevel, withHealerBarsBack } from './limit-break-gauge';
 
 // The raise of each job that has one.
@@ -71,10 +72,18 @@ export function withDeaths(plan: Plan, timeline: PullTimeline, catalog: ActionCa
     }
   }
   if (!deaths.length) return plan;
+  const { mp, mpShort } = mpWithDeaths(
+    plan.mp,
+    plan.mpShort,
+    deaths,
+    new Map(timeline.players.map((p) => [p.id, p.maxMp])),
+  );
   return {
     ...plan,
     deaths,
     ...(failing.length ? { failing } : {}),
+    ...(mp ? { mp } : {}),
+    ...(mpShort ? { mpShort } : {}),
     ...afterDeaths(plan, timeline, deaths, raises.uses, mechanics),
   };
 }
