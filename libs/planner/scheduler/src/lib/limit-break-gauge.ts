@@ -18,6 +18,15 @@ export const HEALER_LIMIT_BREAKS = new Set([206, 207, 208]);
 export const PULSE_OF_LIFE = 208;
 // The tanks' (kept where the group used them).
 const TANKS = new Set([197, 198, 199, 4240, 4241, 17105]);
+// Each tank job's level 3 one (Last Bastion, Land Waker, Dark Force, Gunmetal Soul); the lower two are every tank's.
+const TANK_LEVEL_3: Record<string, number> = { PLD: 199, WAR: 4240, DRK: 4241, GNB: 17105 };
+
+// A tank Limit Break of another group's kill as a tank of this group (`job`) casts it: its own job's level 3, the same
+// at the lower levels; undefined for one that's no tank's, or a stand-in who's no tank.
+export function tankLimitBreakAs(action: number, job: string | null | undefined): number | undefined {
+  if (!TANKS.has(action) || !job || !(job in TANK_LEVEL_3)) return undefined;
+  return limitBreakLevel(action) === 3 ? TANK_LEVEL_3[job] : action;
+}
 // A bar of gauge, as FFLogs counts it.
 const BAR = 10_000;
 
