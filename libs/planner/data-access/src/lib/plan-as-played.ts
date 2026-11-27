@@ -77,8 +77,9 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, f
     kept,
     ...(gcd(c) ? { gcd: true } : {}),
   });
-  // The plan's opener has its own oGCD steps: their oGCD attacks in it give way to one of the same (an Energy Drain)
-  // or in its slot; the rest stay (a paladin's Imperator, which their Confiteor needs).
+  // The plan's opener has its own oGCD steps: their oGCDs in it give way to one of the same (an Energy Drain) or in its
+  // slot, an attack or not (a warrior's Onslaught, where the opener's Inner Release went: three in one gap); the rest
+  // stay (a paladin's Imperator, which their Confiteor needs).
   const openerSteps = mine.filter((u) => u.opener);
   const openerEnd = Math.max(-Infinity, ...openerSteps.map((u) => u.at + SAME_GCD_MS));
   const givesWay = (c: { action: number; at: number }) =>
@@ -158,7 +159,7 @@ export function asPlayed(plan: Plan, timeline: PullTimeline, playerId: number, f
       // A GCD heal of theirs the plan has no use for: damage there instead.
       if (c.at <= openerEnd || slotTaken(c.at) || !filler) return;
       out.push({ ...entry(c, filler, 'Damage'), attack: true, instead: action.name });
-    } else if (c.action !== EUKRASIA && !action?.effects.length && keptBuff(plan, mine, playerId, c)) {
+    } else if (c.action !== EUKRASIA && !action?.effects.length && !givesWay(c) && keptBuff(plan, mine, playerId, c)) {
       out.push(entry(c, action, whatItDoes(c.action, action)));
     }
   });
