@@ -104,7 +104,7 @@ describe('playedDeaths', () => {
       [6, 'missedShare', [7, 8]],
     ]);
     expect(deaths[0].reason).toBe(
-      "Twin Stack is shared by the whole party, but Player 7 (NIN) and Player 8 (NIN) weren't in it, so the 6 in it took more.",
+      "Twin Stack (the 2nd time this pull, at 1:00) is shared by the whole party, but Player 7 (NIN) and Player 8 (NIN) weren't in it, so the 6 in it took more.",
     );
   });
 
@@ -136,7 +136,9 @@ describe('playedDeaths', () => {
       deaths: [{ at: 31_000, player: 5, action: RAIDWIDE, source: 13 }],
     });
     expect([death.cause, death.blame]).toEqual(['earlierMistake', [5]]);
-    expect(death.reason).toContain('Vulnerability Up they got from Puddle at 0:25');
+    expect(death.reason).toContain(
+      'Big Raidwide (the 3rd time this pull, at 0:30) was lethal because of the Vulnerability Up they got from Puddle (at 0:25), an earlier mistake.',
+    );
   });
 
   it('blames whoever usually puts up the mitigation that was missing', () => {
@@ -148,7 +150,7 @@ describe('playedDeaths', () => {
     });
     expect([death.cause, death.blame]).toEqual(['shortfall', [1]]);
     expect(death.reason).toBe(
-      "A normal hit of Big Raidwide, but Reprisal wasn't up, as it usually is (from Player 1 (PLD)).",
+      "A normal hit of Big Raidwide (the 3rd time this pull, at 0:30), but Reprisal wasn't up, as it usually is (from Player 1 (PLD)).",
     );
   });
 
@@ -163,7 +165,9 @@ describe('playedDeaths', () => {
       deaths: [{ at: 21_000, player: 6, action: RAIDWIDE, source: 13 }],
     });
     expect([death.cause, death.blame]).toEqual(['shortfall', [3, 4]]);
-    expect(death.reason).toBe('They were at 30% HP when Big Raidwide hit: not healed up in time.');
+    expect(death.reason).toBe(
+      'They were at 30% HP when Big Raidwide (the 2nd time this pull, at 0:20) hit: not healed up in time.',
+    );
   });
 
   it("names a tower's usual partner when one soaked it alone", () => {
@@ -183,7 +187,7 @@ describe('playedDeaths', () => {
     });
     expect([death.cause, death.blame]).toEqual(['missedShare', [6]]);
     expect(death.reason).toBe(
-      'Puddle is taken by 2, but only Player 5 (NIN) was in it, so they took more. Player 6 (NIN) usually takes it with them.',
+      'Puddle (the 4th time this pull, at 1:10) is taken by 2, but only Player 5 (NIN) was in it, so they took more. Player 6 (NIN) usually takes it with them.',
     );
   });
 
@@ -220,7 +224,7 @@ describe('playedDeaths', () => {
       [6, 'missedShare', [7, 8]],
     ]);
     expect(deaths[0].reason).toBe(
-      "Explosion only comes when something was missed (it's in none of the clears): Player 7 (NIN) and Player 8 (NIN) are usually in Puddle at 1:00, and weren't.",
+      "Explosion (at 1:06) only comes when something was missed (it's in none of the clears): Player 7 (NIN) and Player 8 (NIN) are usually in Puddle (the 3rd time this pull, at 1:00), and weren't.",
     );
   });
 
