@@ -1,0 +1,41 @@
+<section aria-labelledby="planner-deaths-heading">
+  <h3 id="planner-deaths-heading" class="fold-heading">
+    <button
+      type="button"
+      class="disclosure"
+      aria-controls="planner-deaths"
+      [attr.aria-expanded]="open()"
+      (click)="toggle()"
+    >
+      Deaths in this pull ({{ deaths().length }})
+    </button>
+  </h3>
+  <div id="planner-deaths">
+    @if (open()) {
+      @if (deaths().length) {
+        <p class="note">
+          As it was played, from the log: who died to what, why, and who is to blame. Deaths after a wipe was under way
+          are blamed like the one that started it.
+        </p>
+        @if (tally()) {
+          <p class="tally"><span class="label">Blamed</span> {{ tally() }}</p>
+        }
+        <ol class="deaths">
+          @for (d of deaths(); track $index) {
+            <li class="death">
+              <p class="head">
+                <span class="time">{{ clock(d.at) }}</span>
+                <span class="who">{{ name(d.player) }}</span>
+                <span class="cause">{{ causes[d.cause] }}</span>
+              </p>
+              <p class="reason">{{ d.reason }}</p>
+              <p class="blame"><span class="label">To blame</span> {{ blameOf(d) }}</p>
+            </li>
+          }
+        </ol>
+      } @else {
+        <p class="note">Nobody died in this pull.</p>
+      }
+    }
+  </div>
+</section>

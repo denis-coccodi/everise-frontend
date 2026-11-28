@@ -29,7 +29,9 @@ import {
   TabsComponent,
   TooltipComponent,
 } from '@everise/ui/components';
+import { DeathsComponent } from '../deaths/deaths.component';
 import { EditListComponent } from '../edit-list/edit-list.component';
+import { readFold, saveFold } from '../fold-state';
 import { HpChartComponent } from '../hp-chart/hp-chart.component';
 import { PlanFormComponent } from '../plan-form/plan-form.component';
 import { PlanViewComponent } from '../plan-view/plan-view.component';
@@ -43,10 +45,11 @@ import { PullCompareComponent } from '../pull-compare/pull-compare.component';
 @Component({
   selector: 'cdt-planner-pull-view',
   templateUrl: './pull-view.component.html',
-  styleUrl: './pull-view.component.scss',
+  styleUrls: ['../fold.scss', './pull-view.component.scss'],
   imports: [
     ButtonComponent,
     CheckboxComponent,
+    DeathsComponent,
     EditListComponent,
     HpChartComponent,
     MessageComponent,
@@ -86,7 +89,7 @@ export class PullViewComponent {
   protected readonly view = signal<'played' | 'plan'>('played');
   // Which of the timeline and the HP chart are open: each folds away, and
   // stays as it was left.
-  protected readonly open = signal({ timeline: readOpen('timeline'), hp: readOpen('hp') });
+  protected readonly open = signal({ timeline: readFold(FOLD_KEYS.timeline), hp: readFold(FOLD_KEYS.hp) });
   private readonly compare = viewChild(PullCompareComponent);
   private readonly injector = inject(Injector);
 
@@ -179,22 +182,10 @@ export class PullViewComponent {
 
   private setOpen(part: Fold, open: boolean) {
     this.open.update((o) => ({ ...o, [part]: open }));
-    try {
-      localStorage.setItem(FOLD_KEYS[part], open ? 'open' : 'closed');
-    } catch {
-      // Not kept (a private window): it's open again next time.
-    }
+    saveFold(FOLD_KEYS[part], open);
   }
 }
 
 type Fold = 'timeline' | 'hp';
 // Where the browser keeps whether each was left open.
 const FOLD_KEYS: Record<Fold, string> = { timeline: 'planner.timeline', hp: 'planner.hpChart' };
-
-function readOpen(part: Fold) {
-  try {
-    return localStorage.getItem(FOLD_KEYS[part]) !== 'closed';
-  } catch {
-    return true;
-  }
-}
