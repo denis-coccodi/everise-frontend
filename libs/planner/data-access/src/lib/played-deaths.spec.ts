@@ -6,6 +6,7 @@ import { playedDeaths } from './played-deaths';
 const STACK = 900;
 const PUDDLE = 901;
 const RAIDWIDE = 902;
+const EXPLOSION = 903;
 const VULNERABILITY = 1789;
 const REPRISAL = 1193;
 const MAX_HP = 200_000;
@@ -57,6 +58,7 @@ function timeline(extra: Partial<PullTimeline> = {}): PullTimeline {
       { id: STACK, name: 'Twin Stack' },
       { id: PUDDLE, name: 'Puddle' },
       { id: RAIDWIDE, name: 'Big Raidwide' },
+      { id: EXPLOSION, name: 'Explosion' },
     ],
     statuses: [
       { id: VULNERABILITY, name: 'Vulnerability Up' },
@@ -182,6 +184,43 @@ describe('playedDeaths', () => {
     expect([death.cause, death.blame]).toEqual(['missedShare', [6]]);
     expect(death.reason).toBe(
       'Puddle is taken by 2, but only Player 5 (NIN) was in it, so they took more. Player 6 (NIN) usually takes it with them.',
+    );
+  });
+
+  it('blames the players who skipped a tower, not the ones its punishment killed', () => {
+    const base = timeline();
+    // Towers for the six non-tanks, twice, then 7 and 8 skip the third set,
+    // and an explosion no kill has kills four who soaked theirs.
+    const set = (at: number, players: number[]) =>
+      players.map((p, i) => hit(at + i * 300, p, PUDDLE, { unmitigated: 50_000 }));
+    const explosion = [3, 4, 5, 6].map((p) =>
+      hit(66_000, p, EXPLOSION, { unmitigated: 900_000, amount: 900_000, overkill: 760_000 }),
+    );
+    const kill = { ...base, pullId: 9, damage: [...set(40_000, [3, 4, 5, 6, 7, 8])] };
+    const deaths = playedDeaths(
+      {
+        ...base,
+        damage: [
+          ...base.damage,
+          ...set(40_000, [3, 4, 5, 6, 7, 8]),
+          ...set(50_000, [3, 4, 5, 6, 7, 8]),
+          ...set(60_000, [3, 4, 5, 6]),
+          ...explosion,
+        ],
+        deaths: [3, 4, 5, 6].map((player) => ({ at: 67_000, player, action: EXPLOSION, source: 13 })),
+        clears: [kill],
+        clearsFrom: 'kills',
+      },
+      actionCatalog(),
+    );
+    expect(deaths.map((d) => [d.player, d.cause, d.blame])).toEqual([
+      [3, 'missedShare', [7, 8]],
+      [4, 'missedShare', [7, 8]],
+      [5, 'missedShare', [7, 8]],
+      [6, 'missedShare', [7, 8]],
+    ]);
+    expect(deaths[0].reason).toBe(
+      "Explosion only comes when something was missed (it's in none of the clears): Player 7 (NIN) and Player 8 (NIN) are usually in Puddle at 1:00, and weren't.",
     );
   });
 
