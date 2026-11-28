@@ -2,6 +2,7 @@ import type { ActionCatalog, TimelineDeath, TimelineHit } from '@everise/core/ap
 import { mechanicsOf, type ReferencedTimeline } from '@everise/planner/scheduler';
 import {
   aliveAt,
+  missedBefore,
   missingMitigations,
   unmitigated,
   usualPartners,
@@ -95,6 +96,19 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
         cause: 'wipe',
         blame: [],
         reason: `${attack} is a raidwide nobody survives, likely an enrage.`,
+      };
+    }
+
+    // A punishment for a missed mechanic (an unsoaked tower): the players
+    // missing from that mechanic are to blame, not the ones it killed.
+    const punished = missedBefore(played, attack, hit.at);
+    if (punished) {
+      const one = punished.missing.length === 1;
+      return {
+        ...base,
+        cause: 'missedShare',
+        blame: punished.missing,
+        reason: `${attack} only comes when something was missed (it's in none of the clears): ${list(punished.missing)} ${one ? 'is' : 'are'} usually in ${punished.attack} at ${pullClock(punished.at)}, and ${one ? "wasn't" : "weren't"}.`,
       };
     }
 

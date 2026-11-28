@@ -16,6 +16,11 @@ const USUALLY_UP = 0.6;
 // A player is someone's usual partner for an attack when hit with them by
 // at least this share of its uses.
 const USUALLY_TOGETHER = 0.6;
+// Hits of one attack less than this apart are one set of it (a set of
+// towers landing one after the other).
+const SET_GAP_MS = 2_500;
+// A punishment comes this soon after the mechanic that was missed.
+const PUNISHED_WITHIN_MS = 12_000;
 
 const VULNERABILITY = /vulnerability up/i;
 
@@ -92,6 +97,63 @@ export function usualPartners(
     .filter(([, n]) => shared > 0 && n / shared >= USUALLY_TOGETHER)
     .sort((a, b) => b[1] - a[1])
     .map(([id]) => id);
+}
+
+// An attack that only comes when something went wrong (Enuo's Big Burst, for
+// an unsoaked tower): in none of the other groups' kills loaded, yet coming
+// right after a shared mechanic some of its usual players were missing
+// from. Those players are to blame: the ones the punishment kills are often
+// the ones who did their part. Null when it isn't one, or nothing says who.
+export function missedBefore(
+  timeline: ReferencedTimeline,
+  attack: string,
+  at: number,
+): { attack: string; at: number; missing: number[] } | null {
+  const kills = timeline.clearsFrom === 'kills' ? (timeline.clears ?? []) : [];
+  if (!kills.length) return null;
+  const inKills = kills.some((k) => {
+    const names = new Map(k.actions.map((a) => [a.id, a.name]));
+    return k.damage.some((h) => names.get(h.action) === attack);
+  });
+  if (inKills) return null;
+  const names = new Map(timeline.actions.map((a) => [a.id, a.name]));
+  const before = timeline.damage
+    .filter((h) => !h.tick && h.at < at - SAME_USE_MS && h.at >= at - PUNISHED_WITHIN_MS)
+    .map((h) => names.get(h.action))
+    .filter((name): name is string => !!name && name !== attack);
+  // The mechanics just before it, latest first.
+  for (const name of [...new Set(before)].reverse()) {
+    const sets = setsOf(timeline, name);
+    const last = sets.filter((s) => s.at < at).at(-1);
+    const others = sets.filter((s) => s !== last);
+    if (!last || others.length < 2) continue;
+    const tally = new Map<number, number>();
+    for (const s of others) for (const p of s.players) tally.set(p, (tally.get(p) ?? 0) + 1);
+    const missing = [...tally]
+      .filter(
+        ([p, n]) => n / others.length >= USUALLY_TOGETHER && !last.players.has(p) && aliveAt(timeline, p, last.at),
+      )
+      .map(([p]) => p);
+    if (missing.length) return { attack: name, at: last.at, missing };
+  }
+  return null;
+}
+
+// The sets of an attack in the pull: its hits with less than `SET_GAP_MS`
+// between one and the next, and who each hit.
+function setsOf(timeline: PullTimeline, attack: string): { at: number; players: Set<number> }[] {
+  const names = new Map(timeline.actions.map((a) => [a.id, a.name]));
+  const sets: { at: number; end: number; players: Set<number> }[] = [];
+  for (const hit of timeline.damage
+    .filter((h) => !h.tick && names.get(h.action) === attack)
+    .sort((a, b) => a.at - b.at)) {
+    const set = sets.at(-1);
+    if (set && hit.at - set.end < SET_GAP_MS) {
+      set.end = hit.at;
+      set.players.add(hit.target);
+    } else sets.push({ at: hit.at, end: hit.at, players: new Set([hit.target]) });
+  }
+  return sets;
 }
 
 export function unmitigated(hit: TimelineHit): number {
