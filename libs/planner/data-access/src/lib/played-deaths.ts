@@ -9,6 +9,7 @@ import {
   usualTargets,
   vulnerabilityBefore,
 } from './played-deaths-evidence';
+import { mechanicLabel } from './played-deaths-label';
 import type { PlayedDeath } from './played-deaths.model';
 import { pullClock } from './pull-time';
 
@@ -67,8 +68,10 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
           : "The log doesn't say what killed them.";
       return { player, at, killedBy, cause: 'unknown', blame: [], reason };
     }
-    const attack = actionName.get(hit.action) ?? 'an unknown attack';
-    const base = { player, at, killedBy: attack };
+    const name = actionName.get(hit.action) ?? 'an unknown attack';
+    const base = { player, at, killedBy: name };
+    // In every reason: which time in the pull, and when.
+    const attack = mechanicLabel(played, name, hit.at);
     const mechanic = mechanics.find(
       (m) =>
         m.action === hit.action &&
@@ -101,25 +104,25 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
 
     // A punishment for a missed mechanic (an unsoaked tower): the players
     // missing from that mechanic are to blame, not the ones it killed.
-    const punished = missedBefore(played, attack, hit.at);
+    const punished = missedBefore(played, name, hit.at);
     if (punished) {
       const one = punished.missing.length === 1;
       return {
         ...base,
         cause: 'missedShare',
         blame: punished.missing,
-        reason: `${attack} only comes when something was missed (it's in none of the clears): ${list(punished.missing)} ${one ? 'is' : 'are'} usually in ${punished.attack} at ${pullClock(punished.at)}, and ${one ? "wasn't" : "weren't"}.`,
+        reason: `${attack} only comes when something was missed (it's in none of the clears): ${list(punished.missing)} ${one ? 'is' : 'are'} usually in ${mechanicLabel(played, punished.attack, punished.at)}, and ${one ? "wasn't" : "weren't"}.`,
       };
     }
 
     // A hit the party shares, with players missing: the ones in it took more.
     const targets = new Set(
       played.damage
-        .filter((h) => !h.tick && actionName.get(h.action) === attack && Math.abs(h.at - hit.at) <= SAME_USE_MS)
+        .filter((h) => !h.tick && actionName.get(h.action) === name && Math.abs(h.at - hit.at) <= SAME_USE_MS)
         .map((h) => h.target),
     );
     const alive = aliveIds(hit.at - SAME_USE_MS);
-    const usualUse = usualTargets(played, attack, hit.at);
+    const usualUse = usualTargets(played, name, hit.at);
     const usual = usualUse?.count ?? 0;
     const grew = !!usualUse && unmitigated(hit) >= SHARED_GROWTH * usualUse.damage;
     if (usual >= 2 && grew && targets.size < Math.min(usual, alive.length)) {
@@ -134,7 +137,7 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
       }
       // Who usually takes it with the ones in it (a tower's partner).
       const inIt = [...targets];
-      const partners = usualPartners(played, attack, inIt, hit.at)
+      const partners = usualPartners(played, name, inIt, hit.at)
         .filter((p) => alive.includes(p) && !targets.has(p))
         .slice(0, usual - targets.size);
       if (partners.length) {
@@ -171,7 +174,7 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
         ...base,
         cause: 'earlierMistake',
         blame: [player],
-        reason: `${attack} was lethal because of the Vulnerability Up they got from ${earlier} at ${pullClock(vulnerability.from.at)}, an earlier mistake.`,
+        reason: `${attack} was lethal because of the Vulnerability Up they got from ${earlier && mechanicLabel(played, earlier, vulnerability.from.at)}, an earlier mistake.`,
       };
     }
 
@@ -205,7 +208,7 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
         ...base,
         cause: 'shortfall',
         blame: tanks,
-        reason: `${attack} hit while they still had Vulnerability Up from ${earlier}: likely a missed tank swap.`,
+        reason: `${attack} hit while they still had Vulnerability Up from ${earlier && mechanicLabel(played, earlier, vulnerability.from.at)}: likely a missed tank swap.`,
       };
     }
     if (mechanic?.kind === 'tankbuster') {
@@ -213,14 +216,14 @@ export function playedDeaths(timeline: ReferencedTimeline, catalog: ActionCatalo
         ...base,
         cause: 'shortfall',
         blame: [player],
-        reason: `${attack} (${share(unmitigated(hit))}) was more than their own mitigation covered.`,
+        reason: `${attack} hit them for ${share(unmitigated(hit))}: more than their own mitigation covered.`,
       };
     }
     return {
       ...base,
       cause: 'shortfall',
       blame: [],
-      reason: `${attack} (${share(unmitigated(hit))}) was too much for them, with no mitigation or HP clearly missing.`,
+      reason: `${attack} hit them for ${share(unmitigated(hit))}: too much for them, with no mitigation or HP clearly missing.`,
     };
   };
 
