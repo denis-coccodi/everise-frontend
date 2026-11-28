@@ -10,6 +10,8 @@ export { planLegality } from './lib/plan-legality';
 export { withLegalCasts } from './lib/plan-legal-casts';
 export type { ImpossibleCast, LegalityCast, LegalityRule, PlanLegality } from './lib/plan-legality.model';
 export { deathsText } from './lib/plan-deaths-text';
+export { playedDeaths } from './lib/played-deaths';
+export type { DeathCause, PlayedDeath } from './lib/played-deaths.model';
 export { hpCurves, lowest, lowestPerBucket, shareAt } from './lib/hp-curves';
 export type { HpCurve, HpMark, HpPoint } from './lib/hp-curves.model';
 export { PlanStore } from './lib/plan.store';

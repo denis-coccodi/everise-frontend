@@ -7,5 +7,6 @@ The Fight Planner page (`/planner`). Guests plan too, within the FFLogs lookups 
 - `cdt-planner-pull-view`: the pull picked, a tab per player, as played and as planned on one timeline (side by side on laptops and up; on narrower screens one at a time, from the view tabs):
   - `cdt-planner-pull-compare`: the timeline, a table with a row per moment (`compareLog`): what happened then as played (`cdt-planner-played-entry`: a hit they took and what covered it, a heal or mitigation they used, their death) beside what the plan has then (`cdt-planner-plan-entry`: what to use, and each hit with the plan's mitigations and shields up, what the shields absorb, the HP it lands on and what it leaves, against how it went);
   - `cdt-planner-plan-view`: the HP margin, planning the party's mitigations, shields and heals (`PlanStore`, which runs the scheduler in the browser), and how the plan went for the party and for the player.
+  - `cdt-planner-deaths`: the pull's deaths as played, before any replanning (`playedDeaths`): when, to what, why, and who is to blame, with a count of who was blamed most. It folds away, as the timeline and the HP chart do.
 
-Both kinds of entry share `log-entries.scss`.
+Both kinds of entry share `log-entries.scss`; the sections that fold away share `fold.scss` and `fold-state.ts`.

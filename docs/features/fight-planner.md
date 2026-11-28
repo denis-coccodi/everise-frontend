@@ -13,7 +13,7 @@ The fight planner (`/planner`, behind the `planner` flag) plans a party's heals 
 | Library                   | What it holds                                                                                                |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `planner/feature-planner` | The page: report and pull pickers, the per-player tabs, the plan's chart and rotation, edits, the XLS export |
-| `planner/data-access`     | Stores and API services; the plan as played (`plan-as-played.ts`)                                            |
+| `planner/data-access`     | Stores and API services; the plan as played (`plan-as-played.ts`); why each player died (`played-deaths.ts`) |
 | `planner/scheduler`       | The scheduler itself, loaded only on demand, so it stays out of the page's bundle                            |
 
 Each library's `README.md` describes its files in detail. The scheduler's is the reference for how a plan is made.
